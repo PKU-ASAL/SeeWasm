@@ -1,18 +1,17 @@
-z3
 # Explorer
 requests>=2.18.4
 
 # CFG graphical view
-graphviz>=0.8.3
+graphviz>=0.9
 
 # bytecode analytics
-matplotlib>=2.2.2
-numpy>=1.15.0
+matplotlib>=2.1.1
+numpy>=1.14.2
 
 # ETH
 # ethereum>=2.3.0
-z3-solver>=4.5
+z3-solver==4.8.5
 
 # WASM / EOS
-wasm>=1.1
+wasm==1.2
 
