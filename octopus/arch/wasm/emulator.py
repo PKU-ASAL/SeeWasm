@@ -234,7 +234,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         else:
             logging.debug('[+] congratulations! reach the outermost function')
 
-    def emulate_functions(self, call_depth=0, list_functions_name=None, state=None, depth=0):
+    def emulate_functions(self, depth, call_depth=0, list_functions_name=None, state=None):
         self.start_time = datetime.now()
 
         # reset key_import_func_visited
@@ -279,7 +279,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return self.result, self.index2state
 
-    def emulate_one_function(self, call_depth, function_name, state=None, depth=0, ret_num=None, basicblock_path=None):
+    def emulate_one_function(self, call_depth, function_name, depth, state=None, ret_num=None, basicblock_path=None):
         if ret_num is None:
             ret_num = []
         if function_name not in [x.name for x in self.cfg.functions]:

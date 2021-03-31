@@ -158,20 +158,18 @@ def main():
             else:
                 octo_graph.view(simplify=args.simplify)
 
+    # import necessary library
+    from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
-        from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
-
-        emul = WasmSSAEmulatorEngine(
+        wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, args.random, args.timeout, args.depth)
         # run the emulator for SSA
         if args.onlyfunc:
-            emul.emulate_functions(list_functions_name=args.onlyfunc)
+            wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
         # try to emulate main by default
         else:
-            emul.emulate_functions()
-
-    if args.lasers:
-        from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
+            wasmVM.emulate_functions(args.depth)
+    elif args.lasers:
         # print(args.file)
         if not args.quick:
             wasmVM = WasmSSAEmulatorEngine(
@@ -187,8 +185,7 @@ def main():
             # if the only laser is not the fake_eos, jump over the apply because of the static strategy
             sym_exe, index2state = None, None
             if args.lasers == ['fake_eos'] or args.lasers == ['auth_check']:
-                sym_exe, index2state = wasmVM.emulate_functions(
-                    list_functions_name=['apply'])
+                sym_exe, index2state = wasmVM.emulate_functions(args.depth, list_functions_name=['apply'])
 
             logging.info("module: %s" % args.lasers)
             for laser in args.lasers:
