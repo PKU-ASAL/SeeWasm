@@ -39,6 +39,14 @@ def main():
                         type=argparse.FileType('r'),
                         metavar='BYTECODE')
 
+    # input_file_type = parser.add_argument_group('Input file type')
+    # input_file_type.add_argument('--file_type',
+    #                              default='eos',
+    #                              const='eos',
+    #                              nargs='?',
+    #                              choices=['eos', 'c', 'golang'],
+    #                              help='The file type of input file, e.g., eos, golang, c')
+
     features = parser.add_argument_group('Features')
     features.add_argument('-d', '--disassemble',
                           action='store_true',
@@ -63,6 +71,7 @@ def main():
                           help='how many branches will be randomly selected in internal call instruction')
     features.add_argument('--depth',
                           type=check_not_neg,
+                          default=2,
                           help='how many layers of internal call')
     features.add_argument('--timeout',
                           type=check_not_neg,
@@ -197,6 +206,15 @@ def main():
 
         # visualization of the cfg with SSA
         # emul.cfg.visualize(ssa=False)
+
+    # # if we try to analyze the C file
+    # if args.file_type == 'c':
+    #     from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
+    #     wasmVM = WasmSSAEmulatorEngine(
+    #         octo_bytecode, args.random, args.timeout, args.depth)
+    #     sym_exe, index2state = None, None
+    #     sym_exe, index2state = wasmVM.emulate_functions(
+    #         list_functions_name=['main'])
 
     if not args.disassemble and not args.symbolic \
             and not args.cfg and not args.call and not args.lasers \

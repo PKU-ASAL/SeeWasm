@@ -80,14 +80,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # constraint flag stack
         self.constraints_flag_stack = list()
         # key import function which are used for skipping function in sidepath
-        self.sidepath_key_import_functions = ['tapos_block_num', 'tapos_block_prefix', 'send_inline', 'send_deferred']
+        self.sidepath_key_import_functions = [
+            'tapos_block_num', 'tapos_block_prefix', 'send_inline', 'send_deferred']
         # key import function which are used in detector
-        self.key_import_functions = ['db_get_i64', 'db_find_i64', 'db_remove_i64', 'db_update_i64', 'db_idx64_remove', 'db_idx64_store', 
-                                    'tapos_block_num', 'tapos_block_prefix', 'sha256', 'send_inline', 'send_deferred', 'require_auth']
+        self.key_import_functions = ['db_get_i64', 'db_find_i64', 'db_remove_i64', 'db_update_i64', 'db_idx64_remove', 'db_idx64_store',
+                                     'tapos_block_num', 'tapos_block_prefix', 'sha256', 'send_inline', 'send_deferred', 'require_auth']
         # quick means get result will fire laser immediately
-        self.quick = {'fake_eos': False, 'fake_receipt': False, 'random': False, 'roll_back': False}
+        self.quick = {'fake_eos': False, 'fake_receipt': False,
+                      'random': False, 'roll_back': False}
         if quick:
-            assert len(lasers) == 1, "lasers name should always be with self.quick option"
+            assert len(
+                lasers) == 1, "lasers name should always be with self.quick option"
             self.quick[lasers[0]] = True
             assert len(
                 self.quick) == 4, f"there are only 4 detectors supported, do not add your own detector: {lasers[0]}"
@@ -108,7 +111,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='little'),
                                                                        size * 8)
             else:
-                self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
+                self.data_section[(offset, offset + size)] = BitVecVal(
+                    int.from_bytes(data, byteorder='big'), size * 8)
         # exit()
 
     def init_state_before_call(self, param_str, return_str, ret_num, state):
@@ -137,9 +141,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
                 if local == 'i32':
-                    new_state.local_var[i] = (BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
+                    new_state.local_var[i] = (
+                        BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
                 elif local == 'i64':
-                    new_state.local_var[i] = (BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
+                    new_state.local_var[i] = (
+                        BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
                 elif local == 'f32':
                     new_state.local_var[i] = (
                         FP(self.current_function.name + '_loc_' + str(i) + '_f32', Float32()))
@@ -165,9 +171,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         #     self.start_time = datetime.now()
 
         # the following two are combined
-        self.quick = {'fake_eos': False, 'fake_receipt': False, 'random': False, 'roll_back': False}
+        self.quick = {'fake_eos': False, 'fake_receipt': False,
+                      'random': False, 'roll_back': False}
         if quick:
-            assert len(lasers) == 1, "lasers name should always be with self.quick option"
+            assert len(
+                lasers) == 1, "lasers name should always be with self.quick option"
             self.quick[lasers[0]] = True
             assert len(
                 self.quick) == 4, f"there are only 4 detectors supported, do not add your own detector: {lasers[0]}"
@@ -218,8 +226,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for bb in self.current_f_basicblocks:
                 for instr in bb.instructions:
                     self.basicblock_per_instr[instr.offset] = bb
-            logging.debug('[+] set from function done, current function name: %s' % (self.current_function.name))
-            logging.debug('[+] now, the constraints flag is: %s' % (self.current_function.constraint_flags))
+            logging.debug('[+] set from function done, current function name: %s' %
+                          (self.current_function.name))
+            logging.debug('[+] now, the constraints flag is: %s' %
+                          (self.current_function.constraint_flags))
             logging.debug('')
         else:
             logging.debug('[+] congratulations! reach the outermost function')
@@ -256,7 +266,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         param_str, return_str = func_info[1], func_info[2]
                         break
 
-                state, ret_num = self.init_state_before_call(param_str, return_str, [], state)
+                state, ret_num = self.init_state_before_call(
+                    param_str, return_str, [], state)
 
                 logging.warning(
                     "=============================Function Name: %s=============================\n" % func_name)
@@ -269,7 +280,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return self.result, self.index2state
 
     def emulate_one_function(self, call_depth, function_name, state=None, depth=0, ret_num=None, basicblock_path=None):
-
         if ret_num is None:
             ret_num = []
         if function_name not in [x.name for x in self.cfg.functions]:
@@ -315,9 +325,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             if target_func_locals and function_name != 'apply':
                 for i, local in enumerate(target_func_locals.split(' ')):
                     if local == 'i32':
-                        state.local_var[i] = (BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
+                        state.local_var[i] = (
+                            BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
                     elif local == 'i64':
-                        state.local_var[i] = (BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
+                        state.local_var[i] = (
+                            BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
                     elif local == 'f32':
                         state.local_var[i] = (
                             FP(self.current_function.name + '_loc_' + str(i) + '_f32', Float32()))
@@ -337,7 +349,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             self.emulate(state=state, depth=depth, ret_num=ret_num, call_depth=call_depth,
                          basicblock_path=basicblock_path)
         else:
-            self.emulate(state=state, depth=depth, ret_num=ret_num, call_depth=call_depth)
+            self.emulate(state=state, depth=depth,
+                         ret_num=ret_num, call_depth=call_depth)
         return copy.deepcopy(self.current_function.return_value_and_state_list)
 
     def construct_edges_with_condition(self, bb_path):
@@ -377,9 +390,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # init state.local_var
         for i, local in enumerate(target_func_locals.split(' ')):
             if local == 'i32':
-                state.local_var[i] = (BitVec(func_path[0] + '_loc_' + str(i) + '_i32', 32))
+                state.local_var[i] = (
+                    BitVec(func_path[0] + '_loc_' + str(i) + '_i32', 32))
             elif local == 'i64':
-                state.local_var[i] = (BitVec(func_path[0] + '_loc_' + str(i) + '_i64', 64))
+                state.local_var[i] = (
+                    BitVec(func_path[0] + '_loc_' + str(i) + '_i64', 64))
             elif local == 'f32':
                 state.local_var[i] = (
                     FP(func_path[0] + '_loc_' + str(i) + '_f32', Float32()))
@@ -423,7 +438,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 for intr in bb.instructions:
                     self.basicblock_per_instr[intr.offset] = bb
 
-
             # a func may contain several basic blocks paths
             for basicblock_path in funcs_blocks_dict[func]:
                 # if the running time exceeds the setting timeout minutes
@@ -437,7 +451,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 i, j = 0, 0
                 while j < len(self.current_function.basicblocks) and i < len(basicblock_path):
                     if bb_index(basicblock_path[i]) == bb_index(self.current_function.basicblocks[j].name):
-                        instructions_sequence.extend(self.current_function.basicblocks[j].instructions)
+                        instructions_sequence.extend(
+                            self.current_function.basicblocks[j].instructions)
                         # record current constraint, because in guidance emulation, there is no diverge
                         instructions_sequence.append('record')
                         i += 1
@@ -471,8 +486,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         i = len(self.reverse_instructions) - 1
                         while i > 0:
                             if type(self.reverse_instructions[i]) is str or self.reverse_instructions[
-                                i].name != 'call' or int(
-                                self.reverse_instructions[i].operand_interpretation.split(' ')[1]) != next_func_id:
+                                    i].name != 'call' or int(
+                                    self.reverse_instructions[i].operand_interpretation.split(' ')[1]) != next_func_id:
                                 del self.reverse_instructions[i]
                                 i -= 1
                             else:
@@ -488,23 +503,28 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     state = copy.deepcopy(initialized_state)
                 elif not has_set:
                     state.constraints.clear()
-                    state, _ = self.init_state_before_call(get_param(func), False, [], state)
+                    state, _ = self.init_state_before_call(
+                        get_param(func), False, [], state)
                     has_set = True
                     initialized_state = copy.deepcopy(state)
 
                 # restore lasers for func_path from last path
                 self.lasers = ['roll_back']
-                self.emulate(state, depth=0, ret_num=[], call_depth=0, basicblock_path=basicblock_path)
+                self.emulate(state, depth=0, ret_num=[],
+                             call_depth=0, basicblock_path=basicblock_path)
                 # print(self.quick.items(), self.lasers)
                 self.visited_basicblock.clear()
                 if not self.lasers:
-                    one_path_constraints_and_keys = (list(set(self.result[-1][1].constraints)), list(set(self.result[-1][1].key_import_func_visited)))
+                    one_path_constraints_and_keys = (list(set(
+                        self.result[-1][1].constraints)), list(set(self.result[-1][1].key_import_func_visited)))
                 else:
-                    one_path_constraints_and_keys = (list(set(state.constraints)), list(set(state.key_import_func_visited)))
-                func2paths_constraints_and_keys[func].append(one_path_constraints_and_keys)
+                    one_path_constraints_and_keys = (
+                        list(set(state.constraints)), list(set(state.key_import_func_visited)))
+                func2paths_constraints_and_keys[func].append(
+                    one_path_constraints_and_keys)
 
                 # print('current basic block path constraints:', one_path_constraints)
-            
+
                 # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
                 if not quick_checked_flag:
                     for module_name, quick_checked in self.quick.items():
@@ -552,7 +572,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 halt = self.emulate_one_instruction(instr, pre_instr, state, depth, ret_num, call_depth,
                                                     basicblock_path)
             else:
-                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, ret_num, call_depth)
+                halt = self.emulate_one_instruction(
+                    instr, pre_instr, state, depth, ret_num, call_depth)
 
     def emulate_one_instruction(self, instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path=None):
 
@@ -588,7 +609,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path)
 
         elif instr.is_parametric:
-            halt = self.emul_parametric_instr(instr, state, depth, ret_num, call_depth)
+            halt = self.emul_parametric_instr(
+                instr, state, depth, ret_num, call_depth)
 
         elif instr.is_variable:
             halt = self.emul_variable_instr(instr, state)
@@ -600,16 +622,20 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             halt = self.emul_constant_instr(instr, state)
 
         elif instr.is_logical_i32:
-            halt = self.emul_logical_i32_instr(instr, state, depth, ret_num, call_depth)
+            halt = self.emul_logical_i32_instr(
+                instr, state, depth, ret_num, call_depth)
 
         elif instr.is_logical_i64:
-            halt = self.emul_logical_i64_instr(instr, state, depth, ret_num, call_depth)
+            halt = self.emul_logical_i64_instr(
+                instr, state, depth, ret_num, call_depth)
 
         elif instr.is_logical_f32:
-            halt = self.emul_logical_f32_instr(instr, state, depth, ret_num, call_depth)
+            halt = self.emul_logical_f32_instr(
+                instr, state, depth, ret_num, call_depth)
 
         elif instr.is_logical_f64:
-            halt = self.emul_logical_f64_instr(instr, state, depth, ret_num, call_depth)
+            halt = self.emul_logical_f64_instr(
+                instr, state, depth, ret_num, call_depth)
 
         elif instr.is_arithmetic_i32:
             halt = self.emul_arithmetic_i32_instr(instr, state)
@@ -646,7 +672,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         elif instr.name == 'loop':
             logging.debug('[LOOP]: %s' % (instr.offset))
             # remember which loop is traversed
-            state.instructions_visited.add((self.current_function.name, instr.offset))
+            state.instructions_visited.add(
+                (self.current_function.name, instr.offset))
         elif instr.name in ['nop', 'block']:
             pass
         elif instr.name == 'else':
@@ -671,7 +698,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `if` is {type(op)} instead of bv or bool"
 
-            logging.debug('[IF] now the func is: %s' % self.current_function.name)
+            logging.debug('[IF] now the func is: %s' %
+                          self.current_function.name)
 
             # if in guided emulation
             if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
@@ -690,7 +718,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         state.pc = idx
                         break
 
-                logging.debug('[IF] This condition is always false, jump to the else branch')
+                logging.debug(
+                    '[IF] This condition is always false, jump to the else branch')
                 logging.debug('[IF] Current constraints can be solved and the flag is: %s, depth: %s' % (
                     self.current_function.constraint_flags, depth))
                 logging.debug('')
@@ -700,7 +729,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # 1. a non-zero BitVecVal, means True
             # 2. some function's iterator
             elif (is_bv_value(op) and op.as_long() != 0) or op.__str__() in can_jump_function:
-                logging.debug('[IF] This condition is always true, continue the following instructions')
+                logging.debug(
+                    '[IF] This condition is always true, continue the following instructions')
                 logging.debug('[IF] Current constraints can be solved and the flag is: %s, depth: %s' % (
                     self.current_function.constraint_flags, depth))
                 logging.debug('')
@@ -714,7 +744,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if is_bv(op):
                     op = simplify(op != 0)
 
-                assert is_bool(op), f"op type is {type(op)} instead of BoolRef in `if` instruction"
+                assert is_bool(
+                    op), f"op type is {type(op)} instead of BoolRef in `if` instruction"
                 # go to else branch firstly
                 op = simplify(Not(op))
                 new_state.constraints.append(simplify(op))
@@ -732,7 +763,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.debug(
                         '[IF] Go to else branch. Current constraints can be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.debug('[x] Else branch path constraints can be satisfied:')
+                    logging.debug(
+                        '[x] Else branch path constraints can be satisfied:')
                     for c in new_state.constraints:
                         logging.debug(' [x] %s' % c)
                     logging.debug('')
@@ -774,7 +806,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.debug(
                         '[IF] Can not go to else branch. Current constraints can not be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.debug('[x] left children path constraints can not be satisfied:')
+                    logging.debug(
+                        '[x] left children path constraints can not be satisfied:')
                     for c in new_state.constraints:
                         logging.debug(' [x] %s' % c)
                     logging.debug('[x] current branch is pruned')
@@ -798,7 +831,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.debug(
                         '[IF] Go to if branch. Current constraints can be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.debug('[x] If branch path constraints can be satisfied:')
+                    logging.debug(
+                        '[x] If branch path constraints can be satisfied:')
                     for c in state.constraints:
                         logging.debug(' [x] %s' % c)
                     logging.debug('')
@@ -825,7 +859,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         # if self.visited_basicblock[self.current_basicblock.name] + 2*depth > 50:
                         #     return True
 
-                    logging.debug('[IF] Current level both if and else branch were traversed, return to previous level')
+                    logging.debug(
+                        '[IF] Current level both if and else branch were traversed, return to previous level')
                     self.current_function.constraint_flags.pop()
                 else:
                     self.current_function.constraint_flags[-1] = -1
@@ -870,7 +905,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 state_tmp_list[1] = copy.deepcopy(state)
 
-                self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
+                self.current_function.return_value_and_state_list.append(
+                    tuple(state_tmp_list))
 
                 # 1. all branch with only True or False constraint, not symbolic execution result
                 # 2. [0,0,0...,0] is the last node_path in one function
@@ -898,7 +934,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                                 issue = json.loads(issue)
                                 if issue:
                                     # remove the laser A
-                                    self.lasers = [l for l in self.lasers if l != module_name]
+                                    self.lasers = [
+                                        l for l in self.lasers if l != module_name]
                                     # if this path result is vulnerable, add this path result to self.result and return to the emulate_functions
                                     self.result.append(current_result)
         elif instr.name == 'br':
@@ -945,7 +982,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 # has following bb
                 if current_bb_index + 1 < len(basicblock_path):
-                    pair = (current_bb.name, basicblock_path[current_bb_index + 1])
+                    pair = (current_bb.name,
+                            basicblock_path[current_bb_index + 1])
                 else:
                     # this means reach the last basic block
                     # if the next function is `send inline`, can stop here and return the constraints
@@ -971,7 +1009,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             jump_addr = instr.xref
 
-            logging.debug('[BRIF] now the func is: %s' % (self.current_function.name))
+            logging.debug('[BRIF] now the func is: %s' %
+                          (self.current_function.name))
 
             if (is_bv_value(op) and op.as_long() != 0) or op.__str__() in can_jump_function:
                 for idx in self.reverse_instructions:
@@ -980,7 +1019,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         state.pc = idx
                         break
 
-                logging.debug('[BRIF] This br_if condition is always true, so jump to the destination')
+                logging.debug(
+                    '[BRIF] This br_if condition is always true, so jump to the destination')
                 logging.debug('[BRIF] Current constraints can be solved and the flag is: %s, depth: %s' % (
                     self.current_function.constraint_flags, depth))
                 logging.debug('')
@@ -988,7 +1028,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 # after we return from emul - restore current_basicblock
                 self.current_basicblock = self.basicblock_per_instr[instr.offset]
             elif is_bv_value(op) and op.as_long() == 0:
-                logging.debug('[BRIF] This br_if condition is always false, so follow the original instruction')
+                logging.debug(
+                    '[BRIF] This br_if condition is always false, so follow the original instruction')
                 logging.debug('[BRIF] Current constraints can be solved and the flag is: %s, depth: %s' % (
                     self.current_function.constraint_flags, depth))
                 logging.debug('')
@@ -1016,7 +1057,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if is_bv(op):
                     op = simplify(op != 0)
 
-                assert is_bool(op), f"op type is {type(op)} instead of BoolRef in `br_if` instruction and op is {op}"
+                assert is_bool(
+                    op), f"op type is {type(op)} instead of BoolRef in `br_if` instruction and op is {op}"
                 new_state.constraints.append(op)
                 # simplify the solver
                 new_state.constraints = list(set(new_state.constraints))
@@ -1032,7 +1074,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.info(
                         '[BRIF] Jump to the destination. Current constraints can be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.info('[x] Current path constraints can be satisfied:')
+                    logging.info(
+                        '[x] Current path constraints can be satisfied:')
                     for c in new_state.constraints:
                         logging.info(' [x] %s' % c)
                     logging.info('')
@@ -1064,7 +1107,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.debug(
                         '[BRIF] Can not jump to destination. Current constraints can not be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.debug('[BRIF] Current path constraints can not be satisfied:')
+                    logging.debug(
+                        '[BRIF] Current path constraints can not be satisfied:')
                     for c in new_state.constraints:
                         logging.debug(' [x] %s' % c)
                     logging.debug('[BRIF] current branch is pruned')
@@ -1090,7 +1134,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.info(
                         '[BRIF] Follow the instructions. Current constraints can be solved and the flag is: %s, depth: %s' % (
                             self.current_function.constraint_flags, depth))
-                    logging.info('[x] Right children path constraints can be satisfied:')
+                    logging.info(
+                        '[x] Right children path constraints can be satisfied:')
                     for c in state.constraints:
                         logging.info(' [x] %s' % c)
                     logging.info('')
@@ -1207,7 +1252,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             state_tmp_list[1] = copy.deepcopy(state)
 
-            self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
+            self.current_function.return_value_and_state_list.append(
+                tuple(state_tmp_list))
 
             logging.debug(
                 '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (
@@ -1231,7 +1277,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             issue = json.loads(issue)
                             if issue:
                                 # remove the laser A
-                                self.lasers = [l for l in self.lasers if l != module_name]
+                                self.lasers = [
+                                    l for l in self.lasers if l != module_name]
                                 # if this path result is vulnerable, add this path result to self.result and return to the emulate_functions
                                 self.result.append(current_result)
 
@@ -1286,7 +1333,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                                 state.pc), Float64()))
                 return False
 
-            func_is_exports = internal_function_name in [x['field_str'] for x in self.ana.exports]
+            func_is_exports = internal_function_name in [
+                x['field_str'] for x in self.ana.exports]
             # some contract may not have elems
             if self.ana.elements:
                 func_is_elems = f_offset in self.ana.elements[0]['elems']
@@ -1295,9 +1343,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             # skip these functions
             func_is_not_from_system = (internal_function_name[0] == '_' and internal_function_name[1] == '_') or \
-                                      internal_function_name in SKIP_FUNC_SET or (
-                                              '_Zn' in internal_function_name and 'eos' not in internal_function_name) or \
-                                      '_ZdaPv' in internal_function_name or 'printf' in internal_function_name
+                internal_function_name in SKIP_FUNC_SET or (
+                '_Zn' in internal_function_name and 'eos' not in internal_function_name) or \
+                '_ZdaPv' in internal_function_name or 'printf' in internal_function_name
 
             if internal_function_name not in [x.name for x in self.cfg.functions]:
                 if f_offset > len(self.ana.imports_func):
@@ -1317,7 +1365,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         internal_function_name, param_list, return_str, state)
 
                     # if fake_receipt quick option is enabled
-                    if self.quick['fake_receipt']: # or self.quick['roll_back']:
+                    # or self.quick['roll_back']:
+                    if self.quick['fake_receipt']:
                         if internal_function_name == 'send_inline':
                             state_tmp_list = [None, None]
                             state_tmp_list[1] = copy.deepcopy(state)
@@ -1335,7 +1384,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             logging.debug('[x] current constraints:')
                             for c in import_func.get_constraint():
                                 logging.debug(' [x] %s' % c)
-                            logging.debug('[x] Therefore jump to the previous level')
+                            logging.debug(
+                                '[x] Therefore jump to the previous level')
                             logging.debug('')
                         elif import_func.constraint != None:
                             state.constraints = import_func.get_constraint()
@@ -1349,7 +1399,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             logging.debug('[x] current constraints:')
                             for c in import_func.get_constraint():
                                 logging.debug(' [x] %s' % c)
-                            logging.debug('[x] Therefore jump to the previous level')
+                            logging.debug(
+                                '[x] Therefore jump to the previous level')
                             logging.debug('')
                         elif import_func.constraint != None:
                             state.constraints = import_func.get_constraint()
@@ -1361,12 +1412,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         # return is a pointer to dest
                         # but sometimes the `memcpy` may fail, so halt
                         if not import_func.get_halt():
-                            state.symbolic_stack.append(import_func.return_result())
+                            state.symbolic_stack.append(
+                                import_func.return_result())
                         else:
                             halt = True
                     elif internal_function_name == 'memmove':
                         if not import_func.get_halt():
-                            state.symbolic_stack.append(import_func.return_result())
+                            state.symbolic_stack.append(
+                                import_func.return_result())
                         else:
                             halt = True
                     elif internal_function_name == 'sha256':
@@ -1384,9 +1437,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     elif internal_function_name == 'eosio_exit':
                         halt = True
                     elif internal_function_name == 'db_get_i64':
-                        state.symbolic_stack.append(import_func.return_result())
+                        state.symbolic_stack.append(
+                            import_func.return_result())
                     elif internal_function_name in self.key_import_functions:
-                        state.key_import_func_visited.append(import_func.format_key_import_func())
+                        state.key_import_func_visited.append(
+                            import_func.format_key_import_func())
                         # print(import_func.format_key_import_func())
 
                         import_func_result = import_func.return_result()
@@ -1404,7 +1459,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             state.symbolic_stack.append(import_func_result)
 
             elif call_depth >= self.call_depth_limit or func_is_not_from_system:
-                    #(func_is_exports and not func_is_elems and func_is_not_from_system):
+                # (func_is_exports and not func_is_elems and func_is_not_from_system):
                 # record the key funcs for the fake receipt detector
                 state.key_import_func_visited.append(f_offset)
 
@@ -1440,11 +1495,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     # Whether internal_function_name calls a function in the sidepath_key_import_functions
                     gvar.visited_func.clear()
                     _, edges = self.cfg.get_functions_call_edges()
-                    if not has_sidepath_call_keyimport(internal_function_name, edges, set(self.sidepath_key_import_functions)): # and \
-                            # not has_sidepath_call_keyimport(self.current_function.name, edges, set(self.sidepath_key_import_functions)):
+                    if not has_sidepath_call_keyimport(internal_function_name, edges, set(self.sidepath_key_import_functions)):  # and \
+                        # not has_sidepath_call_keyimport(self.current_function.name, edges, set(self.sidepath_key_import_functions)):
                         if param_str:
                             num_arg = len(param_str.split(' '))
-                            param = [state.symbolic_stack.pop() for _ in range(num_arg)]
+                            param = [state.symbolic_stack.pop()
+                                     for _ in range(num_arg)]
 
                             # has sidepath_call key param
                             if True not in set([x in str(param) for x in ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']]):
@@ -1477,13 +1533,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                     # restore mainline function when branched function exit
                     self.guided_emulation_mainline_function = (
-                        self.current_function, self.current_f_instructions, self.reverse_instructions, \
+                        self.current_function, self.current_f_instructions, self.reverse_instructions,
                         self.current_f_basicblocks, basicblock_path, self.current_basicblock)
                     gvar.guided_emulation_mainline_function_flag = False
 
-                new_state, new_ret_num = self.init_state_before_call(param_str, return_str, ret_num, state)
+                new_state, new_ret_num = self.init_state_before_call(
+                    param_str, return_str, ret_num, state)
 
-                self.visiting_function_name_list.append(self.current_function.name)
+                self.visiting_function_name_list.append(
+                    self.current_function.name)
                 # store the current function's constraints flag
                 self.constraints_flag_stack.append(
                     copy.deepcopy(self.current_function.constraint_flags))
@@ -1537,9 +1595,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 ran_num = self.random
                 if ran_num and ran_num >= len(possible_call_results):
-                    selected_branch = [i for i in range(len(possible_call_results))]
+                    selected_branch = [i for i in range(
+                        len(possible_call_results))]
                 elif ran_num and ran_num < len(possible_call_results):
-                    selected_branch = sample([i for i in range(len(possible_call_results))], ran_num)
+                    selected_branch = sample(
+                        [i for i in range(len(possible_call_results))], ran_num)
 
                 # iterate each possible result and continue the instruction after the 'call xxx'
                 for i, return_constraint_tuple in enumerate(possible_call_results):
@@ -1572,9 +1632,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         continue
 
                     if not ran_num:
-                        logging.debug('===================situation %s======================' % i)
+                        logging.debug(
+                            '===================situation %s======================' % i)
                     else:
-                        logging.debug('===============random situation %s===================' % i)
+                        logging.debug(
+                            '===============random situation %s===================' % i)
 
                     # if have ret_num but no return_value, means the callee's this branch is failed
                     if has_ret and return_value is None:
@@ -1637,7 +1699,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 index = index.as_long()
                 if index > 200:
                     return True
-                state.key_import_func_visited.append('call_indirect_index=' + str(index))
+                state.key_import_func_visited.append(
+                    'call_indirect_index=' + str(index))
 
                 if index not in self.index2state.keys():
                     self.index2state[index] = [copy.deepcopy(state)]
@@ -1657,32 +1720,40 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.name == 'drop':
             state.symbolic_stack.pop()
         elif instr.name == 'select':  # select instruction
-            arg0, arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            arg0, arg1, arg2 = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
-            assert is_bv(arg0) or is_bool(arg0), f"in select, arg0 type is {type(arg0)} instead of bv or bool"
+            assert is_bv(arg0) or is_bool(
+                arg0), f"in select, arg0 type is {type(arg0)} instead of bv or bool"
 
             # if in guided emulation
             if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
                 if is_bool(arg0):
-                    logical_result = BitVec('logical_ans_select_(' + str(arg0) + ')', 32)
-                    state.constraints.append(logical_result == If(arg0, arg2, arg1))
+                    logical_result = BitVec(
+                        'logical_ans_select_(' + str(arg0) + ')', 32)
+                    state.constraints.append(
+                        logical_result == If(arg0, arg2, arg1))
                     state.symbolic_stack.append(If(arg0, arg2, arg1))
                 else:
                     # the logical_result type depends on the arg1 and arg2 type
                     # however, arg1 type and arg2's are always same
                     if is_bv(arg1):
                         if arg1.size() == 32:
-                            logical_result = BitVec('logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', 32)
+                            logical_result = BitVec(
+                                'logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', 32)
                         elif arg1.size() == 64:
-                            logical_result = BitVec('logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', 64)
+                            logical_result = BitVec(
+                                'logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', 64)
                         else:
                             raise Exception(
                                 f"In guided emulation select instr, the arg1 size is {arg1.size()} instead of 32 or 64")
                     elif is_fp(arg1):
                         if arg1.sbits() == 24:
-                            logical_result = FP('logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', Float32())
+                            logical_result = FP(
+                                'logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', Float32())
                         elif arg1.sbits() == 53:
-                            logical_result = FP('logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', Float64())
+                            logical_result = FP(
+                                'logical_ans_select_(' + str(simplify(arg0 != 0)) + ')', Float64())
                         else:
                             raise Exception(
                                 f"In guided emulation select instr, the arg1 sbits is {arg1.sbits()} instead of 24 or 53")
@@ -1691,8 +1762,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         raise Exception(
                             f"In guided emulation select instr, the arg1 type is {type(arg1)} instead of bv")
 
-                    state.constraints.append(logical_result == If(simplify(arg0 != 0), arg2, arg1))
-                    state.symbolic_stack.append(If(simplify(arg0 != 0), arg2, arg1))
+                    state.constraints.append(logical_result == If(
+                        simplify(arg0 != 0), arg2, arg1))
+                    state.symbolic_stack.append(
+                        If(simplify(arg0 != 0), arg2, arg1))
                 return False
 
             # arg0 is condition
@@ -1700,11 +1773,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # arg1 is the value if condition is false
             if (is_bv_value(arg0) and arg0.as_long() != 0) or arg0.__str__() in can_jump_function:
                 state.symbolic_stack.append(arg2)
-                logging.debug('[+] met a select instruction, go to the true branch')
+                logging.debug(
+                    '[+] met a select instruction, go to the true branch')
                 logging.debug('')
             elif is_bv_value(arg0) and arg0.as_long() == 0:
                 state.symbolic_stack.append(arg1)
-                logging.debug('[+] met a select instruction, go to the false branch')
+                logging.debug(
+                    '[+] met a select instruction, go to the false branch')
                 logging.debug('')
             else:
                 new_state = copy.deepcopy(state)
@@ -1713,7 +1788,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if is_bv(arg0):
                     arg0 = simplify(arg0 != 0)
 
-                assert is_bool(arg0), f"in select, the condition type is {type(arg0)} instead of bool"
+                assert is_bool(
+                    arg0), f"in select, the condition type is {type(arg0)} instead of bool"
 
                 new_state.constraints.append(simplify(arg0))
                 new_state.constraints = list(set(new_state.constraints))
@@ -1722,11 +1798,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 s.add(*new_state.constraints)
                 if gvar.guided_emulation_flag or sat == s.check():
                     self.current_function.constraint_flags.append(1)
-                    logging.info('[+] met a select instruction, assume the condition is true')
+                    logging.info(
+                        '[+] met a select instruction, assume the condition is true')
                     logging.info('[+] Current constraints can be solved and the flag is: %s, depth: %s' % (
                         self.current_function.constraint_flags, depth))
 
-                    logging.info('[x] left children path constraints can be satisfied:')
+                    logging.info(
+                        '[x] left children path constraints can be satisfied:')
                     for c in new_state.constraints:
                         logging.info(' [x] %s' % c)
                     logging.info('')
@@ -1790,7 +1868,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
                     logging.debug('[+] depth: %s' % depth)
-                    logging.debug('[+] current level both select condition were traversed, return to previous level')
+                    logging.debug(
+                        '[+] current level both select condition were traversed, return to previous level')
                     self.current_function.constraint_flags.pop()
                 else:
                     self.current_function.constraint_flags[-1] = -1
@@ -1823,7 +1902,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             if state.local_var[op] is not None:
                 state.symbolic_stack.append(state.local_var[op])
             else:
-                logging.info("[+] reach the situation that get_local before initialization, unreachable!")
+                logging.info(
+                    "[+] reach the situation that get_local before initialization, unreachable!")
                 return True
         elif instr.name == 'set_local':
             var = state.symbolic_stack.pop()
@@ -1940,7 +2020,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_logical_i32_instr(self, instr, state, depth, ret_num, call_depth):
         if instr.name == 'i32.eqz':
             arg0 = state.symbolic_stack.pop()
-            assert arg0.size() == 32, f"in i32.eqz the argument popped size is {arg0.size()} instead of 32"
+            assert arg0.size(
+            ) == 32, f"in i32.eqz the argument popped size is {arg0.size()} instead of 32"
 
             result = simplify(arg0 == 0)
             if is_bool(result):
@@ -1955,8 +2036,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             #     state.symbolic_stack.append(BitVecVal(0, 32))
             #     return False
 
-            assert is_bv(arg1), f"in i32.logical, arg1 type is {type(arg1)} instead of bv"
-            assert is_bv(arg2), f"in i32.logical, arg2 type is {type(arg2)} instead of bv"
+            assert is_bv(
+                arg1), f"in i32.logical, arg1 type is {type(arg1)} instead of bv"
+            assert is_bv(
+                arg2), f"in i32.logical, arg2 type is {type(arg2)} instead of bv"
 
             if instr.name == 'i32.eq':
                 result = simplify(arg1 == arg2)
@@ -1993,7 +2076,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.symbolic_stack.append(result)
         else:
             logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            state.constraints.append(logical_result == If(
+                result, BitVecVal(1, 32), BitVecVal(0, 32)))
             state.symbolic_stack.append(logical_result)
 
         return False
@@ -2001,7 +2085,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_logical_i64_instr(self, instr, state, depth, ret_num, call_depth):
         if instr.name == 'i64.eqz':
             arg0 = state.symbolic_stack.pop()
-            assert arg0.size() == 64, f"in i64.eqz the argument popped size is {arg0.size()} instead of 64"
+            assert arg0.size(
+            ) == 64, f"in i64.eqz the argument popped size is {arg0.size()} instead of 64"
 
             result = simplify(arg0 == 0)
             if is_bool(result):
@@ -2016,8 +2101,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             #     state.symbolic_stack.append(BitVecVal(0, 32))
             #     return False
 
-            assert is_bv(arg1), f"in i64.logical, arg1 type is {type(arg1)} instead of bv"
-            assert is_bv(arg2), f"in i64.logical, arg2 type is {type(arg2)} instead of bv"
+            assert is_bv(
+                arg1), f"in i64.logical, arg1 type is {type(arg1)} instead of bv"
+            assert is_bv(
+                arg2), f"in i64.logical, arg2 type is {type(arg2)} instead of bv"
 
             if instr.name == 'i64.eq':
                 result = simplify(arg1 == arg2)
@@ -2054,7 +2141,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.symbolic_stack.append(result)
         else:
             logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            state.constraints.append(logical_result == If(
+                result, BitVecVal(1, 32), BitVecVal(0, 32)))
             state.symbolic_stack.append(logical_result)
 
         return False
@@ -2062,8 +2150,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_logical_f32_instr(self, instr, state, depth, ret_num, call_depth):
         arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
-        assert arg1.ebits() == 8 and arg1.sbits() == 24, 'emul_logical_f32_instr arg1 type mismatch'
-        assert arg2.ebits() == 8 and arg2.sbits() == 24, 'emul_logical_f32_instr arg2 type mismatch'
+        assert arg1.ebits() == 8 and arg1.sbits(
+        ) == 24, 'emul_logical_f32_instr arg1 type mismatch'
+        assert arg2.ebits() == 8 and arg2.sbits(
+        ) == 24, 'emul_logical_f32_instr arg2 type mismatch'
 
         if instr.name == 'f32.eq':
             result = simplify(fpEQ(arg1, arg2))
@@ -2092,7 +2182,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.symbolic_stack.append(result)
         else:
             logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            state.constraints.append(logical_result == If(
+                result, BitVecVal(1, 32), BitVecVal(0, 32)))
             state.symbolic_stack.append(logical_result)
 
         return False
@@ -2100,8 +2191,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_logical_f64_instr(self, instr, state, depth, ret_num, call_depth):
         arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
-        assert arg1.ebits() == 11 and arg1.sbits() == 53, 'emul_logical_f64_instr arg1 type mismatch'
-        assert arg2.ebits() == 11 and arg2.sbits() == 53, 'emul_logical_f64_instr arg2 type mismatch'
+        assert arg1.ebits() == 11 and arg1.sbits(
+        ) == 53, 'emul_logical_f64_instr arg1 type mismatch'
+        assert arg2.ebits() == 11 and arg2.sbits(
+        ) == 53, 'emul_logical_f64_instr arg2 type mismatch'
 
         if instr.name == 'f64.eq':
             result = simplify(fpEQ(arg1, arg2))
@@ -2130,7 +2223,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.symbolic_stack.append(result)
         else:
             logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            state.constraints.append(logical_result == If(
+                result, BitVecVal(1, 32), BitVecVal(0, 32)))
             state.symbolic_stack.append(logical_result)
 
         return False
@@ -2159,18 +2253,24 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.warning(
                     "in i32.arithmetic, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-            assert arg1.size() == 32, f"in i32 arithmetic, arg1 size is {arg1.size()} instead of 32"
-            assert arg2.size() == 32, f"in i32 arithmetic, arg2 size is {arg2.size()} instead of 32"
+            assert arg1.size(
+            ) == 32, f"in i32 arithmetic, arg1 size is {arg1.size()} instead of 32"
+            assert arg2.size(
+            ) == 32, f"in i32 arithmetic, arg2 size is {arg2.size()} instead of 32"
             try:
                 if instr.name == 'i32.sub':
                     result = simplify(arg2 - arg1)
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
                         # print(instr.name, arg1, arg2, result)
                         if True:
-                            state.constraints.append(simplify(Extract(31, 30, arg2)^Extract(31, 30, arg2)) == 1)
-                            state.constraints.append(Extract(30, 0, arg2)+Extract(30, 0, arg1)>2147483647)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(31, 30, arg2) ^ Extract(31, 30, arg2)) == 1)
+                            state.constraints.append(
+                                Extract(30, 0, arg2)+Extract(30, 0, arg1) > 2147483647)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                 elif instr.name == 'i32.add':
                     result = simplify(arg2 + arg1)
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
@@ -2179,10 +2279,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if is_bv_value(arg1) or is_bv_value(arg2):
                             pass
                         else:
-                            state.constraints.append(simplify(Extract(31, 30, arg2)^Extract(31, 30, arg2)) == 0)
-                            state.constraints.append(Extract(30, 0, arg2)+Extract(30, 0, arg1)>2147483647)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(31, 30, arg2) ^ Extract(31, 30, arg2)) == 0)
+                            state.constraints.append(
+                                Extract(30, 0, arg2)+Extract(30, 0, arg1) > 2147483647)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                 elif instr.name == 'i32.mul':
                     result = simplify(arg2 * arg1)
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
@@ -2190,21 +2294,30 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if is_bv_value(arg1) and not is_bv_value(arg2):
                             if 'load' in str(arg2):
                                 state.constraints.append(arg2 > 0)
-                            state.constraints.append(arg1.as_signed_long()>0)
-                            state.constraints.append(simplify(Extract(31,0,ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg1) != arg2)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(arg1.as_signed_long() > 0)
+                            state.constraints.append(
+                                simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg1) != arg2)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                         elif is_bv_value(arg2) and not is_bv_value(arg1):
                             if 'load' in str(arg1):
                                 state.constraints.append(arg1 > 0)
-                            state.constraints.append(arg2.as_signed_long()>0)
-                            state.constraints.append(simplify(Extract(31,0,ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(arg2.as_signed_long() > 0)
+                            state.constraints.append(
+                                simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                         else:
-                            state.constraints.append(simplify(Extract(31,0,ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
 
                 elif instr.name == 'i32.div_s':
                     result = simplify(arg2 / arg1)
@@ -2258,8 +2371,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.warning(
                     "in i32.bitwise, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-            assert arg1.size() == 32, f'arg1 size is {arg1.size()} instead of 32 in emul_bitwise_i32_instr'
-            assert arg2.size() == 32, f'arg2 size is {arg2.size()} instead of 32 in emul_bitwise_i32_instr'
+            assert arg1.size(
+            ) == 32, f'arg1 size is {arg1.size()} instead of 32 in emul_bitwise_i32_instr'
+            assert arg2.size(
+            ) == 32, f'arg2 size is {arg2.size()} instead of 32 in emul_bitwise_i32_instr'
 
             if instr.name == 'i32.and':
                 result = simplify(arg1 & arg2)
@@ -2327,17 +2442,23 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.warning(
                         "in i64.arithmetic, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-                assert arg1.size() == 64, f"in i64 arithmetic, arg1 size is {arg1.size()} instead of 64"
-                assert arg2.size() == 64, f"in i64 arithmetic, arg2 size is {arg2.size()} instead of 64"
+                assert arg1.size(
+                ) == 64, f"in i64 arithmetic, arg1 size is {arg1.size()} instead of 64"
+                assert arg2.size(
+                ) == 64, f"in i64 arithmetic, arg2 size is {arg2.size()} instead of 64"
                 if instr.name == 'i64.sub':
                     result = arg2 - arg1
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
                         # print(instr.name, arg1, arg2, result)
                         if True:
-                            state.constraints.append(simplify(Extract(63, 62, arg2)^Extract(63, 62, arg2)) == 1)
-                            state.constraints.append(Extract(62, 0, arg2)+Extract(62, 0, arg1)>9223372036854775807)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(63, 62, arg2) ^ Extract(63, 62, arg2)) == 1)
+                            state.constraints.append(
+                                Extract(62, 0, arg2)+Extract(62, 0, arg1) > 9223372036854775807)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                 elif instr.name == 'i64.add':
                     result = simplify(arg2 + arg1)
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
@@ -2346,10 +2467,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if is_bv_value(arg1) or is_bv_value(arg2):
                             pass
                         else:
-                            state.constraints.append(simplify(Extract(63, 62, arg2)^Extract(63, 62, arg2)) == 0)
-                            state.constraints.append(Extract(62, 0, arg2)+Extract(62, 0, arg1)>9223372036854775807)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(63, 62, arg2) ^ Extract(63, 62, arg2)) == 0)
+                            state.constraints.append(
+                                Extract(62, 0, arg2)+Extract(62, 0, arg1) > 9223372036854775807)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                 elif instr.name == 'i64.mul':
                     result = simplify(arg2 * arg1)
                     if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
@@ -2357,21 +2482,30 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if is_bv_value(arg1) and not is_bv_value(arg2):
                             if 'load' in str(arg2):
                                 state.constraints.append(arg2 > 0)
-                            state.constraints.append(arg1.as_signed_long()>0)
-                            state.constraints.append(simplify(Extract(63,0,ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg1) != arg2)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(arg1.as_signed_long() > 0)
+                            state.constraints.append(
+                                simplify(Extract(63, 0, ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg1) != arg2)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                         elif is_bv_value(arg2) and not is_bv_value(arg1):
                             if 'load' in str(arg1):
                                 state.constraints.append(arg1 > 0)
-                            state.constraints.append(arg2.as_signed_long()>0)
-                            state.constraints.append(simplify(Extract(63,0,ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(arg2.as_signed_long() > 0)
+                            state.constraints.append(
+                                simplify(Extract(63, 0, ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                         else:
-                            state.constraints.append(simplify(Extract(63,0,ZeroExt(63, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
-                            overflow_check_flag = 'overflow_check_flag ' + str(result)
-                            state.key_import_func_visited.append(overflow_check_flag)
+                            state.constraints.append(
+                                simplify(Extract(63, 0, ZeroExt(63, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
+                            overflow_check_flag = 'overflow_check_flag ' + \
+                                str(result)
+                            state.key_import_func_visited.append(
+                                overflow_check_flag)
                 elif instr.name == 'i64.div_s':
                     result = simplify(arg2 / arg1)
                 elif instr.name == 'i64.div_u':
@@ -2425,8 +2559,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.warning(
                     "in i64.bitwise, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-            assert arg1.size() == 64, f'arg1 size is {arg1.size()} instead of 64 in emul_bitwise_i64_instr'
-            assert arg2.size() == 64, f'arg2 size is {arg2.size()} instead of 64 in emul_bitwise_i64_instr'
+            assert arg1.size(
+            ) == 64, f'arg1 size is {arg1.size()} instead of 64 in emul_bitwise_i64_instr'
+            assert arg2.size(
+            ) == 64, f'arg2 size is {arg2.size()} instead of 64 in emul_bitwise_i64_instr'
 
             if instr.name == 'i64.and':
                 result = simplify(arg1 & arg2)
