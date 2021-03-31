@@ -1,25 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from octopus.arch.wasm.security import fire_lasers_by_module_name, engine_start
 import argparse
 import logging
 import sys
 
 sys.setrecursionlimit(4096)
 
-from octopus.arch.wasm.security import fire_lasers_by_module_name, engine_start
 
 # set log level
 # logging.basicConfig(filename='./logs/tmp.log',
 #                     filemode='w',
 #                     level=logging.WARNING)
 # logging.basicConfig(level=logging.INFO)
-
-PLATFORM = 'wasm'
-
-
-def error_print(msg):
-    print('[X] %s for %s' % (msg, PLATFORM))
-    sys.exit()
 
 
 # check whether the argument is positive
@@ -58,10 +51,10 @@ def main():
                           help='print Functions instructions analytics')
     features.add_argument('-g', '--cfg',
                           action='store_true',
-                          help='generate the control flow graph (CFG)')
+                          help='generate the control flow graph (CFG) (instruction level)')
     features.add_argument('-c', '--call',
                           action='store_true',
-                          help='generate the call flow graph')
+                          help='generate the call flow graph (function level)')
     features.add_argument('-q', '--quick',
                           action='store_true',
                           help='use this flag to get scanner result before full coverage')
@@ -159,7 +152,8 @@ def main():
     if args.symbolic:
         from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
 
-        emul = WasmSSAEmulatorEngine(octo_bytecode, args.random, args.timeout, args.depth)
+        emul = WasmSSAEmulatorEngine(
+            octo_bytecode, args.random, args.timeout, args.depth)
         # run the emulator for SSA
         if args.onlyfunc:
             emul.emulate_functions(list_functions_name=args.onlyfunc)
@@ -171,7 +165,8 @@ def main():
         from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
         # print(args.file)
         if not args.quick:
-            wasmVM = WasmSSAEmulatorEngine(octo_bytecode, args.random, args.timeout, args.depth)
+            wasmVM = WasmSSAEmulatorEngine(
+                octo_bytecode, args.random, args.timeout, args.depth)
 
             # dicecenter
             # sym_exe, index2state = wasmVM.emulate_functions(list_functions_name=['$func51'])
@@ -183,18 +178,21 @@ def main():
             # if the only laser is not the fake_eos, jump over the apply because of the static strategy
             sym_exe, index2state = None, None
             if args.lasers == ['fake_eos'] or args.lasers == ['auth_check']:
-                sym_exe, index2state = wasmVM.emulate_functions(list_functions_name=['apply'])
+                sym_exe, index2state = wasmVM.emulate_functions(
+                    list_functions_name=['apply'])
 
             logging.info("module: %s" % args.lasers)
             for laser in args.lasers:
-                issues = fire_lasers_by_module_name(wasmVM, sym_exe, index2state, laser)
+                issues = fire_lasers_by_module_name(
+                    wasmVM, sym_exe, index2state, laser)
                 # for test 'random' module
                 # issues = fire_lasers_by_module_name(wasmVM, [], {}, laser)
 
                 logging.info("issues: %s" % (issues))
                 sys.stdout.write(issues)
         else:
-            wasmVM = WasmSSAEmulatorEngine(octo_bytecode, args.random, args.timeout, args.depth, args.lasers, args.quick)
+            wasmVM = WasmSSAEmulatorEngine(
+                octo_bytecode, args.random, args.timeout, args.depth, args.lasers, args.quick)
             engine_start(wasmVM)
 
         # visualization of the cfg with SSA
