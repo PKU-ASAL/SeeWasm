@@ -24,6 +24,7 @@ sys.setrecursionlimit(4096)
 MAX = 42
 
 SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
+C_LIBRARY_FUNCS = ['$printf']
 
 
 # =======================================
@@ -39,7 +40,7 @@ class WasmEmulatorEngine(EmulatorEngine):
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, random, timeout, call_depth=MAX, lasers=None, quick=False):
+    def __init__(self, bytecode, random, timeout, call_depth=MAX, lasers=None, quick=False, func_index2func_name=None):
 
         # retrive instructions, basicblocks & functions statically
         if lasers is None:
@@ -113,7 +114,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             else:
                 self.data_section[(offset, offset + size)] = BitVecVal(
                     int.from_bytes(data, byteorder='big'), size * 8)
-        # exit()
+        # func index to func real name
+        # like func 4 is $main function in C
+        self.func_index2func_name = func_index2func_name
 
     def init_state_before_call(self, param_str, return_str, ret_num, state):
         num_arg = 0
@@ -1291,6 +1294,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             target_func = self.ana.func_prototypes[f_offset]
             name, param_str, return_str, _ = target_func
+            # if the func_index2func_name is not None
+            # change the function name to the more readable name
+            if self.func_index2func_name is not None:
+                name = self.func_index2func_name[int(re.search('(\d+)', name).group())]
             state.key_import_func_visited.append(name)
 
             # get callee function name
@@ -1487,6 +1494,36 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     else:
                         raise Exception(
                             'export function return value is not processed')
+            # in case the function is the C library functions, here
+            elif name in C_LIBRARY_FUNCS:
+                if name == '$printf':
+                    logging.warning("=============================Print!=============================\n%s", "TODO")
+
+                if param_str:
+                    num_arg = len(param_str.split(' '))
+                    for _ in range(num_arg):
+                        state.symbolic_stack.pop()
+                if return_str:
+                    if return_str == 'i32':
+                        state.symbolic_stack.append(
+                            BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
+                                state.pc), 32))
+                    elif return_str == 'i64':
+                        state.symbolic_stack.append(
+                            BitVec(internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
+                                state.pc), 64))
+                    elif return_str == 'f32':
+                        state.symbolic_stack.append(FP(
+                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
+                                state.pc), Float32()))
+                    elif return_str == 'f64':
+                        state.symbolic_stack.append(FP(
+                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
+                                state.pc), Float64()))
+                    else:
+                        raise Exception(
+                            'export function return value is not processed')
+
             # normal function call is processed here
             else:
                 # from mainline function

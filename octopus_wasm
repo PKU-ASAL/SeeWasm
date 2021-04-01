@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from octopus.arch.wasm.security import fire_lasers_by_module_name, engine_start
+from octopus.arch.wasm.mapper import extract_mapping
 import argparse
 import logging
 import sys
@@ -66,6 +67,9 @@ def main():
     features.add_argument('-q', '--quick',
                           action='store_true',
                           help='use this flag to get scanner result before full coverage')
+    features.add_argument('--need_mapper',
+                          action='store_true',
+                          help='give a mapping structure: func index to func name, e.g., {4: "$main"}')
     features.add_argument('--random',
                           type=check_not_neg,
                           help='how many branches will be randomly selected in internal call instruction')
@@ -111,12 +115,19 @@ def main():
     octo_analyzer = None
     octo_disasm = None
     octo_cfg = None
+    func_index2func_name = None
 
     # process input code
     # if args.raw:
     #     octo_bytecode = args.raw
     #     octo_bytecode = bytearray.fromhex(octo_bytecode)
     if args.file:
+        # func_index2func_name is the func index to real func name
+        # e.g., func 4 is $main, we have {4: '$main'}
+        if args.need_mapper:
+            wat_file_path = args.file.name.replace('.wasm', '.wat')
+            func_index2func_name = extract_mapping(wat_file_path)
+
         octo_bytecode = args.file.read()
     elif args.rawfile:
         octo_bytecode = args.rawfile.read()
@@ -162,7 +173,7 @@ def main():
     from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, args.random, args.timeout, args.depth)
+            octo_bytecode, args.random, args.timeout, args.depth, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         if args.onlyfunc:
             wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
