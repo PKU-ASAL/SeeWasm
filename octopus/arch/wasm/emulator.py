@@ -583,7 +583,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
         # logging.warning(
-        #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n\tsym_mem:\t%s',
+        #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n\tsym_mem:\t%s\n',
         #     state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
         #     state.local_var[:12], state.symbolic_memory)
 
