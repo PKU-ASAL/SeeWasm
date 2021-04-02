@@ -1354,6 +1354,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 '_Zn' in internal_function_name and 'eos' not in internal_function_name) or \
                 '_ZdaPv' in internal_function_name or 'printf' in internal_function_name
 
+            # if the function is the EOSIO library function
             if internal_function_name not in [x.name for x in self.cfg.functions]:
                 if f_offset > len(self.ana.imports_func):
                     raise Exception(
@@ -1494,15 +1495,25 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     else:
                         raise Exception(
                             'export function return value is not processed')
-            # in case the function is the C library functions, here
+            # the function is the C library functions, here
             elif name in C_LIBRARY_FUNCS:
-                if name == '$printf':
-                    logging.warning("=============================Print!=============================\n%s", "TODO")
-
+                param_list = []
                 if param_str:
                     num_arg = len(param_str.split(' '))
                     for _ in range(num_arg):
-                        state.symbolic_stack.pop()
+                        param_list.append(state.symbolic_stack.pop())
+
+                if name == '$printf':
+                    mem_pointer = param_list[-1]
+                    for k, v in state.symbolic_memory.items():
+                        if k[0] == mem_pointer:
+                            v_int = v.as_long()
+                            mem_data = v_int.to_bytes((v_int.bit_length() + 7) // 8, 'big')
+                            break
+                    mem_data = mem_data[:mem_data.find(b'\x00')]
+                    mem_data = mem_data.decode("utf-8")
+                    logging.warning("=============================Print!=============================\n%s", mem_data)
+                
                 if return_str:
                     if return_str == 'i32':
                         state.symbolic_stack.append(
