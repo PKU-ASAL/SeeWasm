@@ -10,10 +10,11 @@ from z3 import *
 
 import gvar
 from octopus.arch.wasm.cfg import WasmCFG
-from octopus.arch.wasm.helper import load_instr, store_instr, ImportFunction, can_jump_function, has_sidepath_call_keyimport
+from octopus.arch.wasm.helper import load_instr, store_instr, ImportFunction, can_jump_function, has_sidepath_call_keyimport, lookup_symbolic_memory, insert_symbolic_memory
 from octopus.arch.wasm.security import fire_quick_check_by_module_name
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
+from octopus.arch.wasm.helper_c import *
 
 sys.setrecursionlimit(4096)
 # you can comment below
@@ -24,7 +25,7 @@ sys.setrecursionlimit(4096)
 MAX = 42
 
 SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
-C_LIBRARY_FUNCS = ['$printf']
+C_LIBRARY_FUNCS = ['$printf', '$scanf']
 
 
 # =======================================
@@ -1504,16 +1505,25 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         param_list.append(state.symbolic_stack.pop())
 
                 if name == '$printf':
-                    mem_pointer = param_list[-1]
-                    for k, v in state.symbolic_memory.items():
-                        if k[0] == mem_pointer:
-                            v_int = v.as_long()
-                            mem_data = v_int.to_bytes((v_int.bit_length() + 7) // 8, 'big')
-                            break
-                    mem_data = mem_data[:mem_data.find(b'\x00')]
-                    mem_data = mem_data.decode("utf-8")
-                    logging.warning("=============================Print!=============================\n%s", mem_data)
-                
+                    # has to use as_long()
+                    mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
+                    the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, state)
+                    logging.warning("=============================Print!=============================\n%s", the_string)
+                elif name == '$scanf':
+                    mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
+                    the_string = C_extract_string_by_start_pointer(start_pointer, 0, state)
+
+                    pattern_strs = the_string.split()
+                    for i, pattern_str in enumerate(pattern_strs):
+                        if pattern_str == '%d':
+                            # as the basic unit in wasm is i32.load
+                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, mem_pointer, 4).as_long()
+                            mem_pointer += 4
+
+                            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
+                        else:
+                            exit("$scanf error")
+
                 if return_str:
                     if return_str == 'i32':
                         state.symbolic_stack.append(
