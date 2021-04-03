@@ -2,7 +2,7 @@ import logging
 
 from z3 import *
 
-import gvar
+# import gvar
 
 # you can comment below
 # logging.basicConfig(level=logging.DEBUG)
@@ -402,15 +402,15 @@ def load_instr(instr, state):
             state.symbolic_stack.append(BitVec('load_i64*(' + str(addr) + ')', 64))
         elif 'f64' in instr_name.split('.')[0]:
             state.symbolic_stack.append(FP('load_f64*(' + str(addr) + ')', Float64()))
-    elif type(val) == BitVecRef:
-        if 'i32' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(BitVec('load_i32*(' + str(val) + ')', 32))
-        elif 'f32' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(FP('load_f32*(' + str(val) + ')', Float32()))
-        elif 'i64' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(BitVec('load_i64*(' + str(val) + ')', 64))
-        elif 'f64' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(FP('load_f64*(' + str(val) + ')', Float64()))
+    # elif type(val) == BitVecRef:
+    #     if 'i32' in instr_name.split('.')[0]:
+    #         state.symbolic_stack.append(BitVec('load_i32*(' + str(val) + ')', 32))
+    #     elif 'f32' in instr_name.split('.')[0]:
+    #         state.symbolic_stack.append(FP('load_f32*(' + str(val) + ')', Float32()))
+    #     elif 'i64' in instr_name.split('.')[0]:
+    #         state.symbolic_stack.append(BitVec('load_i64*(' + str(val) + ')', 64))
+    #     elif 'f64' in instr_name.split('.')[0]:
+    #         state.symbolic_stack.append(FP('load_f64*(' + str(val) + ')', Float64()))
     else:
         assert not is_bool(val), 'in load_instr, the value to be pushed in stack is a BoolRef'
         state.symbolic_stack.append(val)
@@ -499,7 +499,8 @@ def to_little_endian(data, length):
 
     result_list = []
     for index in range(0, total_length, 8):
-        result_list.append(Extract(index + 7, index, data))
+        result_list.append(Extract(total_length - 1 - index, total_length - 8 - index, data))
+        # result_list.append(Extract(index + 7, index, data))
 
     return simplify(Concat(*result_list))
 
@@ -773,3 +774,25 @@ def has_sidepath_call_keyimport(target_func, edges, target_set):
         return has_sidepath_call_keyimport(target_func, edges, upper_function_set)
     else:
         return False
+
+def main():
+    # memory_mapping = {}
+    # val = BitVec('test', 32)
+    # memory_mapping = insert_symbolic_memory(memory_mapping, 0, 4, val)
+    # print(memory_mapping)
+    # print(lookup_symbolic_memory(memory_mapping, 2, 2))
+    a = BitVec('a', 32)
+    b = BitVec('b', 32)
+    print(a+b)
+    c = to_little_endian(a+b, 32)
+    print(c)
+    d = to_little_endian(c, 32)
+    print(d)
+    s = Solver()
+    s.add(c == a+b, a == 1, b == 1, c == 2)
+    print(s.check())
+    print(s.model())
+
+
+if __name__ == "__main__":
+    main()
