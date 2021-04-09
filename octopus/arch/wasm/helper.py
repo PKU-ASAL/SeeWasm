@@ -94,7 +94,7 @@ class ImportFunction():
                 if type(src) == BitVecNumRef:
                     src = src.as_long()
 
-                source_data = lookup_symbolic_memory(self.state.symbolic_memory, src, length_in_size)
+                source_data = lookup_symbolic_memory(self.state.symbolic_memory, self.data_section, src, length_in_size)
                 if source_data is None:
                     source_data = BitVecVal(0, length_in_size * 8)
                 assert source_data.size() == length_in_size * 8, f"in memcpy, source data loaded is not compatible with length {length}"
@@ -125,7 +125,7 @@ class ImportFunction():
                 if type(src) == BitVecNumRef:
                     src = src.as_long()
 
-                source_data = lookup_symbolic_memory(self.state.symbolic_memory, src, length_in_size)
+                source_data = lookup_symbolic_memory(self.state.symbolic_memory, self.data_section, src, length_in_size)
                 if source_data is None:
                     source_data = BitVecVal(0, length_in_size * 8)
 
@@ -219,7 +219,7 @@ class ImportFunction():
             #     logging.warning(f"it seems like the hack in `sha256` is not feasible")
             #     exit()
             try:
-                data = lookup_symbolic_memory(self.state.symbolic_memory, src, length_in_size)
+                data = lookup_symbolic_memory(self.state.symbolic_memory, self.data_section, src, length_in_size)
 
                 # to be inserted is the data itself
                 to_be_inserted = data
@@ -307,7 +307,7 @@ def uleb128_calculate(str):
 
 
 # deal with load instruction
-def load_instr(instr, state):
+def load_instr(instr, state, data_section):
     base = state.symbolic_stack.pop()
     assert is_bv(base), f"in load_instr `base` type is {type(base)}"
 
@@ -325,70 +325,70 @@ def load_instr(instr, state):
 
     instr_name = instr.name
     if instr_name == 'i32.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 4)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
         if val is not None:
             assert val.size() == 32, f"in i32.load the val loaded size is not 32"
     elif instr_name == 'i64.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 8)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 8)
         if val is not None:
             assert val.size() == 64, f"in i64.load the val loaded size is not 64"
     elif instr_name == 'f32.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 4)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
         if val is not None:
             assert val.size() == 32, f"in f32.load the val loaded size is not 32"
             val = fpBVToFP(val, Float32())
     elif instr_name == 'f64.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 8)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 8)
         if val is not None:
             assert val.size() == 64, f"in f64.load the val loaded size is not 64"
             val = fpBVToFP(val, Float64())
     elif instr_name == 'i32.load8_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 1)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
         if val is not None:
             assert val.size() == 8, f"in i32.load8_s the val loaded size is not 8"
             val = simplify(SignExt(24, val))
     elif instr_name == 'i32.load8_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 1)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
         if val is not None:
             assert val.size() == 8, f"in i32.load8_u the val loaded size is not 8"
             val = simplify(ZeroExt(24, val))
     elif instr_name == 'i32.load16_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 2)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
         if val is not None:
             assert val.size() == 16, f"in i32.load16_s the val loaded size is not 16"
             val = simplify(SignExt(16, val))
     elif instr_name == 'i32.load16_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 2)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
         if val is not None:
             assert val.size() == 16, f"in i32.load16_u the val loaded size is not 16"
             val = simplify(ZeroExt(16, val))
     elif instr_name == 'i64.load8_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 1)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
         if val is not None:
             assert val.size() == 8, f"in i64.load8_s the val loaded size is not 8"
             val = simplify(SignExt(56, val))
     elif instr_name == 'i64.load8_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 1)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
         if val is not None:
             assert val.size() == 8, f"in i64.load8_u the val loaded size is not 8"
             val = simplify(ZeroExt(56, val))
     elif instr_name == 'i64.load16_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 2)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
         if val is not None:
             assert val.size() == 16, f"in i64.load16_s the val loaded size is not 16"
             val = simplify(SignExt(48, val))
     elif instr_name == 'i64.load16_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 2)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
         if val is not None:
             assert val.size() == 16, f"in i64.load16_u the val loaded size is not 16"
             val = simplify(ZeroExt(48, val))
     elif instr_name == 'i64.load32_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 4)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
         if val is not None:
             assert val.size() == 32, f"in i64.load32_s the val loaded size is not 32"
             val = simplify(SignExt(32, val))
     elif instr_name == 'i64.load32_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, addr, 4)
+        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
         if val is not None:
             assert val.size() == 32, f"in i64.load32_u the val loaded size is not 32"
             val = simplify(ZeroExt(32, val))
@@ -488,29 +488,30 @@ def store_instr(instr, state):
 # case 12:          |             [_________]               False
 # case 13:          |             |        [______]         False
 
-def to_little_endian(data, length):
-    assert data is not None, f"in to_little_endian, the data is {data}, the length is {length}"
-    if isinstance(data, int):
-        data = BitVecVal(data, length * 8)
+# def to_little_endian(data, length):
+#     assert data is not None, f"in to_little_endian, the data is {data}, the length is {length}"
+#     if isinstance(data, int):
+#         data = BitVecVal(data, length * 8)
 
-    total_length = data.size()
-    if total_length == 8:
-        return data
+#     total_length = data.size()
+#     if total_length == 8:
+#         return data
 
-    result_list = []
-    for index in range(0, total_length, 8):
-        result_list.append(Extract(total_length - 1 - index, total_length - 8 - index, data))
-        # result_list.append(Extract(index + 7, index, data))
+#     result_list = []
+#     for index in range(0, total_length, 8):
+#         result_list.append(Extract(total_length - 1 - index, total_length - 8 - index, data))
+#         # result_list.append(Extract(index + 7, index, data))
 
-    return simplify(Concat(*result_list))
+#     result_list.reverse()
+#     return simplify(Concat(*result_list))
 
 
-def recover_from_little_endian(data, length):
-    return to_little_endian(data, length)
+# def recover_from_little_endian(data, length):
+#     return to_little_endian(data, length)
 
 
 # dest type can only be bitvecref or int
-def lookup_symbolic_memory(symbolic_memory, dest, length):
+def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     assert isinstance(length, int), "length type in lookup_symbolic_memory is not int"
     assert type(dest) == BitVecRef or isinstance(dest, int), f"dest type in lookup_symbolic_memory is {type(dest)}"
 
@@ -518,26 +519,41 @@ def lookup_symbolic_memory(symbolic_memory, dest, length):
         # if dest type is `BitVecRef`
         if type(dest) == BitVecRef:
             # TODO maybe I need merge the BitVecRef
-            if (dest, simplify(dest + length)) in symbolic_memory.keys():
+            if (dest, simplify(dest + length)) in data_section.keys():
+                assert data_section[(dest, simplify(
+                    dest + length))].size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
+                return data_section[(dest, simplify(dest + length))]
+            elif (dest, simplify(dest + length)) in symbolic_memory.keys():
                 assert symbolic_memory[(dest, simplify(
                     dest + length))].size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-                return recover_from_little_endian(symbolic_memory[(dest, simplify(dest + length))], length)
+                return data_section[(dest, simplify(dest + length))]
             else:
                 return None
 
         # other cases
-        is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, dest, length)
+        is_symbolic_memory, is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length)
         if not is_existed:
             return None
+        
+        # in data section
+        if not is_symbolic_memory:
+            overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
+            high, low = overlapped_end - existed_start, overlapped_start - existed_start
+            data = simplify(Extract(high * 8 - 1, low * 8, data_section[(existed_start, existed_end)]))
+
+            if data.size() < length * 8:
+                data = simplify(Concat(data, BitVecVal(0, length * 8 - data.size())))
+            assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
+            return data
         else:
             overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
-            high, low = existed_end - overlapped_start, existed_end - overlapped_end
+            high, low = overlapped_end - existed_start, overlapped_start - existed_start
             data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))
 
             if data.size() < length * 8:
                 data = simplify(Concat(data, BitVecVal(0, length * 8 - data.size())))
             assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-            return recover_from_little_endian(data, length)
+            return data
     except Exception:
         raise
 
@@ -558,20 +574,21 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
     # if dest type is `BitVecRef`
     # in this case, don't use z3 add it in symbolic_memory directly
     if type(dest) == BitVecRef:
-        data = to_little_endian(data, length)
+        # data = to_little_endian(data, length)
 
         symbolic_memory[(dest, simplify(dest + length))] = data
     # if dest type is `int`
     else:
         # the existed_start and existed_end are all int
-        is_overlapped, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, dest, length)
+        _, is_overlapped, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, dict(), dest, length)
         if not is_overlapped:
-            data = to_little_endian(data, length)
+            # data = to_little_endian(data, length)
 
             assert data.size() == length * 8, f"data is: {data}, data size is {data.size()}, length is {length}"
             # insert directly
             symbolic_memory[(dest, dest + length)] = data
         else:
+            exit()
             # case 3-11
             # existed:          [____fixed____]
             # case 3: [_____________]         |
@@ -690,7 +707,7 @@ def merge_symbolic_memory(symbolic_memory):
             # merge!
             first_part = symbolic_memory_dup.pop(current_key)
             second_part = symbolic_memory_dup.pop(next_key)
-            data = simplify(Concat(first_part, second_part))
+            data = simplify(Concat(second_part, first_part))
 
             symbolic_memory_dup[(current_key[0], next_key[1])] = data
 
@@ -718,9 +735,24 @@ def calc_overlap(existed_start, existed_end, dest, length):
     return overlapped_start, overlapped_end
 
 
-def lookup_overlapped_symbolic_memory(symbolic_memory, dest, length):
+def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length):
     found = False
     existed_start, existed_end = None, None
+
+    # iterate the existed data_section
+    for k, _ in data_section.items():
+        # k is a tuple, i.e. (start, end)
+        existed_start, existed_end = k[0], k[1]
+        # if the key's element type is BitVecRef, jump over
+        if is_bv(existed_start):
+            continue
+
+        if is_overlapped(existed_start, existed_end, dest, length):
+            found = True
+            break
+    if found:
+        return False, True, existed_start, existed_end
+
     # iterate the existed symbolic_memory
     for k, _ in symbolic_memory.items():
         # k is a tuple, i.e. (start, end)
@@ -734,9 +766,9 @@ def lookup_overlapped_symbolic_memory(symbolic_memory, dest, length):
             break
 
     if found:
-        return True, existed_start, existed_end
+        return True, True, existed_start, existed_end
     else:
-        return False, None, None
+        return True, False, None, None
 
 
 def is_overlapped(existed_start, existed_end, dest, length):
@@ -783,15 +815,8 @@ def main():
     # print(lookup_symbolic_memory(memory_mapping, 2, 2))
     a = BitVec('a', 32)
     b = BitVec('b', 32)
-    print(a+b)
-    c = to_little_endian(a+b, 32)
+    c = a + b
     print(c)
-    d = to_little_endian(c, 32)
-    print(d)
-    s = Solver()
-    s.add(c == a+b, a == 1, b == 1, c == 2)
-    print(s.check())
-    print(s.model())
 
 
 if __name__ == "__main__":

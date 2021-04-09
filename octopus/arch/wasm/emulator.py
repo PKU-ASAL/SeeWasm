@@ -17,6 +17,10 @@ from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 
 sys.setrecursionlimit(4096)
+
+# need to log?
+LOGGING = False
+
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
 # filemode='w',
@@ -110,11 +114,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             size = data_section_value['size']
             # print(offset, size, data)
             if offset == '4':
-                self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='little'),
-                                                                       size * 8)
+                exit("The offset of data section is 4, please check")
+                self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='little'), size * 8)
             else:
-                self.data_section[(offset, offset + size)] = BitVecVal(
-                    int.from_bytes(data, byteorder='big'), size * 8)
+                # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
+                # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
+                self.data_section[(offset, offset + size)] = data
         # func index to func real name
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
@@ -315,7 +320,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # create a symbolic stack
             state.symbolic_stack = list()
             state.local_var = [None] * 160
-            state.symbolic_memory.update(self.data_section)
+
+            # divide the symbolic memory and the data section
+            state.symbolic_memory = dict()
+
             # deal with the globals
             state.globals = self.ana.globals
 
@@ -381,7 +389,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         state.symbolic_stack = list()
         # 80 is too small for some contract
         state.local_var = [None] * 160
-        state.symbolic_memory.update(self.data_section)
+        state.symbolic_memory = dict()
         # deal with the globals
         state.globals = self.ana.globals
 
@@ -586,10 +594,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # ====================
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
-        # logging.warning(
-        #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n\tsym_mem:\t%s\n',
-        #     state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
-        #     state.local_var[:12], state.symbolic_memory)
+        
+        if LOGGING:
+            logging.warning(
+                '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n\tsym_mem:\t%s\n',
+                state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
+                state.local_var[:12], state.symbolic_memory)
 
         # no symbolic memory
         # logging.warning(
@@ -1507,20 +1517,21 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if name == '$printf':
                     # has to use as_long()
                     mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-                    the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, state)
+                    the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, self.data_section, state.symbolic_memory)
                     logging.warning("=============================Print!=============================\n%s", the_string)
                 elif name == '$scanf':
                     mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-                    the_string = C_extract_string_by_start_pointer(start_pointer, 0, state)
+                    the_string = C_extract_string_by_start_pointer(start_pointer, 0, self.data_section, state.symbolic_memory)
 
                     pattern_strs = the_string.split()
                     for i, pattern_str in enumerate(pattern_strs):
                         if pattern_str == '%d':
                             # as the basic unit in wasm is i32.load
-                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, mem_pointer, 4).as_long()
+                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
                             mem_pointer += 4
 
                             state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
+                            logging.warning("================Initiated in scanf, called: %s!=================\n", 'variable'+str(i))
                         else:
                             exit("$scanf error")
 
@@ -2004,7 +2015,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         elif instr.name == 'grow_memory':
             pass
         elif 'load' in instr.name:
-            load_instr(instr, state)
+            load_instr(instr, state, self.data_section)
         elif 'store' in instr.name:
             store_instr(instr, state)
         else:
