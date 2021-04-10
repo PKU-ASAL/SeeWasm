@@ -68,7 +68,11 @@ def decode_module(module, decode_name_subsections=False):
     # Read & yield sections.
     while module_wnd:
         sec = Section()
-        sec_len, sec_data, _ = sec.from_raw(None, module_wnd)
+        # bypass the error caused by -g1 to -g3 compiled C code
+        try:
+            sec_len, sec_data, _ = sec.from_raw(None, module_wnd)
+        except:
+            break
 
         # If requested, decode name subsections when encountered.
         if (
@@ -89,6 +93,3 @@ def decode_module(module, decode_name_subsections=False):
         if sec_data.id == SEC_UNK and sec_data.name:
             sec_len -= sec_data.name_len + 1
         module_wnd = module_wnd[sec_len:]
-        # bypass the error caused by -g1 to -g3 compiled C code
-        if sec_data.id == 11:
-            break

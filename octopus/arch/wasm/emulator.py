@@ -19,7 +19,7 @@ from octopus.arch.wasm.helper_c import *
 sys.setrecursionlimit(4096)
 
 # need to log?
-LOGGING = not True
+LOGGING = True
 
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
@@ -1525,7 +1525,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
                     the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, self.data_section, state.symbolic_memory)
 
-                    if the_string.isspace():
+                    if isinstance(the_string, str) and the_string.isspace():
                         the_string = f"'{ord(the_string)}'"
                     logging.warning("========================Print!=========================\n%s", the_string)
                 elif name == '$scanf':
