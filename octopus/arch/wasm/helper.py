@@ -542,7 +542,7 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
             data = simplify(Extract(high * 8 - 1, low * 8, data_section[(existed_start, existed_end)]))
 
             if data.size() < length * 8:
-                data = simplify(Concat(data, BitVecVal(0, length * 8 - data.size())))
+                data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
             assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
             return data
         else:
@@ -551,7 +551,7 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
             data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))
 
             if data.size() < length * 8:
-                data = simplify(Concat(data, BitVecVal(0, length * 8 - data.size())))
+                data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
             assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
             return data
     except Exception:
@@ -588,7 +588,6 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
             # insert directly
             symbolic_memory[(dest, dest + length)] = data
         else:
-            exit()
             # case 3-11
             # existed:          [____fixed____]
             # case 3: [_____________]         |
@@ -605,6 +604,7 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
             is_inserted = False
             overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
             if dest < overlapped_start:
+                exit("case 3-5")
                 # case 3-5
                 if overlapped_end < existed_end:
                     # case 3
@@ -634,11 +634,11 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 # case 6-8
                 if overlapped_end < existed_end:
                     # case 6
-                    first_part = to_little_endian(data, length)
+                    first_part = data
                     original = symbolic_memory.pop((existed_start, existed_end))
                     high = existed_end - overlapped_end
                     second_part = simplify(Extract(high * 8 - 1, 0, original))
-                    data = simplify(Concat(first_part, second_part))
+                    data = simplify(Concat(second_part, first_part))
 
                     assert data.size() == (
                             existed_end - existed_start) * 8, f"data is: {data}, data size is {data.size()}, length is {existed_end - existed_start}"
@@ -648,7 +648,6 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 else:
                     # case 7 and 8
                     symbolic_memory.pop((existed_start, existed_end))
-                    data = to_little_endian(data, length)
 
                     assert data.size() == length * 8, f"data is: {data}, data size is {data.size()}, length is {length}"
                     symbolic_memory[(dest, dest + length)] = data
@@ -658,6 +657,7 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
             if not is_inserted and overlapped_start > existed_start:
                 # case 9-11
                 if overlapped_end >= existed_end:
+                    exit("case 10, 11")
                     # case 10 and 11
                     original = symbolic_memory.pop((existed_start, existed_end))
                     high, low = existed_end - existed_start, existed_end - overlapped_start
@@ -671,12 +671,16 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 else:
                     # case 9
                     original = symbolic_memory.pop((existed_start, existed_end))
-                    high, low = existed_end - existed_start, existed_end - overlapped_start
-                    first_part = simplify(Extract(high * 8 - 1, low * 8, original))
-                    second_part = to_little_endian(data, length)
-                    high = existed_end - overlapped_end
-                    third_part = simplify(Extract(high * 8 - 1, 0, original))
-                    data = simplify(Concat(first_part, second_part, third_part))
+                    # for first part
+                    high = overlapped_start - existed_start
+                    first_part = simplify(Extract(high * 8 - 1, 0, original))
+
+                    second_part = data
+
+                    # for third part
+                    high, low = existed_end - existed_start, overlapped_end - existed_start
+                    third_part = simplify(Extract(high * 8 - 1, low * 8, original))
+                    data = simplify(Concat(third_part, second_part, first_part))
 
                     assert data.size() == (
                             existed_end - existed_start) * 8, f"data is: {data}, data size is {data.size()}, length is {existed_end - existed_start}"

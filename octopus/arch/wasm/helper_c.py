@@ -8,6 +8,9 @@ def C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section, 
         if k[0] <= start_pointer <= k[1]:
             mem_data = v
             break
+    # slice
+    mem_data = mem_data[start_pointer - k[0]:]
+
     mem_data = mem_data[:mem_data.find(b'\x00')]
     mem_data = mem_data.decode("utf-8")
 

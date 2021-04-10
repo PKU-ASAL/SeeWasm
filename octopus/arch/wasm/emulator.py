@@ -19,7 +19,7 @@ from octopus.arch.wasm.helper_c import *
 sys.setrecursionlimit(4096)
 
 # need to log?
-LOGGING = False
+LOGGING = not True
 
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
@@ -319,7 +319,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state = WasmVMstate()
             # create a symbolic stack
             state.symbolic_stack = list()
-            state.local_var = [None] * 160
+
+            # initiate local var list according to the instructions
+            max_local = 0
+            for instruction in self.current_function.instructions:
+                instruction_name = instruction.name
+                if "set_local" in instruction_name:
+                    max_local = max(int.from_bytes(instruction.operand, "big"), max_local)
+            state.local_var = [None] * (max_local + 1)
 
             # divide the symbolic memory and the data section
             state.symbolic_memory = dict()
@@ -597,9 +604,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         
         if LOGGING:
             logging.warning(
-                '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n\tsym_mem:\t%s\n',
+                '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var(%d):\t%s\n\tsym_mem:\t%s\n',
                 state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
-                state.local_var[:12], state.symbolic_memory)
+                len(state.local_var), state.local_var[:10], state.symbolic_memory)
 
         # no symbolic memory
         # logging.warning(
@@ -686,8 +693,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         elif instr.name == 'loop':
             logging.debug('[LOOP]: %s' % (instr.offset))
             # remember which loop is traversed
-            state.instructions_visited.add(
-                (self.current_function.name, instr.offset))
+            # state.instructions_visited.add((self.current_function.name, instr.offset))
         elif instr.name in ['nop', 'block']:
             pass
         elif instr.name == 'else':
@@ -1518,7 +1524,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     # has to use as_long()
                     mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
                     the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, self.data_section, state.symbolic_memory)
-                    logging.warning("=============================Print!=============================\n%s", the_string)
+
+                    if the_string.isspace():
+                        the_string = f"'{ord(the_string)}'"
+                    logging.warning("========================Print!=========================\n%s", the_string)
                 elif name == '$scanf':
                     mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
                     the_string = C_extract_string_by_start_pointer(start_pointer, 0, self.data_section, state.symbolic_memory)
@@ -1531,7 +1540,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             mem_pointer += 4
 
                             state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
-                            logging.warning("================Initiated in scanf, called: %s!=================\n", 'variable'+str(i))
+                            logging.warning("================Initiated in scanf, called: %s!=================\n", '$scanf_variable'+str(i) + "_depth_" + str(depth))
                         else:
                             exit("$scanf error")
 
@@ -1976,6 +1985,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 return True
         elif instr.name == 'set_local':
             var = state.symbolic_stack.pop()
+
+            # dynamic increase
+            if op >= len(state.local_var):
+                state.local_var += [None] * (op - len(state.local_var) + 1)
             state.local_var[op] = var
         elif instr.name == 'get_global':
             global_index = op
