@@ -1,0 +1,30 @@
+digraph G {
+	rankdir=TB
+	overlap=scale
+	splines=polyline
+	ratio=fill
+	subgraph cluster_0 {
+		node [fontname=Courier fontsize=30.0 rank=same shape=box]
+		label="i32 main(i32 i32) - main"
+		color=grey
+		fontsize=50.0
+		overlap=false
+		splines=polyline
+		ratio=fill
+		block_1_0 [label="0: get_global 0\l2: set_local 2\l4: i32.const 16\l6: set_local 3\l8: get_local 2\la: get_local 3\lc: i32.sub \ld: set_local 4\lf: get_local 4\l11: set_global 0\l13: i32.const 0\l15: set_local 5\l17: get_local 4\l19: get_local 5\l1b: i32.store 2, 12\l1e: get_local 4\l20: get_local 0\l22: i32.store 2, 8\l25: get_local 4\l27: get_local 1\l29: i32.store 2, 4\l2c: get_local 4\l2e: i32.load 2, 8\l31: set_local 6\l33: i32.const 1\l35: set_local 7\l37: get_local 6\l39: set_local 8\l3b: get_local 7\l3d: set_local 9\l3f: get_local 8\l41: get_local 9\l43: i32.lt_s \l44: set_local 10\l46: i32.const 1\l48: set_local 11\l4a: get_local 10\l4c: get_local 11\l4e: i32.and \l4f: set_local 12\l51: block -64\l53: block -64\l55: get_local 12\l57: i32.eqz \l58: br_if [108]\l"]
+		block_1_5a [label="5a: i32.const 1024\l5d: set_local 13\l5f: i32.const 0\l61: set_local 14\l63: get_local 13\l65: get_local 14\l67: call 40\l69: drop \l6a: br [201]\l"]
+		block_1_6c [label="6c: end \l6d: get_local 4\l6f: i32.load 2, 8\l72: set_local 15\l74: i32.const 1\l76: set_local 16\l78: get_local 15\l7a: set_local 17\l7c: get_local 16\l7e: set_local 18\l80: get_local 17\l82: get_local 18\l84: i32.eq \l85: set_local 19\l87: i32.const 1\l89: set_local 20\l8b: get_local 19\l8d: get_local 20\l8f: i32.and \l90: set_local 21\l92: block -64\l94: block -64\l96: get_local 21\l98: i32.eqz \l99: br_if [173]\l"]
+		block_1_9b [label="9b: i32.const 1032\l9e: set_local 22\la0: i32.const 0\la2: set_local 23\la4: get_local 22\la6: get_local 23\la8: call 40\laa: drop \lab: br [200]\l"]
+		block_1_ad [label="ad: end \lae: get_local 4\lb0: i32.load 2, 8\lb3: set_local 24\lb5: get_local 4\lb7: get_local 24\lb9: i32.store 2, 0\lbc: i32.const 1040\lbf: set_local 25\lc1: get_local 25\lc3: get_local 4\lc5: call 40\lc7: drop \l"]
+		block_1_c8 [label="c8: end \l"]
+		block_1_c9 [label="c9: end \lca: i32.const 0\lcc: set_local 26\lce: i32.const 16\ld0: set_local 27\ld2: get_local 4\ld4: get_local 27\ld6: i32.add \ld7: set_local 28\ld9: get_local 28\ldb: set_global 0\ldd: get_local 26\ldf: return \le0: end \l"]
+	}
+	block_1_6c -> block_1_ad [color=green]
+	block_1_0 -> block_1_6c [color=green]
+	block_1_ad -> block_1_c8 [color=cyan]
+	block_1_9b -> block_1_c8 [color=blue]
+	block_1_c8 -> block_1_c9 [color=cyan]
+	block_1_0 -> block_1_5a [color=red]
+	block_1_5a -> block_1_c9 [color=blue]
+	block_1_6c -> block_1_9b [color=red]
+}
