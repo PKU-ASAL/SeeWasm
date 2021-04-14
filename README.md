@@ -9,6 +9,7 @@ python3.6 -m pip install -r requirements.txt
 ## 测试
 
 ```shell
+# 由于修改了 loop 指令的处理逻辑，该测试会超时，请暂时先使用 C 语言样例做测试
 python3.6 octopus_wasm -f './test_contract/fairdicegame.wasm' --laser fake_eos
 ```
 

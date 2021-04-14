@@ -19,7 +19,7 @@ from octopus.arch.wasm.helper_c import *
 sys.setrecursionlimit(4096)
 
 # need to log?
-LOGGING = True
+LOGGING = not True
 
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
