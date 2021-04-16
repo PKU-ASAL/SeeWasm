@@ -639,8 +639,8 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                     # case 6
                     first_part = data
                     original = symbolic_memory.pop((existed_start, existed_end))
-                    high = existed_end - overlapped_end
-                    second_part = simplify(Extract(high * 8 - 1, 0, original))
+                    high, low = existed_end - existed_start, overlapped_end - existed_start
+                    second_part = simplify(Extract(high * 8 - 1, low * 8, original))
                     data = simplify(Concat(second_part, first_part))
 
                     assert data.size() == (

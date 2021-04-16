@@ -29,7 +29,7 @@ LOGGING = not True
 MAX = 42
 
 SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
-C_LIBRARY_FUNCS = ['$printf', '$scanf']
+C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
 
 
 # =======================================
@@ -1514,6 +1514,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             'export function return value is not processed')
             # the function is the C library functions, here
             elif name in C_LIBRARY_FUNCS:
+                # if the return value is dependent on the library function, we will manually contruct it
+                # and jump over the process in which it append a symbol according to the signature of the function
+                manually_constructed = False
+
                 param_list = []
                 if param_str:
                     num_arg = len(param_str.split(' '))
@@ -1537,14 +1541,40 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if pattern_str == '%d':
                             # as the basic unit in wasm is i32.load
                             target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
-                            mem_pointer += 4
+                            # mem_pointer += 4
 
                             state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
-                            logging.warning("================Initiated in scanf, called: %s!=================\n", '$scanf_variable'+str(i) + "_depth_" + str(depth))
+                            logging.warning("================Initiated an scanf integer: %s!=================\n", '$scanf_variable'+str(i) + "_depth_" + str(depth))
+                        elif pattern_str == '%s':
+                            # as the basic unit in wasm is i32.load
+                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
+                            # mem_pointer += 4
+
+                            # insert an 'abc\x00', little endian: 6513249
+                            # big endian: 1633837824
+                            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVecVal(6513249, 32))
+                            logging.warning("================Initiated an scanf string: abc=================\n")
                         else:
                             exit("$scanf error")
+                elif name == '$strlen':
+                    mem_pointer = param_list[0].as_long()
+                    the_string = C_extract_string_by_mem_pointer(mem_pointer, self.data_section, state.symbolic_memory)
+                    the_string = the_string.as_long()
 
-                if return_str:
+                    string_length = len(the_string.to_bytes((the_string.bit_length() + 7) // 8, 'little'))
+                    state.symbolic_stack.append(BitVecVal(string_length, 32))
+
+                    manually_constructed = True
+                    logging.warning("================$strlen! The length is: %s=================\n", string_length)
+                elif name == '$swap':
+                    the_one, the_other = param_list[0].as_long(), param_list[1].as_long()
+                    the_one_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_one, 1)
+                    the_other_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_other, 1)
+                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, the_one, 1, the_other_mem)
+                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, the_other, 1, the_one_mem)
+                    logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem, the_other_mem)
+
+                if not manually_constructed and return_str:
                     if return_str == 'i32':
                         state.symbolic_stack.append(
                             BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
