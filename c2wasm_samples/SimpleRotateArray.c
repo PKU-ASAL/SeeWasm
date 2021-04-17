@@ -22,32 +22,7 @@ void RotateArray()
 		end--;
 	}
 
-	int wordsize = 0;
-	//将每个单词逆置
-	for (int i = 0; i <= strlen(str); i++)
-	{
-		if (str[i] != ' ' && str[i] != '\0')//考虑最后一个单词
-		{
-			wordsize++;
-			continue;
-		}
 
-		if (wordsize == 1)
-		{
-			wordsize = 0;
-			continue;
-		}
-
-		start = i - wordsize;
-		end = i - 1;
-		while (start < end)
-		{	
-			swap(str+start, str+end);
-			start++;
-			end--;
-		}
-		wordsize = 0;
-	}
 
 	 printf("The new Character array is: %s\n",str);
 
