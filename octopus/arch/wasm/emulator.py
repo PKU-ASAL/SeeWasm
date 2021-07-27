@@ -16,6 +16,8 @@ from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 
+from . type2z3 import *
+
 sys.setrecursionlimit(4096)
 
 # need to log?
@@ -149,18 +151,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
-                if local == 'i32':
-                    new_state.local_var[i] = (
-                        BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
-                elif local == 'i64':
-                    new_state.local_var[i] = (
-                        BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
-                elif local == 'f32':
-                    new_state.local_var[i] = (
-                        FP(self.current_function.name + '_loc_' + str(i) + '_f32', Float32()))
-                elif local == 'f64':
-                    new_state.local_var[i] = (
-                        FP(self.current_function.name + '_loc_' + str(i) + '_f64', Float64()))
+                new_state.local_var[i] = getConcreteBitVec(local, self.current_function.name + '_loc_' + str(i) + '_' + local)
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
@@ -343,21 +334,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # init state.local_var
             if target_func_locals and function_name != 'apply':
                 for i, local in enumerate(target_func_locals.split(' ')):
-                    if local == 'i32':
-                        state.local_var[i] = (
-                            BitVec(self.current_function.name + '_loc_' + str(i) + '_i32', 32))
-                    elif local == 'i64':
-                        state.local_var[i] = (
-                            BitVec(self.current_function.name + '_loc_' + str(i) + '_i64', 64))
-                    elif local == 'f32':
-                        state.local_var[i] = (
-                            FP(self.current_function.name + '_loc_' + str(i) + '_f32', Float32()))
-                    elif local == 'f64':
-                        state.local_var[i] = (
-                            FP(self.current_function.name + '_loc_' + str(i) + '_f64', Float64()))
-                    else:
-                        raise Exception(
-                            'cannot init local var before emulation in emulate_one_function()')
+                    state.local_var[i] = getConcreteBitVec(local, self.current_function.name + '_loc_' + str(i) + '_' + local)
             elif target_func_locals and function_name == 'apply':
                 state.local_var[0] = (BitVec('receiver', 64))
                 state.local_var[1] = (BitVec('code', 64))
@@ -408,21 +385,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # init state.local_var
         for i, local in enumerate(target_func_locals.split(' ')):
-            if local == 'i32':
-                state.local_var[i] = (
-                    BitVec(func_path[0] + '_loc_' + str(i) + '_i32', 32))
-            elif local == 'i64':
-                state.local_var[i] = (
-                    BitVec(func_path[0] + '_loc_' + str(i) + '_i64', 64))
-            elif local == 'f32':
-                state.local_var[i] = (
-                    FP(func_path[0] + '_loc_' + str(i) + '_f32', Float32()))
-            elif local == 'f64':
-                state.local_var[i] = (
-                    FP(func_path[0] + '_loc_' + str(i) + '_f64', Float64()))
-            else:
-                raise Exception(
-                    'cannot init local var before emulation in emulate_one_function()')
+            state.local_var[i] = getConcreteBitVec(local, func_path[0] + '_loc_' + str(i) + '_' + local)
 
         def bb_index(basic_block_name):
             return int(basic_block_name.split('_')[-1], 16)
@@ -1493,25 +1456,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     for _ in range(num_arg):
                         state.symbolic_stack.pop()
                 if return_str:
-                    if return_str == 'i32':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 32))
-                    elif return_str == 'i64':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 64))
-                    elif return_str == 'f32':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float32()))
-                    elif return_str == 'f64':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float64()))
-                    else:
-                        raise Exception(
-                            'export function return value is not processed')
+                    state.symbolic_stack.append(getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc)))
+
             # the function is the C library functions, here
             elif name in C_LIBRARY_FUNCS:
                 # if the return value is dependent on the library function, we will manually contruct it
@@ -1575,25 +1521,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem, the_other_mem)
 
                 if not manually_constructed and return_str:
-                    if return_str == 'i32':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 32))
-                    elif return_str == 'i64':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 64))
-                    elif return_str == 'f32':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float32()))
-                    elif return_str == 'f64':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float64()))
-                    else:
-                        raise Exception(
-                            'export function return value is not processed')
+                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                    state.symbolic_stack.append(tmp_bitvec)
 
             # normal function call is processed here
             else:
@@ -1613,25 +1542,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             # has sidepath_call key param
                             if True not in set([x in str(param) for x in ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']]):
                                 if return_str:
-                                    if return_str == 'i32':
-                                        state.symbolic_stack.append(
-                                            BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
-                                                state.pc), 32))
-                                    elif return_str == 'i64':
-                                        state.symbolic_stack.append(
-                                            BitVec(internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
-                                                state.pc), 64))
-                                    elif return_str == 'f32':
-                                        state.symbolic_stack.append(FP(
-                                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                                state.pc), Float32()))
-                                    elif return_str == 'f64':
-                                        state.symbolic_stack.append(FP(
-                                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                                state.pc), Float64()))
-                                    else:
-                                        raise Exception(
-                                            'export function return value is not processed')
+                                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                                    state.symbolic_stack.append(tmp_bitvec)
+                                    
                                 return False
                             else:
                                 # print(param)
@@ -1679,25 +1592,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 # sometimes branched function can't return value as expected
                 if return_str and not possible_call_results:
-                    if return_str == 'i32':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 32))
-                    elif return_str == 'i64':
-                        state.symbolic_stack.append(
-                            BitVec(internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
-                                state.pc), 64))
-                    elif return_str == 'f32':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float32()))
-                    elif return_str == 'f64':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float64()))
-                    else:
-                        raise Exception(
-                            'export function return value is not processed')
+                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                    state.symbolic_stack.append(tmp_bitvec)
 
                     return False
 
