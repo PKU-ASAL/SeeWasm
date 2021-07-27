@@ -4,7 +4,6 @@ import re
 from datetime import datetime
 from functools import reduce
 from random import sample
-from struct import unpack
 
 from z3 import *
 
@@ -21,6 +20,7 @@ from . exceptions import *
 
 from .instructions.VariableInstructions import *
 from .instructions.MemoryInstructions import *
+from .instructions.ConstantInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -1906,74 +1906,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_variable_instr(self, instr, state):
         return do_emulate_variable_instruction(instr, state)
 
-    # dict state.symbolic_memory --> when addr or load(addr) contain param_str
-
     def emul_memory_instr(self, instr, state):
         # the data_section is used in the special cases
         # TODO decouple the data_section here
         return do_emulate_memory_instruction(instr, state, self.data_section)
 
     def emul_constant_instr(self, instr, state):
-        complete_op = instr.operand_interpretation
-        # there are two types of const: i and f, the diff is:
-        # i32.const 0
-        # f64.const 0x1.9p+6 (;=100;)
-        # thus we have to deal with the different situations
-        mnemonic = complete_op.split(' ')[0]
-        const_num = complete_op.split(' ')[-1]
-        const_type_prefix, _ = mnemonic.split('.')
-
-        if const_type_prefix == 'i32':
-            state.symbolic_stack.append(BitVecVal(const_num, 32))
-        elif const_type_prefix == 'i64':
-            state.symbolic_stack.append(BitVecVal(const_num, 64))
-        elif const_type_prefix == 'f32':
-            # extract float number 100 from (;=100;)
-            # TODO: need to be verified
-            num_found = re.search(';=([0-9.-]+);', const_num)
-            if num_found:
-                float_num = num_found.group(1)
-                state.symbolic_stack.append(FPVal(float_num, Float32()))
-            elif const_num[:2] == '0x':
-                # remove '0x' prefix
-                const_num = const_num[2:]
-                # extend with '0' till const_num length is 4 bytes
-                current_const_num_length = len(const_num)
-
-                need_zero = 8 - current_const_num_length
-                const_num = '0' * need_zero + const_num
-
-                float_num = unpack('!f', bytes.fromhex(const_num))[0]
-                state.symbolic_stack.append(FPVal(float_num, Float32()))
-            else:
-                raise Exception(
-                    'Did not process f32 in func emul_constant_instr')
-        elif const_type_prefix == 'f64':
-            # TODO: need to be verified
-            num_found = re.search(';=([0-9.-]+);', const_num)
-            if num_found:
-                float_num = num_found.group(1)
-                state.symbolic_stack.append(FPVal(float_num, Float64()))
-            # if the const num is start with 0x, i.e. '0x3f947ae147ae147b'
-            elif const_num[:2] == '0x':
-                # remove '0x' prefix
-                const_num = const_num[2:]
-                # extend with '0' till const_num length is 8 bytes
-                current_const_num_length = len(const_num)
-
-                need_zero = 16 - current_const_num_length
-                const_num = '0' * need_zero + const_num
-
-                float_num = unpack('!d', bytes.fromhex(const_num))[0]
-                state.symbolic_stack.append(FPVal(float_num, Float64()))
-            else:
-                raise Exception(
-                    'Did not process f64 in func emul_constant_instr')
-        else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_constant function')
-
-        return False
+        return do_emulate_constant_instruction(instr, state)
 
     def emul_logical_i32_instr(self, instr, state, depth, ret_num, call_depth):
         if instr.name == 'i32.eqz':
