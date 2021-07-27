@@ -10,13 +10,17 @@ from z3 import *
 
 import gvar
 from octopus.arch.wasm.cfg import WasmCFG
-from octopus.arch.wasm.helper import load_instr, store_instr, ImportFunction, can_jump_function, has_sidepath_call_keyimport, lookup_symbolic_memory, insert_symbolic_memory
+from octopus.arch.wasm.helper import ImportFunction, can_jump_function, has_sidepath_call_keyimport, lookup_symbolic_memory, insert_symbolic_memory
 from octopus.arch.wasm.security import fire_quick_check_by_module_name
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 
 from . type2z3 import *
+from . exceptions import *
+
+from .instructions.VariableInstructions import *
+from .instructions.MemoryInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -27,7 +31,7 @@ LOGGING = True
 # logging.basicConfig(filename='./logs/tmp.log',
 # filemode='w',
 # level=logging.INFO)
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 MAX = 42
 
 SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
@@ -566,8 +570,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
         
         if LOGGING:
-            logging.warning(
-                '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var(%d):\t%s\n\tsym_mem:\t%s\n',
+            logging.debug(
+                '\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var(%d):\t%s\n\tsym_mem:\t%s\n',
                 state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
                 len(state.local_var), state.local_var[:10], state.symbolic_memory)
 
@@ -1900,68 +1904,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return halt
 
     def emul_variable_instr(self, instr, state):
-        op = int.from_bytes(instr.operand, byteorder='big')
-
-        if instr.name == 'get_local':
-            if state.local_var[op] is not None:
-                state.symbolic_stack.append(state.local_var[op])
-            else:
-                logging.info(
-                    "[+] reach the situation that get_local before initialization, unreachable!")
-                return True
-        elif instr.name == 'set_local':
-            var = state.symbolic_stack.pop()
-
-            # dynamic increase
-            if op >= len(state.local_var):
-                state.local_var += [None] * (op - len(state.local_var) + 1)
-            state.local_var[op] = var
-        elif instr.name == 'get_global':
-            global_index = op
-            global_type = state.globals[global_index][0]
-            global_operand = state.globals[global_index][1]
-
-            if global_type == 'i32':
-                if isinstance(global_operand, str) or isinstance(global_operand, int):
-                    state.symbolic_stack.append(BitVecVal(global_operand, 32))
-                else:
-                    # if the operand is a BitVecRef or BitVecNumRef already
-                    state.symbolic_stack.append(global_operand)
-            else:
-                raise Exception('get_global type is not compatible')
-        elif instr.name is 'set_global':
-            global_operand = state.symbolic_stack.pop()
-            global_index = op
-            global_type = state.globals[global_index][0]
-
-            if global_type == 'i32':
-                state.globals[global_index][1] = global_operand
-            else:
-                raise Exception('set_global type is not compatible')
-        elif instr.name == 'tee_local':
-            var = state.symbolic_stack[-1]
-            state.local_var[op] = var
-        else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_variable function')
-        return False
+        return do_emulate_variable_instruction(instr, state)
 
     # dict state.symbolic_memory --> when addr or load(addr) contain param_str
 
     def emul_memory_instr(self, instr, state):
-        if instr.name == 'current_memory':
-            state.symbolic_stack.append(BitVec('current_memory_size', 32))
-        elif instr.name == 'grow_memory':
-            pass
-        elif 'load' in instr.name:
-            load_instr(instr, state, self.data_section)
-        elif 'store' in instr.name:
-            store_instr(instr, state)
-        else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_memory function')
-
-        return False
+        # the data_section is used in the special cases
+        # TODO decouple the data_section here
+        return do_emulate_memory_instruction(instr, state, self.data_section)
 
     def emul_constant_instr(self, instr, state):
         complete_op = instr.operand_interpretation

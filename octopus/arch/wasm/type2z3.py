@@ -1,8 +1,5 @@
 from z3 import *
-
-# define a new exception
-class UnsupportZ3TypeError(Exception):
-    pass
+from . exceptions import *
 
 
 def getConcreteBitVec(type, name):
