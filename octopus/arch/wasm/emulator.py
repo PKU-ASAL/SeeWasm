@@ -19,7 +19,7 @@ from octopus.arch.wasm.helper_c import *
 sys.setrecursionlimit(4096)
 
 # need to log?
-LOGGING = not True
+LOGGING = True
 
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
@@ -693,7 +693,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         elif instr.name == 'loop':
             logging.debug('[LOOP]: %s' % (instr.offset))
             # remember which loop is traversed
-            # state.instructions_visited.add((self.current_function.name, instr.offset))
+            state.instructions_visited.add((self.current_function.name, instr.offset))
         elif instr.name in ['nop', 'block']:
             pass
         elif instr.name == 'else':
