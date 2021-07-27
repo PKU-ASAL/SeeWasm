@@ -21,6 +21,7 @@ from . exceptions import *
 from .instructions.VariableInstructions import *
 from .instructions.MemoryInstructions import *
 from .instructions.ConstantInstructions import *
+from .instructions.LogicalInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -1914,217 +1915,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emul_constant_instr(self, instr, state):
         return do_emulate_constant_instruction(instr, state)
 
-    def emul_logical_i32_instr(self, instr, state, depth, ret_num, call_depth):
-        if instr.name == 'i32.eqz':
-            arg0 = state.symbolic_stack.pop()
-            assert arg0.size(
-            ) == 32, f"in i32.eqz the argument popped size is {arg0.size()} instead of 32"
+    def emul_logical_i32_instr(self, instr, state):
+        return do_emulate_logical_int_instruction(instr, state)
 
-            result = simplify(arg0 == 0)
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-        else:
-            arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-            # [call 4] [tee_local 5] [i32.const 0] [i32.lt_s] [br_if]
-            # if arg2.__str__() == 'db_find_i64_i32' and arg1.__str__() == '0':
-            #     state.symbolic_stack.append(BitVecVal(0, 32))
-            #     return False
+    def emul_logical_i64_instr(self, instr, state):
+        return do_emulate_logical_int_instruction(instr, state)
 
-            assert is_bv(
-                arg1), f"in i32.logical, arg1 type is {type(arg1)} instead of bv"
-            assert is_bv(
-                arg2), f"in i32.logical, arg2 type is {type(arg2)} instead of bv"
+    def emul_logical_f32_instr(self, instr, state):
+        return do_emulate_logical_float_instruction(instr, state)
 
-            if instr.name == 'i32.eq':
-                result = simplify(arg1 == arg2)
-            elif instr.name == 'i32.ne':
-                result = simplify(arg1 != arg2)
-            elif instr.name == 'i32.lt_s':
-                result = simplify(arg2 < arg1)
-            elif instr.name == 'i32.lt_u':
-                result = simplify(ULT(arg2, arg1))
-            elif instr.name == 'i32.gt_s':
-                result = simplify(arg2 > arg1)
-            elif instr.name == 'i32.gt_u':
-                result = simplify(UGT(arg2, arg1))
-            elif instr.name == 'i32.le_s':
-                result = simplify(arg2 <= arg1)
-            elif instr.name == 'i32.le_u':
-                result = simplify(ULE(arg2, arg1))
-            elif instr.name == 'i32.ge_s':
-                result = simplify(arg2 >= arg1)
-            elif instr.name == 'i32.ge_u':
-                result = simplify(UGE(arg2, arg1))
-            else:
-                raise Exception(
-                    'Instruction:', instr, 'not match in emul_logical_i32 function')
-
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-
-        # check the result type
-        if is_bv_value(result):
-            state.symbolic_stack.append(result)
-        else:
-            logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(
-                result, BitVecVal(1, 32), BitVecVal(0, 32)))
-            state.symbolic_stack.append(logical_result)
-
-        return False
-
-    def emul_logical_i64_instr(self, instr, state, depth, ret_num, call_depth):
-        if instr.name == 'i64.eqz':
-            arg0 = state.symbolic_stack.pop()
-            assert arg0.size(
-            ) == 64, f"in i64.eqz the argument popped size is {arg0.size()} instead of 64"
-
-            result = simplify(arg0 == 0)
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-        else:
-            arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-            # [call 4] [tee_local 5] [i64.const 0] [i64.lt_s] [br_if]
-            # if arg2.__str__() == 'db_find_i64_i32' and arg1.__str__() == '0':
-            #     state.symbolic_stack.append(BitVecVal(0, 32))
-            #     return False
-
-            assert is_bv(
-                arg1), f"in i64.logical, arg1 type is {type(arg1)} instead of bv"
-            assert is_bv(
-                arg2), f"in i64.logical, arg2 type is {type(arg2)} instead of bv"
-
-            if instr.name == 'i64.eq':
-                result = simplify(arg1 == arg2)
-            elif instr.name == 'i64.ne':
-                result = simplify(arg1 != arg2)
-            elif instr.name == 'i64.lt_s':
-                result = simplify(arg2 < arg1)
-            elif instr.name == 'i64.lt_u':
-                result = simplify(ULT(arg2, arg1))
-            elif instr.name == 'i64.gt_s':
-                result = simplify(arg2 > arg1)
-            elif instr.name == 'i64.gt_u':
-                result = simplify(UGT(arg2, arg1))
-            elif instr.name == 'i64.le_s':
-                result = simplify(arg2 <= arg1)
-            elif instr.name == 'i64.le_u':
-                result = simplify(ULE(arg2, arg1))
-            elif instr.name == 'i64.ge_s':
-                result = simplify(arg2 >= arg1)
-            elif instr.name == 'i64.ge_u':
-                result = simplify(UGE(arg2, arg1))
-            else:
-                raise Exception(
-                    'Instruction:', instr, 'not match in emul_logical_i64 function')
-
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-
-        # check the result type
-        if is_bv_value(result):
-            state.symbolic_stack.append(result)
-        else:
-            logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(
-                result, BitVecVal(1, 32), BitVecVal(0, 32)))
-            state.symbolic_stack.append(logical_result)
-
-        return False
-
-    def emul_logical_f32_instr(self, instr, state, depth, ret_num, call_depth):
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-
-        assert arg1.ebits() == 8 and arg1.sbits(
-        ) == 24, 'emul_logical_f32_instr arg1 type mismatch'
-        assert arg2.ebits() == 8 and arg2.sbits(
-        ) == 24, 'emul_logical_f32_instr arg2 type mismatch'
-
-        if instr.name == 'f32.eq':
-            result = simplify(fpEQ(arg1, arg2))
-        elif instr.name == 'f32.ne':
-            result = simplify(fpNEQ(arg1, arg2))
-        elif instr.name == 'f32.lt':
-            result = simplify(fpLT(arg2, arg1))
-        elif instr.name == 'f32.le':
-            result = simplify(fpLEQ(arg2, arg1))
-        elif instr.name == 'f32.gt':
-            result = simplify(fpGT(arg2, arg1))
-        elif instr.name == 'f32.ge':
-            result = simplify(fpGEQ(arg2, arg1))
-        else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_logical_f32 function')
-
-        if is_bool(result):
-            if is_true(result):
-                result = BitVecVal(1, 32)
-            elif is_false(result):
-                result = BitVecVal(0, 32)
-
-        # check the result type
-        if is_bv_value(result):
-            state.symbolic_stack.append(result)
-        else:
-            logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(
-                result, BitVecVal(1, 32), BitVecVal(0, 32)))
-            state.symbolic_stack.append(logical_result)
-
-        return False
-
-    def emul_logical_f64_instr(self, instr, state, depth, ret_num, call_depth):
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-
-        assert arg1.ebits() == 11 and arg1.sbits(
-        ) == 53, 'emul_logical_f64_instr arg1 type mismatch'
-        assert arg2.ebits() == 11 and arg2.sbits(
-        ) == 53, 'emul_logical_f64_instr arg2 type mismatch'
-
-        if instr.name == 'f64.eq':
-            result = simplify(fpEQ(arg1, arg2))
-        elif instr.name == 'f64.ne':
-            result = simplify(fpNEQ(arg1, arg2))
-        elif instr.name == 'f64.lt':
-            result = simplify(fpLT(arg2, arg1))
-        elif instr.name == 'f64.le':
-            result = simplify(fpLEQ(arg2, arg1))
-        elif instr.name == 'f64.gt':
-            result = simplify(fpGT(arg2, arg1))
-        elif instr.name == 'f64.ge':
-            result = simplify(fpGEQ(arg2, arg1))
-        else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_logical_f64 function')
-
-        if is_bool(result):
-            if is_true(result):
-                result = BitVecVal(1, 32)
-            elif is_false(result):
-                result = BitVecVal(0, 32)
-
-        # check the result type
-        if is_bv_value(result):
-            state.symbolic_stack.append(result)
-        else:
-            logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
-            state.constraints.append(logical_result == If(
-                result, BitVecVal(1, 32), BitVecVal(0, 32)))
-            state.symbolic_stack.append(logical_result)
-
-        return False
+    def emul_logical_f64_instr(self, instr, state):
+        return do_emulate_logical_float_instruction(instr, state)
 
     def emul_arithmetic_i32_instr(self, instr, state):
         if instr.name in ['i32.clz', 'i32.ctz']:
