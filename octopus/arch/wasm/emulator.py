@@ -23,6 +23,7 @@ from .instructions.MemoryInstructions import *
 from .instructions.ConstantInstructions import *
 from .instructions.LogicalInstructions import *
 from .instructions.ConversionInstructions import *
+from .instructions.BitwiseInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -2058,62 +2059,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return False
 
     def emul_bitwise_i32_instr(self, instr, state):
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-        try:
-            # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
-            if is_bool(arg1):
-                arg1 = BitVec(str(arg1), 32)
-                logging.warning(
-                    "in i32.bitwise, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
-            if is_bool(arg2):
-                arg2 = BitVec(str(arg2), 32)
-                logging.warning(
-                    "in i32.bitwise, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
-
-            assert arg1.size(
-            ) == 32, f'arg1 size is {arg1.size()} instead of 32 in emul_bitwise_i32_instr'
-            assert arg2.size(
-            ) == 32, f'arg2 size is {arg2.size()} instead of 32 in emul_bitwise_i32_instr'
-
-            if instr.name == 'i32.and':
-                result = simplify(arg1 & arg2)
-            elif instr.name == 'i32.or':
-                result = simplify(arg1 | arg2)
-            elif instr.name == 'i32.xor':
-                result = simplify(arg1 ^ arg2)
-            elif instr.name == 'i32.shr_s':
-                result = simplify(arg2 >> arg1)
-            elif instr.name == 'i32.shr_u':
-                result = simplify(LShR(arg2, arg1))
-            elif instr.name == 'i32.shl':
-                result = simplify(arg2 << arg1)
-                if self.lasers == ['overflow'] and ('loc' in str(arg1)):
-                    overflow_check_flag = 'overflow_check_flag ' + str(result)
-                    state.key_import_func_visited.append(overflow_check_flag)
-                    # state.constraints.append((result>>arg1)!=arg2)
-            elif instr.name == 'i32.rotl':
-                result = simplify(RotateLeft(arg2, arg1))
-            elif instr.name == 'i32.rotr':
-                result = simplify(RotateRight(arg2, arg1))
-            else:
-                raise Exception('Instruction:', instr,
-                                'not match in emul_bitwise_i32 function')
-
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-
-            assert is_bv(result) or is_bool(
-                result), f"in i64 comparison instruction, the value to be pushed is {type(result)} instead of bv or bool"
-
-            state.symbolic_stack.append(result)
-        except Exception:
-            raise Exception(
-                'Something error happened in emul_bitwise_i32_instr')
-
-        return False
+        return do_emulate_bitwise_instruction(instr, state)
+    
+    def emul_bitwise_i64_instr(self, instr, state):
+        return do_emulate_bitwise_instruction(instr, state)
 
     def emul_arithmetic_i64_instr(self, instr, state):
         if instr.name in ['i64.clz', 'i64.ctz']:
@@ -2242,64 +2191,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             except ValueError:
                 raise Exception(
                     'Something error happened in emul_arithmetic_i64_instr')
-
-        return False
-
-    def emul_bitwise_i64_instr(self, instr, state):
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-        try:
-            # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
-            if is_bool(arg1):
-                arg1 = BitVec(str(arg1), 64)
-                logging.warning(
-                    "in i64.bitwise, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
-            if is_bool(arg2):
-                arg2 = BitVec(str(arg2), 64)
-                logging.warning(
-                    "in i64.bitwise, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
-
-            assert arg1.size(
-            ) == 64, f'arg1 size is {arg1.size()} instead of 64 in emul_bitwise_i64_instr'
-            assert arg2.size(
-            ) == 64, f'arg2 size is {arg2.size()} instead of 64 in emul_bitwise_i64_instr'
-
-            if instr.name == 'i64.and':
-                result = simplify(arg1 & arg2)
-            elif instr.name == 'i64.or':
-                result = simplify(arg1 | arg2)
-            elif instr.name == 'i64.xor':
-                result = simplify(arg1 ^ arg2)
-            elif instr.name == 'i64.shr_s':
-                result = simplify(arg2 >> arg1)
-            elif instr.name == 'i64.shr_u':
-                result = simplify(LShR(arg2, arg1))
-            elif instr.name == 'i64.shl':
-                result = simplify(arg2 << arg1)
-                if self.lasers == ['overflow'] and ('loc' in str(arg1)):
-                    overflow_check_flag = 'overflow_check_flag ' + str(result)
-                    state.key_import_func_visited.append(overflow_check_flag)
-                    # state.constraints.append((result>>arg1)!=arg2)
-            elif instr.name == 'i64.rotl':
-                result = simplify(RotateLeft(arg2, arg1))
-            elif instr.name == 'i64.rotr':
-                result = simplify(RotateRight(arg2, arg1))
-            else:
-                raise Exception('Instruction:', instr,
-                                'not match in emul_bitwise_i64 function')
-
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-
-            assert is_bv(result) or is_bool(
-                result), f"in i64 comparison instruction, the value to be pushed is {type(result)} instead of bv or bool"
-
-            state.symbolic_stack.append(result)
-        except Exception:
-            raise Exception(
-                'Something error happened in emul_bitwise_i64_instr')
 
         return False
 
