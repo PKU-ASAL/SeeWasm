@@ -27,7 +27,7 @@ def do_emulate_variable_instruction(instr, state):
         assert global_type == 'i32', 'the type of operand of get_global is not i32, please check'
         if isinstance(global_operand, str) or isinstance(global_operand, int):
             state.symbolic_stack.append(BitVecVal(global_operand, 32))
-        elif global_operand.is_bv() or global_operand.is_bv_value():
+        elif is_bv(global_operand) or is_bv_value(global_operand):
             # the operand is a BitVecRef or BitVecNumRef
             state.symbolic_stack.append(global_operand)
         else:

@@ -28,14 +28,14 @@ from .instructions.ArithmeticInstructions import *
 
 sys.setrecursionlimit(4096)
 
-# need to log?
-LOGGING = True
-
 # you can comment below
 # logging.basicConfig(filename='./logs/tmp.log',
 # filemode='w',
 # level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+if gvar.logging_level_verbose:
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
 MAX = 42
 
 SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
@@ -566,18 +566,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     instr, pre_instr, state, depth, ret_num, call_depth)
 
     def emulate_one_instruction(self, instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path=None):
-
-        halt = False
-
-        # ====================
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
         
-        if LOGGING:
-            logging.debug(
-                '\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var(%d):\t%s\n\tsym_mem:\t%s\n',
-                state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
-                len(state.local_var), state.local_var[:10], state.symbolic_memory)
+        logging.debug(f'''
+PC:\t\t{state.pc}
+Current Func:\t{self.current_function.name}
+Instruction:\t{instr.operand_interpretation}
+Stack:\t\t{state.symbolic_stack}
+Local Var:\t{state.local_var[:10]}
+Global Var:\t{state.globals[:10]}
+Memory:\t\t{state.symbolic_memory}\n''')
 
         # no symbolic memory
         # logging.warning(
@@ -589,70 +588,49 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # logging.warning(
         #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n',
         #     state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack)
-        # ====================
+
         for c in state.constraints:
             if type(c) != BoolRef:
                 state.constraints.remove(c)
                 # logging.warning(state.constraints)
                 # exit()
 
-        if instr.is_control:
-            halt = self.emul_control_instr(
-                instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path)
-
-        elif instr.is_parametric:
-            halt = self.emul_parametric_instr(
-                instr, state, depth, ret_num, call_depth)
-
-        elif instr.is_variable:
-            halt = self.emul_variable_instr(instr, state)
-
-        elif instr.is_memory:
-            halt = self.emul_memory_instr(instr, state)
-
-        elif instr.is_constant:
-            halt = self.emul_constant_instr(instr, state)
-
-        elif instr.is_logical_i32:
-            halt = self.emul_logical_i32_instr(
-                instr, state, depth, ret_num, call_depth)
-
-        elif instr.is_logical_i64:
-            halt = self.emul_logical_i64_instr(
-                instr, state, depth, ret_num, call_depth)
-
-        elif instr.is_logical_f32:
-            halt = self.emul_logical_f32_instr(
-                instr, state, depth, ret_num, call_depth)
-
-        elif instr.is_logical_f64:
-            halt = self.emul_logical_f64_instr(
-                instr, state, depth, ret_num, call_depth)
-
-        elif instr.is_arithmetic_i32:
-            halt = self.emul_arithmetic_i32_instr(instr, state)
-
-        elif instr.is_bitwise_i32:
-            halt = self.emul_bitwise_i32_instr(instr, state)
-
-        elif instr.is_arithmetic_i64:
-            halt = self.emul_arithmetic_i64_instr(instr, state)
-
-        elif instr.is_bitwise_i64:
-            halt = self.emul_bitwise_i64_instr(instr, state)
-
-        elif instr.is_arithmetic_f32:
-            halt = self.emul_arithmetic_f32_instr(instr, state)
-
-        elif instr.is_arithmetic_f64:
-            halt = self.emul_arithmetic_f64_instr(instr, state)
-
-        elif instr.is_conversion:
-            halt = self.emul_conversion_instr(instr, state)
-
-        # UNKNOWN INSTRUCTION
-        else:
-            logging.warning('UNKNOWN = %s' % (instr.name))
+        try:
+            if instr.is_control:
+                halt = self.emul_control_instr(instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path)
+            elif instr.is_parametric:
+                halt = self.emul_parametric_instr(
+                    instr, state, depth, ret_num, call_depth)
+            elif instr.is_variable:
+                halt = self.emul_variable_instr(instr, state)
+            elif instr.is_memory:
+                halt = self.emul_memory_instr(instr, state)
+            elif instr.is_constant:
+                halt = self.emul_constant_instr(instr, state)
+            elif instr.is_logical_i32:
+                halt = self.emul_logical_i32_instr(instr, state)
+            elif instr.is_logical_i64:
+                halt = self.emul_logical_i64_instr(instr, state)
+            elif instr.is_logical_f32:
+                halt = self.emul_logical_f32_instr(instr, state)
+            elif instr.is_logical_f64:
+                halt = self.emul_logical_f64_instr(instr, state)
+            elif instr.is_arithmetic_i32:
+                halt = self.emul_arithmetic_i32_instr(instr, state)
+            elif instr.is_arithmetic_f32:
+                halt = self.emul_arithmetic_f32_instr(instr, state)
+            elif instr.is_arithmetic_f64:
+                halt = self.emul_arithmetic_f64_instr(instr, state)
+            elif instr.is_bitwise_i32:
+                halt = self.emul_bitwise_i32_instr(instr, state)
+            elif instr.is_bitwise_i64:
+                halt = self.emul_bitwise_i64_instr(instr, state)
+            elif instr.is_arithmetic_i64:
+                halt = self.emul_arithmetic_i64_instr(instr, state)
+            elif instr.is_conversion:
+                halt = self.emul_conversion_instr(instr, state)
+        except Exception:
+            raise Exception('[!!] Error happened in instruction emulation')
 
         return halt
 
@@ -1495,7 +1473,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         if pattern_str == '%d':
                             # as the basic unit in wasm is i32.load
                             target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
-                            # mem_pointer += 4
+                            # TODO recheck here
+                            # move to the next position where the new variable should be inserted
+                            mem_pointer += 4
 
                             state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
                             logging.warning("================Initiated an scanf integer: %s!=================\n", '$scanf_variable'+str(i) + "_depth_" + str(depth))

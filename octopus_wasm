@@ -5,16 +5,9 @@ from octopus.arch.wasm.mapper import extract_mapping
 import argparse
 import logging
 import sys
+import gvar
 
 sys.setrecursionlimit(4096)
-
-
-# set log level
-# logging.basicConfig(filename='./logs/tmp.log',
-#                     filemode='w',
-#                     level=logging.WARNING)
-# logging.basicConfig(level=logging.INFO)
-
 
 # check whether the argument is positive
 def check_not_neg(value):
@@ -40,18 +33,13 @@ def main():
                         type=argparse.FileType('r'),
                         metavar='BYTECODE')
 
-    # input_file_type = parser.add_argument_group('Input file type')
-    # input_file_type.add_argument('--file_type',
-    #                              default='eos',
-    #                              const='eos',
-    #                              nargs='?',
-    #                              choices=['eos', 'c', 'golang'],
-    #                              help='The file type of input file, e.g., eos, golang, c')
-
     features = parser.add_argument_group('Features')
     features.add_argument('-d', '--disassemble',
                           action='store_true',
-                          help='print text disassembly ')
+                          help='print text disassembly')
+    features.add_argument('-v', '--verbose',
+                          action='store_true',
+                          help='switch the logging to debug level')
     features.add_argument('-z', '--analyzer',
                           action='store_true',
                           help='print module information')
@@ -79,9 +67,6 @@ def main():
                           help='how many layers of internal call')
     features.add_argument('--timeout',
                           type=check_not_neg,
-                          # for other detectors
-                          # default=8,
-                          # i'd rather choose 3 as default when run fake receipt
                           default=5,
                           help='how many minutes can be endured when executing, default is 30')
 
@@ -102,12 +87,6 @@ def main():
                        nargs="*",
                        default=[],
                        help='only generate the CFG for this list of function name')
-    # graph.add_argument('--visualize',
-    #                   help='direcly open the CFG file')
-    # graph.add_argument('--format',
-    #                   choices=['pdf', 'png', 'dot'],
-    #                   default='pdf',
-    #                   help='direcly open the CFG file')
 
     args = parser.parse_args()
 
@@ -116,11 +95,12 @@ def main():
     octo_disasm = None
     octo_cfg = None
     func_index2func_name = None
+    
+    # the verbose
+    if args.verbose:
+        gvar.logging_level_verbose = True
 
-    # process input code
-    # if args.raw:
-    #     octo_bytecode = args.raw
-    #     octo_bytecode = bytearray.fromhex(octo_bytecode)
+    # process input file
     if args.file:
         # func_index2func_name is the func index to real func name
         # e.g., func 4 is $main, we have {4: '$main'}
@@ -133,12 +113,11 @@ def main():
         octo_bytecode = args.rawfile.read()
         octo_bytecode = bytearray.fromhex(octo_bytecode)
 
-    # print(octo_bytecode)
     # Disassembly
     if args.disassemble:
         from octopus.arch.wasm.disassembler import WasmDisassembler
 
-        # TODO add other r_format support
+        # TODO [official] add other r_format support
         octo_disasm = WasmDisassembler()
         print(octo_disasm.disassemble_module(octo_bytecode, r_format='text'))
 
@@ -181,18 +160,10 @@ def main():
         else:
             wasmVM.emulate_functions(args.depth)
     elif args.lasers:
-        # print(args.file)
         if not args.quick:
             wasmVM = WasmSSAEmulatorEngine(
                 octo_bytecode, args.random, args.timeout, args.depth)
 
-            # dicecenter
-            # sym_exe, index2state = wasmVM.emulate_functions(list_functions_name=['$func51'])
-
-            # eosbiggame
-            # sym_exe, index2state = wasmVM.emulate_functions(list_functions_name=['_ZN7biggame4dice6revealEyRK11checksum256'])
-
-            # other cases
             # if the only laser is not the fake_eos, jump over the apply because of the static strategy
             sym_exe, index2state = None, None
             if args.lasers == ['fake_eos'] or args.lasers == ['auth_check']:
@@ -202,8 +173,6 @@ def main():
             for laser in args.lasers:
                 issues = fire_lasers_by_module_name(
                     wasmVM, sym_exe, index2state, laser)
-                # for test 'random' module
-                # issues = fire_lasers_by_module_name(wasmVM, [], {}, laser)
 
                 logging.info("issues: %s" % (issues))
                 sys.stdout.write(issues)
@@ -211,18 +180,6 @@ def main():
             wasmVM = WasmSSAEmulatorEngine(
                 octo_bytecode, args.random, args.timeout, args.depth, args.lasers, args.quick)
             engine_start(wasmVM)
-
-        # visualization of the cfg with SSA
-        # emul.cfg.visualize(ssa=False)
-
-    # # if we try to analyze the C file
-    # if args.file_type == 'c':
-    #     from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
-    #     wasmVM = WasmSSAEmulatorEngine(
-    #         octo_bytecode, args.random, args.timeout, args.depth)
-    #     sym_exe, index2state = None, None
-    #     sym_exe, index2state = wasmVM.emulate_functions(
-    #         list_functions_name=['main'])
 
     if not args.disassemble and not args.symbolic \
             and not args.cfg and not args.call and not args.lasers \

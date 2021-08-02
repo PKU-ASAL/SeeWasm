@@ -14,3 +14,5 @@ visited_func = set()
 
 guided_emulation_flag = False
 guided_emulation_mainline_function_flag = False
+
+logging_level_verbose = False
