@@ -134,7 +134,28 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
 
-    def init_state_before_call(self, param_str, return_str, ret_num, state):
+    def init_globals(self, state):
+        for i, item in enumerate(self.ana.globals):
+            op_type, op_val = item[0], BitVecVal(item[1], 32)
+            state.globals[i] = op_val
+
+    def init_state(self, func_name, param_str, return_str, has_ret):
+        state = WasmVMstate()
+
+        for i, local in enumerate(param_str.split(' ')):
+            state.local_var[i] = getConcreteBitVec(local, func_name + '_loc_' + str(i) + '_' + local)
+
+        # deal with the globals
+        self.init_globals(state)
+
+        if return_str:
+            has_ret.append(True)
+        else:
+            has_ret.append(False)
+        
+        return state, has_ret
+
+    def init_state_before_call(self, param_str, return_str, has_ret, state):
         num_arg = 0
         # this flag indicates whether the caller executes and returns properly
         # if the caller terminates in advance, which results in the imbalance of stack
@@ -149,13 +170,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 need_to_reset = True
 
         if return_str:
-            ret_num.append(1)
+            has_ret.append(True)
         else:
-            ret_num.append(0)
+            has_ret.append(False)
 
         # init state of internal call
         new_state = copy.deepcopy(state)
-        new_ret_num = ret_num
+        new_has_ret = has_ret
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
@@ -163,13 +184,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
-
+        
         # set the remaining local vars as None
         for x in range(num_arg, len(new_state.local_var)):
-            new_state.local_var[x] = None
+            new_state.local_var.pop(x)
         new_state.pc = 0
 
-        return new_state, new_ret_num
+        return new_state, new_has_ret
 
     def reset_wasmvm(self, call_depth, random=None, quick=False, lasers=[]):
         # these options maybe changed by detectors
@@ -249,47 +270,32 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if state is not None:
             state.key_import_func_visited = list()
 
-        # if user does not specify the list_functions_name, use apply as default
-        if not list_functions_name:
-            list_functions_name = ['apply']
-
-        # run apply
-        for f in list_functions_name:
-            if isinstance(f, str):
-                logging.warning(
-                    "=============================Function Name: %s=============================\n" % f)
-                self.emulate_one_function(
-                    call_depth, function_name=f, state=state, depth=depth, ret_num=[])
-            elif isinstance(f, int):
-                f = f - self.ana.elements[0]['offset'][0].imm.value
-                mapped_index = self.ana.elements[0]['elems'][f]
+        for func_name in list_functions_name:
+            # retrieve func name according to the index
+            if isinstance(func_name, int):
+                func_name = func_name - self.ana.elements[0]['offset'][0].imm.value
+                mapped_index = self.ana.elements[0]['elems'][func_name]
                 import_func_count = len(self.ana.imports_func)
                 # because normal functions index follows the import functions
                 func_pos = mapped_index - import_func_count
                 func_name = self.cfg.functions[func_pos].name
 
-                # extract param and return str
-                for func_info in self.ana.func_prototypes:
-                    if func_info[0] == func_name:
-                        param_str, return_str = func_info[1], func_info[2]
-                        break
+            # extract param and return str
+            for func_info in self.ana.func_prototypes:
+                if func_info[0] == func_name:
+                    param_str, return_str = func_info[1], func_info[2]
+                    break
 
-                state, ret_num = self.init_state_before_call(
-                    param_str, return_str, [], state)
+            # the [] here is the `has_ret`
+            # as here is the entry, thus it is empty
+            state, has_ret = self.init_state(func_name, param_str, return_str, [])
 
-                logging.warning(
-                    "=============================Function Name: %s=============================\n" % func_name)
-                self.emulate_one_function(
-                    call_depth, function_name=func_name, state=state, depth=depth, ret_num=ret_num)
-            else:
-                raise Exception(
-                    'Please use the element index or the func name explicitly as the indicator of to be scanned function')
-
+            logging.info("=============================Function Name: %s=============================\n" % func_name)
+            self.emulate_one_function(call_depth, function_name=func_name, state=state, depth=depth, has_ret=has_ret)
+            
         return self.result, self.index2state
 
-    def emulate_one_function(self, call_depth, function_name, depth, state=None, ret_num=None, basicblock_path=None):
-        if ret_num is None:
-            ret_num = []
+    def emulate_one_function(self, call_depth, function_name, depth, state=None, has_ret=[], basicblock_path=None):
         if function_name not in [x.name for x in self.cfg.functions]:
             raise Exception(
                 'function_name not in this module - available: %s', self.ana.func_prototypes)
@@ -314,47 +320,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for intr in bb.instructions:
                 self.basicblock_per_instr[intr.offset] = bb
 
-        if state is None:
-            state = WasmVMstate()
-            # create a symbolic stack
-            state.symbolic_stack = list()
-
-            # initiate local var list according to the instructions
-            max_local = 0
-            for instruction in self.current_function.instructions:
-                instruction_name = instruction.name
-                if "set_local" in instruction_name:
-                    max_local = max(int.from_bytes(instruction.operand, "big"), max_local)
-            state.local_var = [None] * (max_local + 1)
-
-            # divide the symbolic memory and the data section
-            state.symbolic_memory = dict()
-
-            # deal with the globals
-            state.globals = self.ana.globals
-
-            # extract all params from self.ana.func_prototypes according to self.current_function.name
-            for function_prototype in self.ana.func_prototypes:
-                if function_prototype[0] == function_name:
-                    target_func_locals = function_prototype[1]
-                    break
-
-            # init state.local_var
-            if target_func_locals and function_name != 'apply':
-                for i, local in enumerate(target_func_locals.split(' ')):
-                    state.local_var[i] = getConcreteBitVec(local, self.current_function.name + '_loc_' + str(i) + '_' + local)
-            elif target_func_locals and function_name == 'apply':
-                state.local_var[0] = (BitVec('receiver', 64))
-                state.local_var[1] = (BitVec('code', 64))
-                state.local_var[2] = (BitVec('action', 64))
+        if state is None: raise UninitializedStateError
 
         # launch emulation
         if gvar.guided_emulation_flag:
-            self.emulate(state=state, depth=depth, ret_num=ret_num, call_depth=call_depth,
-                         basicblock_path=basicblock_path)
+            self.emulate(state, depth, has_ret, call_depth, basicblock_path)
         else:
-            self.emulate(state=state, depth=depth,
-                         ret_num=ret_num, call_depth=call_depth)
+            self.emulate(state, depth, has_ret, call_depth)
+
         return copy.deepcopy(self.current_function.return_value_and_state_list)
 
     def construct_edges_with_condition(self, bb_path):
@@ -377,13 +350,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         gvar.guided_emulation_mainline_function_flag = True
 
         state = WasmVMstate()
-        # create a symbolic stack
-        state.symbolic_stack = list()
-        # 80 is too small for some contract
-        state.local_var = [None] * 160
-        state.symbolic_memory = dict()
         # deal with the globals
-        state.globals = self.ana.globals
+        self.init_globals(state)
 
         # extract all params from self.ana.func_prototypes according to self.current_function.name
         for function_prototype in self.ana.func_prototypes:
@@ -493,14 +461,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     state = copy.deepcopy(initialized_state)
                 elif not has_set:
                     state.constraints.clear()
-                    state, _ = self.init_state_before_call(
-                        get_param(func), False, [], state)
+                    state, _ = self.init_state(func, get_param(func), "", [])
                     has_set = True
                     initialized_state = copy.deepcopy(state)
 
                 # restore lasers for func_path from last path
                 self.lasers = ['roll_back']
-                self.emulate(state, depth=0, ret_num=[],
+                self.emulate(state, depth=0, has_ret=[],
                              call_depth=0, basicblock_path=basicblock_path)
                 # print(self.quick.items(), self.lasers)
                 self.visited_basicblock.clear()
@@ -523,10 +490,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return func2paths_constraints_and_keys
 
-    def emulate(self, state, depth=0, ret_num=None, call_depth=0, basicblock_path=None):
-
-        if ret_num is None:
-            ret_num = []
+    def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
         halt = False
         instr = None
 
@@ -546,26 +510,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.instr = instr
             state.pc += 1
 
-            if type(instr) is str and instr == 'record':
-                # logging.warning('here')
-                continue
-
             self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
-            # execute single instruction
-            # if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
-
-            # TODO test by HNYuuu
-            # logging.warning(f"current basic block: {self.current_basicblock.name}")
-
             if gvar.guided_emulation_flag:
-                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, ret_num, call_depth,
-                                                    basicblock_path)
+                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
             else:
                 halt = self.emulate_one_instruction(
-                    instr, pre_instr, state, depth, ret_num, call_depth)
+                    instr, pre_instr, state, depth, has_ret, call_depth)
 
-    def emulate_one_instruction(self, instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path=None):
+    def emulate_one_instruction(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
         
@@ -574,20 +527,9 @@ PC:\t\t{state.pc}
 Current Func:\t{self.current_function.name}
 Instruction:\t{instr.operand_interpretation}
 Stack:\t\t{state.symbolic_stack}
-Local Var:\t{state.local_var[:10]}
-Global Var:\t{state.globals[:10]}
+Local Var:\t{state.local_var}
+Global Var:\t{state.globals}
 Memory:\t\t{state.symbolic_memory}\n''')
-
-        # no symbolic memory
-        # logging.warning(
-        #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n\tlocal var:\t%s\n',
-        #     state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack,
-        #     state.local_var[:15])
-
-        # no symbolic memory, local var
-        # logging.warning(
-        #     '[DEBUG]\tPC:\t%s\n\tCurrent_name:\t%s\n\texecute:\t%s\n\tstack:\t\t%s\n',
-        #     state.pc, self.current_function.name, instr.operand_interpretation, state.symbolic_stack)
 
         for c in state.constraints:
             if type(c) != BoolRef:
@@ -597,10 +539,10 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
         try:
             if instr.is_control:
-                halt = self.emul_control_instr(instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path)
+                halt = self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
             elif instr.is_parametric:
                 halt = self.emul_parametric_instr(
-                    instr, state, depth, ret_num, call_depth)
+                    instr, state, depth, has_ret, call_depth)
             elif instr.is_variable:
                 halt = self.emul_variable_instr(instr, state)
             elif instr.is_memory:
@@ -634,7 +576,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
         return halt
 
-    def emul_control_instr(self, instr, pre_instr, state, depth, ret_num, call_depth, basicblock_path=None):
+    def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
 
         halt = False
         if instr.name == 'unreachable':
@@ -755,7 +697,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         #     return True
 
                     # go to the else branch
-                    self.emulate(new_state, depth + 1, ret_num, call_depth)
+                    self.emulate(new_state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True
@@ -806,7 +748,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         logging.debug(' [x] %s' % c)
                     logging.debug('')
 
-                    self.emulate(state, depth + 1, ret_num, call_depth)
+                    self.emulate(state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True
@@ -860,17 +802,18 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                 # 1st is the return value, 2ed is the state
                 state_tmp_list = [None, None]
-                if ret_num:
-                    # WASM can only return 0 or 1 argument
-                    if ret_num[-1]:
-                        to_be_returned = state.symbolic_stack.pop()
-                        if is_bool(to_be_returned):
-                            if is_false(to_be_returned):
-                                to_be_returned = BitVecVal(0, 32)
-                            elif is_true(to_be_returned):
-                                to_be_returned = BitVecVal(1, 32)
+                # the outer function needs to return a val
+                if has_ret and has_ret[-1]:
+                    to_be_returned = state.symbolic_stack.pop()
+                    if is_bool(to_be_returned):
+                        if is_false(to_be_returned):
+                            to_be_returned = BitVecVal(0, 32)
+                        elif is_true(to_be_returned):
+                            to_be_returned = BitVecVal(1, 32)
+                        else:
+                            raise NotDeterminedRetValError
 
-                        state_tmp_list[0] = to_be_returned
+                    state_tmp_list[0] = to_be_returned
 
                 state_tmp_list[1] = copy.deepcopy(state)
 
@@ -1059,7 +1002,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         except AttributeError:
                             return True
 
-                    self.emulate(new_state, depth + 1, ret_num, call_depth)
+                    self.emulate(new_state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True
@@ -1109,7 +1052,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         logging.info(' [x] %s' % c)
                     logging.info('')
 
-                    self.emulate(state, depth + 1, ret_num, call_depth)
+                    self.emulate(state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True
@@ -1207,17 +1150,17 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
             # 1st is the return value, 2ed is the state
             state_tmp_list = [None, None]
-            if ret_num:
-                # wasm can only return 0 or 1 argument
-                if ret_num[-1]:
-                    to_be_returned = state.symbolic_stack.pop()
-                    if is_bool(to_be_returned):
-                        if is_false(to_be_returned):
-                            to_be_returned = BitVecVal(0, 32)
-                        elif is_true(to_be_returned):
-                            to_be_returned = BitVecVal(1, 32)
+            if has_ret and has_ret[-1]:
+                to_be_returned = state.symbolic_stack.pop()
+                if is_bool(to_be_returned):
+                    if is_false(to_be_returned):
+                        to_be_returned = BitVecVal(0, 32)
+                    elif is_true(to_be_returned):
+                        to_be_returned = BitVecVal(1, 32)
+                    else:
+                        raise NotDeterminedRetValError
 
-                    state_tmp_list[0] = to_be_returned
+                state_tmp_list[0] = to_be_returned
 
             state_tmp_list[1] = copy.deepcopy(state)
 
@@ -1546,8 +1489,8 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         self.current_f_basicblocks, basicblock_path, self.current_basicblock)
                     gvar.guided_emulation_mainline_function_flag = False
 
-                new_state, new_ret_num = self.init_state_before_call(
-                    param_str, return_str, ret_num, state)
+                new_state, new_has_ret = self.init_state_before_call(
+                    param_str, return_str, has_ret, state)
 
                 self.visiting_function_name_list.append(
                     self.current_function.name)
@@ -1558,7 +1501,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                 # fetch all possible result states for this call instruction
                 # element in results is composed of return value and the result state, i.e., [return value, result state]
                 possible_call_results = self.emulate_one_function(
-                    call_depth + 1, internal_function_name, state=new_state, depth=depth, ret_num=ret_num,
+                    call_depth + 1, internal_function_name, state=new_state, depth=depth, has_ret=has_ret,
                     basicblock_path=basicblock_path)
 
                 self.set_from_function()
@@ -1576,7 +1519,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                     logging.debug('')
 
                 # for stack balance
-                has_ret = ret_num.pop()
+                outer_need_ret = has_ret.pop()
 
                 # sometimes branched function can't return value as expected
                 if return_str and not possible_call_results:
@@ -1604,7 +1547,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                     # TODO for test
                     # we only need one_path_result in branched function
                     if gvar.guided_emulation_mainline_function_flag:
-                        if has_ret and return_value is not None:
+                        if outer_need_ret and return_value is not None:
                             state.symbolic_stack.append(return_value)
                             state.constraints = constraint
                             state.symbolic_memory = state_symbolic_memory
@@ -1630,10 +1573,10 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         logging.debug(
                             '===============random situation %s===================' % i)
 
-                    # if have ret_num but no return_value, means the callee's this branch is failed
-                    if has_ret and return_value is None:
+                    # if have outer_need_ret but no return_value, means the callee's this branch is failed
+                    if outer_need_ret and return_value is None:
                         continue
-                    elif has_ret and return_value is not None:
+                    elif outer_need_ret and return_value is not None:
                         new_state.symbolic_stack.append(return_value)
                         new_state.constraints = constraint
                         new_state.symbolic_memory = state_symbolic_memory
@@ -1668,7 +1611,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         if self.current_function.constraint_flags[-1] == 0:
                             self.current_function.constraint_flags.pop()
 
-                    self.emulate(new_state, depth, new_ret_num, call_depth)
+                    self.emulate(new_state, depth, new_has_ret, call_depth)
 
                     # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
                     for module_name, quick_checked in self.quick.items():
@@ -1706,7 +1649,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
         return halt
 
-    def emul_parametric_instr(self, instr, state, depth, ret_num, call_depth):
+    def emul_parametric_instr(self, instr, state, depth, has_ret, call_depth):
         halt = False
 
         if instr.name == 'drop':
@@ -1802,7 +1745,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                     logging.info('')
 
                     new_state.symbolic_stack.append(arg2)
-                    self.emulate(new_state, depth + 1, ret_num, call_depth)
+                    self.emulate(new_state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True
@@ -1847,7 +1790,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                     logging.debug('')
 
                     state.symbolic_stack.append(arg1)
-                    self.emulate(state, depth + 1, ret_num, call_depth)
+                    self.emulate(state, depth + 1, has_ret, call_depth)
                     # for test: we only need one_path_result in branched function
                     # if call_depth > 1:
                     #     return True

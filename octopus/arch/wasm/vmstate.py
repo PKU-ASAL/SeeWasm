@@ -4,23 +4,22 @@ from octopus.engine.engine import VMstate
 class WasmVMstate(VMstate):
 
     def __init__(self):
-        self.symbolic_memory = {}
-        self.constraints = []
+        # data structure:
         self.symbolic_stack = []
-        self.local_var = []
+        self.symbolic_memory = {}
+        self.local_var = {}
+        self.globals = {}
 
-        self.last_returned = []
+        # path constraints
+        self.constraints = []
+
+        # instruction
         self.pc = 0
         self.instr = None
 
+        # TODO need remove the following two variables
         self.instructions_visited = set()
-        self.key_import_func_visited = list()
-        # the element in self.globals is also a list, which is presented as [type, num]
-        self.globals = list()
-        # self.instructions_visited = dict()
+        self.key_import_func_visited = []
 
     def details(self):
-        return {'memory': self.symbolic_memory,
-                'symbolic_stack': self.symbolic_stack,
-                'last_returned': self.last_returned,
-                'pc': self.pc}
+        raise NotImplementedError

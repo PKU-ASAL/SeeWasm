@@ -19,3 +19,11 @@ class UnsupportGlobalTypeError(Exception):
 # indicating the unsupport instructions
 class UnsupportInstructionError(Exception):
     pass
+
+# indicateing the return value is bool but cannot be determined as True or False
+class NotDeterminedRetValError(Exception):
+    pass
+
+# indicateing the state is not initialized before emulate_one_function
+class UninitializedStateError(Exception):
+    pass
