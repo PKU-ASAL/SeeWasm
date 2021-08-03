@@ -129,7 +129,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # func index to func real name
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
-
+    
+    def get_signature(self, func_name):
+        # extract param and return str
+        for func_info in self.ana.func_prototypes:
+            if func_info[0] == func_name:
+                param_str, return_str = func_info[1], func_info[2]
+                break
+        return param_str, return_str
+        
     def init_globals(self, state):
         for i, item in enumerate(self.ana.globals):
             op_type, op_val = item[0], BitVecVal(item[1], 32)
@@ -276,10 +284,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 func_name = self.cfg.functions[func_pos].name
 
             # extract param and return str
-            for func_info in self.ana.func_prototypes:
-                if func_info[0] == func_name:
-                    param_str, return_str = func_info[1], func_info[2]
-                    break
+            param_str, return_str = self.get_signature(func_name)
 
             # the [] here is the `has_ret`
             # as here is the entry, thus it is empty
@@ -484,6 +489,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             quick_checked_flag = True
 
         return func2paths_constraints_and_keys
+
+    def emulate_basic_block(self, state, has_ret, instructions):
+        # TODO
+        pass
+        for instruction in instructions:
+            state.instr = instruction
+            state.pc += 1
+            self.emulate_one_instruction()
 
     def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
         halt = False
