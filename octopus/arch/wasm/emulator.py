@@ -3,7 +3,6 @@ import logging
 import re
 from datetime import datetime
 from functools import reduce
-from random import sample
 
 from z3 import *
 
@@ -55,7 +54,7 @@ class WasmEmulatorEngine(EmulatorEngine):
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, random, timeout, call_depth=MAX, lasers=None, quick=False, func_index2func_name=None):
+    def __init__(self, bytecode, timeout, call_depth=MAX, lasers=None, quick=False, func_index2func_name=None):
 
         # retrive instructions, basicblocks & functions statically
         if lasers is None:
@@ -64,8 +63,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
 
-        # random select from internal call branch
-        self.random = random
         # call depth limit
         self.call_depth_limit = call_depth
         self.result = list()
@@ -195,7 +192,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def reset_wasmvm(self, call_depth, random=None, quick=False, lasers=[]):
         # these options maybe changed by detectors
         self.call_depth_limit = call_depth
-        self.random = random
         # if gvar.guided_emulation_flag:
         #     self.start_time = datetime.now()
 
@@ -1218,37 +1214,6 @@ Memory:\t\t{state.symbolic_memory}\n''')
             else:
                 internal_function_name = name
 
-            # logging.warning(internal_function_name)
-
-            # if in guided emulation
-            if gvar.guided_emulation_flag and False:  # off
-
-                # for stack balance
-                if param_str:
-                    args_num = len(param_str.split(' '))
-                    for _ in range(args_num):
-                        state.symbolic_stack.pop()
-                if return_str:
-                    if return_str == 'i32':
-                        state.symbolic_stack.append(
-                            BitVec(
-                                internal_function_name + '_ret_i32' + '_' + self.current_function.name + '_' + str(
-                                    state.pc), 32))
-                    elif return_str == 'i64':
-                        state.symbolic_stack.append(
-                            BitVec(
-                                internal_function_name + '_ret_i64' + '_' + self.current_function.name + '_' + str(
-                                    state.pc), 64))
-                    elif return_str == 'f32':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float32()))
-                    elif return_str == 'f64':
-                        state.symbolic_stack.append(FP(
-                            internal_function_name + '_ret_f32' + '_' + self.current_function.name + '_' + str(
-                                state.pc), Float64()))
-                return False
-
             func_is_exports = internal_function_name in [
                 x['field_str'] for x in self.ana.exports]
             # some contract may not have elems
@@ -1528,14 +1493,6 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                     return False
 
-                ran_num = self.random
-                if ran_num and ran_num >= len(possible_call_results):
-                    selected_branch = [i for i in range(
-                        len(possible_call_results))]
-                elif ran_num and ran_num < len(possible_call_results):
-                    selected_branch = sample(
-                        [i for i in range(len(possible_call_results))], ran_num)
-
                 # iterate each possible result and continue the instruction after the 'call xxx'
                 for i, return_constraint_tuple in enumerate(possible_call_results):
                     new_state = copy.deepcopy(state)
@@ -1561,17 +1518,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                         return False
 
-                    if ran_num and i in selected_branch:
-                        pass
-                    elif ran_num and i not in selected_branch:
-                        continue
-
-                    if not ran_num:
-                        logging.debug(
-                            '===================situation %s======================' % i)
-                    else:
-                        logging.debug(
-                            '===============random situation %s===================' % i)
+                    logging.debug('===================situation %s======================' % i)
 
                     # if have outer_need_ret but no return_value, means the callee's this branch is failed
                     if outer_need_ret and return_value is None:
@@ -1588,28 +1535,16 @@ Memory:\t\t{state.symbolic_memory}\n''')
                         new_state.key_import_func_visited = key_import_func_visited
                         new_state.globals = current_globals
 
-                    if ran_num:
-                        # left-most
-                        if i == selected_branch[0]:
-                            self.current_function.constraint_flags.append(1)
-                        # right-most
-                        if i == selected_branch[-1]:
-                            self.current_function.constraint_flags[-1] = 0
+                    # the left-most branch
+                    if i == 0:
+                        self.current_function.constraint_flags.append(1)
+                    # the right-most branch
+                    if i == len(possible_call_results) - 1:
+                        self.current_function.constraint_flags[-1] = 0
 
-                        # reach the right-most
-                        if self.current_function.constraint_flags[-1] == 0:
-                            self.current_function.constraint_flags.pop()
-                    else:
-                        # the left-most branch
-                        if i == 0:
-                            self.current_function.constraint_flags.append(1)
-                        # the right-most branch
-                        if i == len(possible_call_results) - 1:
-                            self.current_function.constraint_flags[-1] = 0
-
-                        # if reach the right-most branch
-                        if self.current_function.constraint_flags[-1] == 0:
-                            self.current_function.constraint_flags.pop()
+                    # if reach the right-most branch
+                    if self.current_function.constraint_flags[-1] == 0:
+                        self.current_function.constraint_flags.pop()
 
                     self.emulate(new_state, depth, new_has_ret, call_depth)
 

@@ -152,7 +152,7 @@ def main():
     from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, args.random, args.timeout, args.depth, func_index2func_name=func_index2func_name)
+            octo_bytecode, args.timeout, args.depth, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         if args.onlyfunc:
             wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
@@ -162,7 +162,7 @@ def main():
     elif args.lasers:
         if not args.quick:
             wasmVM = WasmSSAEmulatorEngine(
-                octo_bytecode, args.random, args.timeout, args.depth)
+                octo_bytecode, args.timeout, args.depth)
 
             # if the only laser is not the fake_eos, jump over the apply because of the static strategy
             sym_exe, index2state = None, None
@@ -178,7 +178,7 @@ def main():
                 sys.stdout.write(issues)
         else:
             wasmVM = WasmSSAEmulatorEngine(
-                octo_bytecode, args.random, args.timeout, args.depth, args.lasers, args.quick)
+                octo_bytecode, args.timeout, args.depth, args.lasers, args.quick)
             engine_start(wasmVM)
 
     if not args.disassemble and not args.symbolic \
