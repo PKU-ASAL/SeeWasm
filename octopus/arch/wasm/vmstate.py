@@ -2,7 +2,6 @@ from octopus.engine.engine import VMstate
 
 
 class WasmVMstate(VMstate):
-
     def __init__(self):
         # data structure:
         self.symbolic_stack = []
