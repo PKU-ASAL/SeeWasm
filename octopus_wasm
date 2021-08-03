@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from octopus.arch.wasm.mapper import extract_mapping
+from octopus.arch.wasm.graph import *
 import argparse
 import logging
 import sys
@@ -154,6 +155,10 @@ def main():
             octo_bytecode, args.timeout, args.depth, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         if args.onlyfunc:
+            graph = Graph()
+            graph.extract_basic_blocks(wasmVM)
+            graph.traverse(wasmVM, args.onlyfunc)
+
             wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
         else:
             raise Exception("Please specify at least one entry function")
