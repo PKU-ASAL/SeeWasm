@@ -6,7 +6,7 @@ import sh
 testcase_dir = './c2wasm_samples/'
 cmd_lists = []
 
-case_lists = ['hello', 'printRhombic', 'simple_condition', 'intadd', 'simple_condition']
+case_lists = ['hello', 'printRhombic', 'simple_condition', 'intadd']
 
 for case in case_lists:
     case_file = case + '_g3.wasm'
@@ -20,7 +20,7 @@ for cmd in cmd_lists:
     except sh.ErrorReturnCode as e:
         print(e)
         pytest.fail(e)
-
+print('Success')
 
 
 

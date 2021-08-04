@@ -259,70 +259,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         else:
             logging.debug('[+] congratulations! reach the outermost function')
 
-    def emulate_functions(self, depth, call_depth=0, list_functions_name=None, state=None):
-        self.start_time = datetime.now()
-
-        # reset key_import_func_visited
-        if state is not None:
-            state.key_import_func_visited = list()
-
-        for func_name in list_functions_name:
-            # retrieve func name according to the index
-            if isinstance(func_name, int):
-                func_name = func_name - self.ana.elements[0]['offset'][0].imm.value
-                mapped_index = self.ana.elements[0]['elems'][func_name]
-                import_func_count = len(self.ana.imports_func)
-                # because normal functions index follows the import functions
-                func_pos = mapped_index - import_func_count
-                func_name = self.cfg.functions[func_pos].name
-
-            # extract param and return str
-            param_str, return_str = self.get_signature(func_name)
-
-            # the [] here is the `has_ret`
-            # as here is the entry, thus it is empty
-            state, has_ret = self.init_state(func_name, param_str, return_str, [])
-
-            logging.info("=============================Function Name: %s=============================\n" % func_name)
-            self.emulate_one_function(call_depth, function_name=func_name, state=state, depth=depth, has_ret=has_ret)
-
-        return self.result, self.index2state
-
-    def emulate_one_function(self, call_depth, function_name, depth, state=None, has_ret=[], basicblock_path=None):
-        if function_name not in [x.name for x in self.cfg.functions]:
-            raise Exception(
-                'function_name not in this module - available: %s', self.ana.func_prototypes)
-
-        self.current_function = self.cfg.get_function(function_name)
-        # reset the return_value_and_state_list
-        self.current_function.return_value_and_state_list = list()
-
-        self.current_f_instructions = self.current_function.instructions
-        # pc : instruction within a function
-        self.reverse_instructions = {
-            k: v for k, v in enumerate(self.current_f_instructions)}
-
-        # basic blocks within a function
-        self.current_f_basicblocks = self.current_function.basicblocks
-
-        # create dict with:
-        # * key = instruction offset
-        # * value = basicblock reference
-        # easy to get the corresponding basicblock per instr now
-        for bb in self.current_f_basicblocks:
-            for intr in bb.instructions:
-                self.basicblock_per_instr[intr.offset] = bb
-
-        if state is None: raise UninitializedStateError
-
-        # launch emulation
-        if gvar.guided_emulation_flag:
-            self.emulate(state, depth, has_ret, call_depth, basicblock_path)
-        else:
-            self.emulate(state, depth, has_ret, call_depth)
-
-        return copy.deepcopy(self.current_function.return_value_and_state_list)
-
     def construct_edges_with_condition(self, bb_path):
         self.pairs2jump_type = None
         pairs2jump_type = dict()
@@ -486,11 +422,19 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emulate_basic_block(self, state, has_ret, instructions):
         # TODO
         pre_instr = None
+        states = [state]
         for instruction in instructions:
-            state.instr = instruction
-            state.pc += 1
-            ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
-        return ret[1]
+            next_states = []
+            for state in states:
+                state.instr = instruction
+                state.pc += 1
+                _, ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
+                if ret is not None:
+                    next_states.extend(ret)
+                else:
+                    next_states.append(copy.deepcopy(state))
+            states = next_states
+        return states
 
 
     def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
@@ -568,9 +512,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return True, None
 
     def emul_loop(self, instr, state):
-        logging.debug('[LOOP]: %s' % (instr.offset))
-        # remember which loop is traversed
-        state.instructions_visited.add((self.current_function.name, instr.offset))
+        return True, None
 
     def emul_else(self, pre_instr, instr, state):
         if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
@@ -714,7 +656,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.debug('')
 
                 self.emulate(state, depth + 1, has_ret, call_depth)
-                
+
                 self.current_basicblock = self.basicblock_per_instr[instr.offset]
                 # if in guided emulation, prune some branch
                 if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
@@ -748,63 +690,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def emul_end(self, instr, has_ret, state):
         return False, None
-        """
-        if instr.offset == self.current_f_instructions[-1].offset:
-            halt = True
-
-            # 1st is the return value, 2ed is the state
-            state_tmp_list = [None, None]
-            # the outer function needs to return a val
-            if has_ret and has_ret[-1]:
-                to_be_returned = state.symbolic_stack.pop()
-                if is_bool(to_be_returned):
-                    if is_false(to_be_returned):
-                        to_be_returned = BitVecVal(0, 32)
-                    elif is_true(to_be_returned):
-                        to_be_returned = BitVecVal(1, 32)
-                    else:
-                        raise NotDeterminedRetValError
-
-                state_tmp_list[0] = to_be_returned
-
-            state_tmp_list[1] = copy.deepcopy(state)
-
-            self.current_function.return_value_and_state_list.append(
-                tuple(state_tmp_list))
-
-            # 1. all branch with only True or False constraint, not symbolic execution result
-            # 2. [0,0,0...,0] is the last node_path in one function
-            logging.debug('[END] Reach the end which is located in the last line of function: %s, now constraint flag is: %s' % (
-                    self.current_function.name, self.current_function.constraint_flags))
-            logging.debug('[x] current constraint is:')
-            for c in state.constraints:
-                logging.debug(' [x] %s' % c)
-            logging.debug('')
-        """
 
     def emul_br(self, instr, state):
-        return False, {'unconditional': state}
-        jump_addr = instr.xref
-        # if the destination is the loop which is visited
-        # we should prune this branch
-        if (self.current_function.name, jump_addr[0]) in state.instructions_visited:
-            # state.instructions_visited.remove(jump_addr[0])
-            return True
-
-        for idx in self.reverse_instructions:
-            if jump_addr[0] == self.reverse_instructions[idx].offset:
-                state.instr = self.reverse_instructions[idx]
-                state.pc = idx
-                break
-        self.current_basicblock = self.basicblock_per_instr[instr.offset]
-        # if in guided emulation, prune some branch
-        if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
-            if self.current_basicblock.name not in self.visited_basicblock:
-                self.visited_basicblock[self.current_basicblock.name] = 1
-            else:
-                self.visited_basicblock[self.current_basicblock.name] += 1
-            # if self.visited_basicblock[self.current_basicblock.name] + 2*depth > 50:
-            #     return True
+        return False, [{'unconditional': state}]
 
     def emul_br_if(self, instr, state, depth, has_ret, call_depth):
         op = state.symbolic_stack.pop()
@@ -814,127 +702,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             op = simplify(op != 0)
         states['conditional_true'].constraints.append(op)
         states['conditional_false'].constraints.append(simplify(Not(op)))
-        return True, states
-
-        """
-        new_state.constraints = list(set(new_state.constraints))
-
-        # left children
-        # check if the left children's constraints can be satisfied
-        s = Solver()
-        s.add(*new_state.constraints)
-
-        if gvar.guided_emulation_flag or sat == s.check():
-            # the constraints can be solved
-            self.current_function.constraint_flags.append(1)
-            for c in new_state.constraints:
-                logging.info(' [x] %s' % c)
-            logging.info('')
-
-            # should into new node but not
-            for idx in self.reverse_instructions:
-                try:
-                    if jump_addr[0] == self.reverse_instructions[idx].offset:
-                        new_state.instr = self.reverse_instructions[idx]
-                        new_state.pc = idx
-                        break
-                except AttributeError:
-                    return True
-
-            self.emulate(new_state, depth + 1, has_ret, call_depth)
-            # for test: we only need one_path_result in branched function
-            # if call_depth > 1:
-            #     return True
-            # if gvar.guided_emulation_flag:
-            #     return True
-
-            # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
-            for module_name, quick_checked in self.quick.items():
-                if quick_checked and module_name not in self.lasers:
-                    return True
-            self.current_basicblock = self.basicblock_per_instr[instr.offset]
-        else:
-            self.current_function.constraint_flags.append(-1)
-            logging.debug(
-                '[BRIF] Can not jump to destination. Current constraints can not be solved and the flag is: %s, depth: %s' % (
-                    self.current_function.constraint_flags, depth))
-            logging.debug(
-                '[BRIF] Current path constraints can not be satisfied:')
-            for c in new_state.constraints:
-                logging.debug(' [x] %s' % c)
-            logging.debug('[BRIF] current branch is pruned')
-            logging.debug('')
-
-        # right children
-        # br_if False
-        op = simplify(Not(op))
-        state.constraints.append(op)
-
-        # simplify the solver
-        state.constraints = list(set(state.constraints))
-
-        # check if the constraints can be satisfied
-        s = Solver()
-        s.add(*state.constraints)
-
-        if gvar.guided_emulation_flag or sat == s.check():
-            if self.current_function.constraint_flags == []:
-                self.current_function.constraint_flags.append(0)
-            else:
-                self.current_function.constraint_flags[-1] = 0
-            logging.info(
-                '[BRIF] Follow the instructions. Current constraints can be solved and the flag is: %s, depth: %s' % (
-                    self.current_function.constraint_flags, depth))
-            logging.info(
-                '[x] Right children path constraints can be satisfied:')
-            for c in state.constraints:
-                logging.info(' [x] %s' % c)
-            logging.info('')
-
-            self.emulate(state, depth + 1, has_ret, call_depth)
-            # for test: we only need one_path_result in branched function
-            # if call_depth > 1:
-            #     return True
-            # if gvar.guided_emulation_flag:
-            #     return True
-
-            # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
-            for module_name, quick_checked in self.quick.items():
-                if quick_checked and module_name not in self.lasers:
-                    return True
-            self.current_basicblock = self.basicblock_per_instr[instr.offset]
-            # if in guided emulation, prune some branch
-            if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
-                if self.current_basicblock.name not in self.visited_basicblock:
-                    self.visited_basicblock[self.current_basicblock.name] = 1
-                else:
-                    self.visited_basicblock[self.current_basicblock.name] += 1
-                # if self.visited_basicblock[self.current_basicblock.name] + 2*depth > 50:
-                #     return True
-
-            logging.debug('[BRIF] depth: %s' % depth)
-            logging.debug(
-                '[BRIF] current level both left and right node were traversed, return to previous level')
-            self.current_function.constraint_flags.pop()
-        else:
-            self.current_function.constraint_flags[-1] = -1
-            logging.debug(
-                '[BRIF] Try to follow the instructions, but current constraints can not be solved and the flag is: %s, depth: %s' % (
-                    self.current_function.constraint_flags, depth))
-            logging.debug(
-                '[x] Right children path constraints can not be satisfied:')
-            for c in state.constraints:
-                logging.debug(' [x] %s' % c)
-            logging.debug('[BRIF] current branch is pruned')
-            logging.debug('')
-
-            logging.debug(
-                '[BRIF] Current level right node can not be solved, so return to previous level')
-            self.current_function.constraint_flags.pop()
-
-        halt = True
-        pass
-        """
+        return True, [states]
 
     def emul_br_table(self, instr, state):
         op = state.symbolic_stack.pop()
@@ -993,15 +761,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # get callee function name
         import_func_count = len(self.ana.imports_func)
-
         internal_function_name = self.cfg.functions[f_offset - import_func_count].name if f_offset > import_func_count else name
-
         # skip these functions
         func_is_not_from_system = (internal_function_name[0] == '_' and internal_function_name[1] == '_') or \
                                   internal_function_name in SKIP_FUNC_SET or (
                                           '_Zn' in internal_function_name and 'eos' not in internal_function_name) or \
                                   '_ZdaPv' in internal_function_name or 'printf' in internal_function_name
-
+        new_states = []
         # if the function is the EOSIO library function
         if internal_function_name not in [x.name for x in self.cfg.functions]:
             if f_offset > len(self.ana.imports_func):
@@ -1014,7 +780,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             from .internal_functions import InternalFunction
             func = InternalFunction(internal_function_name, param_list, return_str, state)
             halt = func.emul()
-            return state
+            return halt, [state]
 
         elif call_depth >= self.call_depth_limit or func_is_not_from_system:
             # (func_is_exports and not func_is_elems and func_is_not_from_system):
@@ -1029,56 +795,32 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 state.symbolic_stack.append(getConcreteBitVec(return_str,
                                                               internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(
                                                                   state.pc)))
-
         elif name in C_LIBRARY_FUNCS:
             from .internal_functions import PredefinedFunction
             func = PredefinedFunction(name, self.current_function.name)
             func.emul(state, internal_function_name, param_str, return_str, self.data_section)
         else:
-            # from mainline function
-            if gvar.guided_emulation_mainline_function_flag:
-
-                # Whether internal_function_name calls a function in the sidepath_key_import_functions
-                gvar.visited_func.clear()
-                _, edges = self.cfg.get_functions_call_edges()
-                if not has_sidepath_call_keyimport(internal_function_name, edges, set(self.sidepath_key_import_functions)):  # and \
-                    # not has_sidepath_call_keyimport(self.current_function.name, edges, set(self.sidepath_key_import_functions)):
-                    if param_str:
-                        num_arg = len(param_str.split(' '))
-                        param = [state.symbolic_stack.pop() for _ in range(num_arg)]
-
-                        # has sidepath_call key param
-                        if len(list(filter(lambda x: x in param, ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']))) == 0:
-                            if return_str:
-                                tmp_bitvec = getConcreteBitVec(return_str,
-                                                               internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(
-                                                                   state.pc))
-                                state.symbolic_stack.append(tmp_bitvec)
-
-                            return False
-                        else:
-                            param.reverse()
-                            [state.symbolic_stack.append(x) for x in param]
-
-                # restore mainline function when branched function exit
-                self.guided_emulation_mainline_function = (
-                    self.current_function, self.current_f_instructions, self.reverse_instructions,
-                    self.current_f_basicblocks, basicblock_path, self.current_basicblock)
-                gvar.guided_emulation_mainline_function_flag = False
-
             new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
-
             self.visiting_function_name_list.append(self.current_function.name)
             # store the current function's constraints flag
             self.constraints_flag_stack.append(copy.deepcopy(self.current_function.constraint_flags))
 
             # fetch all possible result states for this call instruction
             # element in results is composed of return value and the result state, i.e., [return value, result state]
-            possible_call_results = self.emulate_one_function(
-                call_depth + 1, internal_function_name, state=new_state, depth=depth, has_ret=has_ret,
-                basicblock_path=basicblock_path)
-
-            self.set_from_function()
+            possible_states = Graph.traverse_one(internal_function_name, new_state, has_ret)
+            possible_call_results = []
+            for pstate in possible_states:
+                to_be_returned = None
+                if has_ret and has_ret[-1]:
+                    to_be_returned = pstate.symbolic_stack.pop()
+                    if is_bool(to_be_returned):
+                        if is_false(to_be_returned):
+                            to_be_returned = BitVecVal(0, 32)
+                        elif is_true(to_be_returned):
+                            to_be_returned = BitVecVal(1, 32)
+                        else:
+                            raise NotDeterminedRetValError
+                possible_call_results.append((to_be_returned, copy.deepcopy(pstate)))
 
             if not gvar.guided_emulation_mainline_function_flag:
                 # restore the caller's constraints flag
@@ -1092,12 +834,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             outer_need_ret = has_ret.pop()
 
             # sometimes branched function can't return value as expected
-            if return_str and not possible_call_results:
-                tmp_bitvec = getConcreteBitVec(return_str,
-                                               internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(
-                                                   state.pc))
-                state.symbolic_stack.append(tmp_bitvec)
-                return False, state
 
             # iterate each possible result and continue the instruction after the 'call xxx'
             for i, return_constraint_tuple in enumerate(possible_call_results):
@@ -1107,24 +843,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         1].symbolic_memory, return_constraint_tuple[1].key_import_func_visited, \
                     return_constraint_tuple[1].globals
 
-                # TODO for test
-                # we only need one_path_result in branched function
-                if gvar.guided_emulation_mainline_function_flag:
-                    if outer_need_ret and return_value is not None:
-                        state.symbolic_stack.append(return_value)
-                        state.constraints = constraint
-                        state.symbolic_memory = state_symbolic_memory
-                        state.key_import_func_visited = key_import_func_visited
-                        state.globals = current_globals
-                    else:
-                        state.constraints = constraint
-                        state.symbolic_memory = state_symbolic_memory
-                        state.key_import_func_visited = key_import_func_visited
-                        state.globals = current_globals
-                    return False, state
-
                 logging.debug('===================situation %s======================' % i)
-
                 # if have outer_need_ret but no return_value, means the callee's this branch is failed
                 if outer_need_ret and return_value is None:
                     continue
@@ -1152,58 +871,22 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     self.current_function.constraint_flags.pop()
 
                 # self.emulate(new_state, depth, new_has_ret, call_depth)
-
-                return False, new_state
-
-
-            if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
-                return False, new_state
-            else:
-                return True, new_state
-
+                new_states.append(new_state)
+        if len(new_states) == 0:
+            new_states.append(state)
+        return False, new_states
 
     def emul_return(self, instr, state, has_ret):
-        halt = True
-        # 1st is the return value, 2ed is the state
-        state_tmp_list = [None, None]
-        if has_ret and has_ret[-1]:
-            to_be_returned = state.symbolic_stack.pop()
-            if is_bool(to_be_returned):
-                if is_false(to_be_returned):
-                    to_be_returned = BitVecVal(0, 32)
-                elif is_true(to_be_returned):
-                    to_be_returned = BitVecVal(1, 32)
-                else:
-                    raise NotDeterminedRetValError
-
-            state_tmp_list[0] = to_be_returned
-
-        state_tmp_list[1] = copy.deepcopy(state)
-
-        self.current_function.return_value_and_state_list.append(
-            tuple(state_tmp_list))
-
-        logging.debug(
-            '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (
-                self.current_function.name, self.current_function.constraint_flags))
-        logging.debug('[+] current constraint is:')
-        for c in state.constraints:
-            logging.debug(' [x] %s' % c)
-        logging.debug('')
-
-        if len(self.visiting_function_name_list) <= 0 and state_tmp_list[1].constraints:
-            current_result = state_tmp_list
-            if not reduce(lambda x, y: x or y, list(self.quick.values())):
-                self.result.append(current_result)
+        return True, None
 
     def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
         halt = False
         if instr.name == 'unreachable':
-            self.emul_unreachable()
+            return self.emul_unreachable()
         elif instr.name == 'loop':
-            self.emul_loop(instr, state)
+            return self.emul_loop(instr, state)
         elif instr.name in ['nop', 'block']:
-            return halt, {}
+            return False, None
         elif instr.name == 'else':
             self.emul_else(pre_instr, instr, state)
         elif instr.name == 'if':

@@ -1152,8 +1152,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             state_tmp_list[1] = copy.deepcopy(state)
 
-            self.current_function.return_value_and_state_list.append(
-                tuple(state_tmp_list))
+            self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
 
             logging.debug(
                 '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (

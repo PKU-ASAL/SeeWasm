@@ -1,4 +1,5 @@
 from z3 import *
+from collections import defaultdict
 
 class ClassPropertyDescriptor:
     def __init__(self, fget, fset=None):
@@ -30,12 +31,17 @@ def classproperty(func):
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
-    _bbs_graph = {}
+    _bbs_graph = defaultdict(dict)
+    _loop_maximum_rounds = 5
     _wasmVM = None
 
     def __init__(self, funcs):
         self.entries = funcs
-        self.final_states = {func: [] for func in self.entries}
+        self.final_states = {func: None for func in funcs}
+
+    @classproperty
+    def loop_maximum_rounds(cls):
+        return cls._loop_maximum_rounds
 
     @classproperty
     def func_to_bbs(cls):
@@ -91,34 +97,40 @@ class Graph:
 
     def traverse(self):
         for entry_func in self.entries:
-            self.traverse_one(entry_func)
+            self.final_states[entry_func] = self.traverse_one(entry_func)
 
-    def traverse_one(self, func, state=None, has_ret=None):
-        param_str, return_str = self.wasmVM.get_signature(func)
+    @classmethod
+    def traverse_one(cls, func, state=None, has_ret=None):
+        param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
-            state, has_ret = self.wasmVM.init_state(func, param_str, return_str, [])
-        self.wasmVM.current_function = self.wasmVM.cfg.get_function(func)
+            state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
+        cls.wasmVM.current_function = cls.wasmVM.cfg.get_function(func)
         # retrieve all the relevant basic blocks
-        entry_func_bbs = self.func_to_bbs[func]
+        entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
+        final_states = []
+        vis = defaultdict(int)
+        cls.visit(state, has_ret, entry_bb, final_states, vis)
+        return final_states
 
-        self.visit(state, has_ret, entry_bb, self.final_states[func])
-        print(self.final_states[func])
-
-    def visit(self, state, has_ret, blk, final_states):
-        instructions = self.bb_to_instructions[blk]
-        emul_states = self.wasmVM.emulate_basic_block(state, has_ret, instructions)
-        if len(self.bbs_graph[blk]) == 0:
-            final_states.append(emul_states)
-        for type in self.bbs_graph[blk]:
-            if isinstance(emul_states, dict) and type in emul_states:
-                state = emul_states[type]
-                solver = Solver()
-                solver.add(*state.constraints)
-                if sat == solver.check():
-                    self.visit(state, has_ret, self.bbs_graph[blk][type], final_states)
-            else:
-                self.visit(state, has_ret, self.bbs_graph[blk][type], final_states)
-        return state
+    @classmethod
+    def visit(cls, state, has_ret, blk, final_states, vis):
+        if vis[blk] >= cls.loop_maximum_rounds:
+            return
+        vis[blk] += 1
+        instructions = cls.bb_to_instructions[blk]
+        emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, instructions)
+        if len(cls.bbs_graph[blk]) == 0:
+            final_states.extend(emul_states)
+        for state_item in emul_states:
+            for type in cls.bbs_graph[blk]:
+                if isinstance(state_item, dict) and type in state_item:
+                    state = state_item[type]
+                    solver = Solver()
+                    solver.add(*state.constraints)
+                    if sat == solver.check():
+                        cls.visit(state, has_ret, cls.bbs_graph[blk][type], final_states, vis)
+                else:
+                    cls.visit(state_item, has_ret, cls.bbs_graph[blk][type], final_states, vis)
 
