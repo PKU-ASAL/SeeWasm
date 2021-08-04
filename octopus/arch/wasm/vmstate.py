@@ -2,7 +2,6 @@ from octopus.engine.engine import VMstate
 
 
 class WasmVMstate(VMstate):
-
     def __init__(self):
         # data structure:
         self.symbolic_stack = []
@@ -20,6 +19,9 @@ class WasmVMstate(VMstate):
         # TODO need remove the following two variables
         self.instructions_visited = set()
         self.key_import_func_visited = []
+
+    def __str__(self):
+        return str(self.__dict__)
 
     def details(self):
         raise NotImplementedError

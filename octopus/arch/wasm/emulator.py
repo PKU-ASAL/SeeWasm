@@ -15,16 +15,7 @@ from octopus.arch.wasm.helper_c import *
 
 from . type2z3 import *
 from . exceptions import *
-
-from .instructions.VariableInstructions import *
-from .instructions.MemoryInstructions import *
-from .instructions.ConstantInstructions import *
-from .instructions.LogicalInstructions import *
-from .instructions.ConversionInstructions import *
-from .instructions.BitwiseInstructions import *
-from .instructions.ArithmeticInstructions import *
-from .instructions.ParametricInstructions import *
-from .instructions.ControlInstructions import *
+from .instructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -545,13 +536,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
         
         logging.debug(f'''
-PC:\t\t{state.pc}
-Current Func:\t{self.current_function.name}
-Instruction:\t{instr.operand_interpretation}
-Stack:\t\t{state.symbolic_stack}
-Local Var:\t{state.local_var}
-Global Var:\t{state.globals}
-Memory:\t\t{state.symbolic_memory}\n''')
+                PC:\t\t{state.pc}
+                Current Func:\t{self.current_function.name}
+                Instruction:\t{instr.operand_interpretation}
+                Stack:\t\t{state.symbolic_stack}
+                Local Var:\t{state.local_var}
+                Global Var:\t{state.globals}
+                Memory:\t\t{state.symbolic_memory}\n''')
 
         for c in state.constraints:
             if type(c) != BoolRef:
@@ -591,6 +582,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
             # if this else is jumped from a 'if' instruction, it can be continued
             if not pre_instr or pre_instr.name == 'if':
+
                 pass
             else:
                 # if the 'else' is not jumped from 'if', the control flow will jump to the 'else' xref
@@ -814,8 +806,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                 state_tmp_list[1] = copy.deepcopy(state)
 
-                self.current_function.return_value_and_state_list.append(
-                    tuple(state_tmp_list))
+                self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
 
                 # 1. all branch with only True or False constraint, not symbolic execution result
                 # 2. [0,0,0...,0] is the last node_path in one function
@@ -1761,7 +1752,6 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                 halt = True
         else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_parametric function')
+            raise Exception('Instruction:', instr, 'not match in emul_parametric function')
 
         return halt
