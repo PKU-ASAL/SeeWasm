@@ -47,12 +47,6 @@ C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
 # =======================================
 
 
-class WasmEmulatorEngine(EmulatorEngine):
-
-    def __init__(self, bytecode):
-        raise NotImplementedError
-
-
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def __init__(self, bytecode, timeout, call_depth=MAX, lasers=None, quick=False, func_index2func_name=None):

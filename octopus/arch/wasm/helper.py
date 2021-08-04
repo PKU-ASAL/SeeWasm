@@ -1,11 +1,9 @@
 import logging
+import re
 
 from z3 import *
 
-# import gvar
-
-# you can comment below
-# logging.basicConfig(level=logging.DEBUG)
+from octopus.arch.wasm.type2z3 import getConcreteBitVec
 
 # some functions which return the iterator
 can_jump_function = ['malloc_ret_i32']
@@ -323,97 +321,35 @@ def load_instr(instr, state, data_section):
     if type(addr) == BitVecNumRef:
         addr = addr.as_long()
 
+    # determine how many bytes should be loaded
+    # the dict is like {'8': 1}
+    bytes_length_mapping = {str(k):k//8 for k in range(8, 65, 8)}
     instr_name = instr.split(' ')[0]
-    if instr_name == 'i32.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
-        if val is not None:
-            assert val.size() == 32, f"in i32.load the val loaded size is not 32"
-    elif instr_name == 'i64.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 8)
-        if val is not None:
-            assert val.size() == 64, f"in i64.load the val loaded size is not 64"
-    elif instr_name == 'f32.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
-        if val is not None:
-            assert val.size() == 32, f"in f32.load the val loaded size is not 32"
-            val = fpBVToFP(val, Float32())
-    elif instr_name == 'f64.load':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 8)
-        if val is not None:
-            assert val.size() == 64, f"in f64.load the val loaded size is not 64"
-            val = fpBVToFP(val, Float64())
-    elif instr_name == 'i32.load8_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
-        if val is not None:
-            assert val.size() == 8, f"in i32.load8_s the val loaded size is not 8"
-            val = simplify(SignExt(24, val))
-    elif instr_name == 'i32.load8_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
-        if val is not None:
-            assert val.size() == 8, f"in i32.load8_u the val loaded size is not 8"
-            val = simplify(ZeroExt(24, val))
-    elif instr_name == 'i32.load16_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
-        if val is not None:
-            assert val.size() == 16, f"in i32.load16_s the val loaded size is not 16"
-            val = simplify(SignExt(16, val))
-    elif instr_name == 'i32.load16_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
-        if val is not None:
-            assert val.size() == 16, f"in i32.load16_u the val loaded size is not 16"
-            val = simplify(ZeroExt(16, val))
-    elif instr_name == 'i64.load8_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
-        if val is not None:
-            assert val.size() == 8, f"in i64.load8_s the val loaded size is not 8"
-            val = simplify(SignExt(56, val))
-    elif instr_name == 'i64.load8_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 1)
-        if val is not None:
-            assert val.size() == 8, f"in i64.load8_u the val loaded size is not 8"
-            val = simplify(ZeroExt(56, val))
-    elif instr_name == 'i64.load16_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
-        if val is not None:
-            assert val.size() == 16, f"in i64.load16_s the val loaded size is not 16"
-            val = simplify(SignExt(48, val))
-    elif instr_name == 'i64.load16_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 2)
-        if val is not None:
-            assert val.size() == 16, f"in i64.load16_u the val loaded size is not 16"
-            val = simplify(ZeroExt(48, val))
-    elif instr_name == 'i64.load32_s':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
-        if val is not None:
-            assert val.size() == 32, f"in i64.load32_s the val loaded size is not 32"
-            val = simplify(SignExt(32, val))
-    elif instr_name == 'i64.load32_u':
-        val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
-        if val is not None:
-            assert val.size() == 32, f"in i64.load32_u the val loaded size is not 32"
-            val = simplify(ZeroExt(32, val))
-
-    if val is None:
-        if 'i32' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(BitVec('load_i32*(' + str(addr) + ')', 32))
-        elif 'f32' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(FP('load_f32*(' + str(addr) + ')', Float32()))
-        elif 'i64' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(BitVec('load_i64*(' + str(addr) + ')', 64))
-        elif 'f64' in instr_name.split('.')[0]:
-            state.symbolic_stack.append(FP('load_f64*(' + str(addr) + ')', Float64()))
-    # elif type(val) == BitVecRef:
-    #     if 'i32' in instr_name.split('.')[0]:
-    #         state.symbolic_stack.append(BitVec('load_i32*(' + str(val) + ')', 32))
-    #     elif 'f32' in instr_name.split('.')[0]:
-    #         state.symbolic_stack.append(FP('load_f32*(' + str(val) + ')', Float32()))
-    #     elif 'i64' in instr_name.split('.')[0]:
-    #         state.symbolic_stack.append(BitVec('load_i64*(' + str(val) + ')', 64))
-    #     elif 'f64' in instr_name.split('.')[0]:
-    #         state.symbolic_stack.append(FP('load_f64*(' + str(val) + ')', Float64()))
+    if len(instr_name) == 8:
+        load_length = bytes_length_mapping[instr_name[1:3]]
     else:
-        assert not is_bool(val), 'in load_instr, the value to be pushed in stack is a BoolRef'
+        load_length = bytes_length_mapping[re.search(r"load([0-9]+)\_", instr_name).group(1)]
+    
+    val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, load_length)
+
+    # cast to other type of bit vector
+    float_mapping = {
+        'f32': Float32,
+        'f64': Float64,
+    }
+    if len(instr_name) == 8 and instr_name[0] == "f":
+        val = simplify(fpBVToFP(val, float_mapping[instr_name[:3]]()))
+    elif instr_name[-2] == "_":
+        if instr_name[-1] == "s": # sign extend
+            val = simplify(SignExt(int(instr_name[1:3]) - load_length*8, val))
+        else:
+            val = simplify(ZeroExt(int(instr_name[1:3]) - load_length*8, val))
+
+    # if can not load from the memory area
+    if val is not None:
         state.symbolic_stack.append(val)
+    else:
+        state.symbolic_stack.append(getConcreteBitVec(instr_name[:3], f'load_{instr_name[:3]}*({str(addr)})'))
 
 
 # deal with store instruction
@@ -429,47 +365,21 @@ def store_instr(instr, state):
 
     # change addr's type to int if possible
     # or it will be the BitVecRef
-    if type(addr) == BitVecNumRef:
+    if is_bv_value(addr):
         addr = addr.as_long()
 
+    # determine how many bytes should be stored
+    # the dict is like {'8': 1}
+    bytes_length_mapping = {str(k):k//8 for k in range(8, 65, 8)}
     instr_name = instr.split(' ')[0]
-
-    if instr_name == 'i32.store':
-        assert val.size() == 32, f"in i32.store the value to be stored size is {val.size()} not 32"
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 4, val)
-    elif instr_name == 'i64.store':
-        assert val.size() == 64, f"in i64.store the value to be stored size is {val.size()} not 64"
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 8, val)
-    elif instr_name == 'f32.store':
-        assert val.ebits() == 8 and val.sbits() == 24, f"in f32.store the value to be stored is ebits: {val.ebits()}, sbits: {val.sbits()}"
-        val = fpToIEEEBV(val)
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 4, val)
-    elif instr_name == 'f64.store':
-        assert val.ebits() == 11 and val.sbits() == 53, f"in f64.store the value to be stored is ebits: {val.ebits()}, sbits: {val.sbits()}"
-        val = fpToIEEEBV(val)
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 8, val)
-    elif instr_name == 'i32.store8':
-        assert val.size() == 32, f"in i32.store8 the value to be stored size is {val.size()} not 32"
-        val = simplify(Extract(7, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 1, val)
-    elif instr_name == 'i32.store16':
-        assert val.size() == 32, f"in i32.store16 the value to be stored size is {val.size()} not 32"
-        val = simplify(Extract(15, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 2, val)
-    elif instr_name == 'i64.store8':
-        assert val.size() == 64, f"in i64.store8 the value to be stored size is {val.size()} not 64"
-        val = simplify(Extract(7, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 1, val)
-    elif instr_name == 'i64.store16':
-        assert val.size() == 64, f"in i64.store16 the value to be stored size is {val.size()} not 64"
-        val = simplify(Extract(15, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 2, val)
-    elif instr_name == 'i64.store32':
-        assert val.size() == 64, f"in i64.store32 the value to be stored size is {val.size()} not 64"
-        val = simplify(Extract(31, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, 4, val)
+    if len(instr_name) == 9:
+        if instr_name[0] == 'f':
+            val = fpToIEEEBV(val)
+        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, bytes_length_mapping[instr_name[1:3]], val)
     else:
-        raise Exception('Forbidden area for store instruction')
+        stored_length = bytes_length_mapping[re.search(r"store([0-9]+)", instr_name).group(1)]
+        val = simplify(Extract(stored_length*8-1, 0, val))
+        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, stored_length, val)
 
 
 # GUIDANCE:
@@ -487,27 +397,6 @@ def store_instr(instr, state):
 # case 11:          |   [_________________]                 True
 # case 12:          |             [_________]               False
 # case 13:          |             |        [______]         False
-
-# def to_little_endian(data, length):
-#     assert data is not None, f"in to_little_endian, the data is {data}, the length is {length}"
-#     if isinstance(data, int):
-#         data = BitVecVal(data, length * 8)
-
-#     total_length = data.size()
-#     if total_length == 8:
-#         return data
-
-#     result_list = []
-#     for index in range(0, total_length, 8):
-#         result_list.append(Extract(total_length - 1 - index, total_length - 8 - index, data))
-#         # result_list.append(Extract(index + 7, index, data))
-
-#     result_list.reverse()
-#     return simplify(Concat(*result_list))
-
-
-# def recover_from_little_endian(data, length):
-#     return to_little_endian(data, length)
 
 
 # dest type can only be bitvecref or int
