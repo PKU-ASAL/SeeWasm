@@ -313,9 +313,9 @@ def load_instr(instr, state, data_section):
 
     # offset maybe int or hex
     try:
-        offset = int(instr.operand_interpretation.split(' ')[2])
+        offset = int(instr.split(' ')[2])
     except ValueError:
-        offset = int(instr.operand_interpretation.split(' ')[2], 16)
+        offset = int(instr.split(' ')[2], 16)
 
     addr = simplify(base + offset)
     assert is_bv(addr), f"addr in load_instr is {type(addr)} instead of bv"
@@ -323,7 +323,7 @@ def load_instr(instr, state, data_section):
     if type(addr) == BitVecNumRef:
         addr = addr.as_long()
 
-    instr_name = instr.name
+    instr_name = instr.split(' ')[0]
     if instr_name == 'i32.load':
         val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, 4)
         if val is not None:
@@ -420,9 +420,9 @@ def load_instr(instr, state, data_section):
 def store_instr(instr, state):
     # offset may be int or hex
     try:
-        offset = int(instr.operand_interpretation.split(' ')[2])
+        offset = int(instr.split(' ')[2])
     except ValueError:
-        offset = int(instr.operand_interpretation.split(' ')[2], 16)
+        offset = int(instr.split(' ')[2], 16)
 
     val, base = state.symbolic_stack.pop(), state.symbolic_stack.pop()
     addr = simplify(base + offset)
@@ -432,7 +432,7 @@ def store_instr(instr, state):
     if type(addr) == BitVecNumRef:
         addr = addr.as_long()
 
-    instr_name = instr.name
+    instr_name = instr.split(' ')[0]
 
     if instr_name == 'i32.store':
         assert val.size() == 32, f"in i32.store the value to be stored size is {val.size()} not 32"

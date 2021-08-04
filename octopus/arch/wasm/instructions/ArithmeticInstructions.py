@@ -16,142 +16,154 @@ float_helper_map = {
     'f64': Float64
 }
 
-# TODO overflow check in this function?
-def do_emulate_arithmetic_int_instruction(instr, state):
-    instr_type = instr.name[:3]
-    
-    if '.clz' in instr.name or '.ctz' in instr.name:
-        # wasm documentation says:
-        # This instruction is fully defined when all bits are zero; it returns the number of bits in the operand type.
-        state.symbolic_stack.pop()
-        state.symbolic_stack.append(BitVecVal(helper_map[instr_type], helper_map[instr_type]))
-    elif '.popcnt' in instr.name:
-        # wasm documentation says:
-        # This instruction is fully defined when all bits are zero; it returns 0.
-        state.symbolic_stack.pop()
-        state.symbolic_stack.append(BitVecVal(0, helper_map[instr_type]))
-    else:
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+class ArithmeticInstructions:
+    def __init__(self, instr_name, instr_operand, _):
+        self.instr_name = instr_name
+        self.instr_operand = instr_operand
 
-        # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
-        if is_bool(arg1):
-            arg1 = BitVec(str(arg1), helper_map[instr_type])
-            logging.warning(
-                "[!] In `ArithmeticInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
-        if is_bool(arg2):
-            arg2 = BitVec(str(arg2), helper_map[instr_type])
-            logging.warning(
-                "[!] In `ArithmeticInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
+    # TODO overflow check in this function?
+    def emulate(self, state):
+        def do_emulate_arithmetic_int_instruction(state):
+            instr_type = self.instr_name[:3]
+            
+            if '.clz' in self.instr_name or '.ctz' in self.instr_name:
+                # wasm documentation says:
+                # This instruction is fully defined when all bits are zero; it returns the number of bits in the operand type.
+                state.symbolic_stack.pop()
+                state.symbolic_stack.append(BitVecVal(helper_map[instr_type], helper_map[instr_type]))
+            elif '.popcnt' in self.instr_name:
+                # wasm documentation says:
+                # This instruction is fully defined when all bits are zero; it returns 0.
+                state.symbolic_stack.pop()
+                state.symbolic_stack.append(BitVecVal(0, helper_map[instr_type]))
+            else:
+                arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
-        assert arg1.size(
-        ) == helper_map[instr_type], f"in arithmetic instruction, arg1 size is {arg1.size()} instead of {helper_map[instr_type]}"
-        assert arg2.size(
-        ) == helper_map[instr_type], f"in arithmetic instruction, arg2 size is {arg2.size()} instead of {helper_map[instr_type]}"
+                # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
+                if is_bool(arg1):
+                    arg1 = BitVec(str(arg1), helper_map[instr_type])
+                    logging.warning(
+                        "[!] In `ArithmeticInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
+                if is_bool(arg2):
+                    arg2 = BitVec(str(arg2), helper_map[instr_type])
+                    logging.warning(
+                        "[!] In `ArithmeticInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-        if '.sub' in instr.name:
-            result = simplify(arg2 - arg1)
-        elif '.add' in instr.name:
-            result = simplify(arg2 + arg1)
-        elif '.mul' in instr.name:
-            result = simplify(arg2 * arg1)
-        elif '.div_s' in instr.name:
-            result = simplify(arg2 / arg1)
-        elif '.div_u' in instr.name:
-            result = simplify(UDiv(arg2, arg1))
-        elif '.rem_s' in instr.name:
-            result = simplify(SRem(arg2, arg1))
-        elif '.rem_u' in instr.name:
-            result = simplify(URem(arg2, arg1))
-        else:
-            raise UnsupportInstructionError
+                assert arg1.size(
+                ) == helper_map[instr_type], f"in arithmetic instruction, arg1 size is {arg1.size()} instead of {helper_map[instr_type]}"
+                assert arg2.size(
+                ) == helper_map[instr_type], f"in arithmetic instruction, arg2 size is {arg2.size()} instead of {helper_map[instr_type]}"
 
-        state.symbolic_stack.append(result)
+                if '.sub' in self.instr_name:
+                    result = simplify(arg2 - arg1)
+                elif '.add' in self.instr_name:
+                    result = simplify(arg2 + arg1)
+                elif '.mul' in self.instr_name:
+                    result = simplify(arg2 * arg1)
+                elif '.div_s' in self.instr_name:
+                    result = simplify(arg2 / arg1)
+                elif '.div_u' in self.instr_name:
+                    result = simplify(UDiv(arg2, arg1))
+                elif '.rem_s' in self.instr_name:
+                    result = simplify(SRem(arg2, arg1))
+                elif '.rem_u' in self.instr_name:
+                    result = simplify(URem(arg2, arg1))
+                else:
+                    raise UnsupportInstructionError
 
-    return False
+                state.symbolic_stack.append(result)
 
-def do_emulate_arithmetic_float_instruction(instr, state):
-    # TODO need to be clarified
-    # wasm default rounding rules
-    rm = RNE()
+            return False
 
-    instr_type = instr.name[:3]
-
-    two_arguments_instrs = ['add', 'sub', 'mul', 'div', 'min', 'max', 'copysign']
-    one_argument_instrs = ['sqrt', 'floor', 'ceil', 'trunc', 'nearest', 'abs', 'neg']
-
-    # add instr_type before each instr
-    two_arguments_instrs = [str(instr_type + '.' + i) for i in two_arguments_instrs]
-    one_argument_instrs = [str(instr_type + '.' + i) for i in one_argument_instrs]
-
-    # pop two elements
-    if instr.name in two_arguments_instrs:
-        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-
-        assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
-        ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg1 type mismatch'
-        assert arg2.ebits() == helper_map[instr_type][0] and arg2.sbits(
-        ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg2 type mismatch'
-
-        if '.add' in instr.name:
-            result = simplify(fpAdd(rm, arg2, arg1))
-        elif '.sub' in instr.name:
-            result = simplify(fpSub(rm, arg2, arg1))
-        elif '.mul' in instr.name:
-            result = simplify(fpMul(rm, arg2, arg1))
-        elif '.div' in instr.name:
-            result = simplify(fpDiv(rm, arg2, arg1))
-        elif '.min' in instr.name:
-            result = simplify(fpMin(arg2, arg1))
-        elif '.max' in instr.name:
-            result = simplify(fpMax(arg2, arg1))
-        elif '.copysign' in instr.name == 'f32.copysign':
-            # extract arg2's sign to overwrite arg1's sign
-            if arg2.isPositive() ^ arg1.isPositive():
-                result = simplify(fpNeg(arg1))
-
-        state.symbolic_stack.append(result)
-    # pop one element
-    elif instr.name in one_argument_instrs:
-        arg1 = state.symbolic_stack.pop()
-
-        assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
-        ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg1 type mismatch'
-
-        if '.sqrt' in instr.name:
-            result = simplify(fpSqrt(rm, arg1))
-        elif '.floor' in instr.name:
-            # round toward negative
-            rm = RTN()
-            result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
-        elif '.ceil' in instr.name:
-            # round toward positive
-            rm = RTP()
-            result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
-        elif '.trunc' in instr.name:
-            # round toward zero
-            rm = RTZ()
-            result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
-        elif '.nearest' in instr.name:
-            # round to integeral ties to even
+        def do_emulate_arithmetic_float_instruction(instr, state):
+            # TODO need to be clarified
+            # wasm default rounding rules
             rm = RNE()
-            result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
-        elif '.abs' in instr.name:
-            result = simplify(fpAbs(arg1))
-        elif '.neg' in instr.name:
-            result = simplify(fpNeg(arg1))
 
-        state.symbolic_stack.append(result)
-    else:
-        raise UnsupportInstructionError
+            instr_type = self.instr_name[:3]
 
-    return False
+            two_arguments_instrs = ['add', 'sub', 'mul', 'div', 'min', 'max', 'copysign']
+            one_argument_instrs = ['sqrt', 'floor', 'ceil', 'trunc', 'nearest', 'abs', 'neg']
+
+            # add instr_type before each instr
+            two_arguments_instrs = [str(instr_type + '.' + i) for i in two_arguments_instrs]
+            one_argument_instrs = [str(instr_type + '.' + i) for i in one_argument_instrs]
+
+            # pop two elements
+            if self.instr_name in two_arguments_instrs:
+                arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
+                assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
+                ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg1 type mismatch'
+                assert arg2.ebits() == helper_map[instr_type][0] and arg2.sbits(
+                ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg2 type mismatch'
+
+                if '.add' in self.instr_name:
+                    result = simplify(fpAdd(rm, arg2, arg1))
+                elif '.sub' in self.instr_name:
+                    result = simplify(fpSub(rm, arg2, arg1))
+                elif '.mul' in self.instr_name:
+                    result = simplify(fpMul(rm, arg2, arg1))
+                elif '.div' in self.instr_name:
+                    result = simplify(fpDiv(rm, arg2, arg1))
+                elif '.min' in self.instr_name:
+                    result = simplify(fpMin(arg2, arg1))
+                elif '.max' in self.instr_name:
+                    result = simplify(fpMax(arg2, arg1))
+                elif '.copysign' in self.instr_name == 'f32.copysign':
+                    # extract arg2's sign to overwrite arg1's sign
+                    if arg2.isPositive() ^ arg1.isPositive():
+                        result = simplify(fpNeg(arg1))
+
+                state.symbolic_stack.append(result)
+            # pop one element
+            elif self.instr_name in one_argument_instrs:
+                arg1 = state.symbolic_stack.pop()
+
+                assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
+                ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg1 type mismatch'
+
+                if '.sqrt' in self.instr_name:
+                    result = simplify(fpSqrt(rm, arg1))
+                elif '.floor' in self.instr_name:
+                    # round toward negative
+                    rm = RTN()
+                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                elif '.ceil' in self.instr_name:
+                    # round toward positive
+                    rm = RTP()
+                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                elif '.trunc' in self.instr_name:
+                    # round toward zero
+                    rm = RTZ()
+                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                elif '.nearest' in self.instr_name:
+                    # round to integeral ties to even
+                    rm = RNE()
+                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                elif '.abs' in self.instr_name:
+                    result = simplify(fpAbs(arg1))
+                elif '.neg' in self.instr_name:
+                    result = simplify(fpNeg(arg1))
+
+                state.symbolic_stack.append(result)
+            else:
+                raise UnsupportInstructionError
+
+            return False
+        
+        op_type = self.instr_name[:1]
+        if op_type == 'i':
+            do_emulate_arithmetic_int_instruction(state)
+        else:
+            do_emulate_arithmetic_float_instruction(state)
 
 
 # ------------------------------------------------
 # original code (for overflow check)
 # after i32.sub:
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     if True:
 #         state.constraints.append(
 #             simplify(Extract(31, 30, arg2) ^ Extract(31, 30, arg2)) == 1)
@@ -164,7 +176,7 @@ def do_emulate_arithmetic_float_instruction(instr, state):
 
 # after i64.sub:
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     if True:
 #         state.constraints.append(
 #             simplify(Extract(63, 62, arg2) ^ Extract(63, 62, arg2)) == 1)
@@ -177,7 +189,7 @@ def do_emulate_arithmetic_float_instruction(instr, state):
 
 # after i32.add
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     # if (is_bv_value(arg1) and str(arg2).startswith('load')) or (is_bv_value(arg2) and str(arg1).startswith('load')):
 #     if is_bv_value(arg1) or is_bv_value(arg2):
 #         pass
@@ -193,7 +205,7 @@ def do_emulate_arithmetic_float_instruction(instr, state):
 
 # after i64.add:
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     # if (is_bv_value(arg1) and str(arg2).startswith('load')) or (is_bv_value(arg2) and str(arg1).startswith('load')):
 #     if is_bv_value(arg1) or is_bv_value(arg2):
 #         pass
@@ -209,7 +221,7 @@ def do_emulate_arithmetic_float_instruction(instr, state):
 
 # after i32.mul:
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     if is_bv_value(arg1) and not is_bv_value(arg2):
 #         if 'load' in str(arg2):
 #             state.constraints.append(arg2 > 0)
@@ -240,7 +252,7 @@ def do_emulate_arithmetic_float_instruction(instr, state):
 
 # after i64.mul:
 # if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(instr.name, arg1, arg2, result)
+#     # print(self.instr_name, arg1, arg2, result)
 #     if is_bv_value(arg1) and not is_bv_value(arg2):
 #         if 'load' in str(arg2):
 #             state.constraints.append(arg2 > 0)

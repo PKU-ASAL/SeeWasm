@@ -23,6 +23,8 @@ from .instructions.LogicalInstructions import *
 from .instructions.ConversionInstructions import *
 from .instructions.BitwiseInstructions import *
 from .instructions.ArithmeticInstructions import *
+from .instructions.ParametricInstructions import *
+from .instructions.ControlInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -527,6 +529,24 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     instr, pre_instr, state, depth, has_ret, call_depth)
 
     def emulate_one_instruction(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
+        instruction_map ={
+            'Control': ControlInstructions,
+            'Constant': ConstantInstructions,
+            'Conversion': ConversionInstructions,
+            'Memory': MemoryInstructions,
+            'Parametric': ParametricInstructions,
+            'Variable': VariableInstructions,
+            'Logical_i32': LogicalInstructions,
+            'Logical_i64': LogicalInstructions,
+            'Logical_f32': LogicalInstructions,
+            'Logical_f64': LogicalInstructions,
+            'Arithmetic_i32': ArithmeticInstructions,
+            'Arithmetic_i64': ArithmeticInstructions,
+            'Arithmetic_f32': ArithmeticInstructions,
+            'Arithmetic_f64': ArithmeticInstructions,
+            'Bitwise_i32': BitwiseInstructions,
+            'Bitwise_i64': BitwiseInstructions
+        }
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
         
@@ -544,45 +564,20 @@ Memory:\t\t{state.symbolic_memory}\n''')
                 state.constraints.remove(c)
                 # logging.warning(state.constraints)
                 # exit()
-
-        try:
-            if instr.is_control:
-                halt = self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
-            elif instr.is_parametric:
-                halt = self.emul_parametric_instr(
-                    instr, state, depth, has_ret, call_depth)
-            elif instr.is_variable:
-                halt = self.emul_variable_instr(instr, state)
-            elif instr.is_memory:
-                halt = self.emul_memory_instr(instr, state)
-            elif instr.is_constant:
-                halt = self.emul_constant_instr(instr, state)
-            elif instr.is_logical_i32:
-                halt = self.emul_logical_i32_instr(instr, state)
-            elif instr.is_logical_i64:
-                halt = self.emul_logical_i64_instr(instr, state)
-            elif instr.is_logical_f32:
-                halt = self.emul_logical_f32_instr(instr, state)
-            elif instr.is_logical_f64:
-                halt = self.emul_logical_f64_instr(instr, state)
-            elif instr.is_arithmetic_i32:
-                halt = self.emul_arithmetic_i32_instr(instr, state)
-            elif instr.is_arithmetic_f32:
-                halt = self.emul_arithmetic_f32_instr(instr, state)
-            elif instr.is_arithmetic_f64:
-                halt = self.emul_arithmetic_f64_instr(instr, state)
-            elif instr.is_bitwise_i32:
-                halt = self.emul_bitwise_i32_instr(instr, state)
-            elif instr.is_bitwise_i64:
-                halt = self.emul_bitwise_i64_instr(instr, state)
-            elif instr.is_arithmetic_i64:
-                halt = self.emul_arithmetic_i64_instr(instr, state)
-            elif instr.is_conversion:
-                halt = self.emul_conversion_instr(instr, state)
-        except Exception:
-            raise Exception('[!!] Error happened in instruction emulation')
-
+        
+        halt = False
+        instr_obj = instruction_map[instr.group](instr.name, instr.operand, instr.operand_interpretation)
+        if instr.group == 'Memory':
+            instr_obj.emulate(state, self.data_section)
+        elif instr.group == 'Control':
+            halt = self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+        elif instr.group == 'Parametric':
+            halt = self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
+        else:
+            instr_obj.emulate(state)
+        
         return halt
+
 
     def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
 
@@ -1776,47 +1771,3 @@ Memory:\t\t{state.symbolic_memory}\n''')
                             'not match in emul_parametric function')
 
         return halt
-
-    def emul_variable_instr(self, instr, state):
-        return do_emulate_variable_instruction(instr, state)
-
-    def emul_memory_instr(self, instr, state):
-        # the data_section is used in the special cases
-        # TODO decouple the data_section here
-        return do_emulate_memory_instruction(instr, state, self.data_section)
-
-    def emul_constant_instr(self, instr, state):
-        return do_emulate_constant_instruction(instr, state)
-
-    def emul_logical_i32_instr(self, instr, state):
-        return do_emulate_logical_int_instruction(instr, state)
-
-    def emul_logical_i64_instr(self, instr, state):
-        return do_emulate_logical_int_instruction(instr, state)
-
-    def emul_logical_f32_instr(self, instr, state):
-        return do_emulate_logical_float_instruction(instr, state)
-
-    def emul_logical_f64_instr(self, instr, state):
-        return do_emulate_logical_float_instruction(instr, state)
-
-    def emul_bitwise_i32_instr(self, instr, state):
-        return do_emulate_bitwise_instruction(instr, state)
-    
-    def emul_bitwise_i64_instr(self, instr, state):
-        return do_emulate_bitwise_instruction(instr, state)
-
-    def emul_arithmetic_i32_instr(self, instr, state):
-        return do_emulate_arithmetic_int_instruction(instr, state)
-
-    def emul_arithmetic_i64_instr(self, instr, state):
-        return do_emulate_arithmetic_int_instruction(instr, state)
-
-    def emul_arithmetic_f32_instr(self, instr, state):
-        return do_emulate_arithmetic_float_instruction(instr, state)
-
-    def emul_arithmetic_f64_instr(self, instr, state):
-        return do_emulate_arithmetic_float_instruction(instr, state)
-
-    def emul_conversion_instr(self, instr, state):
-        return do_emulate_conversion_instruction(instr, state)
