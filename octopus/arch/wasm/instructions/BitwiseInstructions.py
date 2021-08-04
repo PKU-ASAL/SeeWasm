@@ -9,54 +9,59 @@ helper_map = {
     'i64': 64,
 }
 
-# TODO overflow check in this function?
-def do_emulate_bitwise_instruction(instr, state):
-    arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-    instr_type = instr.name[:3]
+class BitwiseInstructions:
+    def __init__(self, instr_name, instr_operand, _):
+        self.instr_name = instr_name
+        self.instr_operand = instr_operand
 
-    # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
-    if is_bool(arg1):
-        arg1 = BitVec(str(arg1), helper_map[instr_type])
-        logging.warning(
-            "[!] In `BitwiseInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
-    if is_bool(arg2):
-        arg2 = BitVec(str(arg2), helper_map[instr_type])
-        logging.warning(
-            "[!] In `BitwiseInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
+    # TODO overflow check in this function?
+    def emulate(self, state):
+        arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+        instr_type = self.instr_name[:3]
 
-    assert arg1.size(
-    ) == helper_map[instr_type], f'arg1 size is {arg1.size()} instead of {helper_map[instr_type]} in do_emulate_bitwise_instruction'
-    assert arg2.size(
-    ) == helper_map[instr_type], f'arg2 size is {arg2.size()} instead of {helper_map[instr_type]} in do_emulate_bitwise_instruction'
+        # arg1 and arg2 could be BitVecRef, BitVecValRef and BoolRef
+        if is_bool(arg1):
+            arg1 = BitVec(str(arg1), helper_map[instr_type])
+            logging.warning(
+                "[!] In `BitwiseInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
+        if is_bool(arg2):
+            arg2 = BitVec(str(arg2), helper_map[instr_type])
+            logging.warning(
+                "[!] In `BitwiseInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
-    if '.and' in instr.name:
-        result = simplify(arg1 & arg2)
-    elif '.or' in instr.name:
-        result = simplify(arg1 | arg2)
-    elif '.xor' in instr.name:
-        result = simplify(arg1 ^ arg2)
-    elif '.shr_s' in instr.name:
-        result = simplify(arg2 >> arg1)
-    elif '.shr_u' in instr.name:
-        result = simplify(LShR(arg2, arg1))
-    elif '.shl' in instr.name:
-        result = simplify(arg2 << arg1)
-    elif '.rotl' in instr.name:
-        result = simplify(RotateLeft(arg2, arg1))
-    elif '.rotr' in instr.name:
-        result = simplify(RotateRight(arg2, arg1))
-    else:
-        raise UnsupportInstructionError
+        assert arg1.size(
+        ) == helper_map[instr_type], f'arg1 size is {arg1.size()} instead of {helper_map[instr_type]} in do_emulate_bitwise_instruction'
+        assert arg2.size(
+        ) == helper_map[instr_type], f'arg2 size is {arg2.size()} instead of {helper_map[instr_type]} in do_emulate_bitwise_instruction'
 
-    if is_bool(result):
-        if is_true(result):
-            result = BitVecVal(1, 32)
-        elif is_false(result):
-            result = BitVecVal(0, 32)
+        if '.and' in self.instr_name:
+            result = simplify(arg1 & arg2)
+        elif '.or' in self.instr_name:
+            result = simplify(arg1 | arg2)
+        elif '.xor' in self.instr_name:
+            result = simplify(arg1 ^ arg2)
+        elif '.shr_s' in self.instr_name:
+            result = simplify(arg2 >> arg1)
+        elif '.shr_u' in self.instr_name:
+            result = simplify(LShR(arg2, arg1))
+        elif '.shl' in self.instr_name:
+            result = simplify(arg2 << arg1)
+        elif '.rotl' in self.instr_name:
+            result = simplify(RotateLeft(arg2, arg1))
+        elif '.rotr' in self.instr_name:
+            result = simplify(RotateRight(arg2, arg1))
+        else:
+            raise UnsupportInstructionError
 
-    assert is_bv(result) or is_bool(
-        result), f"in bitwise instruction, the value to be pushed is {type(result)} instead of BitVec or Bool"
+        if is_bool(result):
+            if is_true(result):
+                result = BitVecVal(1, 32)
+            elif is_false(result):
+                result = BitVecVal(0, 32)
 
-    state.symbolic_stack.append(result)
+        assert is_bv(result) or is_bool(
+            result), f"in bitwise instruction, the value to be pushed is {type(result)} instead of BitVec or Bool"
 
-    return False
+        state.symbolic_stack.append(result)
+
+        return False
