@@ -602,6 +602,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
             # if this else is jumped from a 'if' instruction, it can be continued
             if not pre_instr or pre_instr.name == 'if':
+
                 pass
             else:
                 # if the 'else' is not jumped from 'if', the control flow will jump to the 'else' xref
@@ -825,8 +826,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                 state_tmp_list[1] = copy.deepcopy(state)
 
-                self.current_function.return_value_and_state_list.append(
-                    tuple(state_tmp_list))
+                self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
 
                 # 1. all branch with only True or False constraint, not symbolic execution result
                 # 2. [0,0,0...,0] is the last node_path in one function
@@ -1772,8 +1772,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                 halt = True
         else:
-            raise Exception('Instruction:', instr,
-                            'not match in emul_parametric function')
+            raise Exception('Instruction:', instr, 'not match in emul_parametric function')
 
         return halt
 

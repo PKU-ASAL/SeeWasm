@@ -149,7 +149,7 @@ def main():
                 octo_graph.view(simplify=args.simplify)
 
     # import necessary library
-    from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
+    from octopus.arch.wasm.emulator_revise import WasmSSAEmulatorEngine
     if args.symbolic:
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, args.timeout, args.depth, func_index2func_name=func_index2func_name)

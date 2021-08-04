@@ -20,5 +20,8 @@ class WasmVMstate(VMstate):
         self.instructions_visited = set()
         self.key_import_func_visited = []
 
+    def __str__(self):
+        return str(self.__dict__)
+
     def details(self):
         raise NotImplementedError

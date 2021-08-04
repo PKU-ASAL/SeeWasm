@@ -163,3 +163,5 @@ class WasmInstruction(Instruction):
     def is_block_terminator(self):
         """ Return True if the instruction is a basic block terminator """
         return self.name in ['else', 'end']
+
+

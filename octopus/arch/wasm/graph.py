@@ -1,3 +1,6 @@
+from z3 import *
+from collections import deque
+
 class Graph:
     def __init__(self):
         self.func_to_bbs = dict()
@@ -19,11 +22,11 @@ class Graph:
         # {'block_3_0': ['block_3_6', 'block_3_9']}
         edges = cfg.edges
         for edge in edges:
-            node_from, node_to = edge.node_from, edge.node_to
+            node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
             if node_from not in self.bbs_graph:
-                self.bbs_graph[node_from] = [node_to]
+                self.bbs_graph[node_from] = {edge_type: node_to}
             else:
-                self.bbs_graph[node_from].append(node_to)
+                self.bbs_graph[node_from][edge_type] = node_to
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -33,7 +36,6 @@ class Graph:
             bb_name = bb.name
             if bb_name not in self.bbs_graph:
                 self.bbs_graph[bb_name] = []
-
             # goal 2
             self.bb_to_instructions[bb_name] = bb.instructions
     
@@ -42,14 +44,23 @@ class Graph:
             # initialize a state
             param_str, return_str = wasmVM.get_signature(entry_func)
             state, has_ret = wasmVM.init_state(entry_func, param_str, return_str, [])
-
+            wasmVM.current_function = wasmVM.cfg.get_function(entry_func)
             # retrieve all the relevant basic blocks
             entry_func_bbs = self.func_to_bbs[entry_func]
             # filter out the entry basic block and corresponding instructions
-            entry_bb = [bb for bb in entry_func_bbs if bb[-2:] == "_0"]
-            instructions = self.bb_to_instructions[entry_bb]
-            
-            # cast entry_func into an object instead of a string
-            # entry_func = wasmVM.cfg.get_function(entry_func)
+            entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
+            self.visit(wasmVM, state, has_ret, entry_bb)
 
-            wasmVM.emulate_basic_block(state, has_ret, instructions)
+    def visit(self, wasmVM, state, has_ret, blk):
+        instructions = self.bb_to_instructions[blk]
+        emul_states = wasmVM.emulate_basic_block(state, has_ret, instructions)
+        for type in self.bbs_graph[blk]:
+            if isinstance(emul_states, dict) and type in emul_states:
+                state = emul_states[type]
+                solver = Solver()
+                solver.add(*state.constraints)
+                if sat == solver.check():
+                    self.visit(wasmVM, state, has_ret, self.bbs_graph[blk][type])
+            else:
+                self.visit(wasmVM, state, has_ret, self.bbs_graph[blk][type])
+
