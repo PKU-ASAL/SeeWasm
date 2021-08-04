@@ -46,8 +46,7 @@ class PredefinedFunction:
 
                     state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4,
                                                                    BitVec('variable' + str(i), 32))
-                    logging.warning("================Initiated an scanf integer: %s!=================\n",
-                                    '$scanf_variable' + str(i) + "_depth_")
+                    logging.warning("================Initiated an scanf integer: %s!=================\n", '$scanf_variable' + str(i))
                 elif pattern_str == '%s':
                     # as the basic unit in wasm is i32.load
                     target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,

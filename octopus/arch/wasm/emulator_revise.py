@@ -14,17 +14,12 @@ from octopus.arch.wasm.helper import ImportFunction, can_jump_function, has_side
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
+from .graph import Graph
 
 from .type2z3 import *
 from .exceptions import *
+from .instructions import *
 
-from .instructions.VariableInstructions import *
-from .instructions.MemoryInstructions import *
-from .instructions.ConstantInstructions import *
-from .instructions.LogicalInstructions import *
-from .instructions.ConversionInstructions import *
-from .instructions.BitwiseInstructions import *
-from .instructions.ArithmeticInstructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -493,14 +488,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         pre_instr = None
         for instruction in instructions:
             state.instr = instruction
-            print(instruction.name)
             state.pc += 1
-            final_states = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
-            if isinstance(final_states, tuple):
-                final_states = final_states[1]
-                if isinstance(final_states, WasmVMstate):
-                    state = final_states
-        return final_states
+            ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
+        return ret[1]
 
 
     def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
@@ -527,17 +517,35 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 halt = self.emulate_one_instruction(instr, pre_instr, state, depth, has_ret, call_depth)
 
     def emulate_one_instruction(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
+        instruction_map = {
+            'Control': ControlInstructions,
+            'Constant': ConstantInstructions,
+            'Conversion': ConversionInstructions,
+            'Memory': MemoryInstructions,
+            'Parametric': ParametricInstructions,
+            'Variable': VariableInstructions,
+            'Logical_i32': LogicalInstructions,
+            'Logical_i64': LogicalInstructions,
+            'Logical_f32': LogicalInstructions,
+            'Logical_f64': LogicalInstructions,
+            'Arithmetic_i32': ArithmeticInstructions,
+            'Arithmetic_i64': ArithmeticInstructions,
+            'Arithmetic_f32': ArithmeticInstructions,
+            'Arithmetic_f64': ArithmeticInstructions,
+            'Bitwise_i32': BitwiseInstructions,
+            'Bitwise_i64': BitwiseInstructions
+        }
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
         logging.debug(f'''
-PC:\t\t{state.pc}
-Current Func:\t{self.current_function.name}
-Instruction:\t{instr.operand_interpretation}
-Stack:\t\t{state.symbolic_stack}
-Local Var:\t{state.local_var}
-Global Var:\t{state.globals}
-Memory:\t\t{state.symbolic_memory}\n''')
+                PC:\t\t{state.pc}
+                Current Func:\t{self.current_function.name}
+                Instruction:\t{instr.operand_interpretation}
+                Stack:\t\t{state.symbolic_stack}
+                Local Var:\t{state.local_var}
+                Global Var:\t{state.globals}
+                Memory:\t\t{state.symbolic_memory}\n''')
 
         for c in state.constraints:
             if type(c) != BoolRef:
@@ -545,48 +553,19 @@ Memory:\t\t{state.symbolic_memory}\n''')
                 # logging.warning(state.constraints)
                 # exit()
 
-        try:
-            if instr.is_control:
-                return self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
-            elif instr.is_parametric:
-                halt = self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
-                return halt, state
-            elif instr.is_variable:
-                halt = self.emul_variable_instr(instr, state)
-            elif instr.is_memory:
-                halt = self.emul_memory_instr(instr, state)
-            elif instr.is_constant:
-                halt = self.emul_constant_instr(instr, state)
-            elif instr.is_logical_i32:
-                halt = self.emul_logical_i32_instr(instr, state)
-            elif instr.is_logical_i64:
-                halt = self.emul_logical_i64_instr(instr, state)
-            elif instr.is_logical_f32:
-                halt = self.emul_logical_f32_instr(instr, state)
-            elif instr.is_logical_f64:
-                halt = self.emul_logical_f64_instr(instr, state)
-            elif instr.is_arithmetic_i32:
-                halt = self.emul_arithmetic_i32_instr(instr, state)
-            elif instr.is_arithmetic_f32:
-                halt = self.emul_arithmetic_f32_instr(instr, state)
-            elif instr.is_arithmetic_f64:
-                halt = self.emul_arithmetic_f64_instr(instr, state)
-            elif instr.is_bitwise_i32:
-                halt = self.emul_bitwise_i32_instr(instr, state)
-            elif instr.is_bitwise_i64:
-                halt = self.emul_bitwise_i64_instr(instr, state)
-            elif instr.is_arithmetic_i64:
-                halt = self.emul_arithmetic_i64_instr(instr, state)
-            elif instr.is_conversion:
-                halt = self.emul_conversion_instr(instr, state)
-        except Exception as e:
-            print(e)
-            raise Exception('[!!] Error happened in instruction emulation')
-
-        return halt
+        instr_obj = instruction_map[instr.group](instr.name, instr.operand, instr.operand_interpretation)
+        if instr.group == 'Memory':
+            return instr_obj.emulate(state, self.data_section), None
+        elif instr.group == 'Control':
+            return self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+        elif instr.group == 'Parametric':
+            return self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
+        else:
+            instr_obj.emulate(state)
+        return False, None
 
     def emul_unreachable(self):
-        return True
+        return True, None
 
     def emul_loop(self, instr, state):
         logging.debug('[LOOP]: %s' % (instr.offset))
@@ -735,17 +714,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
                 logging.debug('')
 
                 self.emulate(state, depth + 1, has_ret, call_depth)
-                # for test: we only need one_path_result in branched function
-                # if call_depth > 1:
-                #     return True
-                # if gvar.guided_emulation_flag:
-                #     return True
-
-                # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
-                for module_name, quick_checked in self.quick.items():
-                    if quick_checked and module_name not in self.lasers:
-                        return True
-                # restore
+                
                 self.current_basicblock = self.basicblock_per_instr[instr.offset]
                 # if in guided emulation, prune some branch
                 if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
@@ -778,7 +747,8 @@ Memory:\t\t{state.symbolic_memory}\n''')
             halt = True
 
     def emul_end(self, instr, has_ret, state):
-        return False, state
+        return False, None
+        """
         if instr.offset == self.current_f_instructions[-1].offset:
             halt = True
 
@@ -810,6 +780,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
             for c in state.constraints:
                 logging.debug(' [x] %s' % c)
             logging.debug('')
+        """
 
     def emul_br(self, instr, state):
         return False, {'unconditional': state}
@@ -1070,16 +1041,14 @@ Memory:\t\t{state.symbolic_memory}\n''')
                 # Whether internal_function_name calls a function in the sidepath_key_import_functions
                 gvar.visited_func.clear()
                 _, edges = self.cfg.get_functions_call_edges()
-                if not has_sidepath_call_keyimport(internal_function_name, edges,
-                                                   set(self.sidepath_key_import_functions)):  # and \
+                if not has_sidepath_call_keyimport(internal_function_name, edges, set(self.sidepath_key_import_functions)):  # and \
                     # not has_sidepath_call_keyimport(self.current_function.name, edges, set(self.sidepath_key_import_functions)):
                     if param_str:
                         num_arg = len(param_str.split(' '))
                         param = [state.symbolic_stack.pop() for _ in range(num_arg)]
 
                         # has sidepath_call key param
-                        if True not in set(
-                                [x in str(param) for x in ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']]):
+                        if len(list(filter(lambda x: x in param, ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']))) == 0:
                             if return_str:
                                 tmp_bitvec = getConcreteBitVec(return_str,
                                                                internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(
@@ -1192,6 +1161,41 @@ Memory:\t\t{state.symbolic_memory}\n''')
             else:
                 return True, new_state
 
+
+    def emul_return(self, instr, state, has_ret):
+        halt = True
+        # 1st is the return value, 2ed is the state
+        state_tmp_list = [None, None]
+        if has_ret and has_ret[-1]:
+            to_be_returned = state.symbolic_stack.pop()
+            if is_bool(to_be_returned):
+                if is_false(to_be_returned):
+                    to_be_returned = BitVecVal(0, 32)
+                elif is_true(to_be_returned):
+                    to_be_returned = BitVecVal(1, 32)
+                else:
+                    raise NotDeterminedRetValError
+
+            state_tmp_list[0] = to_be_returned
+
+        state_tmp_list[1] = copy.deepcopy(state)
+
+        self.current_function.return_value_and_state_list.append(
+            tuple(state_tmp_list))
+
+        logging.debug(
+            '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (
+                self.current_function.name, self.current_function.constraint_flags))
+        logging.debug('[+] current constraint is:')
+        for c in state.constraints:
+            logging.debug(' [x] %s' % c)
+        logging.debug('')
+
+        if len(self.visiting_function_name_list) <= 0 and state_tmp_list[1].constraints:
+            current_result = state_tmp_list
+            if not reduce(lambda x, y: x or y, list(self.quick.values())):
+                self.result.append(current_result)
+
     def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
         halt = False
         if instr.name == 'unreachable':
@@ -1213,39 +1217,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
         elif instr.name == 'br_table':
             self.emul_br_table(instr, state)
         elif instr.name == 'return':
-            halt = True
-            # 1st is the return value, 2ed is the state
-            state_tmp_list = [None, None]
-            if has_ret and has_ret[-1]:
-                to_be_returned = state.symbolic_stack.pop()
-                if is_bool(to_be_returned):
-                    if is_false(to_be_returned):
-                        to_be_returned = BitVecVal(0, 32)
-                    elif is_true(to_be_returned):
-                        to_be_returned = BitVecVal(1, 32)
-                    else:
-                        raise NotDeterminedRetValError
-
-                state_tmp_list[0] = to_be_returned
-
-            state_tmp_list[1] = copy.deepcopy(state)
-
-            self.current_function.return_value_and_state_list.append(
-                tuple(state_tmp_list))
-
-            logging.debug(
-                '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (
-                    self.current_function.name, self.current_function.constraint_flags))
-            logging.debug('[+] current constraint is:')
-            for c in state.constraints:
-                logging.debug(' [x] %s' % c)
-            logging.debug('')
-
-            if len(self.visiting_function_name_list) <= 0 and state_tmp_list[1].constraints:
-                current_result = state_tmp_list
-                if not reduce(lambda x, y: x or y, list(self.quick.values())):
-                    self.result.append(current_result)
-
+            return self.emul_return(instr, state, has_ret)
         elif instr.name == 'call':
             return self.emul_call(instr, state, depth, call_depth, has_ret, basicblock_path)
         elif instr.name == 'call_indirect':
@@ -1278,6 +1250,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
         if instr.name == 'drop':
             state.symbolic_stack.pop()
+            return False, None
         elif instr.name == 'select':  # select instruction
             arg0, arg1, arg2 = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
@@ -1452,47 +1425,3 @@ Memory:\t\t{state.symbolic_memory}\n''')
             raise Exception('Instruction:', instr,
                             'not match in emul_parametric function')
         return halt
-
-    def emul_variable_instr(self, instr, state):
-        return do_emulate_variable_instruction(instr, state)
-
-    def emul_memory_instr(self, instr, state):
-        # the data_section is used in the special cases
-        # TODO decouple the data_section here
-        return do_emulate_memory_instruction(instr, state, self.data_section)
-
-    def emul_constant_instr(self, instr, state):
-        return do_emulate_constant_instruction(instr, state)
-
-    def emul_logical_i32_instr(self, instr, state):
-        return do_emulate_logical_int_instruction(instr, state)
-
-    def emul_logical_i64_instr(self, instr, state):
-        return do_emulate_logical_int_instruction(instr, state)
-
-    def emul_logical_f32_instr(self, instr, state):
-        return do_emulate_logical_float_instruction(instr, state)
-
-    def emul_logical_f64_instr(self, instr, state):
-        return do_emulate_logical_float_instruction(instr, state)
-
-    def emul_bitwise_i32_instr(self, instr, state):
-        return do_emulate_bitwise_instruction(instr, state)
-
-    def emul_bitwise_i64_instr(self, instr, state):
-        return do_emulate_bitwise_instruction(instr, state)
-
-    def emul_arithmetic_i32_instr(self, instr, state):
-        return do_emulate_arithmetic_int_instruction(instr, state)
-
-    def emul_arithmetic_i64_instr(self, instr, state):
-        return do_emulate_arithmetic_int_instruction(instr, state)
-
-    def emul_arithmetic_f32_instr(self, instr, state):
-        return do_emulate_arithmetic_float_instruction(instr, state)
-
-    def emul_arithmetic_f64_instr(self, instr, state):
-        return do_emulate_arithmetic_float_instruction(instr, state)
-
-    def emul_conversion_instr(self, instr, state):
-        return do_emulate_conversion_instruction(instr, state)

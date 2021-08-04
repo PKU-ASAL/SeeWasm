@@ -15,16 +15,7 @@ from octopus.arch.wasm.helper_c import *
 
 from . type2z3 import *
 from . exceptions import *
-
-from .instructions.VariableInstructions import *
-from .instructions.MemoryInstructions import *
-from .instructions.ConstantInstructions import *
-from .instructions.LogicalInstructions import *
-from .instructions.ConversionInstructions import *
-from .instructions.BitwiseInstructions import *
-from .instructions.ArithmeticInstructions import *
-from .instructions.ParametricInstructions import *
-from .instructions.ControlInstructions import *
+from .instructions import *
 
 sys.setrecursionlimit(4096)
 
@@ -551,13 +542,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
         
         logging.debug(f'''
-PC:\t\t{state.pc}
-Current Func:\t{self.current_function.name}
-Instruction:\t{instr.operand_interpretation}
-Stack:\t\t{state.symbolic_stack}
-Local Var:\t{state.local_var}
-Global Var:\t{state.globals}
-Memory:\t\t{state.symbolic_memory}\n''')
+                PC:\t\t{state.pc}
+                Current Func:\t{self.current_function.name}
+                Instruction:\t{instr.operand_interpretation}
+                Stack:\t\t{state.symbolic_stack}
+                Local Var:\t{state.local_var}
+                Global Var:\t{state.globals}
+                Memory:\t\t{state.symbolic_memory}\n''')
 
         for c in state.constraints:
             if type(c) != BoolRef:

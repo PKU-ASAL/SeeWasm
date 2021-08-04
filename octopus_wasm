@@ -154,12 +154,12 @@ def main():
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, args.timeout, args.depth, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
+        Graph.wasmVM = wasmVM
+        Graph.extract_basic_blocks()
         if args.onlyfunc:
-            # graph = Graph()
-            # graph.extract_basic_blocks(wasmVM)
-            # graph.traverse(wasmVM, args.onlyfunc)
-
-            wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
+            graph = Graph(args.onlyfunc)
+            graph.traverse()
+            # wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
         else:
             raise Exception("Please specify at least one entry function")
     # elif args.lasers:
