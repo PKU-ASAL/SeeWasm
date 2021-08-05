@@ -222,18 +222,19 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def emulate_basic_block(self, state, has_ret, instructions):
         pre_instr = None
         states = [state]
+        halt = False
         for instruction in instructions:
             next_states = []
             for state in states:
                 state.instr = instruction
                 state.pc += 1
-                _, ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
+                halt, ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
                 if ret is not None:
                     next_states.extend(ret)
                 else:
                     next_states.append(copy.deepcopy(state))
             states = next_states
-        return states
+        return halt, states
 
 
     def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
@@ -327,7 +328,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
             op = simplify(op != 0)
         states['conditional_true'].constraints.append(op)
         states['conditional_false'].constraints.append(simplify(Not(op)))
-        return True, [states]
+        return False, [states]
 
     def emul_end(self):
         return False, None
@@ -343,7 +344,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
             op = simplify(op != 0)
         states['conditional_true'].constraints.append(op)
         states['conditional_false'].constraints.append(simplify(Not(op)))
-        return True, [states]
+        return False, [states]
 
     def emul_br_table(self, instr, state):
         op = state.symbolic_stack.pop()
@@ -351,26 +352,20 @@ Memory:\t\t{state.symbolic_memory}\n''')
         # so we give up this situation's emulation
         if not is_bv_value(op):
             return True
-
         # if in guided emulation
         # because op currently is a concrete integer, and br_table add no constraint
         # therefore return False is enough here
         if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
             return False
-
         branch = op.as_long()
-
         branches = list(instr.operand)
         # remove the first one
         branches.pop(0)
-
         try:
             index = branches.index(branch)
         except ValueError:
             index = -1
-
         jump_addr = instr.xref[index]
-
         for idx in self.reverse_instructions:
             if jump_addr == self.reverse_instructions[idx].offset:
                 state.instr = self.reverse_instructions[idx]
@@ -402,6 +397,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
         # get callee function name
         import_func_count = len(self.ana.imports_func)
+
         internal_function_name = self.cfg.functions[f_offset - import_func_count].name if f_offset > import_func_count else name
         # skip these functions
         func_is_not_from_system = (internal_function_name[0] == '_' and internal_function_name[1] == '_') or \
@@ -441,11 +437,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
         else:
             new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
             self.visiting_function_name_list.append(self.current_function.name)
-            # store the current function's constraints flag
             self.constraints_flag_stack.append(copy.deepcopy(self.current_function.constraint_flags))
-
-            # fetch all possible result states for this call instruction
-            # element in results is composed of return value and the result state, i.e., [return value, result state]
             possible_states = Graph.traverse_one(internal_function_name, new_state, has_ret)
             possible_call_results = []
             for pstate in possible_states:
