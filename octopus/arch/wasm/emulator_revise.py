@@ -22,10 +22,6 @@ from .instructions import *
 
 sys.setrecursionlimit(4096)
 
-# you can comment below
-# logging.basicConfig(filename='./logs/tmp.log',
-# filemode='w',
-# level=logging.INFO)
 if gvar.logging_level_verbose:
     logging.basicConfig(level=logging.DEBUG)
 else:
