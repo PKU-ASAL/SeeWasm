@@ -27,3 +27,7 @@ class NotDeterminedRetValError(Exception):
 # indicateing the state is not initialized before emulate_one_function
 class UninitializedStateError(Exception):
     pass
+
+# indicating the memory load error
+class MemoryLoadError(Exception):
+    pass

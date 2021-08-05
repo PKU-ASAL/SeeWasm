@@ -162,27 +162,6 @@ def main():
             # wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
         else:
             raise Exception("Please specify at least one entry function")
-    # elif args.lasers:
-    #     if not args.quick:
-    #         wasmVM = WasmSSAEmulatorEngine(
-    #             octo_bytecode, args.timeout, args.depth)
-
-    #         # if the only laser is not the fake_eos, jump over the apply because of the static strategy
-    #         sym_exe, index2state = None, None
-    #         if args.lasers == ['fake_eos'] or args.lasers == ['auth_check']:
-    #             sym_exe, index2state = wasmVM.emulate_functions(args.depth, list_functions_name=['apply'])
-
-    #         logging.info("module: %s" % args.lasers)
-    #         for laser in args.lasers:
-    #             issues = fire_lasers_by_module_name(
-    #                 wasmVM, sym_exe, index2state, laser)
-
-    #             logging.info("issues: %s" % (issues))
-    #             sys.stdout.write(issues)
-    #     else:
-    #         wasmVM = WasmSSAEmulatorEngine(
-    #             octo_bytecode, args.timeout, args.depth, args.lasers, args.quick)
-    #         engine_start(wasmVM)
 
     if not args.disassemble and not args.symbolic \
             and not args.cfg and not args.call and not args.lasers \

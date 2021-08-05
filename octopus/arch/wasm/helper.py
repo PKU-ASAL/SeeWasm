@@ -4,6 +4,7 @@ import re
 from z3 import *
 
 from octopus.arch.wasm.type2z3 import getConcreteBitVec
+from octopus.arch.wasm.exceptions import MemoryLoadError
 
 # some functions which return the iterator
 can_jump_function = ['malloc_ret_i32']
@@ -401,54 +402,38 @@ def store_instr(instr, state):
 
 # dest type can only be bitvecref or int
 def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
-    assert isinstance(length, int), "length type in lookup_symbolic_memory is not int"
-    assert type(dest) == BitVecRef or isinstance(dest, int), f"dest type in lookup_symbolic_memory is {type(dest)}"
+    # if dest type is `BitVecRef`
+    # try to directly load from symbolic memory
+    if type(dest) == BitVecRef:
+        return symbolic_memory.get((dest, simplify(dest + length)), None)
 
-    try:
-        # if dest type is `BitVecRef`
-        if type(dest) == BitVecRef:
-            # TODO maybe I need merge the BitVecRef
-            if (dest, simplify(dest + length)) in data_section.keys():
-                assert data_section[(dest, simplify(
-                    dest + length))].size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-                return data_section[(dest, simplify(dest + length))]
-            elif (dest, simplify(dest + length)) in symbolic_memory.keys():
-                assert symbolic_memory[(dest, simplify(
-                    dest + length))].size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-                return data_section[(dest, simplify(dest + length))]
-            else:
-                return None
+    # other cases
+    is_symbolic_memory, is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length)
+    if not is_existed:
+        return None
+    
+    # in data section
+    if not is_symbolic_memory:
+        overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
+        high, low = overlapped_end - existed_start, overlapped_start - existed_start
 
-        # other cases
-        is_symbolic_memory, is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length)
-        if not is_existed:
-            return None
-        
-        # in data section
-        if not is_symbolic_memory:
-            overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
-            high, low = overlapped_end - existed_start, overlapped_start - existed_start
+        # convert data section piece into BitVecVal
+        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(existed_start, existed_end)], 'big'), len(data_section[(existed_start, existed_end)])*8)
+        data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
 
-            # convert data section piece into BitVecVal
-            data_section_bitvec = BitVecVal(int.from_bytes(data_section[(existed_start, existed_end)], 'big'), len(data_section[(existed_start, existed_end)])*8)
-            data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
+        if data.size() < length * 8:
+            data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
+        assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
+        return data
+    else:
+        overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
+        high, low = overlapped_end - existed_start, overlapped_start - existed_start
+        data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))
 
-            if data.size() < length * 8:
-                data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
-            assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-            return data
-        else:
-            overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
-            high, low = overlapped_end - existed_start, overlapped_start - existed_start
-            data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))
-
-            if data.size() < length * 8:
-                data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
-            assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
-            return data
-    except Exception:
-        raise
-
+        if data.size() < length * 8:
+            data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
+        assert data.size() == length * 8, f"data size in lookup_symbolic_memory is not compatible with the length"
+        return data
 
 # dest type can only be bitvecref or int
 def insert_symbolic_memory(symbolic_memory, dest, length, data):
