@@ -32,7 +32,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(dict)
-    _loop_maximum_rounds = 5
+    _loop_maximum_rounds = 10
     _wasmVM = None
 
     def __init__(self, funcs):
@@ -104,6 +104,7 @@ class Graph:
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
             state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
+        current_func = cls.wasmVM.current_function
         cls.wasmVM.current_function = cls.wasmVM.cfg.get_function(func)
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -112,6 +113,7 @@ class Graph:
         final_states = []
         vis = defaultdict(int)
         cls.visit(state, has_ret, entry_bb, final_states, vis)
+        cls.wasmVM.current_function = current_func
         return final_states
 
     @classmethod
@@ -120,8 +122,8 @@ class Graph:
             return
         vis[blk] += 1
         instructions = cls.bb_to_instructions[blk]
-        emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, instructions)
-        if len(cls.bbs_graph[blk]) == 0:
+        halt, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, instructions)
+        if halt or len(cls.bbs_graph[blk]) == 0:
             final_states.extend(emul_states)
         for state_item in emul_states:
             for type in cls.bbs_graph[blk]:
@@ -133,4 +135,5 @@ class Graph:
                         cls.visit(state, has_ret, cls.bbs_graph[blk][type], final_states, vis)
                 else:
                     cls.visit(state_item, has_ret, cls.bbs_graph[blk][type], final_states, vis)
+
 
