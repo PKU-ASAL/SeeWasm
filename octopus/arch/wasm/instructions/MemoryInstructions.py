@@ -2,7 +2,7 @@
 
 from .. exceptions import *
 from z3 import *
-from .. helper import *
+from .. memory import load_instr, store_instr
 
 
 class MemoryInstructions:

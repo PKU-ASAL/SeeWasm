@@ -9,8 +9,7 @@ from z3 import *
 
 import gvar
 from octopus.arch.wasm.cfg import WasmCFG
-from octopus.arch.wasm.helper import ImportFunction, can_jump_function, has_sidepath_call_keyimport, \
-    lookup_symbolic_memory, insert_symbolic_memory
+from octopus.arch.wasm.helper import can_jump_function
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
