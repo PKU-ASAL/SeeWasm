@@ -115,7 +115,7 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     # in data section
     if not in_symbolic_memory:
         # convert data section piece into BitVecVal
-        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(existed_start, existed_end)], 'big'), len(data_section[(existed_start, existed_end)])*8)
+        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
         data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
     else:
         data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))

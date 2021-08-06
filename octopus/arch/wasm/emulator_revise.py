@@ -15,6 +15,7 @@ from octopus.arch.wasm.helper_c import *
 from .internal_functions import InternalFunction, PredefinedFunction
 from .graph import Graph
 from .instructions import *
+from octopus.arch.wasm.type2z3 import getConcreteBitVec
 
 sys.setrecursionlimit(4096)
 
