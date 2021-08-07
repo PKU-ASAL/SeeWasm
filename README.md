@@ -8,28 +8,30 @@ python3.6 -m pip install -r requirements.txt
 
 ## 测试
 
+### 分析 C 语言指定函数
+如果我们要测试例如 C 语言中的 `main` 函数，那么我们可以使用如下语句：
 ```shell
-# 由于修改了 loop 指令的处理逻辑，该测试会超时，请暂时先使用 C 语言样例做测试
+python3.6 octopus_wasm -f './c2wasm_samples/hello_g3.wasm' -s --onlyfunc main --need_mapper -v
+```
+**注意，`need_mapper` 参数在 `-g3` 编译选项下为必选，否则无法正确跳过 `printf` 等 C 语言库函数**
+
+目前已经测试通过的文件为：`hello_g3.wasm`，`intadd_g3.wasm` 以及 `bubble_sort_g3.wasm`
+
+### EOSIO 漏洞扫描器
+**Note: 请暂时先使用 C 语言样例做测试**
+
+输入：
+```shell
 python3.6 octopus_wasm -f './test_contract/fairdicegame.wasm' --laser fake_eos
 ```
 
 结果：
-
 ```shell
 $ python3.6 octopus_wasm -f './test_contract/fairdicegame.wasm' --laser fake_eos
 WARNING:root:=============================Function Name: apply=============================
 
 [{"module": "fake_eos", "is_vulnerable": false, "constraints": []}]%
 ```
-
-## 分析 C 语言指定函数
-如果我们要测试例如 C 语言中的 `main` 函数，那么我们可以使用如下语句：
-```shell
-python3.6 octopus_wasm -f './c2wasm_samples/hello_g3.wasm' -s --onlyfunc main --need_mapper
-```
-**注意，`need_mapper` 参数在 `-g3` 编译选项下为必选，否则无法正确跳过 `printf` 等 C 语言库函数**
-
-
 
 # Compile WASM from C
 

@@ -32,7 +32,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(dict)
-    _loop_maximum_rounds = 10
+    _loop_maximum_rounds = 30
     _wasmVM = None
 
     def __init__(self, funcs):
