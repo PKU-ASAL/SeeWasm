@@ -13,7 +13,7 @@ def C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section, 
 
     mem_data = mem_data[:mem_data.find(b'\x00')]
     mem_data = mem_data.decode("utf-8")
-    logging.warning("===============Print! In data section: %s=================\n", mem_data)
+    logging.warning("===============Print! In data section: %s=================", repr(mem_data))
 
     if mem_pointer != 0:
         mem_data = lookup_symbolic_memory(symbolic_memory, data_section, mem_pointer, 4)

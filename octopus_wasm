@@ -152,7 +152,7 @@ def main():
     from octopus.arch.wasm.emulator_revise import WasmSSAEmulatorEngine
     if args.symbolic:
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, args.timeout, args.depth, func_index2func_name=func_index2func_name)
+            octo_bytecode, args.timeout, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.extract_basic_blocks()

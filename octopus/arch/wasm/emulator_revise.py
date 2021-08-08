@@ -1,9 +1,6 @@
 import copy
-import json
 import logging
-import re
 from datetime import datetime
-from functools import reduce
 
 from z3 import *
 
@@ -12,8 +9,6 @@ from octopus.arch.wasm.cfg import WasmCFG
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
-from .internal_functions import InternalFunction, PredefinedFunction
-from .graph import Graph
 from .instructions import *
 from octopus.arch.wasm.type2z3 import getConcreteBitVec
 
@@ -25,9 +20,6 @@ else:
     logging.basicConfig(level=logging.INFO)
 MAX = 42
 
-SKIP_FUNC_SET = ['malloc', 'free', 'strlen']
-C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
-
 
 # =======================================
 # #         WASM Emulator               #
@@ -35,46 +27,15 @@ C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, timeout, call_depth=MAX, lasers=None, quick=False, func_index2func_name=None):
-
-        # retrive instructions, basicblocks & functions statically
-        if lasers is None:
-            lasers = []
-
+    def __init__(self, bytecode, timeout, func_index2func_name=None):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
 
-        # call depth limit
-        self.call_depth_limit = call_depth
-        self.result = list()
-
-        # timeout feature, x minutes
-        self.timeout_min = timeout
-        self.start_time = datetime.now()
-
         self.current_function = None
-        self.current_f_instructions = None
         self.reverse_instructions = dict()
-        self.current_f_basicblocks = None
 
         self.basicblock_per_instr = dict()
         self.current_basicblock = None
-        # key: block.name, value: visited time
-        self.visited_basicblock = dict()
-
-        # quick means get result will fire laser immediately
-        self.quick = {'fake_eos': False, 'fake_receipt': False,
-                      'random': False, 'roll_back': False}
-        if quick:
-            assert len(
-                lasers) == 1, "lasers name should always be with self.quick option"
-            self.quick[lasers[0]] = True
-            assert len(
-                self.quick) == 4, f"there are only 4 detectors supported, do not add your own detector: {lasers[0]}"
-        # lasers will fire
-        self.lasers = lasers
-
-        self.index2state = dict()
 
         self.data_section = dict()
 
@@ -124,29 +85,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state, has_ret
 
-    def reset_wasmvm(self, call_depth, random=None, quick=False, lasers=[]):
-        # these options maybe changed by detectors
-        self.call_depth_limit = call_depth
-        # if gvar.guided_emulation_flag:
-        #     self.start_time = datetime.now()
-
-        # the following two are combined
-        self.quick = {'fake_eos': False, 'fake_receipt': False,
-                      'random': False, 'roll_back': False}
-        if quick:
-            assert len(
-                lasers) == 1, "lasers name should always be with self.quick option"
-            self.quick[lasers[0]] = True
-            assert len(
-                self.quick) == 4, f"there are only 4 detectors supported, do not add your own detector: {lasers[0]}"
-        self.lasers = lasers
-
-        # reset these variables
-        self.result = list()
-        self.index2state = dict()
-
-        # the others will not change or they will be re-initialized
-
     def emulate_basic_block(self, state, has_ret, instructions):
         pre_instr = None
         states = [state]
@@ -156,7 +94,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for state in states:
                 state.instr = instruction
                 state.pc += 1
-                halt, ret = self.emulate_one_instruction(instruction, pre_instr, state, 0, has_ret, 0)
+                halt, ret = self.emulate_one_instruction(instruction, state, 0, has_ret, 0)
                 if ret is not None:
                     next_states.extend(ret)
                 else:
@@ -184,11 +122,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
             if gvar.guided_emulation_flag:
-                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+                halt = self.emulate_one_instruction(instr, state, depth, has_ret, call_depth, basicblock_path)
             else:
-                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, has_ret, call_depth)
+                halt = self.emulate_one_instruction(instr, state, depth, has_ret, call_depth)
 
-    def emulate_one_instruction(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
+    def emulate_one_instruction(self, instr, state, depth, has_ret, call_depth, basicblock_path=None):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -333,15 +271,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                     new_state.symbolic_stack.append(arg2)
                     self.emulate(new_state, depth + 1, has_ret, call_depth)
-                    # for test: we only need one_path_result in branched function
-                    # if call_depth > 1:
-                    #     return True
-                    # if gvar.guided_emulation_flag:
-                    #     return True
-                    # if self.quick is enabled and no lasers are in self.lasers, stop control immediately
-                    for module_name, quick_checked in self.quick.items():
-                        if quick_checked and module_name not in self.lasers:
-                            return True
+                    
                     self.current_basicblock = self.basicblock_per_instr[instr.offset]
                 else:
                     self.current_function.constraint_flags.append(-1)
@@ -378,9 +308,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
 
                     state.symbolic_stack.append(arg1)
                     self.emulate(state, depth + 1, has_ret, call_depth)
-                    for module_name, quick_checked in self.quick.items():
-                        if quick_checked and module_name not in self.lasers:
-                            return True
+                    
                     self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
                     logging.debug('[+] depth: %s' % depth)

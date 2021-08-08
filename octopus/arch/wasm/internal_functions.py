@@ -28,7 +28,7 @@ class PredefinedFunction:
                                                            state.symbolic_memory)
             if isinstance(the_string, str) and the_string.isspace():
                 the_string = f"'{ord(the_string)}'"
-            logging.warning("========================Print!=========================\n%s", the_string)
+            logging.warning("%s\n", the_string)
         elif self.name == '$scanf':
             mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
             the_string = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
