@@ -13,10 +13,6 @@ class Function(object):
         self.basicblocks = list()
         self.instructions = list()
 
-        # this list contains tuples in which are return value and the result state
-        self.return_value_and_state_list = list()
-        self.constraint_flags = list()
-
     def __str__(self):
         line = ('%x' % self.start_offset) + ': ' + str(self.name) + '\n'
         line += 'prefered_name: %s\n' % self.prefered_name

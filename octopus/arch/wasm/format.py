@@ -70,7 +70,7 @@ def format_sym_exe(sym_exe):
 
     for _, tmp_tuple in enumerate(sym_exe):
         path_state = tmp_tuple[1]
-        key_import_funcs, constraints = path_state.key_import_func_visited, path_state.constraints
+        constraints =  path_state.constraints
         key_and_constraints.append([key_import_funcs, constraints])
 
     # substitute long number to human readable name

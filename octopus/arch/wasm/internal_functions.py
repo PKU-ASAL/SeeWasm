@@ -10,7 +10,7 @@ class PredefinedFunction:
         self.name = name
         self.cur_func = cur_func_name
 
-    def emul(self, state, internal_name, param_str, return_str, data_section):
+    def emul(self, state, param_str, return_str, data_section):
         # if the return value is dependent on the library function, we will manually contruct it
         # and jump over the process in which it append a symbol according to the signature of the function
         manually_constructed = False
@@ -81,7 +81,7 @@ class PredefinedFunction:
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
-                                            internal_name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
+                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.pc))
             state.symbolic_stack.append(tmp_bitvec)
     # normal function call is processed here

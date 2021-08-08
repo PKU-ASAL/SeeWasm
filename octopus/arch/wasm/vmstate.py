@@ -18,7 +18,6 @@ class WasmVMstate(VMstate):
 
         # TODO need remove the following two variables
         self.instructions_visited = set()
-        self.key_import_func_visited = []
 
     def __str__(self):
         return str(self.__dict__)

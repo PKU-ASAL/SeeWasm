@@ -52,11 +52,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.timeout_min = timeout
         self.start_time = datetime.now()
 
-        # roll_back
-        self.func_path_start_time = None
-        self.func_path_timeout_min = 4
-
-        self.visiting_function_name_list = list()
         self.current_function = None
         self.current_f_instructions = None
         self.reverse_instructions = dict()
@@ -67,20 +62,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # key: block.name, value: visited time
         self.visited_basicblock = dict()
 
-        # only used in guided emulation
-        self.pairs2jump_type = None
-        self.mainline_function_state = None
-
-        # constraint flag stack
-        self.constraints_flag_stack = list()
-        # key import function which are used for skipping function in sidepath
-        self.sidepath_key_import_functions = [
-            'tapos_block_num', 'tapos_block_prefix', 'send_inline', 'send_deferred']
-        # key import function which are used in detector
-        self.key_import_functions = ['db_get_i64', 'db_find_i64', 'db_remove_i64', 'db_update_i64', 'db_idx64_remove',
-                                     'db_idx64_store',
-                                     'tapos_block_num', 'tapos_block_prefix', 'sha256', 'send_inline', 'send_deferred',
-                                     'require_auth']
         # quick means get result will fire laser immediately
         self.quick = {'fake_eos': False, 'fake_receipt': False,
                       'random': False, 'roll_back': False}
@@ -143,44 +124,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state, has_ret
 
-    def init_state_before_call(self, param_str, return_str, has_ret, state):
-        num_arg = 0
-        # this flag indicates whether the caller executes and returns properly
-        # if the caller terminates in advance, which results in the imbalance of stack
-        # we should use this flag to reallocate the arguments for callee
-        need_to_reset = False
-
-        if param_str:
-            num_arg = len(param_str.split(' '))
-            try:
-                arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
-            except IndexError:
-                need_to_reset = True
-
-        if return_str:
-            has_ret.append(True)
-        else:
-            has_ret.append(False)
-
-        # init state of internal call
-        new_state = copy.deepcopy(state)
-        new_has_ret = has_ret
-
-        if need_to_reset:
-            for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(local,
-                                                           self.current_function.name + '_loc_' + str(i) + '_' + local)
-        else:
-            for x in range(num_arg):
-                new_state.local_var[num_arg - 1 - x] = arg[x]
-
-        # set the remaining local vars as None
-        for x in range(num_arg, len(new_state.local_var)):
-            new_state.local_var.pop(x)
-        new_state.pc = 0
-
-        return new_state, new_has_ret
-
     def reset_wasmvm(self, call_depth, random=None, quick=False, lasers=[]):
         # these options maybe changed by detectors
         self.call_depth_limit = call_depth
@@ -200,25 +143,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # reset these variables
         self.result = list()
-        self.visiting_function_name_list = list()
-        self.constraints_flag_stack = list()
         self.index2state = dict()
 
         # the others will not change or they will be re-initialized
-
-    def construct_edges_with_condition(self, bb_path):
-        self.pairs2jump_type = None
-        pairs2jump_type = dict()
-
-        pairs = set()
-        for bb_index in range(len(bb_path) - 1):
-            pairs.add((bb_path[bb_index], bb_path[bb_index + 1]))
-
-        for edge in self.cfg.edges:
-            pair = (edge.node_from, edge.node_to)
-            if pair in pairs:
-                pairs2jump_type[pair] = edge.type
-        self.pairs2jump_type = pairs2jump_type.copy()
 
     def emulate_basic_block(self, state, has_ret, instructions):
         pre_instr = None
@@ -302,257 +229,12 @@ Memory:\t\t{state.symbolic_memory}\n''')
         if instr.group == 'Memory':
             return instr_obj.emulate(state, self.data_section), None
         elif instr.group == 'Control':
-            return self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+            return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.current_function.name, self.data_section)
         elif instr.group == 'Parametric':
             return self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
         else:
             instr_obj.emulate(state)
         return False, None
-
-    def emul_unreachable(self):
-        return True, None
-
-    def emul_loop(self):
-        return False, None
-
-    def emul_else(self):
-        return False, None
-
-    def emul_if(self, state):
-        op = state.symbolic_stack.pop()
-        assert is_bv(op) or is_bool(
-            op), f"the type of op popped from stack in `if` is {type(op)} instead of bv or bool"
-
-        logging.debug('[IF] now the func is: %s' % self.current_function.name)
-        states = {'conditional_true': copy.deepcopy(state), 'conditional_false': copy.deepcopy(state)}
-        if is_bv(op):
-            op = simplify(op != 0)
-        states['conditional_true'].constraints.append(op)
-        states['conditional_false'].constraints.append(simplify(Not(op)))
-        return False, [states]
-
-    def emul_end(self):
-        return False, None
-
-    def emul_br(self):
-        return False, None
-
-    def emul_br_if(self, instr, state, depth, has_ret, call_depth):
-        op = state.symbolic_stack.pop()
-        assert is_bv(op) or is_bool(op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
-        states = {'conditional_true': copy.deepcopy(state), 'conditional_false': copy.deepcopy(state)}
-        if is_bv(op):
-            op = simplify(op != 0)
-        states['conditional_true'].constraints.append(op)
-        states['conditional_false'].constraints.append(simplify(Not(op)))
-        return False, [states]
-
-    def emul_br_table(self, instr, state):
-        op = state.symbolic_stack.pop()
-        # if the branch operand is not a number, too much branches emulation may lead to path explosion
-        # so we give up this situation's emulation
-        if not is_bv_value(op):
-            return True
-        # if in guided emulation
-        # because op currently is a concrete integer, and br_table add no constraint
-        # therefore return False is enough here
-        if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
-            return False
-        branch = op.as_long()
-        branches = list(instr.operand)
-        # remove the first one
-        branches.pop(0)
-        try:
-            index = branches.index(branch)
-        except ValueError:
-            index = -1
-        jump_addr = instr.xref[index]
-        for idx in self.reverse_instructions:
-            if jump_addr == self.reverse_instructions[idx].offset:
-                state.instr = self.reverse_instructions[idx]
-                state.pc = idx
-                break
-
-        self.current_basicblock = self.basicblock_per_instr[instr.offset]
-        # if in guided emulation, prune some branch
-        if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
-            if self.current_basicblock.name not in self.visited_basicblock:
-                self.visited_basicblock[self.current_basicblock.name] = 1
-            else:
-                self.visited_basicblock[self.current_basicblock.name] += 1
-
-    def emul_call(self, instr, state, depth, call_depth, has_ret, basicblock_path):
-        try:
-            f_offset = int(instr.operand_interpretation.split(' ')[1])
-        except ValueError:
-            # it's possible that the `call` operand is a hex
-            f_offset = int(instr.operand_interpretation.split(' ')[1], 16)
-
-        target_func = self.ana.func_prototypes[f_offset]
-        name, param_str, return_str, _ = target_func
-        # if the func_index2func_name is not None
-        # change the function name to the more readable name
-        if self.func_index2func_name is not None:
-            name = self.func_index2func_name[int(re.search('(\d+)', name).group())]
-        state.key_import_func_visited.append(name)
-
-        # get callee function name
-        import_func_count = len(self.ana.imports_func)
-
-        internal_function_name = self.cfg.functions[f_offset - import_func_count].name if f_offset > import_func_count else name
-        # skip these functions
-        func_is_not_from_system = (internal_function_name[0] == '_' and internal_function_name[1] == '_') or \
-                                  internal_function_name in SKIP_FUNC_SET or (
-                                          '_Zn' in internal_function_name and 'eos' not in internal_function_name) or \
-                                  '_ZdaPv' in internal_function_name or 'printf' in internal_function_name
-        new_states = []
-        # if the function is the EOSIO library function
-        if internal_function_name not in [x.name for x in self.cfg.functions]:
-            if f_offset > len(self.ana.imports_func):
-                raise Exception('function_name not in this module - available: %s', self.ana.func_prototypes)
-            # import functions processed here
-            args_num = len(param_str.split(' '))
-            param_list = []
-            if param_str:
-                param_list = [state.symbolic_stack.pop() for _ in range(args_num)][::-1]
-            func = InternalFunction(internal_function_name, param_list, return_str, state)
-            halt = func.emul()
-            return halt, [state]
-
-        elif call_depth >= self.call_depth_limit or func_is_not_from_system:
-            # (func_is_exports and not func_is_elems and func_is_not_from_system):
-            # record the key funcs for the fake receipt detector
-            state.key_import_func_visited.append(f_offset)
-
-            if param_str:
-                num_arg = len(param_str.split(' '))
-                for _ in range(num_arg):
-                    state.symbolic_stack.pop()
-            if return_str:
-                state.symbolic_stack.append(getConcreteBitVec(return_str,
-                                                              internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(
-                                                                  state.pc)))
-        elif name in C_LIBRARY_FUNCS:
-            func = PredefinedFunction(name, self.current_function.name)
-            func.emul(state, internal_function_name, param_str, return_str, self.data_section)
-        else:
-            new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
-            self.visiting_function_name_list.append(self.current_function.name)
-            self.constraints_flag_stack.append(copy.deepcopy(self.current_function.constraint_flags))
-            possible_states = Graph.traverse_one(internal_function_name, new_state, has_ret)
-            possible_call_results = []
-            for pstate in possible_states:
-                to_be_returned = None
-                if has_ret and has_ret[-1]:
-                    to_be_returned = pstate.symbolic_stack.pop()
-                    if is_bool(to_be_returned):
-                        if is_false(to_be_returned):
-                            to_be_returned = BitVecVal(0, 32)
-                        elif is_true(to_be_returned):
-                            to_be_returned = BitVecVal(1, 32)
-                        else:
-                            raise NotDeterminedRetValError
-                possible_call_results.append((to_be_returned, copy.deepcopy(pstate)))
-
-            if not gvar.guided_emulation_mainline_function_flag:
-                # restore the caller's constraints flag
-                self.current_function.constraint_flags = self.constraints_flag_stack.pop()
-                logging.debug(
-                    '[+] restore the current function constraint flag: %s' % (
-                        self.current_function.constraint_flags))
-                logging.debug('')
-
-            # for stack balance
-            outer_need_ret = has_ret.pop()
-
-            for i, return_constraint_tuple in enumerate(possible_call_results):
-                new_state = copy.deepcopy(state)
-                return_value, constraint, state_symbolic_memory, key_import_func_visited, current_globals = \
-                    return_constraint_tuple[0], return_constraint_tuple[1].constraints, return_constraint_tuple[
-                        1].symbolic_memory, return_constraint_tuple[1].key_import_func_visited, \
-                    return_constraint_tuple[1].globals
-
-                logging.debug('===================situation %s======================' % i)
-                # if have outer_need_ret but no return_value, means the callee's this branch is failed
-                if outer_need_ret and return_value is None:
-                    continue
-                elif outer_need_ret and return_value is not None:
-                    new_state.symbolic_stack.append(return_value)
-                    new_state.constraints = constraint
-                    new_state.symbolic_memory = state_symbolic_memory
-                    new_state.key_import_func_visited = key_import_func_visited
-                    new_state.globals = current_globals
-                else:
-                    new_state.constraints = constraint
-                    new_state.symbolic_memory = state_symbolic_memory
-                    new_state.key_import_func_visited = key_import_func_visited
-                    new_state.globals = current_globals
-
-                # the left-most branch
-                if i == 0:
-                    self.current_function.constraint_flags.append(1)
-                # the right-most branch
-                if i == len(possible_call_results) - 1:
-                    self.current_function.constraint_flags[-1] = 0
-
-                # if reach the right-most branch
-                if self.current_function.constraint_flags[-1] == 0:
-                    self.current_function.constraint_flags.pop()
-
-                new_states.append(new_state)
-        if len(new_states) == 0:
-            new_states.append(state)
-        return False, new_states
-
-    def emul_return(self):
-        return True, None
-
-    def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
-        halt = False
-        if instr.name == 'unreachable':
-            return self.emul_unreachable()
-        elif instr.name == 'loop':
-            return self.emul_loop()
-        elif instr.name in ['nop', 'block']:
-            return False, None
-        elif instr.name == 'else':
-            self.emul_else()
-        elif instr.name == 'if':
-            self.emul_if(instr, )
-        elif instr.name == 'end':
-            return self.emul_end()
-        elif instr.name == 'br':
-            return self.emul_br()
-        elif instr.name == 'br_if':
-            return self.emul_br_if(instr, state, depth, has_ret, call_depth)
-        elif instr.name == 'br_table':
-            self.emul_br_table(instr, state)
-        elif instr.name == 'return':
-            return self.emul_return()
-        elif instr.name == 'call':
-            return self.emul_call(instr, state, depth, call_depth, has_ret, basicblock_path)
-        elif instr.name == 'call_indirect':
-            index = state.symbolic_stack.pop()
-            # if in guided emulation
-            if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
-                print('CALL_INDIRECT')
-                exit()
-            if is_bv_value(index):
-                index = index.as_long()
-                if index > 200:
-                    return True
-                state.key_import_func_visited.append(
-                    'call_indirect_index=' + str(index))
-
-                if index not in self.index2state.keys():
-                    self.index2state[index] = [copy.deepcopy(state)]
-                else:
-                    self.index2state[index].append(copy.deepcopy(state))
-            else:
-                halt = True
-        else:
-            raise Exception('Instruction:', instr, 'not match in emul_control function')
-        return halt
 
     def emul_parametric_instr(self, instr, state, depth, has_ret, call_depth):
         halt = False
