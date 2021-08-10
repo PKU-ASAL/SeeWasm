@@ -31,7 +31,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
 
-        self.current_function = None
         self.reverse_instructions = dict()
 
         self.basicblock_per_instr = dict()
@@ -150,7 +149,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         logging.debug(f'''
 PC:\t\t{state.pc}
-Current Func:\t{self.current_function.name}
+Current Func:\t{state.current_func.name}
 Instruction:\t{instr.operand_interpretation}
 Stack:\t\t{state.symbolic_stack}
 Local Var:\t{state.local_var}
@@ -167,7 +166,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
         if instr.group == 'Memory':
             return instr_obj.emulate(state, self.data_section), None
         elif instr.group == 'Control':
-            return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.current_function.name, self.data_section)
+            return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.data_section)
         elif instr.group == 'Parametric':
             return self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
         else:
@@ -180,6 +179,7 @@ Memory:\t\t{state.symbolic_memory}\n''')
             state.symbolic_stack.pop()
             return False, None
         elif instr.name == 'select':  # select instruction
+            raise UnsupportInstructionError
             arg0, arg1, arg2 = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
 

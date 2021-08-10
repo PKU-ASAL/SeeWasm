@@ -31,7 +31,7 @@ def classproperty(func):
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
-    _bbs_graph = defaultdict(dict)
+    _bbs_graph = defaultdict(dict) # nested dict
     _loop_maximum_rounds = 30
     _wasmVM = None
 
@@ -78,11 +78,10 @@ class Graph:
         # {'block_3_0': ['block_3_6', 'block_3_9']}
         edges = cfg.edges
         for edge in edges:
+            # there are four types of edges:
+            # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
             node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
-            if node_from not in cls.bbs_graph:
-                cls.bbs_graph[node_from] = {edge_type: node_to}
-            else:
-                cls.bbs_graph[node_from][edge_type] = node_to
+            cls.bbs_graph[node_from][edge_type] = node_to
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -91,7 +90,7 @@ class Graph:
             # goal 1
             bb_name = bb.name
             if bb_name not in cls.bbs_graph:
-                cls.bbs_graph[bb_name] = []
+                cls.bbs_graph[bb_name] = dict()
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
 
@@ -104,8 +103,12 @@ class Graph:
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
             state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
-        current_func = cls.wasmVM.current_function
-        cls.wasmVM.current_function = cls.wasmVM.cfg.get_function(func)
+        # store the caller func
+        # caller_func_obj = cls.wasmVM.current_function
+        caller_func_obj = state.current_func
+        # set the callee func
+        state.current_func = cls.wasmVM.cfg.get_function(func)
+
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
@@ -113,7 +116,9 @@ class Graph:
         final_states = []
         vis = defaultdict(int)
         cls.visit(state, has_ret, entry_bb, final_states, vis)
-        cls.wasmVM.current_function = current_func
+        
+        # recover the caller func obj
+        state.current_func = caller_func_obj
         return final_states
 
     @classmethod

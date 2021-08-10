@@ -16,8 +16,8 @@ class WasmVMstate(VMstate):
         self.pc = 0
         self.instr = None
 
-        # TODO need remove the following two variables
-        self.instructions_visited = set()
+        # current function, an object
+        self.current_func = None
 
     def __str__(self):
         return str(self.__dict__)

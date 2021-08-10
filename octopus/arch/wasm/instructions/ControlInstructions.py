@@ -19,7 +19,7 @@ class ControlInstructions:
         self.skip_command = {'loop', 'end', 'br', 'else', 'nop', 'block'}
         self.term_command = {'unreachable', 'return'}
     
-    def init_state_before_call(self, param_str, return_str, has_ret, state, current_func_name):
+    def init_state_before_call(self, param_str, return_str, has_ret, state):
         num_arg = 0
         # this flag indicates whether the caller executes and returns properly
         # if the caller terminates in advance, which results in the imbalance of stack
@@ -44,7 +44,7 @@ class ControlInstructions:
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(local, current_func_name + '_loc_' + str(i) + '_' + local)
+                new_state.local_var[i] = getConcreteBitVec(local, state.current_func.name + '_loc_' + str(i) + '_' + local)
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
@@ -56,7 +56,7 @@ class ControlInstructions:
 
         return new_state, new_has_ret
 
-    def emulate(self, state, has_ret, func_prototypes, func_index2func_name, current_func_name, data_section):
+    def emulate(self, state, has_ret, func_prototypes, func_index2func_name, data_section):
         if self.instr_name in self.skip_command:
             return False, None
         if self.instr_name in self.term_command:
@@ -139,10 +139,10 @@ class ControlInstructions:
 
             new_states = []
             if readable_name in C_LIBRARY_FUNCS:
-                func = PredefinedFunction(readable_name, current_func_name)
+                func = PredefinedFunction(readable_name, state.current_func.name)
                 func.emul(state, param_str, return_str, data_section)
             else:
-                new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state, current_func_name)
+                new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
 
                 possible_states = Graph.traverse_one(internal_function_name, new_state, new_has_ret)
 

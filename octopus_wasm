@@ -159,7 +159,6 @@ def main():
         if args.onlyfunc:
             graph = Graph(args.onlyfunc)
             graph.traverse()
-            # wasmVM.emulate_functions(args.depth, list_functions_name=args.onlyfunc)
         else:
             raise Exception("Please specify at least one entry function")
 
