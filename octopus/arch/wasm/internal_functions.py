@@ -24,18 +24,33 @@ class PredefinedFunction:
         if self.name == '$printf':
             # has to use as_long()
             mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-            the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section,
-                                                           state.symbolic_memory)
-            if isinstance(the_string, str) and the_string.isspace():
-                the_string = f"'{ord(the_string)}'"
+            pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section, state.symbolic_memory)
+
+            pattern_list = pattern.split()
+            pattern_list = [i.strip() for i in pattern_list]
+
+            for pattern_str in pattern_list:
+                if pattern_str == '%d':
+                    the_string = loaded_data
+                elif pattern_str == '%s':
+                    the_string = C_extract_string_by_mem_pointer(loaded_data.as_long(), data_section, state.symbolic_memory)
+                elif pattern == 'string_literal': # return "string literal"
+                    the_string = loaded_data
+                else:
+                    continue
+            # elif isinstance(the_string, str) and the_string.isspace():
+            #     the_string = f"'{ord(the_string)}'"
             logging.warning("%s\n", the_string)
         elif self.name == '$scanf':
             mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-            the_string = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
+            pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
                                                            state.symbolic_memory)
 
-            pattern_strs = the_string.split()
-            for i, pattern_str in enumerate(pattern_strs):
+            # in scanf, the loaded_data is the pattern string, like '%d %d'
+            pattern_list = loaded_data.split()
+            pattern_list = [i.strip() for i in pattern_list]
+
+            for i, pattern_str in enumerate(pattern_list):
                 if pattern_str == '%d':
                     # as the basic unit in wasm is i32.load
                     target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
@@ -63,9 +78,8 @@ class PredefinedFunction:
         elif self.name == '$strlen':
             mem_pointer = param_list[0].as_long()
             the_string = C_extract_string_by_mem_pointer(mem_pointer, data_section, state.symbolic_memory)
-            the_string = the_string.as_long()
 
-            string_length = len(the_string.to_bytes((the_string.bit_length() + 7) // 8, 'little'))
+            string_length = len(the_string)
             state.symbolic_stack.append(BitVecVal(string_length, 32))
 
             manually_constructed = True

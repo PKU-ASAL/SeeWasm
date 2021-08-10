@@ -116,7 +116,7 @@ class Graph:
         vis = defaultdict(int)
         cls.visit(state, has_ret, entry_bb, final_states, vis)
         
-        # recover the caller func obj
+        # recover the caller func
         state.current_func_name = caller_func_name
         return final_states
 
@@ -139,5 +139,3 @@ class Graph:
                         cls.visit(state, has_ret, cls.bbs_graph[blk][type], final_states, vis)
                 else:
                     cls.visit(state_item, has_ret, cls.bbs_graph[blk][type], final_states, vis)
-
-

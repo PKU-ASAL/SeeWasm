@@ -15,7 +15,11 @@ python3.6 octopus_wasm -f './c2wasm_samples/hello_g3.wasm' -s --onlyfunc main --
 ```
 **注意，`need_mapper` 参数在 `-g3` 编译选项下为必选，否则无法正确跳过 `printf` 等 C 语言库函数**
 
-目前已经测试通过的文件为：`hello_g3.wasm`，`intadd_g3.wasm` 以及 `bubble_sort_g3.wasm`
+目前，所有位于 `c2wasm_samples` 文件夹下的脚本均可以被正常分析，可以使用如下指令来测试（可能需要安装必要的库）：
+```shell
+python3 test.py
+```
+上述测试脚本约耗时五分钟。
 
 ### EOSIO 漏洞扫描器
 **Note: 请暂时先使用 C 语言样例做测试**
