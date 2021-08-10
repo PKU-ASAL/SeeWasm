@@ -104,10 +104,9 @@ class Graph:
         if state is None:
             state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
         # store the caller func
-        # caller_func_obj = cls.wasmVM.current_function
-        caller_func_obj = state.current_func
+        caller_func_name = state.current_func_name
         # set the callee func
-        state.current_func = cls.wasmVM.cfg.get_function(func)
+        state.current_func_name = cls.wasmVM.cfg.get_function(func).name
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -118,7 +117,7 @@ class Graph:
         cls.visit(state, has_ret, entry_bb, final_states, vis)
         
         # recover the caller func obj
-        state.current_func = caller_func_obj
+        state.current_func_name = caller_func_name
         return final_states
 
     @classmethod

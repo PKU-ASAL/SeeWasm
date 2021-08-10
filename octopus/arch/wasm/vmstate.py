@@ -16,8 +16,8 @@ class WasmVMstate(VMstate):
         self.pc = 0
         self.instr = None
 
-        # current function, an object
-        self.current_func = None
+        # current function name
+        self.current_func_name = None
 
     def __str__(self):
         return str(self.__dict__)

@@ -44,7 +44,7 @@ class ControlInstructions:
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(local, state.current_func.name + '_loc_' + str(i) + '_' + local)
+                new_state.local_var[i] = getConcreteBitVec(local, state.current_func_name + '_loc_' + str(i) + '_' + local)
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
@@ -139,7 +139,7 @@ class ControlInstructions:
 
             new_states = []
             if readable_name in C_LIBRARY_FUNCS:
-                func = PredefinedFunction(readable_name, state.current_func.name)
+                func = PredefinedFunction(readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             else:
                 new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)

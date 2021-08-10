@@ -31,13 +31,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
 
-        self.reverse_instructions = dict()
-
-        self.basicblock_per_instr = dict()
-        self.current_basicblock = None
-
         self.data_section = dict()
-
         # init memory section with data section
         for _, data_section_value in enumerate(self.ana.datas):
             data = data_section_value['data']
@@ -101,31 +95,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return halt, states
 
-
-    def emulate(self, state, depth=0, has_ret=[], call_depth=0, basicblock_path=None):
-        halt = False
-        instr = None
-
-        while not halt:
-            pre_instr = instr
-            # start instruction
-            if state.pc < len(self.reverse_instructions):
-                instr = self.reverse_instructions[state.pc]
-            else:
-                break
-
-            # Save instruction and state
-            state.instr = instr
-            state.pc += 1
-
-            self.current_basicblock = self.basicblock_per_instr[instr.offset]
-
-            if gvar.guided_emulation_flag:
-                halt = self.emulate_one_instruction(instr, state, depth, has_ret, call_depth, basicblock_path)
-            else:
-                halt = self.emulate_one_instruction(instr, state, depth, has_ret, call_depth)
-
-    def emulate_one_instruction(self, instr, state, depth, has_ret, call_depth, basicblock_path=None):
+    def emulate_one_instruction(self, instr, state, depth, has_ret, call_depth):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -149,7 +119,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         logging.debug(f'''
 PC:\t\t{state.pc}
-Current Func:\t{state.current_func.name}
+Current Func:\t{state.current_func_name}
 Instruction:\t{instr.operand_interpretation}
 Stack:\t\t{state.symbolic_stack}
 Local Var:\t{state.local_var}
