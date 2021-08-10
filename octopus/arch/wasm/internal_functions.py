@@ -29,15 +29,16 @@ class PredefinedFunction:
             pattern_list = pattern.split()
             pattern_list = [i.strip() for i in pattern_list]
 
+            the_string = ""
             for pattern_str in pattern_list:
                 if pattern_str == '%d':
-                    the_string = loaded_data
+                    the_string += str(loaded_data)
                 elif pattern_str == '%s':
-                    the_string = C_extract_string_by_mem_pointer(loaded_data.as_long(), data_section, state.symbolic_memory)
+                    the_string += str(C_extract_string_by_mem_pointer(loaded_data.as_long(), data_section, state.symbolic_memory))
                 elif pattern == 'string_literal': # return "string literal"
-                    the_string = loaded_data
+                    the_string += str(loaded_data)
                 else:
-                    continue
+                    the_string += (str(pattern_str) + " ")
             # elif isinstance(the_string, str) and the_string.isspace():
             #     the_string = f"'{ord(the_string)}'"
             logging.warning("%s\n", the_string)
