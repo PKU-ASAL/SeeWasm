@@ -78,13 +78,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state, has_ret
 
-    def emulate_basic_block(self, state, has_ret, instructions):
-        pre_instr = None
-        states = [state]
+    def emulate_basic_block(self, states, has_ret, instructions):
         halt = False
         for instruction in instructions:
             next_states = []
-            for state in states:
+            for state in states: #TODO: embarassing parallel
                 state.instr = instruction
                 state.pc += 1
                 halt, ret = self.emulate_one_instruction(instruction, state, 0, has_ret, 0)

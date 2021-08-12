@@ -14,8 +14,6 @@ class ControlInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
         self.instr_string = instr_string
-        self.skip = lambda : False, None
-        self.terminate = lambda : True, None
         self.skip_command = {'loop', 'end', 'br', 'else', 'nop', 'block'}
         self.term_command = {'unreachable', 'return'}
     
@@ -60,7 +58,7 @@ class ControlInstructions:
         if self.instr_name in self.skip_command:
             return False, None
         if self.instr_name in self.term_command:
-            return True, None
+            return False, None
         
         if self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
@@ -143,9 +141,7 @@ class ControlInstructions:
                 func.emul(state, param_str, return_str, data_section)
             else:
                 new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
-
                 possible_states = Graph.traverse_one(internal_function_name, new_state, new_has_ret)
-
                 possible_call_results = []
                 for pstate in possible_states:
                     to_be_returned = None
