@@ -1,41 +1,68 @@
 # Wasm-SE
-A native symbolic execution engine for WebAssembly
+WebAssembly (Wasm), as a low-level language, has several advantages. Moreover, Wasm can be translated from other mainstream programming languages, e.g., C, C++, Go, Rust and so on.
 
-## 依赖安装
+In this project, we have implemented a **symbolic execution engine** for Wasm files. Our goal is to build a set of toolchain, which can take source code file (written in other programming languages) as input, symbolically execute it, and generate the path constraints for further analysis (e.g., vulnerability detection).
+
+Currently, we have supported some of standard C library functions, and we are going to support Go in the following stage.
+
+|          |     C      |  Go   | EWasm | EOSIO |
+| :------: | :--------: | :---: | :---: | :---: |
+| Progress | Working on |  WIP  |  WIP  | Done  |
+
+##  Prerequisites 
+To run the samples (some simple Wasm files compiled from C), you have to install some python libraries as follows:
+
 ```shell
-python3.6 -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
-## 测试
+You can test if all of them are installed successfully by:
 
-### 分析 C 语言指定函数
-如果我们要测试例如 C 语言中的 `main` 函数，那么我们可以使用如下语句：
-```shell
-python3.6 octopus_wasm -f './c2wasm_samples/hello_g3.wasm' -s --onlyfunc main --need_mapper -v
-```
-**注意，`need_mapper` 参数在 `-g3` 编译选项下为必选，否则无法正确跳过 `printf` 等 C 语言库函数**
-
-目前，所有位于 `c2wasm_samples` 文件夹下的脚本均可以被正常分析，可以使用如下指令来测试（可能需要安装必要的库）：
 ```shell
 python3 test.py
 ```
-上述测试脚本约耗时五分钟。
 
-### EOSIO 漏洞扫描器
-**Note: 请暂时先使用 C 语言样例做测试**
+This command will traverse the `c2wasm_samples` folder and extract the Wasm files. If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several minutes**.
 
-输入：
+## Toolchain
+
+To analyze the files written in other programming languages, you have to generate the corresponding Wasm file in your local environment. In this section, we would briefly give the instruction about how to compile C / Go file into Wasm.
+
+### C -> Wasm
+
+To generate Wasm file from C, we recommend the tool: [Emscripten](https://emscripten.org/index.html). You can follow its [official instruction](https://emscripten.org/docs/getting_started/downloads.html) to install it in your local environment. To verify if emcc is installed successfully, run `emcc --check` in your terminal to see if any error happens.
+
+After emcc is installed, use the command:
 ```shell
-python3.6 octopus_wasm -f './test_contract/fairdicegame.wasm' --laser fake_eos
+emcc [file_name].c -g3 -s WASM=1 -o [file_name].html
 ```
 
-结果：
-```shell
-$ python3.6 octopus_wasm -f './test_contract/fairdicegame.wasm' --laser fake_eos
-WARNING:root:=============================Function Name: apply=============================
+Here, `-g3` means the generated Wasm file would keep the debug information, which would be used in the following stage.
+The above command would generate three files: `[file_name].html`, `[file_name].js` and `[file_name].wasm`. The first two files provide the hosting environment for the Wasm file. Thus, we can only focus on the `[file_name].wasm`, in which all the logic in C is transferred to Wasm instructions.
 
-[{"module": "fake_eos", "is_vulnerable": false, "constraints": []}]%
+To run the generated Wasm file, please refer to [this part](#analyze-specific-functions).
+
+### Go -> Wasm
+
+**TODO**
+
+## Analyze
+
+In this section, we would show how to use Wasm-SE to analyze the generated Wasm file.
+
+### Analyze specific function(s)
+
+To specify which functions would be analyzed, i.e., as the entry point during the symbolic execution, we should use the following command:
+
+```shell
+python3 octopus_wasm -f [path_to_file].wasm -s --onlyfunc [entry_func] --need_mapper -v
 ```
+
+Here, in the `[entry_func]`, users are allowed to specify the entry functions. For Wasm file compiled from C, we typically set this field as `main`.
+Moreover, `--need-mapper` is compulsory, because it can make a mapping between Wasm function indice and standard C library functions' name.
+Also, you can use `-v` to output each Wasm instruction's behavior.
+
+----
 
 # Compile WASM from C
 
