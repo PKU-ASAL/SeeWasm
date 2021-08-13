@@ -1,4 +1,5 @@
 # Wasm-SE
+![Wasm-SE-logo](./images/wasm-se-logo.png)
 WebAssembly (Wasm), as a low-level language, has several advantages. Moreover, Wasm can be translated from other mainstream programming languages, e.g., C, C++, Go, Rust and so on.
 
 In this project, we have implemented a **symbolic execution engine** for Wasm files. Our goal is to build a set of toolchain, which can take source code file (written in other programming languages) as input, symbolically execute it, and generate the path constraints for further analysis (e.g., vulnerability detection).
