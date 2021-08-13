@@ -1,5 +1,7 @@
+import copy
+
 from z3 import *
-from collections import defaultdict
+from collections import defaultdict, deque
 
 class ClassPropertyDescriptor:
     def __init__(self, fget, fset=None):
@@ -32,7 +34,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(dict) # nested dict
-    _loop_maximum_rounds = 30
+    _loop_maximum_rounds = 5
     _wasmVM = None
 
     def __init__(self, funcs):
@@ -112,30 +114,53 @@ class Graph:
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
-        final_states = []
         vis = defaultdict(int)
-        cls.visit(state, has_ret, entry_bb, final_states, vis)
-        
+        circles = set()
+        cls.pre(entry_bb, vis, circles)
+        vis = defaultdict(int)
+        final_states = cls.visit([state], has_ret, entry_bb, vis, circles)
         # recover the caller func
         state.current_func_name = caller_func_name
         return final_states
 
     @classmethod
-    def visit(cls, state, has_ret, blk, final_states, vis):
-        if vis[blk] >= cls.loop_maximum_rounds:
+    def pre(cls, blk, vis, circles):
+        if vis[blk] == 1 and len(cls.bbs_graph[blk]) == 2: # br_if and has visited
+            circles.add(blk)
             return
-        vis[blk] += 1
+        vis[blk] = 1
+        for ty in cls.bbs_graph[blk]:
+            cls.pre(cls.bbs_graph[blk][ty], vis, circles)
+
+    @classmethod
+    def visit(cls, states, has_ret, blk, vis, circles, choose_types=None):
+        if vis[blk] > 0:
+            return states
         instructions = cls.bb_to_instructions[blk]
-        halt, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, instructions)
+        halt, emul_states = cls.wasmVM.emulate_basic_block(states, has_ret, instructions)
         if halt or len(cls.bbs_graph[blk]) == 0:
-            final_states.extend(emul_states)
+            return emul_states
+        vis[blk] += 1
+        final_states = []
         for state_item in emul_states:
-            for type in cls.bbs_graph[blk]:
+            choose_types = cls.bbs_graph[blk] if choose_types is None else choose_types
+            for type in choose_types:
+                nxt_blk = cls.bbs_graph[blk][type]
                 if isinstance(state_item, dict) and type in state_item:
                     state = state_item[type]
                     solver = Solver()
                     solver.add(*state.constraints)
-                    if sat == solver.check():
-                        cls.visit(state, has_ret, cls.bbs_graph[blk][type], final_states, vis)
+                    if sat != solver.check():
+                        continue
                 else:
-                    cls.visit(state_item, has_ret, cls.bbs_graph[blk][type], final_states, vis)
+                    state = state_item
+                if nxt_blk in circles:
+                    enter_states = [state]
+                    for i in range(cls.loop_maximum_rounds):
+                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_false'])
+                    enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_true'])
+                    final_states.extend(enter_states)
+                else:
+                    final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles))
+        vis[blk] -= 1
+        return final_states if len(final_states) > 0 else states
