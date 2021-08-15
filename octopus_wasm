@@ -69,6 +69,9 @@ def main():
                           type=check_not_neg,
                           default=5,
                           help='how many minutes can be endured when executing, default is 30')
+    features.add_argument('--manual_guide',
+                          action='store_true',
+                          help='allow users to manually guide the control flow')
 
     analyze = parser.add_mutually_exclusive_group(required=False)
     analyze.add_argument('-s', '--symbolic',
@@ -155,6 +158,7 @@ def main():
             octo_bytecode, args.timeout, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
+        Graph.manual_guide = args.manual_guide
         Graph.extract_basic_blocks()
         if args.onlyfunc:
             graph = Graph(args.onlyfunc)
