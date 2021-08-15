@@ -131,12 +131,7 @@ class Graph:
         cls.pre(entry_bb, vis, circles)
         vis = defaultdict(int)
 
-        # enable manual guide
-        if cls.manual_guide == True:
-            cls.loop_maximum_rounds = 10000000 # reset the maximum loop as a huge number
-            final_states = cls.guided_visit([state], has_ret, entry_bb, vis, circles)
-        else: # normal strategy
-            final_states = cls.visit([state], has_ret, entry_bb, vis, circles)
+        final_states = cls.visit([state], has_ret, entry_bb, vis, circles, cls.manual_guide)
         # recover the caller func
         state.current_func_name = caller_func_name
         return final_states
@@ -151,8 +146,8 @@ class Graph:
             cls.pre(cls.bbs_graph[blk][ty], vis, circles)
 
     @classmethod
-    def visit(cls, states, has_ret, blk, vis, circles, choose_types=None):
-        if vis[blk] > 0:
+    def visit(cls, states, has_ret, blk, vis, circles, guided, branches=None):
+        if not guided and vis[blk] > 0:
             return states
         instructions = cls.bb_to_instructions[blk]
         halt, emul_states = cls.wasmVM.emulate_basic_block(states, has_ret, instructions)
@@ -160,80 +155,69 @@ class Graph:
             return emul_states
         vis[blk] += 1
         final_states = []
+        if guided:
+            # show how many possible states here, and ask the user to choose one
+            print(
+                f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
+            print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
+            print(
+                f"[+] Also, you can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
+            state_index = cls.ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
+            state_item = emul_states[state_index]
+            emul_states = [state_item]
+
+            branches = cls.bbs_graph[blk] if branches is None else branches
+            # show how many possible followed branches here, and ask the user to choose one
+            print(
+                f"\n[+] Currently, there are {len(branches)} possible branch(es) here: {bcolors.WARNING}{branches.keys()}{bcolors.ENDC}")
+            print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
+            print(
+                f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
+            branches = [cls.ask_user_input(emul_states, isbr=True, branches=branches, state_item=state_item)]
+
         for state_item in emul_states:
-            choose_types = cls.bbs_graph[blk] if choose_types is None else choose_types
-            for type in choose_types:
-                nxt_blk = cls.bbs_graph[blk][type]
-                if isinstance(state_item, dict) and type in state_item:
+            branches = cls.bbs_graph[blk] if branches is None else branches
+            avail_br = []
+            for type in branches:
+                if isinstance(state_item, dict):
+                    if type not in state_item:
+                        continue
                     state = state_item[type]
                     solver = Solver()
                     solver.add(*state.constraints)
                     if sat != solver.check():
                         continue
+                avail_br.append(type)
+            if guided:
+                print(
+                    f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
+                print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
+                print(
+                    f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
+                avail_br = [cls.ask_user_input(emul_states, isbr=True, branches=avail_br, state_item=state_item)]
+
+            for type in avail_br:
+                nxt_blk = cls.bbs_graph[blk][type]
+                state = state_item[type] if isinstance(state_item, dict) else state_item
+                if not guided:
+                    if nxt_blk in circles:
+                        enter_states = [state]
+                        for i in range(cls.loop_maximum_rounds):
+                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false'])
+                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true'])
+                        final_states.extend(enter_states)
+                    else:
+                        final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
                 else:
-                    state = state_item
-                if nxt_blk in circles:
-                    enter_states = [state]
-                    for i in range(cls.loop_maximum_rounds):
-                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_false'])
-                    enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_true'])
-                    final_states.extend(enter_states)
-                else:
-                    final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles))
+                    final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
         vis[blk] -= 1
         return final_states if len(final_states) > 0 else states
-    
-    @classmethod
-    def guided_visit(cls, states, has_ret, blk, vis, circles, choose_types=None):
-        if vis[blk] > 0:
-            return states
-        instructions = cls.bb_to_instructions[blk]
-        halt, emul_states = cls.wasmVM.emulate_basic_block(states, has_ret, instructions)
-        if halt or len(cls.bbs_graph[blk]) == 0:
-            return emul_states
-        vis[blk] += 1
-        final_states = []
 
-        # show how many possible states here, and ask the user to choose one
-        print(f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-        print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-        print(f"[+] Also, you can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-        state_index = cls.ask_user_input(emul_states, 0) # 0 for state, is a flag
-        state_item = emul_states[state_index]
-
-        choose_types = cls.bbs_graph[blk] if choose_types is None else choose_types
-        # show how many possible followed branches here, and ask the user to choose one
-        print(f"\n[+] Currently, there are {len(choose_types)} possible branch(es) here: {bcolors.WARNING}{choose_types.keys()}{bcolors.ENDC}")
-        print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
-        print(f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-        type = cls.ask_user_input(emul_states, 1, choose_types, state_item)
-
-        nxt_blk = cls.bbs_graph[blk][type]
-        if isinstance(state_item, dict) and type in state_item:
-            state = state_item[type]
-            solver = Solver()
-            solver.add(*state.constraints)
-            if sat != solver.check():
-                print(f'[!] The guided emulation is terminated as the solver cannot solve the current set of constraints')
-                exit()
-        else:
-            state = state_item
-            
-        if nxt_blk in circles:
-            enter_states = [state]
-            for _ in range(cls.loop_maximum_rounds):
-                enter_states = cls.guided_visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_false'])
-            enter_states = cls.guided_visit(enter_states, has_ret, nxt_blk, vis, circles, ['conditional_true'])
-            final_states.extend(enter_states)
-        else:
-            final_states.extend(cls.guided_visit([state], has_ret, nxt_blk, vis, circles))
-
-        vis[blk] -= 1
-        return final_states if len(final_states) > 0 else states
-    
     @classmethod
     def show_state_info(cls, state_index, states):
-        for edge_type, info in states[state_index].items():
+        state = states[state_index]
+        state_infos = state.items() if isinstance(state, dict) else [('fallthrough', state)]
+        for edge_type, info in state_infos:
             print(f'''
 PC:\t\t{info.pc}
 Current Func:\t{info.current_func_name}
@@ -242,16 +226,10 @@ Local Var:\t{info.local_var}
 Global Var:\t{info.globals}
 Memory:\t\t{info.symbolic_memory}
 Constraints:\t{info.constraints[:-1]}\n''')
-            print('')
-            if edge_type in ['conditional_true', 'conditional_false']:
-                break
-            else:
-                exit('here, show_state_info')
 
     @classmethod
-    def show_branch_info(cls, branch, possible_branches, state):
-        bb_name = possible_branches[branch]
-        
+    def show_branch_info(cls, branch, branches, state):
+        bb_name = branches[branch]
         if branch in ['conditional_true', 'conditional_false']:
             print(f'[!] The constraint: "{state[branch].constraints[-1]}" will be appended')
         print(f'[!] You choose to go to basic block: {bb_name}')
@@ -262,9 +240,9 @@ Constraints:\t{info.constraints[:-1]}\n''')
             if i >= 10:
                 break
             print(f'\t{instr.operand_interpretation}')
-    
+
     @classmethod
-    def ask_user_input(cls, emul_states, flag, choose_types=None, state_item=None):
+    def ask_user_input(cls, emul_states, isbr, branches=None, state_item=None):
         # the flag can be 0 or 1,
         # 0 means state, 1 means branch
         # `concerned_variable` is state_index or branch, depends on the flag value
@@ -285,20 +263,14 @@ Constraints:\t{info.constraints[:-1]}\n''')
                     ask_for_info = True
                 else:
                     concerned_variable = user_input
-                
-                if flag == 0:
-                    concerned_variable = int(concerned_variable) - 1  # start from 0
-                else:
-                    concerned_variable = branch_mapping[user_input]
 
-                if ask_for_info:
-                    if flag == 0:
-                        cls.show_state_info(concerned_variable, emul_states)
-                    else:
-                        cls.show_branch_info(concerned_variable, choose_types, state_item)
-                else:
+                concerned_variable = branch_mapping[user_input] if isbr else int(concerned_variable) - 1
+                if not ask_for_info:
                     break
-                
+                if isbr:
+                    cls.show_branch_info(concerned_variable, branches, state_item)
+                else:
+                    cls.show_state_info(concerned_variable, emul_states)
                 print('')
             except:
                 raise("[!] Valid input is needed")
