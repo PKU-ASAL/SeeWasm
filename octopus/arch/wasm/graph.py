@@ -2,18 +2,7 @@ import copy
 
 from z3 import *
 from collections import defaultdict
-from octopus.arch.wasm.utils import ask_user_input
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+from octopus.arch.wasm.utils import ask_user_input, bcolors
 
 class ClassPropertyDescriptor:
     def __init__(self, fget, fset=None):
@@ -160,10 +149,13 @@ class Graph:
             # show how many possible states here, and ask the user to choose one
             print(
                 f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-            print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-            print(
-                f"[+] Also, you can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-            state_index = ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
+            if len(emul_states) == 1:
+                print(f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                state_index = ask_user_input(emul_states, isbr=False, onlyone=True)
+            else:
+                print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
+                print(f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
+                state_index = ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
             state_item = emul_states[state_index]
             emul_states = [state_item]
 
@@ -183,10 +175,13 @@ class Graph:
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
-                print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
-                print(
-                    f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                avail_br = [ask_user_input(emul_states, isbr=True, branches=avail_br, state_item=state_item)]
+                if len(avail_br) == 1:
+                    print(f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                    avail_br = [ask_user_input(emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
+                else:
+                    print(f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
+                    print(f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
+                    avail_br = [ask_user_input(emul_states, isbr=True, branches=branches, state_item=state_item)]
 
             for type in avail_br:
                 nxt_blk = cls.bbs_graph[blk][type]
