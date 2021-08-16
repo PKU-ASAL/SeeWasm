@@ -166,20 +166,11 @@ class Graph:
             state_item = emul_states[state_index]
             emul_states = [state_item]
 
-            branches = cls.bbs_graph[blk] if branches is None else branches
-            # show how many possible followed branches here, and ask the user to choose one
-            print(
-                f"\n[+] Currently, there are {len(branches)} possible branch(es) here: {bcolors.WARNING}{branches.keys()}{bcolors.ENDC}")
-            print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
-            print(
-                f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-            branches = [cls.ask_user_input(emul_states, isbr=True, branches=branches, state_item=state_item)]
-
         for state_item in emul_states:
             branches = cls.bbs_graph[blk] if branches is None else branches
             avail_br = []
             for type in branches:
-                if isinstance(state_item, dict):
+                if type in ['conditional_true', 'conditional_false'] and isinstance(state_item, dict):
                     if type not in state_item:
                         continue
                     state = state_item[type]
