@@ -1,6 +1,6 @@
 from .helper import ImportFunction, lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
-from .type2z3 import getConcreteBitVec
+from .utils import getConcreteBitVec
 from z3 import *
 import logging
 import gvar

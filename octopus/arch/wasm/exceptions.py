@@ -1,6 +1,6 @@
 # define our own exceptions
 
-# used in `type2z3.py`
+# used in `utils.py`
 # indicating that the variable type is not in ['i32', 'i64', 'f32', 'f64']
 class UnsupportZ3TypeError(Exception):
     pass

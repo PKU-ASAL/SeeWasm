@@ -1,7 +1,8 @@
 import copy
 
 from z3 import *
-from collections import defaultdict, deque
+from collections import defaultdict
+from octopus.arch.wasm.utils import ask_user_input
 
 class bcolors:
     HEADER = '\033[95m'
@@ -162,7 +163,7 @@ class Graph:
             print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
             print(
                 f"[+] Also, you can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-            state_index = cls.ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
+            state_index = ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
             state_item = emul_states[state_index]
             emul_states = [state_item]
 
@@ -185,7 +186,7 @@ class Graph:
                 print(f"[+] Please choose one to continue the following emulation (T, F, f, u)")
                 print(
                     f"[+] Also, you can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                avail_br = [cls.ask_user_input(emul_states, isbr=True, branches=avail_br, state_item=state_item)]
+                avail_br = [ask_user_input(emul_states, isbr=True, branches=avail_br, state_item=state_item)]
 
             for type in avail_br:
                 nxt_blk = cls.bbs_graph[blk][type]
@@ -203,66 +204,3 @@ class Graph:
                     final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
         vis[blk] -= 1
         return final_states if len(final_states) > 0 else states
-
-    @classmethod
-    def show_state_info(cls, state_index, states):
-        state = states[state_index]
-        state_infos = state.items() if isinstance(state, dict) else [('fallthrough', state)]
-        for edge_type, info in state_infos:
-            print(f'''
-PC:\t\t{info.pc}
-Current Func:\t{info.current_func_name}
-Stack:\t\t{info.symbolic_stack}
-Local Var:\t{info.local_var}
-Global Var:\t{info.globals}
-Memory:\t\t{info.symbolic_memory}
-Constraints:\t{info.constraints[:-1]}\n''')
-
-    @classmethod
-    def show_branch_info(cls, branch, branches, state):
-        bb_name = branches[branch]
-        if branch in ['conditional_true', 'conditional_false']:
-            print(f'[!] The constraint: "{state[branch].constraints[-1]}" will be appended')
-        print(f'[!] You choose to go to basic block: {bb_name}')
-        print(f'[!] Its instruction begins at offset {cls.bb_to_instructions[bb_name][0].offset}')
-        print(f'[!] The leading instructions are showed as follows:')
-        instructions = cls.bb_to_instructions[bb_name]
-        for i, instr in enumerate(instructions):
-            if i >= 10:
-                break
-            print(f'\t{instr.operand_interpretation}')
-
-    @classmethod
-    def ask_user_input(cls, emul_states, isbr, branches=None, state_item=None):
-        # the flag can be 0 or 1,
-        # 0 means state, 1 means branch
-        # `concerned_variable` is state_index or branch, depends on the flag value
-        branch_mapping = {
-            'T': 'conditional_true',
-            'F': 'conditional_false',
-            'f': 'fallthrough',
-            'u': 'unconditional',
-        }
-
-        while True:
-            user_input = input("[!] Please input the command: ")
-            try:
-                ask_for_info = False
-                if ' ' in user_input:
-                    concerned_variable, ask_for_info = user_input.split(' ')
-                    assert ask_for_info == 'i'
-                    ask_for_info = True
-                else:
-                    concerned_variable = user_input
-
-                concerned_variable = branch_mapping[user_input] if isbr else int(concerned_variable) - 1
-                if not ask_for_info:
-                    break
-                if isbr:
-                    cls.show_branch_info(concerned_variable, branches, state_item)
-                else:
-                    cls.show_state_info(concerned_variable, emul_states)
-                print('')
-            except:
-                raise("[!] Valid input is needed")
-        return concerned_variable

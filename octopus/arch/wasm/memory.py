@@ -1,7 +1,7 @@
 from z3 import *
 import re
 
-from octopus.arch.wasm.type2z3 import getConcreteBitVec
+from octopus.arch.wasm.utils import getConcreteBitVec
 
 # deal with load instruction
 def load_instr(instr, state, data_section):

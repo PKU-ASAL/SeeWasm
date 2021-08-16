@@ -5,7 +5,7 @@ import logging
 from octopus.arch.wasm.exceptions import *
 from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
-from octopus.arch.wasm.type2z3 import getConcreteBitVec
+from octopus.arch.wasm.utils import getConcreteBitVec
 
 C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
 

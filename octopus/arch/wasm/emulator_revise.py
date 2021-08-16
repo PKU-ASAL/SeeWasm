@@ -10,7 +10,7 @@ from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 from .instructions import *
-from octopus.arch.wasm.type2z3 import getConcreteBitVec
+from octopus.arch.wasm.utils import getConcreteBitVec
 
 sys.setrecursionlimit(4096)
 

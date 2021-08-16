@@ -13,7 +13,7 @@ from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 
-from . type2z3 import *
+from . utils import *
 from . exceptions import *
 from .instructions import *
 
