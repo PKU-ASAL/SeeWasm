@@ -1,4 +1,6 @@
 from z3 import *
+import re
+
 from . exceptions import *
 
 class bcolors:
@@ -25,6 +27,21 @@ def getConcreteBitVec(type, name):
         return FP(name, Float64())
     else:
         raise UnsupportZ3TypeError
+
+# 该函数用于抽取 C 通过 -g3 等级编译得到的 wat 文件中的对应的 function index 和 function 名称之间的关系
+# This script will maintain a *map* structure, consisting of the function index and the corresponding 
+# function name that obtained from the compiler from C to Wasm with -g3 debuggability
+def extract_mapping(file_path):
+    with open(file_path) as fp:
+        text = fp.read()
+
+    # index to func name
+    mapper = {}
+    matches = re.findall(r'func (.*) \(type', text)
+    for i, func_name in enumerate(matches):
+        mapper[i] = func_name
+
+    return mapper
 
 def show_state_info(state_index, states):
     state = states[state_index]

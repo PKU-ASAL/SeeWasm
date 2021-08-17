@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from octopus.arch.wasm.mapper import extract_mapping
+from octopus.arch.wasm.utils import extract_mapping
 from octopus.arch.wasm.graph import *
 import argparse
 import logging
