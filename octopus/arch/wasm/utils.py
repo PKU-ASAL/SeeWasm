@@ -62,7 +62,11 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
         'T': 'conditional_true',
         'F': 'conditional_false',
         'f': 'fallthrough',
-        'u': 'unconditional'
+        'u': 'unconditional',
+        'conditional_true': 'T',
+        'conditional_false': 'F',
+        'fallthrough': 'f',
+        'unconditional': 'u',
     }
 
     while True:
@@ -72,21 +76,10 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
 
             # if there is only one possible state
             if onlyone and not isbr:
-                if user_input == 'i':
-                    user_input = "1 " + user_input
-                else:
-                    user_input = "1"
+                user_input = ("1 " + user_input) if user_input == 'i' else "1"
             elif onlyone and isbr: # if there is only one possible branch
-                branch_name = list(branches.keys())[0]
-                for k, v in branch_mapping.items():
-                    if v == branch_name:
-                        branch_symbol = k
-                        break
-                if user_input == 'i':
-                    user_input = branch_symbol + " " + user_input
-                else:
-                    user_input = branch_symbol
-
+                branch_symbol = branch_mapping[list(branches.keys())[0]]
+                user_input = branch_symbol + " " + user_input if user_input == 'i' else branch_symbol
 
             if ' ' in user_input:
                 concerned_variable, ask_for_info = user_input.split(' ')
@@ -104,5 +97,6 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
                 show_state_info(concerned_variable, emul_states)
             print('')
         except:
-            raise("[!] Valid input is needed")
+            print(f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
+
     return concerned_variable
