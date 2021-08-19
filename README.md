@@ -45,7 +45,20 @@ To run the generated Wasm file, please refer to [this part](#analyze-specific-fu
 
 ### Go -> Wasm
 
-**TODO**
+To compile Go code to Wasm file, you have to firstly make sure the Go environment is properly installed on your device.
+You can test it in your terminal by:
+```shell
+go version
+```
+
+Then, you can use the following command to compile a `[file_name].go` into `[file_name].wasm`.
+```shell
+GOOS=js GOARCH=wasm go build -o [file_name].wasm
+```
+
+The folder `go_samples` contains a hello-world Go source code along with its corresponding Wasm and Wat files. Note that the Wat file is larger than 60M, because it contains all the necessary functions that are used to interact with the hosting environment (JavaScript here as we assigned).
+The `main` function in Go file is named as `main.main` in the Wat file.
+
 
 ## Analyze
 
@@ -62,6 +75,8 @@ python3 octopus_wasm -f [path_to_file].wasm -s --onlyfunc [entry_func] --need_ma
 Here, in the `[entry_func]`, users are allowed to specify the entry functions. For Wasm file compiled from C, we typically set this field as `main`.
 Moreover, `--need-mapper` is compulsory, because it can make a mapping between Wasm function indice and standard C library functions' name.
 Also, you can use `-v` to output each Wasm instruction's behavior.
+
+**NOTE: currently, we cannot analyze the Wasm file compiled from Go file, and we are working on it.**
 
 ----
 
