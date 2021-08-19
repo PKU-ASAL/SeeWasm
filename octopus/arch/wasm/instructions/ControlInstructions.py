@@ -7,7 +7,7 @@ from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
 
-C_LIBRARY_FUNCS = ['$printf', '$scanf', '$strlen', '$swap']
+C_LIBRARY_FUNCS = ['printf', 'scanf', 'strlen', 'swap']
 
 class ControlInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):

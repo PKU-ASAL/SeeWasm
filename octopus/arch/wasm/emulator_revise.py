@@ -1,6 +1,6 @@
 import copy
 import logging
-from datetime import datetime
+import re
 
 from z3 import *
 
@@ -49,12 +49,36 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
 
+    def get_wasm_func_name(self, func_name):
+        # translate the readable name to the internal name
+
+        # if the func_name is the internal name
+        for item in self.ana.func_prototypes:
+            if item[0] == func_name:
+                return func_name
+
+        func_index = None
+        for index, wat_func_name in self.func_index2func_name.items():
+                if wat_func_name == func_name:
+                    func_index = index
+                    break
+        return '$func' + str(func_index)
+
     def get_signature(self, func_name):
         # extract param and return str
-        for func_info in self.ana.func_prototypes:
-            if func_info[0] == func_name:
-                param_str, return_str = func_info[1], func_info[2]
-                break
+        func_index = None
+        if func_name[0] == '$':
+            func_index = int(re.match(r'\$func(.*)', func_name).group(1))
+        else:
+            for index, wat_func_name in self.func_index2func_name.items():
+                if wat_func_name == func_name:
+                    func_index = index
+                    break
+
+        assert func_index, f"[!] Cannot find your entry function: {func_name}"
+        func_info = self.ana.func_prototypes[func_index]
+        param_str, return_str = func_info[1], func_info[2]
+
         return param_str, return_str
 
     def init_globals(self, state):

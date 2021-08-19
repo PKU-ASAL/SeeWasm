@@ -21,7 +21,7 @@ class PredefinedFunction:
             for _ in range(num_arg):
                 param_list.append(state.symbolic_stack.pop())
 
-        if self.name == '$printf':
+        if self.name == 'printf':
             # has to use as_long()
             mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
             pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section, state.symbolic_memory)
@@ -42,7 +42,7 @@ class PredefinedFunction:
             # elif isinstance(the_string, str) and the_string.isspace():
             #     the_string = f"'{ord(the_string)}'"
             logging.warning("%s\n", the_string)
-        elif self.name == '$scanf':
+        elif self.name == 'scanf':
             mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
             pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
                                                            state.symbolic_memory)
@@ -76,7 +76,7 @@ class PredefinedFunction:
                     logging.warning("================Initiated an scanf string: abc=================\n")
                 else:
                     exit("$scanf error")
-        elif self.name == '$strlen':
+        elif self.name == 'strlen':
             mem_pointer = param_list[0].as_long()
             the_string = C_extract_string_by_mem_pointer(mem_pointer, data_section, state.symbolic_memory)
 
@@ -85,7 +85,7 @@ class PredefinedFunction:
 
             manually_constructed = True
             logging.warning("================$strlen! The length is: %s=================\n", string_length)
-        elif self.name == '$swap':
+        elif self.name == 'swap':
             the_one, the_other = param_list[0].as_long(), param_list[1].as_long()
             the_one_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_one, 1)
             the_other_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_other, 1)

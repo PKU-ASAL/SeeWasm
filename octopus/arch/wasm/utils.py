@@ -37,9 +37,9 @@ def extract_mapping(file_path):
 
     # index to func name
     mapper = {}
-    matches = re.findall(r'func (.*) \(type', text)
+    matches = re.findall(r' \(func (.*) \(type', text)
     for i, func_name in enumerate(matches):
-        mapper[i] = func_name
+        mapper[i] = func_name if func_name[0] != '$' else func_name[1:]
 
     return mapper
 

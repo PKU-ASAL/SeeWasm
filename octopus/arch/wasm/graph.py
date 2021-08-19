@@ -104,6 +104,7 @@ class Graph:
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
+        func = cls.wasmVM.get_wasm_func_name(func)
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
             state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
