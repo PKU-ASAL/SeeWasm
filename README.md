@@ -76,8 +76,6 @@ Here, in the `[entry_func]`, users are allowed to specify the entry functions. F
 Moreover, `--need-mapper` is compulsory, because it can make a mapping between Wasm function indice and standard C library functions' name.
 Also, you can use `-v` to output each Wasm instruction's behavior.
 
-**NOTE: currently, we cannot analyze the Wasm file compiled from Go file, and we are working on it.**
-
 ----
 
 # Compile WASM from C
