@@ -229,7 +229,7 @@ def enum_blocks_edges(function_id, instructions):
         if inst.is_branch_unconditional:
             for ref in inst.xref:
                 edges.append(Edge(block.name, format_bb_name(function_id, ref), EDGE_UNCONDITIONAL))
-        # conditionnal jump - br_if, if
+        # conditionnal jump - br_if, if, br_table
         elif inst.is_branch_conditional:
             if inst.name == 'if':
                 edges.append(Edge(block.name,

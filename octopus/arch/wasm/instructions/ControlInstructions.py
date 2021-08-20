@@ -86,8 +86,11 @@ class ControlInstructions:
             # this instruction will pop an element out of the stack, and use this as an index in the table, i.e., elem section in Wasm module, to dynamically determine which fucntion will be invoked
             raise UnsupportInstructionError
         elif self.instr_name == 'br_table':
-            raise UnsupportInstructionError
+            # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
+            
+            operand_str = self.instr_operand.decode('utf-8')
+            raise UnsupportInstructionError
             # if the branch operand is not a number, too much branches emulation may lead to path explosion
             # so we give up this situation's emulation
             if not is_bv_value(op):

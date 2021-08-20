@@ -34,7 +34,7 @@ def classproperty(func):
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
-    _bbs_graph = defaultdict(dict) # nested dict
+    _bbs_graph = defaultdict(lambda: defaultdict(list)) # nested dict
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -85,7 +85,8 @@ class Graph:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
             node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
-            cls.bbs_graph[node_from][edge_type] = node_to
+            # we have to make the value as a list as the br_table may have multiple conditional_true branches
+            cls.bbs_graph[node_from][edge_type].append(node_to)
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -94,7 +95,7 @@ class Graph:
             # goal 1
             bb_name = bb.name
             if bb_name not in cls.bbs_graph:
-                cls.bbs_graph[bb_name] = dict()
+                cls.bbs_graph[bb_name] = defaultdict(list)
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
 
@@ -185,18 +186,19 @@ class Graph:
                     avail_br = [ask_user_input(emul_states, isbr=True, branches=branches, state_item=state_item)]
 
             for type in avail_br:
-                nxt_blk = cls.bbs_graph[blk][type]
+                nxt_blks = cls.bbs_graph[blk][type]
                 state = state_item[type] if isinstance(state_item, dict) else state_item
-                if not guided:
-                    if nxt_blk in circles:
-                        enter_states = [state]
-                        for i in range(cls.loop_maximum_rounds):
-                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false'])
-                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true'])
-                        final_states.extend(enter_states)
+                for nxt_blk in nxt_blks:
+                    if not guided:
+                        if nxt_blk in circles:
+                            enter_states = [state]
+                            for i in range(cls.loop_maximum_rounds):
+                                enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false'])
+                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true'])
+                            final_states.extend(enter_states)
+                        else:
+                            final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
                     else:
                         final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
-                else:
-                    final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
         vis[blk] -= 1
         return final_states if len(final_states) > 0 else states
