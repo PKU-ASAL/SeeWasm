@@ -229,7 +229,7 @@ def enum_blocks_edges(function_id, instructions):
         if inst.is_branch_unconditional:
             for ref in inst.xref:
                 edges.append(Edge(block.name, format_bb_name(function_id, ref), EDGE_UNCONDITIONAL))
-        # conditionnal jump - br_if, if
+        # conditionnal jump - br_if, if, br_table
         elif inst.is_branch_conditional:
             if inst.name == 'if':
                 edges.append(Edge(block.name,
@@ -241,6 +241,19 @@ def enum_blocks_edges(function_id, instructions):
                 edges.append(Edge(block.name,
                                   format_bb_name(function_id, jump_target),
                                   EDGE_CONDITIONAL_FALSE))
+            # we add it to correct the br_table behavior
+            # we define the default branch is conditional_false
+            # the others as consitional_true @wasm-se
+            elif inst.name == 'br_table':
+                # conditional_true's
+                for _index, ref in enumerate(inst.xref):
+                    for _block in basicblocks:
+                        if ref and _block.instructions[0].offset == ref:
+                            if _index != len(inst.xref) - 1:
+                                edges.append(Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE))
+                            else:
+                                edges.append(Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE))
+                            break
             else:
                 for ref in inst.xref:
                     if ref and ref != inst.offset_end + 1:

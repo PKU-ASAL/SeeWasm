@@ -34,7 +34,7 @@ def classproperty(func):
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
-    _bbs_graph = defaultdict(dict) # nested dict
+    _bbs_graph = defaultdict(lambda: defaultdict(str)) # nested dict
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -81,11 +81,19 @@ class Graph:
         # adjacent graph for basic blocks, like:
         # {'block_3_0': ['block_3_6', 'block_3_9']}
         edges = cfg.edges
+        # sort the edges, according to the edge.from and edge.to
+        # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
+        # TODO quite a huge overhead, try another way
+        edges = sorted(edges, key = lambda x: (x.node_from, x.node_to))
+        type_ids = defaultdict(lambda : defaultdict(int))
         for edge in edges:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
             node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
-            cls.bbs_graph[node_from][edge_type] = node_to
+            # we have to make the value as a list as the br_table may have multiple conditional_true branches
+            ty = edge_type + '_' + str(type_ids[node_from][edge_type])
+            cls.bbs_graph[node_from][ty] = node_to
+            type_ids[node_from][edge_type] += 1 
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -94,7 +102,7 @@ class Graph:
             # goal 1
             bb_name = bb.name
             if bb_name not in cls.bbs_graph:
-                cls.bbs_graph[bb_name] = dict()
+                cls.bbs_graph[bb_name] = defaultdict(str)
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
 
@@ -129,7 +137,7 @@ class Graph:
 
     @classmethod
     def pre(cls, blk, vis, circles):
-        if vis[blk] == 1 and len(cls.bbs_graph[blk]) == 2: # br_if and has visited
+        if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2: # br_if and has visited
             circles.add(blk)
             return
         vis[blk] = 1
@@ -164,7 +172,7 @@ class Graph:
             branches = cls.bbs_graph[blk] if branches is None else branches
             avail_br = []
             for type in branches:
-                if type in ['conditional_true', 'conditional_false'] and isinstance(state_item, dict):
+                if type.startswith('conditional_') and isinstance(state_item, dict):
                     if type not in state_item:
                         continue
                     state = state_item[type]
@@ -191,8 +199,8 @@ class Graph:
                     if nxt_blk in circles:
                         enter_states = [state]
                         for i in range(cls.loop_maximum_rounds):
-                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false'])
-                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true'])
+                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false_0'])
+                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true_0'])
                         final_states.extend(enter_states)
                     else:
                         final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
