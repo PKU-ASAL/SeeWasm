@@ -1,6 +1,7 @@
 from z3 import *
 import re
 import logging
+from collections import defaultdict
 
 from octopus.arch.wasm.exceptions import *
 from octopus.arch.wasm.internal_functions import PredefinedFunction
@@ -88,23 +89,29 @@ class ControlInstructions:
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
-            import struct
-            ops = list(struct.iter_unpack('b', self.instr_operand))
-            n_br = ops[0][0]
-            br_lis = [t[0] for t in ops[1:-1]]
-            false_br = ops[-1][0]
+            
+            # operands of br_table instruction
+            ops = [i for i in self.instr_operand]
+            n_br, br_lis = ops[0], ops[1:-1]
+
+            # construct a dict to minimize the possible states
+            target_branch2index = defaultdict(list)
+            for index, target in enumerate(br_lis):
+                target_branch2index[target].append(index)
+
             states = []
-            for idx, br in enumerate(br_lis):
-                staten = {'conditional_true_' + str(br): copy.deepcopy(state)}
-                cond = simplify(op == idx)
-                staten['conditional_true_' + str(br)].constraints.append(cond)
+            for target, index_list in target_branch2index.items():
+                staten = {'conditional_true_' + str(target): copy.deepcopy(state)}
+                index_list = [(op == i) for i in index_list]
+                cond = simplify(Or(index_list))
+                staten['conditional_true_' + str(target)].constraints.append(cond)
                 states.append(staten)
+
             staten = {'conditional_false_0': copy.deepcopy(state)}
             cond = simplify(op >= n_br)
             staten['conditional_false_0'].constraints.append(cond)
             states.append(staten)
             return False, states
-            raise UnsupportInstructionError
         elif self.instr_name == 'call':
             self.instr_operand = int.from_bytes(self.instr_operand, byteorder='big')
             

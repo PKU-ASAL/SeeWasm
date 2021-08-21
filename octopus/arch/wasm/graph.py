@@ -81,6 +81,10 @@ class Graph:
         # adjacent graph for basic blocks, like:
         # {'block_3_0': ['block_3_6', 'block_3_9']}
         edges = cfg.edges
+        # sort the edges, according to the edge.from and edge.to
+        # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
+        # TODO quite a huge overhead, try another way
+        edges = sorted(edges, key = lambda x: (x.node_from, x.node_to))
         type_ids = defaultdict(lambda : defaultdict(int))
         for edge in edges:
             # there are four types of edges:
