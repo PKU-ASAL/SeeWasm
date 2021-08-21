@@ -63,11 +63,11 @@ class ControlInstructions:
         if self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true': copy.deepcopy(state), 'conditional_false': copy.deepcopy(state)}
+            states = {'conditional_true_0': copy.deepcopy(state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 op = simplify(op != 0)
-            states['conditional_true'].constraints.append(op)
-            states['conditional_false'].constraints.append(simplify(Not(op)))
+            states['conditional_true_0'].constraints.append(op)
+            states['conditional_false_0'].constraints.append(simplify(Not(op)))
 
             return False, [states]
         elif self.instr_name == 'if':
@@ -75,11 +75,11 @@ class ControlInstructions:
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true': copy.deepcopy(state), 'conditional_false': copy.deepcopy(state)}
+            states = {'conditional_true_0': copy.deepcopy(state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 op = simplify(op != 0)
-            states['conditional_true'].constraints.append(op)
-            states['conditional_false'].constraints.append(simplify(Not(op)))
+            states['conditional_true_0'].constraints.append(op)
+            states['conditional_false_0'].constraints.append(simplify(Not(op)))
             return False, [states]
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
@@ -88,40 +88,23 @@ class ControlInstructions:
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
-            
-            operand_str = self.instr_operand.decode('utf-8')
+            import struct
+            ops = list(struct.iter_unpack('b', self.instr_operand))
+            n_br = ops[0][0]
+            br_lis = [t[0] for t in ops[1:-1]]
+            false_br = ops[-1][0]
+            states = []
+            for idx, br in enumerate(br_lis):
+                staten = {'conditional_true_' + str(br): copy.deepcopy(state)}
+                cond = simplify(op == idx)
+                staten['conditional_true_' + str(br)].constraints.append(cond)
+                states.append(staten)
+            staten = {'conditional_false_0': copy.deepcopy(state)}
+            cond = simplify(op >= n_br)
+            staten['conditional_false_0'].constraints.append(cond)
+            states.append(staten)
+            return False, states
             raise UnsupportInstructionError
-            # if the branch operand is not a number, too much branches emulation may lead to path explosion
-            # so we give up this situation's emulation
-            if not is_bv_value(op):
-                return True
-            # if in guided emulation
-            # because op currently is a concrete integer, and br_table add no constraint
-            # therefore return False is enough here
-            if gvar.guided_emulation_flag and gvar.guided_emulation_mainline_function_flag:
-                return False
-            branch = op.as_long()
-            branches = list(instr.operand)
-            # remove the first one
-            branches.pop(0)
-            try:
-                index = branches.index(branch)
-            except ValueError:
-                index = -1
-            jump_addr = instr.xref[index]
-            for idx in self.reverse_instructions:
-                if jump_addr == self.reverse_instructions[idx].offset:
-                    state.instr = self.reverse_instructions[idx]
-                    state.pc = idx
-                    break
-
-            self.current_basicblock = self.basicblock_per_instr[instr.offset]
-            # if in guided emulation, prune some branch
-            if gvar.guided_emulation_flag and not gvar.guided_emulation_mainline_function_flag:
-                if self.current_basicblock.name not in self.visited_basicblock:
-                    self.visited_basicblock[self.current_basicblock.name] = 1
-                else:
-                    self.visited_basicblock[self.current_basicblock.name] += 1
         elif self.instr_name == 'call':
             self.instr_operand = int.from_bytes(self.instr_operand, byteorder='big')
             
