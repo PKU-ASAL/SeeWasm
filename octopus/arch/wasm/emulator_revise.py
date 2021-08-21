@@ -83,7 +83,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def init_globals(self, state):
         for i, item in enumerate(self.ana.globals):
-            op_type, op_val = item[0], BitVecVal(item[1], 32)
+            op_type = item[0]
+            if op_type == 'i32':
+                op_val = BitVecVal(item[1], 32)
+            elif op_type == 'i64':
+                op_val = BitVecVal(item[1], 64)
+            else:
+                raise UnsupportGlobalTypeError
             state.globals[i] = op_val
 
     def init_state(self, func_name, param_str, return_str, has_ret):
