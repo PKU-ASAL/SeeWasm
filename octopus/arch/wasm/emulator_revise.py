@@ -149,6 +149,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 PC:\t\t{state.pc}
 Current Func:\t{state.current_func_name}
 Instruction:\t{instr.operand_interpretation}
+Instr-offset:\t{instr.offset}
 Stack:\t\t{state.symbolic_stack}
 Local Var:\t{state.local_var}
 Global Var:\t{state.globals}

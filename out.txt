@@ -2,6 +2,7 @@ DEBUG:root:
 PC:		1
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	0
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -12,6 +13,7 @@ DEBUG:root:
 PC:		2
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	2
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -22,6 +24,7 @@ DEBUG:root:
 PC:		3
 Current Func:	$func1707
 Instruction:	block -64
+Instr-offset:	4
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -32,6 +35,7 @@ DEBUG:root:
 PC:		4
 Current Func:	$func1707
 Instruction:	block -64
+Instr-offset:	6
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -42,6 +46,7 @@ DEBUG:root:
 PC:		5
 Current Func:	$func1707
 Instruction:	block -64
+Instr-offset:	8
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -52,6 +57,7 @@ DEBUG:root:
 PC:		6
 Current Func:	$func1707
 Instruction:	block -64
+Instr-offset:	10
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -62,6 +68,7 @@ DEBUG:root:
 PC:		7
 Current Func:	$func1707
 Instruction:	get_local 0
+Instr-offset:	12
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -72,6 +79,7 @@ DEBUG:root:
 PC:		8
 Current Func:	$func1707
 Instruction:	br_table 6, [0, 0, 0, 0, 1, 1], 2
+Instr-offset:	14
 Stack:		[$func1707_loc_0_i32]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -82,6 +90,7 @@ DEBUG:root:
 PC:		9
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	23
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -95,6 +104,7 @@ DEBUG:root:
 PC:		10
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	24
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -108,6 +118,7 @@ DEBUG:root:
 PC:		11
 Current Func:	$func1707
 Instruction:	get_global 2
+Instr-offset:	26
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -121,6 +132,7 @@ DEBUG:root:
 PC:		12
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	28
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -134,6 +146,7 @@ DEBUG:root:
 PC:		13
 Current Func:	$func1707
 Instruction:	i32.load 2, 16
+Instr-offset:	29
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -147,6 +160,7 @@ DEBUG:root:
 PC:		14
 Current Func:	$func1707
 Instruction:	i32.le_u
+Instr-offset:	32
 Stack:		[0, load_i32*(16)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -160,6 +174,7 @@ DEBUG:root:
 PC:		15
 Current Func:	$func1707
 Instruction:	if -64
+Instr-offset:	33
 Stack:		[1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -173,6 +188,7 @@ DEBUG:root:
 PC:		16
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	35
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -186,6 +202,7 @@ DEBUG:root:
 PC:		17
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	37
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -199,6 +216,7 @@ DEBUG:root:
 PC:		18
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	39
 Stack:		[0, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -212,6 +230,7 @@ DEBUG:root:
 PC:		19
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	40
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -225,6 +244,7 @@ DEBUG:root:
 PC:		20
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	42
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -238,6 +258,7 @@ DEBUG:root:
 PC:		21
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	44
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -251,6 +272,7 @@ DEBUG:root:
 PC:		22
 Current Func:	$func1707
 Instruction:	i64.const 378929152
+Instr-offset:	46
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -264,6 +286,7 @@ DEBUG:root:
 PC:		23
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	52
 Stack:		[4294967288, 378929152]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -277,6 +300,7 @@ DEBUG:root:
 PC:		24
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	55
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -290,6 +314,7 @@ DEBUG:root:
 PC:		25
 Current Func:	$func1707
 Instruction:	call 900
+Instr-offset:	57
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -303,6 +328,7 @@ DEBUG:root:
 PC:		26
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	60
 Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -316,6 +342,7 @@ DEBUG:root:
 PC:		27
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	62
 Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -329,6 +356,7 @@ DEBUG:root:
 PC:		28
 Current Func:	$func1707
 Instruction:	br_if 3
+Instr-offset:	64
 Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -342,6 +370,7 @@ DEBUG:root:
 PC:		29
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	66
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -355,6 +384,7 @@ DEBUG:root:
 PC:		30
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -368,6 +398,7 @@ DEBUG:root:
 PC:		31
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -381,6 +412,7 @@ DEBUG:root:
 PC:		32
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -394,6 +426,7 @@ DEBUG:root:
 PC:		33
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -407,6 +440,7 @@ DEBUG:root:
 PC:		34
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -420,6 +454,7 @@ DEBUG:root:
 PC:		35
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -433,6 +468,7 @@ DEBUG:root:
 PC:		36
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -446,6 +482,7 @@ DEBUG:root:
 PC:		37
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -459,6 +496,7 @@ DEBUG:root:
 PC:		38
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -472,6 +510,7 @@ DEBUG:root:
 PC:		39
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -485,6 +524,7 @@ DEBUG:root:
 PC:		40
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -498,6 +538,7 @@ DEBUG:root:
 PC:		41
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -511,6 +552,7 @@ DEBUG:root:
 PC:		42
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -524,6 +566,7 @@ DEBUG:root:
 PC:		43
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -537,6 +580,7 @@ DEBUG:root:
 PC:		44
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -550,6 +594,7 @@ DEBUG:root:
 PC:		45
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -563,6 +608,7 @@ DEBUG:root:
 PC:		46
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -576,6 +622,7 @@ DEBUG:root:
 PC:		47
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -589,6 +636,7 @@ DEBUG:root:
 PC:		48
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -602,6 +650,7 @@ DEBUG:root:
 PC:		49
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -615,6 +664,7 @@ DEBUG:root:
 PC:		50
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -628,6 +678,7 @@ DEBUG:root:
 PC:		51
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -641,6 +692,7 @@ DEBUG:root:
 PC:		52
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -654,6 +706,7 @@ DEBUG:root:
 PC:		53
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -667,6 +720,7 @@ DEBUG:root:
 PC:		54
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -680,6 +734,7 @@ DEBUG:root:
 PC:		55
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -693,6 +748,7 @@ DEBUG:root:
 PC:		56
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -706,6 +762,7 @@ DEBUG:root:
 PC:		57
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -719,6 +776,7 @@ DEBUG:root:
 PC:		58
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -732,6 +790,7 @@ DEBUG:root:
 PC:		59
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -745,6 +804,7 @@ DEBUG:root:
 PC:		60
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -758,6 +818,7 @@ DEBUG:root:
 PC:		61
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -771,6 +832,7 @@ DEBUG:root:
 PC:		62
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -784,6 +846,7 @@ DEBUG:root:
 PC:		63
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -797,6 +860,7 @@ DEBUG:root:
 PC:		64
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -810,6 +874,7 @@ DEBUG:root:
 PC:		65
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -823,6 +888,7 @@ DEBUG:root:
 PC:		66
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -836,6 +902,7 @@ DEBUG:root:
 PC:		67
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -849,6 +916,7 @@ DEBUG:root:
 PC:		68
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -862,6 +930,7 @@ DEBUG:root:
 PC:		69
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -875,6 +944,7 @@ DEBUG:root:
 PC:		70
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -888,6 +958,7 @@ DEBUG:root:
 PC:		71
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -901,6 +972,7 @@ DEBUG:root:
 PC:		72
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -914,6 +986,7 @@ DEBUG:root:
 PC:		73
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -927,6 +1000,7 @@ DEBUG:root:
 PC:		74
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -940,6 +1014,7 @@ DEBUG:root:
 PC:		75
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -953,6 +1028,7 @@ DEBUG:root:
 PC:		76
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -966,6 +1042,7 @@ DEBUG:root:
 PC:		77
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -979,6 +1056,7 @@ DEBUG:root:
 PC:		78
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -992,6 +1070,7 @@ DEBUG:root:
 PC:		79
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1005,6 +1084,7 @@ DEBUG:root:
 PC:		80
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1018,6 +1098,7 @@ DEBUG:root:
 PC:		81
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1031,6 +1112,7 @@ DEBUG:root:
 PC:		82
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1044,6 +1126,7 @@ DEBUG:root:
 PC:		83
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1057,6 +1140,7 @@ DEBUG:root:
 PC:		84
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1070,6 +1154,7 @@ DEBUG:root:
 PC:		85
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1083,6 +1168,7 @@ DEBUG:root:
 PC:		86
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1098,6 +1184,7 @@ DEBUG:root:
 PC:		87
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1113,6 +1200,7 @@ DEBUG:root:
 PC:		88
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1128,6 +1216,7 @@ DEBUG:root:
 PC:		89
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1143,6 +1232,7 @@ DEBUG:root:
 PC:		90
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1158,6 +1248,7 @@ DEBUG:root:
 PC:		91
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1173,6 +1264,7 @@ DEBUG:root:
 PC:		92
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1188,6 +1280,7 @@ DEBUG:root:
 PC:		93
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1203,6 +1296,7 @@ DEBUG:root:
 PC:		94
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1218,6 +1312,7 @@ DEBUG:root:
 PC:		95
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1234,6 +1329,7 @@ DEBUG:root:
 PC:		96
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[fmt.Fprintln_ret_i32_$func1707_95]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1249,6 +1345,7 @@ DEBUG:root:
 PC:		97
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[fmt.Fprintln_ret_i32_$func1707_95, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1264,6 +1361,7 @@ DEBUG:root:
 PC:		98
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[fmt.Fprintln_ret_i32_$func1707_95]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1279,6 +1377,7 @@ DEBUG:root:
 PC:		99
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1294,6 +1393,7 @@ DEBUG:root:
 PC:		100
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1309,6 +1409,7 @@ DEBUG:root:
 PC:		101
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1324,6 +1425,7 @@ DEBUG:root:
 PC:		102
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[4294967200, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1339,6 +1441,7 @@ DEBUG:root:
 PC:		103
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1354,6 +1457,7 @@ DEBUG:root:
 PC:		104
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1369,6 +1473,7 @@ DEBUG:root:
 PC:		105
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1384,6 +1489,7 @@ DEBUG:root:
 PC:		106
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1399,6 +1505,7 @@ DEBUG:root:
 PC:		107
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[4294967280, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1414,6 +1521,7 @@ DEBUG:root:
 PC:		108
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1429,6 +1537,7 @@ DEBUG:root:
 PC:		109
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1444,6 +1553,7 @@ DEBUG:root:
 PC:		110
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1459,6 +1569,7 @@ DEBUG:root:
 PC:		111
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1474,6 +1585,7 @@ DEBUG:root:
 PC:		112
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1489,6 +1601,7 @@ DEBUG:root:
 PC:		113
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1504,6 +1617,7 @@ DEBUG:root:
 PC:		114
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[0, 4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1519,6 +1633,7 @@ DEBUG:root:
 PC:		115
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1534,6 +1649,7 @@ DEBUG:root:
 PC:		116
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1549,6 +1665,7 @@ DEBUG:root:
 PC:		117
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1564,6 +1681,7 @@ DEBUG:root:
 PC:		118
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1579,6 +1697,7 @@ DEBUG:root:
 PC:		119
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1594,6 +1713,7 @@ DEBUG:root:
 PC:		120
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1609,6 +1729,7 @@ DEBUG:root:
 PC:		121
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1624,6 +1745,7 @@ DEBUG:root:
 PC:		122
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1639,6 +1761,7 @@ DEBUG:root:
 PC:		123
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1654,6 +1777,7 @@ DEBUG:root:
 PC:		124
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1669,6 +1793,7 @@ DEBUG:root:
 PC:		125
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1684,6 +1809,7 @@ DEBUG:root:
 PC:		126
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1699,6 +1825,7 @@ DEBUG:root:
 PC:		127
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1714,6 +1841,7 @@ DEBUG:root:
 PC:		128
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1729,6 +1857,7 @@ DEBUG:root:
 PC:		129
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1744,6 +1873,7 @@ DEBUG:root:
 PC:		130
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1759,6 +1889,7 @@ DEBUG:root:
 PC:		131
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1774,6 +1905,7 @@ DEBUG:root:
 PC:		132
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1789,6 +1921,7 @@ DEBUG:root:
 PC:		133
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1804,6 +1937,7 @@ DEBUG:root:
 PC:		134
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1819,6 +1953,7 @@ DEBUG:root:
 PC:		135
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1834,6 +1969,7 @@ DEBUG:root:
 PC:		136
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1849,6 +1985,7 @@ DEBUG:root:
 PC:		137
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[0, 4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1864,6 +2001,7 @@ DEBUG:root:
 PC:		138
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1879,6 +2017,7 @@ DEBUG:root:
 PC:		139
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1894,6 +2033,7 @@ DEBUG:root:
 PC:		140
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1909,6 +2049,7 @@ DEBUG:root:
 PC:		141
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1924,6 +2065,7 @@ DEBUG:root:
 PC:		142
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1939,6 +2081,7 @@ DEBUG:root:
 PC:		143
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1954,6 +2097,7 @@ DEBUG:root:
 PC:		144
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[0, 4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1969,6 +2113,7 @@ DEBUG:root:
 PC:		145
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1984,6 +2129,7 @@ DEBUG:root:
 PC:		146
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -1999,6 +2145,7 @@ DEBUG:root:
 PC:		147
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2014,6 +2161,7 @@ DEBUG:root:
 PC:		148
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2029,6 +2177,7 @@ DEBUG:root:
 PC:		149
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[0, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2044,6 +2193,7 @@ DEBUG:root:
 PC:		150
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2059,6 +2209,7 @@ DEBUG:root:
 PC:		151
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2074,6 +2225,7 @@ DEBUG:root:
 PC:		152
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[0, 4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2089,6 +2241,7 @@ DEBUG:root:
 PC:		153
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2104,6 +2257,7 @@ DEBUG:root:
 PC:		154
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2119,6 +2273,7 @@ DEBUG:root:
 PC:		155
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[0, 4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2134,6 +2289,7 @@ DEBUG:root:
 PC:		156
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2149,6 +2305,7 @@ DEBUG:root:
 PC:		157
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2164,6 +2321,7 @@ DEBUG:root:
 PC:		158
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2179,6 +2337,7 @@ DEBUG:root:
 PC:		159
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2194,6 +2353,7 @@ DEBUG:root:
 PC:		160
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[0, 4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2209,6 +2369,7 @@ DEBUG:root:
 PC:		161
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[0, 4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2224,6 +2385,7 @@ DEBUG:root:
 PC:		162
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2239,6 +2401,7 @@ DEBUG:root:
 PC:		163
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2254,6 +2417,7 @@ DEBUG:root:
 PC:		164
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2269,6 +2433,7 @@ DEBUG:root:
 PC:		165
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2284,6 +2449,7 @@ DEBUG:root:
 PC:		166
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2299,6 +2465,7 @@ DEBUG:root:
 PC:		167
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2314,6 +2481,7 @@ DEBUG:root:
 PC:		168
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2329,6 +2497,7 @@ DEBUG:root:
 PC:		169
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2344,6 +2513,7 @@ DEBUG:root:
 PC:		170
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[0, 4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2359,6 +2529,7 @@ DEBUG:root:
 PC:		171
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2374,6 +2545,7 @@ DEBUG:root:
 PC:		172
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2389,6 +2561,7 @@ DEBUG:root:
 PC:		173
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2404,6 +2577,7 @@ DEBUG:root:
 PC:		174
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2419,6 +2593,7 @@ DEBUG:root:
 PC:		175
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[0, 4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2434,6 +2609,7 @@ DEBUG:root:
 PC:		176
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2449,6 +2625,7 @@ DEBUG:root:
 PC:		177
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2465,6 +2642,7 @@ DEBUG:root:
 PC:		178
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[0, fmt.Fprintln_ret_i32_$func1707_177]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2480,6 +2658,7 @@ DEBUG:root:
 PC:		179
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[0, fmt.Fprintln_ret_i32_$func1707_177, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2495,6 +2674,7 @@ DEBUG:root:
 PC:		180
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[0, fmt.Fprintln_ret_i32_$func1707_177]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2510,6 +2690,7 @@ DEBUG:root:
 PC:		181
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2525,6 +2706,7 @@ DEBUG:root:
 PC:		182
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2540,6 +2722,7 @@ DEBUG:root:
 PC:		183
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2555,6 +2738,7 @@ DEBUG:root:
 PC:		184
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[0, 4294967200, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2570,6 +2754,7 @@ DEBUG:root:
 PC:		185
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2585,6 +2770,7 @@ DEBUG:root:
 PC:		186
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2600,6 +2786,7 @@ DEBUG:root:
 PC:		187
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2615,6 +2802,7 @@ DEBUG:root:
 PC:		188
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2630,6 +2818,7 @@ DEBUG:root:
 PC:		189
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[0, 4294967280, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2645,6 +2834,7 @@ DEBUG:root:
 PC:		190
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2660,6 +2850,7 @@ DEBUG:root:
 PC:		191
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2675,6 +2866,7 @@ DEBUG:root:
 PC:		192
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2690,6 +2882,7 @@ DEBUG:root:
 PC:		193
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2705,6 +2898,7 @@ DEBUG:root:
 PC:		194
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2720,6 +2914,7 @@ DEBUG:root:
 PC:		195
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2735,6 +2930,7 @@ DEBUG:root:
 PC:		196
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[0, 0, 4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2750,6 +2946,7 @@ DEBUG:root:
 PC:		197
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2765,6 +2962,7 @@ DEBUG:root:
 PC:		198
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2780,6 +2978,7 @@ DEBUG:root:
 PC:		199
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2795,6 +2994,7 @@ DEBUG:root:
 PC:		200
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2810,6 +3010,7 @@ DEBUG:root:
 PC:		201
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2825,6 +3026,7 @@ DEBUG:root:
 PC:		202
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2840,6 +3042,7 @@ DEBUG:root:
 PC:		203
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2855,6 +3058,7 @@ DEBUG:root:
 PC:		204
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2870,6 +3074,7 @@ DEBUG:root:
 PC:		205
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2885,6 +3090,7 @@ DEBUG:root:
 PC:		206
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2900,6 +3106,7 @@ DEBUG:root:
 PC:		207
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2915,6 +3122,7 @@ DEBUG:root:
 PC:		208
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2930,6 +3138,7 @@ DEBUG:root:
 PC:		209
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2945,6 +3154,7 @@ DEBUG:root:
 PC:		210
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2960,6 +3170,7 @@ DEBUG:root:
 PC:		211
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2975,6 +3186,7 @@ DEBUG:root:
 PC:		212
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -2990,6 +3202,7 @@ DEBUG:root:
 PC:		213
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3005,6 +3218,7 @@ DEBUG:root:
 PC:		214
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3020,6 +3234,7 @@ DEBUG:root:
 PC:		215
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3035,6 +3250,7 @@ DEBUG:root:
 PC:		216
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3050,6 +3266,7 @@ DEBUG:root:
 PC:		217
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3065,6 +3282,7 @@ DEBUG:root:
 PC:		218
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3080,6 +3298,7 @@ DEBUG:root:
 PC:		219
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[0, 0, 4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3095,6 +3314,7 @@ DEBUG:root:
 PC:		220
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3110,6 +3330,7 @@ DEBUG:root:
 PC:		221
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3125,6 +3346,7 @@ DEBUG:root:
 PC:		222
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3140,6 +3362,7 @@ DEBUG:root:
 PC:		223
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3155,6 +3378,7 @@ DEBUG:root:
 PC:		224
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3170,6 +3394,7 @@ DEBUG:root:
 PC:		225
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3185,6 +3410,7 @@ DEBUG:root:
 PC:		226
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[0, 0, 4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3200,6 +3426,7 @@ DEBUG:root:
 PC:		227
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3215,6 +3442,7 @@ DEBUG:root:
 PC:		228
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3230,6 +3458,7 @@ DEBUG:root:
 PC:		229
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3245,6 +3474,7 @@ DEBUG:root:
 PC:		230
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3260,6 +3490,7 @@ DEBUG:root:
 PC:		231
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[0, 0, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3275,6 +3506,7 @@ DEBUG:root:
 PC:		232
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3290,6 +3522,7 @@ DEBUG:root:
 PC:		233
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3305,6 +3538,7 @@ DEBUG:root:
 PC:		234
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[0, 0, 4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3320,6 +3554,7 @@ DEBUG:root:
 PC:		235
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3335,6 +3570,7 @@ DEBUG:root:
 PC:		236
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3350,6 +3586,7 @@ DEBUG:root:
 PC:		237
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[0, 0, 4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3365,6 +3602,7 @@ DEBUG:root:
 PC:		238
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3380,6 +3618,7 @@ DEBUG:root:
 PC:		239
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3395,6 +3634,7 @@ DEBUG:root:
 PC:		240
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3410,6 +3650,7 @@ DEBUG:root:
 PC:		241
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3425,6 +3666,7 @@ DEBUG:root:
 PC:		242
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[0, 0, 4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3440,6 +3682,7 @@ DEBUG:root:
 PC:		243
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[0, 0, 4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3455,6 +3698,7 @@ DEBUG:root:
 PC:		244
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3470,6 +3714,7 @@ DEBUG:root:
 PC:		245
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3485,6 +3730,7 @@ DEBUG:root:
 PC:		246
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3500,6 +3746,7 @@ DEBUG:root:
 PC:		247
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3515,6 +3762,7 @@ DEBUG:root:
 PC:		248
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3530,6 +3778,7 @@ DEBUG:root:
 PC:		249
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3545,6 +3794,7 @@ DEBUG:root:
 PC:		250
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3560,6 +3810,7 @@ DEBUG:root:
 PC:		251
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3575,6 +3826,7 @@ DEBUG:root:
 PC:		252
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[0, 0, 4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3590,6 +3842,7 @@ DEBUG:root:
 PC:		253
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3605,6 +3858,7 @@ DEBUG:root:
 PC:		254
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3620,6 +3874,7 @@ DEBUG:root:
 PC:		255
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3635,6 +3890,7 @@ DEBUG:root:
 PC:		256
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3650,6 +3906,7 @@ DEBUG:root:
 PC:		257
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[0, 0, 4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3665,6 +3922,7 @@ DEBUG:root:
 PC:		258
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3680,6 +3938,7 @@ DEBUG:root:
 PC:		259
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3696,6 +3955,7 @@ DEBUG:root:
 PC:		260
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[0, 0, fmt.Fprintln_ret_i32_$func1707_259]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3711,6 +3971,7 @@ DEBUG:root:
 PC:		261
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[0, 0, fmt.Fprintln_ret_i32_$func1707_259, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3726,6 +3987,7 @@ DEBUG:root:
 PC:		262
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[0, 0, fmt.Fprintln_ret_i32_$func1707_259]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3741,6 +4003,7 @@ DEBUG:root:
 PC:		263
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3756,6 +4019,7 @@ DEBUG:root:
 PC:		264
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3771,6 +4035,7 @@ DEBUG:root:
 PC:		265
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3786,6 +4051,7 @@ DEBUG:root:
 PC:		266
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[0, 0, 4294967200, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3801,6 +4067,7 @@ DEBUG:root:
 PC:		267
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3816,6 +4083,7 @@ DEBUG:root:
 PC:		268
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3831,6 +4099,7 @@ DEBUG:root:
 PC:		269
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3846,6 +4115,7 @@ DEBUG:root:
 PC:		270
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3861,6 +4131,7 @@ DEBUG:root:
 PC:		271
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[0, 0, 4294967280, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3876,6 +4147,7 @@ DEBUG:root:
 PC:		272
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3891,6 +4163,7 @@ DEBUG:root:
 PC:		273
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3906,6 +4179,7 @@ DEBUG:root:
 PC:		274
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3921,6 +4195,7 @@ DEBUG:root:
 PC:		275
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3936,6 +4211,7 @@ DEBUG:root:
 PC:		276
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3951,6 +4227,7 @@ DEBUG:root:
 PC:		277
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3966,6 +4243,7 @@ DEBUG:root:
 PC:		278
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[0, 0, 0, 4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3981,6 +4259,7 @@ DEBUG:root:
 PC:		279
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -3996,6 +4275,7 @@ DEBUG:root:
 PC:		280
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4011,6 +4291,7 @@ DEBUG:root:
 PC:		281
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4026,6 +4307,7 @@ DEBUG:root:
 PC:		282
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4041,6 +4323,7 @@ DEBUG:root:
 PC:		283
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4056,6 +4339,7 @@ DEBUG:root:
 PC:		284
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4071,6 +4355,7 @@ DEBUG:root:
 PC:		285
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4086,6 +4371,7 @@ DEBUG:root:
 PC:		286
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4101,6 +4387,7 @@ DEBUG:root:
 PC:		287
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4116,6 +4403,7 @@ DEBUG:root:
 PC:		288
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4131,6 +4419,7 @@ DEBUG:root:
 PC:		289
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4146,6 +4435,7 @@ DEBUG:root:
 PC:		290
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4161,6 +4451,7 @@ DEBUG:root:
 PC:		291
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4176,6 +4467,7 @@ DEBUG:root:
 PC:		292
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4191,6 +4483,7 @@ DEBUG:root:
 PC:		293
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4206,6 +4499,7 @@ DEBUG:root:
 PC:		294
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4221,6 +4515,7 @@ DEBUG:root:
 PC:		295
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4236,6 +4531,7 @@ DEBUG:root:
 PC:		296
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4251,6 +4547,7 @@ DEBUG:root:
 PC:		297
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4266,6 +4563,7 @@ DEBUG:root:
 PC:		298
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4281,6 +4579,7 @@ DEBUG:root:
 PC:		299
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4296,6 +4595,7 @@ DEBUG:root:
 PC:		300
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4311,6 +4611,7 @@ DEBUG:root:
 PC:		301
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[0, 0, 0, 4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4326,6 +4627,7 @@ DEBUG:root:
 PC:		302
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4341,6 +4643,7 @@ DEBUG:root:
 PC:		303
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4356,6 +4659,7 @@ DEBUG:root:
 PC:		304
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4371,6 +4675,7 @@ DEBUG:root:
 PC:		305
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4386,6 +4691,7 @@ DEBUG:root:
 PC:		306
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4401,6 +4707,7 @@ DEBUG:root:
 PC:		307
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4416,6 +4723,7 @@ DEBUG:root:
 PC:		308
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[0, 0, 0, 4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4431,6 +4739,7 @@ DEBUG:root:
 PC:		309
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4446,6 +4755,7 @@ DEBUG:root:
 PC:		310
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4461,6 +4771,7 @@ DEBUG:root:
 PC:		311
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4476,6 +4787,7 @@ DEBUG:root:
 PC:		312
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4491,6 +4803,7 @@ DEBUG:root:
 PC:		313
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[0, 0, 0, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4506,6 +4819,7 @@ DEBUG:root:
 PC:		314
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4521,6 +4835,7 @@ DEBUG:root:
 PC:		315
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4536,6 +4851,7 @@ DEBUG:root:
 PC:		316
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[0, 0, 0, 4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4551,6 +4867,7 @@ DEBUG:root:
 PC:		317
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4566,6 +4883,7 @@ DEBUG:root:
 PC:		318
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4581,6 +4899,7 @@ DEBUG:root:
 PC:		319
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[0, 0, 0, 4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4596,6 +4915,7 @@ DEBUG:root:
 PC:		320
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4611,6 +4931,7 @@ DEBUG:root:
 PC:		321
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4626,6 +4947,7 @@ DEBUG:root:
 PC:		322
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4641,6 +4963,7 @@ DEBUG:root:
 PC:		323
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4656,6 +4979,7 @@ DEBUG:root:
 PC:		324
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[0, 0, 0, 4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4671,6 +4995,7 @@ DEBUG:root:
 PC:		325
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[0, 0, 0, 4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4686,6 +5011,7 @@ DEBUG:root:
 PC:		326
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4701,6 +5027,7 @@ DEBUG:root:
 PC:		327
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4716,6 +5043,7 @@ DEBUG:root:
 PC:		328
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4731,6 +5059,7 @@ DEBUG:root:
 PC:		329
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4746,6 +5075,7 @@ DEBUG:root:
 PC:		330
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4761,6 +5091,7 @@ DEBUG:root:
 PC:		331
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4776,6 +5107,7 @@ DEBUG:root:
 PC:		332
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4791,6 +5123,7 @@ DEBUG:root:
 PC:		333
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4806,6 +5139,7 @@ DEBUG:root:
 PC:		334
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[0, 0, 0, 4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4821,6 +5155,7 @@ DEBUG:root:
 PC:		335
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4836,6 +5171,7 @@ DEBUG:root:
 PC:		336
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4851,6 +5187,7 @@ DEBUG:root:
 PC:		337
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4866,6 +5203,7 @@ DEBUG:root:
 PC:		338
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4881,6 +5219,7 @@ DEBUG:root:
 PC:		339
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[0, 0, 0, 4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4896,6 +5235,7 @@ DEBUG:root:
 PC:		340
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4911,6 +5251,7 @@ DEBUG:root:
 PC:		341
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4927,6 +5268,7 @@ DEBUG:root:
 PC:		342
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[0, 0, 0, fmt.Fprintln_ret_i32_$func1707_341]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4942,6 +5284,7 @@ DEBUG:root:
 PC:		343
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[0, 0, 0, fmt.Fprintln_ret_i32_$func1707_341, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4957,6 +5300,7 @@ DEBUG:root:
 PC:		344
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[0, 0, 0, fmt.Fprintln_ret_i32_$func1707_341]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4972,6 +5316,7 @@ DEBUG:root:
 PC:		345
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -4987,6 +5332,7 @@ DEBUG:root:
 PC:		346
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5002,6 +5348,7 @@ DEBUG:root:
 PC:		347
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5017,6 +5364,7 @@ DEBUG:root:
 PC:		348
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[0, 0, 0, 4294967200, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5032,6 +5380,7 @@ DEBUG:root:
 PC:		349
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5047,6 +5396,7 @@ DEBUG:root:
 PC:		350
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5062,6 +5412,7 @@ DEBUG:root:
 PC:		351
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5077,6 +5428,7 @@ DEBUG:root:
 PC:		352
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5092,6 +5444,7 @@ DEBUG:root:
 PC:		353
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[0, 0, 0, 4294967280, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5107,6 +5460,7 @@ DEBUG:root:
 PC:		354
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5122,6 +5476,7 @@ DEBUG:root:
 PC:		355
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5137,6 +5492,7 @@ DEBUG:root:
 PC:		356
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5152,6 +5508,7 @@ DEBUG:root:
 PC:		357
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5167,6 +5524,7 @@ DEBUG:root:
 PC:		358
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5182,6 +5540,7 @@ DEBUG:root:
 PC:		359
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[0, 0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5197,6 +5556,7 @@ DEBUG:root:
 PC:		360
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[0, 0, 0, 0, 4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5212,6 +5572,7 @@ DEBUG:root:
 PC:		361
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5227,6 +5588,7 @@ DEBUG:root:
 PC:		362
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5242,6 +5604,7 @@ DEBUG:root:
 PC:		363
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5257,6 +5620,7 @@ DEBUG:root:
 PC:		364
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5272,6 +5636,7 @@ DEBUG:root:
 PC:		365
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5287,6 +5652,7 @@ DEBUG:root:
 PC:		366
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5302,6 +5668,7 @@ DEBUG:root:
 PC:		367
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5317,6 +5684,7 @@ DEBUG:root:
 PC:		368
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5332,6 +5700,7 @@ DEBUG:root:
 PC:		369
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[0, 0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5347,6 +5716,7 @@ DEBUG:root:
 PC:		370
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5362,6 +5732,7 @@ DEBUG:root:
 PC:		371
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5377,6 +5748,7 @@ DEBUG:root:
 PC:		372
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5392,6 +5764,7 @@ DEBUG:root:
 PC:		373
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5407,6 +5780,7 @@ DEBUG:root:
 PC:		374
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5422,6 +5796,7 @@ DEBUG:root:
 PC:		375
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5437,6 +5812,7 @@ DEBUG:root:
 PC:		376
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[0, 0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5452,6 +5828,7 @@ DEBUG:root:
 PC:		377
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5467,6 +5844,7 @@ DEBUG:root:
 PC:		378
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5482,6 +5860,7 @@ DEBUG:root:
 PC:		379
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5497,6 +5876,7 @@ DEBUG:root:
 PC:		380
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5512,6 +5892,7 @@ DEBUG:root:
 PC:		381
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5527,6 +5908,7 @@ DEBUG:root:
 PC:		382
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5542,6 +5924,7 @@ DEBUG:root:
 PC:		383
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[0, 0, 0, 0, 4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5557,6 +5940,7 @@ DEBUG:root:
 PC:		384
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5572,6 +5956,7 @@ DEBUG:root:
 PC:		385
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5587,6 +5972,7 @@ DEBUG:root:
 PC:		386
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5602,6 +5988,7 @@ DEBUG:root:
 PC:		387
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5617,6 +6004,7 @@ DEBUG:root:
 PC:		388
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5632,6 +6020,7 @@ DEBUG:root:
 PC:		389
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5647,6 +6036,7 @@ DEBUG:root:
 PC:		390
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[0, 0, 0, 0, 4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5662,6 +6052,7 @@ DEBUG:root:
 PC:		391
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5677,6 +6068,7 @@ DEBUG:root:
 PC:		392
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5692,6 +6084,7 @@ DEBUG:root:
 PC:		393
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[0, 0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5707,6 +6100,7 @@ DEBUG:root:
 PC:		394
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[0, 0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5722,6 +6116,7 @@ DEBUG:root:
 PC:		395
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[0, 0, 0, 0, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5737,6 +6132,7 @@ DEBUG:root:
 PC:		396
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5752,6 +6148,7 @@ DEBUG:root:
 PC:		397
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5767,6 +6164,7 @@ DEBUG:root:
 PC:		398
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[0, 0, 0, 0, 4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5782,6 +6180,7 @@ DEBUG:root:
 PC:		399
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5797,6 +6196,7 @@ DEBUG:root:
 PC:		400
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5812,6 +6212,7 @@ DEBUG:root:
 PC:		401
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[0, 0, 0, 0, 4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5827,6 +6228,7 @@ DEBUG:root:
 PC:		402
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5842,6 +6244,7 @@ DEBUG:root:
 PC:		403
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5857,6 +6260,7 @@ DEBUG:root:
 PC:		404
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[0, 0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5872,6 +6276,7 @@ DEBUG:root:
 PC:		405
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[0, 0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5887,6 +6292,7 @@ DEBUG:root:
 PC:		406
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[0, 0, 0, 0, 4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5902,6 +6308,7 @@ DEBUG:root:
 PC:		407
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[0, 0, 0, 0, 4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5917,6 +6324,7 @@ DEBUG:root:
 PC:		408
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5932,6 +6340,7 @@ DEBUG:root:
 PC:		409
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5947,6 +6356,7 @@ DEBUG:root:
 PC:		410
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[0, 0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5962,6 +6372,7 @@ DEBUG:root:
 PC:		411
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5977,6 +6388,7 @@ DEBUG:root:
 PC:		412
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -5992,6 +6404,7 @@ DEBUG:root:
 PC:		413
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[0, 0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6007,6 +6420,7 @@ DEBUG:root:
 PC:		414
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6022,6 +6436,7 @@ DEBUG:root:
 PC:		415
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6037,6 +6452,7 @@ DEBUG:root:
 PC:		416
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[0, 0, 0, 0, 4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6052,6 +6468,7 @@ DEBUG:root:
 PC:		417
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6067,6 +6484,7 @@ DEBUG:root:
 PC:		418
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6082,6 +6500,7 @@ DEBUG:root:
 PC:		419
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6097,6 +6516,7 @@ DEBUG:root:
 PC:		420
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6112,6 +6532,7 @@ DEBUG:root:
 PC:		421
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[0, 0, 0, 0, 4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6127,6 +6548,7 @@ DEBUG:root:
 PC:		422
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6142,6 +6564,7 @@ DEBUG:root:
 PC:		423
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6158,6 +6581,7 @@ DEBUG:root:
 PC:		424
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_423]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6173,6 +6597,7 @@ DEBUG:root:
 PC:		425
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_423, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6188,6 +6613,7 @@ DEBUG:root:
 PC:		426
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_423]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6203,6 +6629,7 @@ DEBUG:root:
 PC:		427
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6218,6 +6645,7 @@ DEBUG:root:
 PC:		428
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6233,6 +6661,7 @@ DEBUG:root:
 PC:		429
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6248,6 +6677,7 @@ DEBUG:root:
 PC:		430
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[0, 0, 0, 0, 4294967200, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6263,6 +6693,7 @@ DEBUG:root:
 PC:		431
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[0, 0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6278,6 +6709,7 @@ DEBUG:root:
 PC:		432
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[0, 0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6293,6 +6725,7 @@ DEBUG:root:
 PC:		433
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6308,6 +6741,7 @@ DEBUG:root:
 PC:		434
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[0, 0, 0, 0, 4294967280]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6323,6 +6757,7 @@ DEBUG:root:
 PC:		435
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[0, 0, 0, 0, 4294967280, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6338,6 +6773,7 @@ DEBUG:root:
 PC:		436
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[0, 0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6353,6 +6789,7 @@ DEBUG:root:
 PC:		437
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[0, 0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6368,6 +6805,7 @@ DEBUG:root:
 PC:		438
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6383,6 +6821,7 @@ DEBUG:root:
 PC:		439
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6398,6 +6837,7 @@ DEBUG:root:
 PC:		440
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	67
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6413,6 +6853,7 @@ DEBUG:root:
 PC:		441
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	69
 Stack:		[0, 0, 0, 0, 0, 4294967288]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6428,6 +6869,7 @@ DEBUG:root:
 PC:		442
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	72
 Stack:		[0, 0, 0, 0, 0, 4294967288, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6443,6 +6885,7 @@ DEBUG:root:
 PC:		443
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	73
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6458,6 +6901,7 @@ DEBUG:root:
 PC:		444
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	75
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6473,6 +6917,7 @@ DEBUG:root:
 PC:		445
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	77
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6488,6 +6933,7 @@ DEBUG:root:
 PC:		446
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	79
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6503,6 +6949,7 @@ DEBUG:root:
 PC:		447
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	80
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6518,6 +6965,7 @@ DEBUG:root:
 PC:		448
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	83
 Stack:		[0, 0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6533,6 +6981,7 @@ DEBUG:root:
 PC:		449
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	84
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6548,6 +6997,7 @@ DEBUG:root:
 PC:		450
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	85
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6563,6 +7013,7 @@ DEBUG:root:
 PC:		451
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	87
 Stack:		[0, 0, 0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6578,6 +7029,7 @@ DEBUG:root:
 PC:		452
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	90
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6593,6 +7045,7 @@ DEBUG:root:
 PC:		453
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	92
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6608,6 +7061,7 @@ DEBUG:root:
 PC:		454
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	93
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6623,6 +7077,7 @@ DEBUG:root:
 PC:		455
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	96
 Stack:		[0, 0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6638,6 +7093,7 @@ DEBUG:root:
 PC:		456
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	97
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6653,6 +7109,7 @@ DEBUG:root:
 PC:		457
 Current Func:	$func1707
 Instruction:	i64.const 0
+Instr-offset:	98
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6668,6 +7125,7 @@ DEBUG:root:
 PC:		458
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	100
 Stack:		[0, 0, 0, 0, 0, 4294967272, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6683,6 +7141,7 @@ DEBUG:root:
 PC:		459
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	103
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6698,6 +7157,7 @@ DEBUG:root:
 PC:		460
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	105
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6713,6 +7173,7 @@ DEBUG:root:
 PC:		461
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	106
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6728,6 +7189,7 @@ DEBUG:root:
 PC:		462
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	109
 Stack:		[0, 0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6743,6 +7205,7 @@ DEBUG:root:
 PC:		463
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	110
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6758,6 +7221,7 @@ DEBUG:root:
 PC:		464
 Current Func:	$func1707
 Instruction:	i64.const 82432
+Instr-offset:	111
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6773,6 +7237,7 @@ DEBUG:root:
 PC:		465
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	115
 Stack:		[0, 0, 0, 0, 0, 4294967272, 82432]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6788,6 +7253,7 @@ DEBUG:root:
 PC:		466
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	118
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6803,6 +7269,7 @@ DEBUG:root:
 PC:		467
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	120
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6818,6 +7285,7 @@ DEBUG:root:
 PC:		468
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	121
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6833,6 +7301,7 @@ DEBUG:root:
 PC:		469
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	124
 Stack:		[0, 0, 0, 0, 0, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6848,6 +7317,7 @@ DEBUG:root:
 PC:		470
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	125
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6863,6 +7333,7 @@ DEBUG:root:
 PC:		471
 Current Func:	$func1707
 Instruction:	i64.const 303200
+Instr-offset:	126
 Stack:		[0, 0, 0, 0, 0, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6878,6 +7349,7 @@ DEBUG:root:
 PC:		472
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	130
 Stack:		[0, 0, 0, 0, 0, 4294967272, 303200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6893,6 +7365,7 @@ DEBUG:root:
 PC:		473
 Current Func:	$func1707
 Instruction:	nop
+Instr-offset:	133
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6908,6 +7381,7 @@ DEBUG:root:
 PC:		474
 Current Func:	$func1707
 Instruction:	i64.const 1323272
+Instr-offset:	134
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6923,6 +7397,7 @@ DEBUG:root:
 PC:		475
 Current Func:	$func1707
 Instruction:	i32.wrap/i64
+Instr-offset:	139
 Stack:		[0, 0, 0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6938,6 +7413,7 @@ DEBUG:root:
 PC:		476
 Current Func:	$func1707
 Instruction:	i64.load 3, 0
+Instr-offset:	140
 Stack:		[0, 0, 0, 0, 0, 1323272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6953,6 +7429,7 @@ DEBUG:root:
 PC:		477
 Current Func:	$func1707
 Instruction:	set_local 2
+Instr-offset:	143
 Stack:		[0, 0, 0, 0, 0, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6968,6 +7445,7 @@ DEBUG:root:
 PC:		478
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	145
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6983,6 +7461,7 @@ DEBUG:root:
 PC:		479
 Current Func:	$func1707
 Instruction:	i64.const 308512
+Instr-offset:	147
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -6998,6 +7477,7 @@ DEBUG:root:
 PC:		480
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	151
 Stack:		[0, 0, 0, 0, 0, 4294967208, 308512]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7013,6 +7493,7 @@ DEBUG:root:
 PC:		481
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	154
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7028,6 +7509,7 @@ DEBUG:root:
 PC:		482
 Current Func:	$func1707
 Instruction:	get_local 2
+Instr-offset:	156
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7043,6 +7525,7 @@ DEBUG:root:
 PC:		483
 Current Func:	$func1707
 Instruction:	i64.store 3, 8
+Instr-offset:	158
 Stack:		[0, 0, 0, 0, 0, 4294967208, load_i64*(1323272)]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7058,6 +7541,7 @@ DEBUG:root:
 PC:		484
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	161
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7073,6 +7557,7 @@ DEBUG:root:
 PC:		485
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	163
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7088,6 +7573,7 @@ DEBUG:root:
 PC:		486
 Current Func:	$func1707
 Instruction:	i64.extend_u/i32
+Instr-offset:	165
 Stack:		[0, 0, 0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7103,6 +7589,7 @@ DEBUG:root:
 PC:		487
 Current Func:	$func1707
 Instruction:	i64.const 64
+Instr-offset:	166
 Stack:		[0, 0, 0, 0, 0, 4294967208, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7118,6 +7605,7 @@ DEBUG:root:
 PC:		488
 Current Func:	$func1707
 Instruction:	i64.add
+Instr-offset:	169
 Stack:		[0, 0, 0, 0, 0, 4294967208, 4294967208, 64]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7133,6 +7621,7 @@ DEBUG:root:
 PC:		489
 Current Func:	$func1707
 Instruction:	i64.store 3, 16
+Instr-offset:	170
 Stack:		[0, 0, 0, 0, 0, 4294967208, 4294967272]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7148,6 +7637,7 @@ DEBUG:root:
 PC:		490
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	173
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7163,6 +7653,7 @@ DEBUG:root:
 PC:		491
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	175
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7178,6 +7669,7 @@ DEBUG:root:
 PC:		492
 Current Func:	$func1707
 Instruction:	i64.store 3, 24
+Instr-offset:	177
 Stack:		[0, 0, 0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7193,6 +7685,7 @@ DEBUG:root:
 PC:		493
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	180
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7208,6 +7701,7 @@ DEBUG:root:
 PC:		494
 Current Func:	$func1707
 Instruction:	i64.const 1
+Instr-offset:	182
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7223,6 +7717,7 @@ DEBUG:root:
 PC:		495
 Current Func:	$func1707
 Instruction:	i64.store 3, 32
+Instr-offset:	184
 Stack:		[0, 0, 0, 0, 0, 4294967208, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7238,6 +7733,7 @@ DEBUG:root:
 PC:		496
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	187
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7253,6 +7749,7 @@ DEBUG:root:
 PC:		497
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	189
 Stack:		[0, 0, 0, 0, 0, 4294967208]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7268,6 +7765,7 @@ DEBUG:root:
 PC:		498
 Current Func:	$func1707
 Instruction:	i32.sub
+Instr-offset:	191
 Stack:		[0, 0, 0, 0, 0, 4294967208, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7283,6 +7781,7 @@ DEBUG:root:
 PC:		499
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	192
 Stack:		[0, 0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7298,6 +7797,7 @@ DEBUG:root:
 PC:		500
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	194
 Stack:		[0, 0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7313,6 +7813,7 @@ DEBUG:root:
 PC:		501
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	196
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7328,6 +7829,7 @@ DEBUG:root:
 PC:		502
 Current Func:	$func1707
 Instruction:	i64.const 378929156
+Instr-offset:	198
 Stack:		[0, 0, 0, 0, 0, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7343,6 +7845,7 @@ DEBUG:root:
 PC:		503
 Current Func:	$func1707
 Instruction:	i64.store 3, 0
+Instr-offset:	204
 Stack:		[0, 0, 0, 0, 0, 4294967200, 378929156]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7358,6 +7861,7 @@ DEBUG:root:
 PC:		504
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	207
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7373,6 +7877,7 @@ DEBUG:root:
 PC:		505
 Current Func:	$func1707
 Instruction:	call 0x697
+Instr-offset:	209
 Stack:		[0, 0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7389,6 +7894,7 @@ DEBUG:root:
 PC:		506
 Current Func:	$func1707
 Instruction:	get_global 0
+Instr-offset:	212
 Stack:		[0, 0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_505]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7404,6 +7910,7 @@ DEBUG:root:
 PC:		507
 Current Func:	$func1707
 Instruction:	set_local 1
+Instr-offset:	214
 Stack:		[0, 0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_505, 4294967200]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7419,6 +7926,7 @@ DEBUG:root:
 PC:		508
 Current Func:	$func1707
 Instruction:	br_if 2
+Instr-offset:	216
 Stack:		[0, 0, 0, 0, 0, fmt.Fprintln_ret_i32_$func1707_505]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7434,6 +7942,7 @@ DEBUG:root:
 PC:		509
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	243
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7449,6 +7958,7 @@ DEBUG:root:
 PC:		510
 Current Func:	$func1707
 Instruction:	i32.const 1
+Instr-offset:	244
 Stack:		[0, 0, 0, 0, 0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7464,6 +7974,7 @@ DEBUG:root:
 PC:		511
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	246
 Stack:		[0, 0, 0, 0, 0, 1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
 Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7479,6 +7990,7 @@ DEBUG:root:
 PC:		29
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	243
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7492,6 +8004,7 @@ DEBUG:root:
 PC:		30
 Current Func:	$func1707
 Instruction:	i32.const 1
+Instr-offset:	244
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7505,6 +8018,7 @@ DEBUG:root:
 PC:		31
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	246
 Stack:		[1]
 Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
 Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7518,6 +8032,7 @@ DEBUG:root:
 PC:		9
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	218
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7528,6 +8043,7 @@ DEBUG:root:
 PC:		10
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	219
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7538,6 +8054,7 @@ DEBUG:root:
 PC:		11
 Current Func:	$func1707
 Instruction:	i32.const 80
+Instr-offset:	221
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7548,6 +8065,7 @@ DEBUG:root:
 PC:		12
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	224
 Stack:		[0, 80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7558,6 +8076,7 @@ DEBUG:root:
 PC:		13
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	225
 Stack:		[80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7568,6 +8087,7 @@ DEBUG:root:
 PC:		14
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	227
 Stack:		[80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 80}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7578,6 +8098,7 @@ DEBUG:root:
 PC:		15
 Current Func:	$func1707
 Instruction:	get_local 1
+Instr-offset:	229
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 80}
 Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7588,6 +8109,7 @@ DEBUG:root:
 PC:		16
 Current Func:	$func1707
 Instruction:	i32.const 8
+Instr-offset:	231
 Stack:		[80]
 Local Var:	{0: $func1707_loc_0_i32, 1: 80}
 Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7598,6 +8120,7 @@ DEBUG:root:
 PC:		17
 Current Func:	$func1707
 Instruction:	i32.add
+Instr-offset:	233
 Stack:		[80, 8]
 Local Var:	{0: $func1707_loc_0_i32, 1: 80}
 Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7608,6 +8131,7 @@ DEBUG:root:
 PC:		18
 Current Func:	$func1707
 Instruction:	tee_local 1
+Instr-offset:	234
 Stack:		[88]
 Local Var:	{0: $func1707_loc_0_i32, 1: 80}
 Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7618,6 +8142,7 @@ DEBUG:root:
 PC:		19
 Current Func:	$func1707
 Instruction:	set_global 0
+Instr-offset:	236
 Stack:		[88]
 Local Var:	{0: $func1707_loc_0_i32, 1: 88}
 Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7628,6 +8153,7 @@ DEBUG:root:
 PC:		20
 Current Func:	$func1707
 Instruction:	i32.const 0
+Instr-offset:	238
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 88}
 Global Var:	{0: 88, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7638,6 +8164,7 @@ DEBUG:root:
 PC:		21
 Current Func:	$func1707
 Instruction:	return
+Instr-offset:	240
 Stack:		[0]
 Local Var:	{0: $func1707_loc_0_i32, 1: 88}
 Global Var:	{0: 88, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7648,6 +8175,7 @@ DEBUG:root:
 PC:		9
 Current Func:	$func1707
 Instruction:	end
+Instr-offset:	241
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
@@ -7658,10 +8186,10 @@ DEBUG:root:
 PC:		10
 Current Func:	$func1707
 Instruction:	unreachable
+Instr-offset:	242
 Stack:		[]
 Local Var:	{0: $func1707_loc_0_i32, 1: 0}
 Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
 Memory:		{}
 Constraints:	[6 <= $func1707_loc_0_i32]
 
-exit visit function
