@@ -8,7 +8,8 @@ from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
 
-C_LIBRARY_FUNCS = ['printf', 'scanf', 'strlen', 'swap']
+C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap'}
+GO_LIBRARY_FUNCS = {'runtime.morestack_noctxt', 'fmt.Fprintln'}
 
 class ControlInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
@@ -113,7 +114,7 @@ class ControlInstructions:
             states.append(staten)
             return False, states
         elif self.instr_name == 'call':
-            self.instr_operand = int.from_bytes(self.instr_operand, byteorder='big')
+            self.instr_operand = self.instr_string.split(' ')[1]
             
             # get the callee's function signature
             try:
@@ -130,6 +131,9 @@ class ControlInstructions:
 
             new_states = []
             if readable_name in C_LIBRARY_FUNCS:
+                func = PredefinedFunction(readable_name, state.current_func_name)
+                func.emul(state, param_str, return_str, data_section)
+            elif readable_name in GO_LIBRARY_FUNCS:
                 func = PredefinedFunction(readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             else:

@@ -93,6 +93,11 @@ class PredefinedFunction:
             state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, the_other, 1, the_one_mem)
             logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem,
                             the_other_mem)
+        # ------------------------ GO Library -------------------------------
+        elif self.name == 'runtime.morestack_noctxt':
+            pass
+        elif self.name == 'fmt.Fprintln':
+            logging.warning("=============$fmt.Fprintln============")
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
