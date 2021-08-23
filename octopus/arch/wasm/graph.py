@@ -109,6 +109,7 @@ class Graph:
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
 
+    # entry to analyze a file
     def traverse(self):
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
@@ -120,15 +121,16 @@ class Graph:
         if state is None:
             state, has_ret = cls.wasmVM.init_state(
                 func, param_str, return_str, [])
-        # store the caller func
+
+        # switch the state from caller to callee
         caller_func_name = state.current_func_name
-        # set the callee func
         state.current_func_name = cls.wasmVM.cfg.get_function(func).name
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
+
         vis = defaultdict(int)
         circles = set()
         cls.pre(entry_bb, vis, circles)
@@ -136,10 +138,13 @@ class Graph:
 
         final_states = cls.visit(
             [state], has_ret, entry_bb, vis, circles, cls.manual_guide)
-        # recover the caller func
+
+        # restore the caller func
         state.current_func_name = caller_func_name
+
         return final_states
 
+    # `circles` maintains the circle entry in CFG
     @classmethod
     def pre(cls, blk, vis, circles):
         if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2:  # br_if and has visited
@@ -148,11 +153,13 @@ class Graph:
         vis[blk] = 1
         for ty in cls.bbs_graph[blk]:
             cls.pre(cls.bbs_graph[blk][ty], vis, circles)
+        vis[blk] = 0
 
     @classmethod
     def visit(cls, states, has_ret, blk, vis, circles, guided, branches=None):
         if not guided and vis[blk] > 0:
             return states
+
         instructions = cls.bb_to_instructions[blk]
         halt, emul_states = cls.wasmVM.emulate_basic_block(
             states, has_ret, instructions)
@@ -179,7 +186,8 @@ class Graph:
             emul_states = [state_item]
 
         for state_item in emul_states:
-            branches = cls.bbs_graph[blk] if branches is None else branches
+            if not branches:
+                branches = cls.bbs_graph[blk]
             avail_br = []
             for type in branches:
                 if type.startswith('conditional_') and isinstance(state_item, dict):
