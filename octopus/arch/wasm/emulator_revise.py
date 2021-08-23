@@ -27,9 +27,10 @@ MAX = 42
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, timeout, func_index2func_name=None):
+    def __init__(self, bytecode, user_asked_lasers, func_index2func_name=None):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
+        self.lasers = user_asked_lasers
 
         self.data_section = dict()
         # init memory section with data section
@@ -107,6 +108,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             has_ret.append(True)
         else:
             has_ret.append(False)
+
+        # pass the lasers
+        state.lasers = self.lasers
 
         return state, has_ret
 

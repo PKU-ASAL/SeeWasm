@@ -18,6 +18,9 @@ class WasmVMstate(VMstate):
         # current function name
         self.current_func_name = None
 
+        # lasers, vulnerability detector
+        self.lasers = 0
+
     def __str__(self):
         return str(self.__dict__)
 
