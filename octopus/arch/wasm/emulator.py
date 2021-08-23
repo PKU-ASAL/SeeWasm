@@ -108,7 +108,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # print(offset, size, data)
             if offset == '4':
                 exit("The offset of data section is 4, please check")
-                self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='little'), size * 8)
+                self.data_section[(offset, offset + size)] = BitVecVal(
+                    int.from_bytes(data, byteorder='little'), size * 8)
             else:
                 # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
                 # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
@@ -116,7 +117,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # func index to func real name
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
-    
+
     def get_signature(self, func_name):
         # extract param and return str
         for func_info in self.ana.func_prototypes:
@@ -124,7 +125,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 param_str, return_str = func_info[1], func_info[2]
                 break
         return param_str, return_str
-        
+
     def init_globals(self, state):
         for i, item in enumerate(self.ana.globals):
             op_type, op_val = item[0], BitVecVal(item[1], 32)
@@ -134,7 +135,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         state = WasmVMstate()
 
         for i, local in enumerate(param_str.split(' ')):
-            state.local_var[i] = getConcreteBitVec(local, func_name + '_loc_' + str(i) + '_' + local)
+            state.local_var[i] = getConcreteBitVec(
+                local, func_name + '_loc_' + str(i) + '_' + local)
 
         # deal with the globals
         self.init_globals(state)
@@ -143,7 +145,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             has_ret.append(True)
         else:
             has_ret.append(False)
-        
+
         return state, has_ret
 
     def init_state_before_call(self, param_str, return_str, has_ret, state):
@@ -171,11 +173,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(local, self.current_function.name + '_loc_' + str(i) + '_' + local)
+                new_state.local_var[i] = getConcreteBitVec(
+                    local, self.current_function.name + '_loc_' + str(i) + '_' + local)
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
-        
+
         # set the remaining local vars as None
         for x in range(num_arg, len(new_state.local_var)):
             new_state.local_var.pop(x)
@@ -263,7 +266,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         for func_name in list_functions_name:
             # retrieve func name according to the index
             if isinstance(func_name, int):
-                func_name = func_name - self.ana.elements[0]['offset'][0].imm.value
+                func_name = func_name - \
+                    self.ana.elements[0]['offset'][0].imm.value
                 mapped_index = self.ana.elements[0]['elems'][func_name]
                 import_func_count = len(self.ana.imports_func)
                 # because normal functions index follows the import functions
@@ -275,11 +279,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             # the [] here is the `has_ret`
             # as here is the entry, thus it is empty
-            state, has_ret = self.init_state(func_name, param_str, return_str, [])
+            state, has_ret = self.init_state(
+                func_name, param_str, return_str, [])
 
-            logging.info("=============================Function Name: %s=============================\n" % func_name)
-            self.emulate_one_function(call_depth, function_name=func_name, state=state, depth=depth, has_ret=has_ret)
-            
+            logging.info(
+                "=============================Function Name: %s=============================\n" % func_name)
+            self.emulate_one_function(
+                call_depth, function_name=func_name, state=state, depth=depth, has_ret=has_ret)
+
         return self.result, self.index2state
 
     def emulate_one_function(self, call_depth, function_name, depth, state=None, has_ret=[], basicblock_path=None):
@@ -307,7 +314,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for intr in bb.instructions:
                 self.basicblock_per_instr[intr.offset] = bb
 
-        if state is None: raise UninitializedStateError
+        if state is None:
+            raise UninitializedStateError
 
         # launch emulation
         if gvar.guided_emulation_flag:
@@ -348,7 +356,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # init state.local_var
         for i, local in enumerate(target_func_locals.split(' ')):
-            state.local_var[i] = getConcreteBitVec(local, func_path[0] + '_loc_' + str(i) + '_' + local)
+            state.local_var[i] = getConcreteBitVec(
+                local, func_path[0] + '_loc_' + str(i) + '_' + local)
 
         def bb_index(basic_block_name):
             return int(basic_block_name.split('_')[-1], 16)
@@ -508,13 +517,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
             if gvar.guided_emulation_flag:
-                halt = self.emulate_one_instruction(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+                halt = self.emulate_one_instruction(
+                    instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
             else:
                 halt = self.emulate_one_instruction(
                     instr, pre_instr, state, depth, has_ret, call_depth)
 
     def emulate_one_instruction(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
-        instruction_map ={
+        instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
             'Conversion': ConversionInstructions,
@@ -534,7 +544,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         }
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
-        
+
         logging.debug(f'''
                 PC:\t\t{state.pc}
                 Current Func:\t{self.current_function.name}
@@ -549,20 +559,22 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 state.constraints.remove(c)
                 # logging.warning(state.constraints)
                 # exit()
-        
+
         halt = False
-        instr_obj = instruction_map[instr.group](instr.name, instr.operand, instr.operand_interpretation)
+        instr_obj = instruction_map[instr.group](
+            instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':
             instr_obj.emulate(state, self.data_section)
         elif instr.group == 'Control':
-            halt = self.emul_control_instr(instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
+            halt = self.emul_control_instr(
+                instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path)
         elif instr.group == 'Parametric':
-            halt = self.emul_parametric_instr(instr, state, depth, has_ret, call_depth)
+            halt = self.emul_parametric_instr(
+                instr, state, depth, has_ret, call_depth)
         else:
             instr_obj.emulate(state)
-        
-        return halt
 
+        return halt
 
     def emul_control_instr(self, instr, pre_instr, state, depth, has_ret, call_depth, basicblock_path=None):
 
@@ -572,7 +584,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         elif instr.name == 'loop':
             logging.debug('[LOOP]: %s' % (instr.offset))
             # remember which loop is traversed
-            state.instructions_visited.add((self.current_function.name, instr.offset))
+            state.instructions_visited.add(
+                (self.current_function.name, instr.offset))
         elif instr.name in ['nop', 'block']:
             pass
         elif instr.name == 'else':
@@ -806,7 +819,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 state_tmp_list[1] = copy.deepcopy(state)
 
-                self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
+                self.current_function.return_value_and_state_list.append(
+                    tuple(state_tmp_list))
 
                 # 1. all branch with only True or False constraint, not symbolic execution result
                 # 2. [0,0,0...,0] is the last node_path in one function
@@ -1152,7 +1166,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             state_tmp_list[1] = copy.deepcopy(state)
 
-            self.current_function.return_value_and_state_list.append(tuple(state_tmp_list))
+            self.current_function.return_value_and_state_list.append(
+                tuple(state_tmp_list))
 
             logging.debug(
                 '[RET] reach the return which is located in the last line of function: %s, now constraint flag is: %s' % (
@@ -1193,7 +1208,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # if the func_index2func_name is not None
             # change the function name to the more readable name
             if self.func_index2func_name is not None:
-                name = self.func_index2func_name[int(re.search('(\d+)', name).group())]
+                name = self.func_index2func_name[int(
+                    re.search('(\d+)', name).group())]
             state.key_import_func_visited.append(name)
 
             # get callee function name
@@ -1341,7 +1357,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     for _ in range(num_arg):
                         state.symbolic_stack.pop()
                 if return_str:
-                    state.symbolic_stack.append(getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc)))
+                    state.symbolic_stack.append(getConcreteBitVec(
+                        return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc)))
 
             # the function is the C library functions, here
             elif name in C_LIBRARY_FUNCS:
@@ -1357,58 +1374,79 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 if name == '$printf':
                     # has to use as_long()
-                    mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-                    the_string = C_extract_string_by_start_pointer(start_pointer, mem_pointer, self.data_section, state.symbolic_memory)
+                    mem_pointer, start_pointer = param_list[0].as_long(
+                    ), param_list[1].as_long()
+                    the_string = C_extract_string_by_start_pointer(
+                        start_pointer, mem_pointer, self.data_section, state.symbolic_memory)
 
                     if isinstance(the_string, str) and the_string.isspace():
                         the_string = f"'{ord(the_string)}'"
-                    logging.warning("========================Print!=========================\n%s", the_string)
+                    logging.warning(
+                        "========================Print!=========================\n%s", the_string)
                 elif name == '$scanf':
-                    mem_pointer, start_pointer = param_list[0].as_long(), param_list[1].as_long()
-                    the_string = C_extract_string_by_start_pointer(start_pointer, 0, self.data_section, state.symbolic_memory)
+                    mem_pointer, start_pointer = param_list[0].as_long(
+                    ), param_list[1].as_long()
+                    the_string = C_extract_string_by_start_pointer(
+                        start_pointer, 0, self.data_section, state.symbolic_memory)
 
                     pattern_strs = the_string.split()
                     for i, pattern_str in enumerate(pattern_strs):
                         if pattern_str == '%d':
                             # as the basic unit in wasm is i32.load
-                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
+                            target_mem_pointer = lookup_symbolic_memory(
+                                state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
                             # TODO recheck here
                             # move to the next position where the new variable should be inserted
                             mem_pointer += 4
 
-                            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
-                            logging.warning("================Initiated an scanf integer: %s!=================\n", '$scanf_variable'+str(i) + "_depth_" + str(depth))
+                            state.symbolic_memory = insert_symbolic_memory(
+                                state.symbolic_memory, target_mem_pointer, 4, BitVec('variable'+str(i), 32))
+                            logging.warning("================Initiated an scanf integer: %s!=================\n",
+                                            '$scanf_variable'+str(i) + "_depth_" + str(depth))
                         elif pattern_str == '%s':
                             # as the basic unit in wasm is i32.load
-                            target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
+                            target_mem_pointer = lookup_symbolic_memory(
+                                state.symbolic_memory, self.data_section, mem_pointer, 4).as_long()
                             # mem_pointer += 4
 
                             # insert an 'abc\x00', little endian: 6513249
                             # big endian: 1633837824
-                            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4, BitVecVal(6513249, 32))
-                            logging.warning("================Initiated an scanf string: abc=================\n")
+                            state.symbolic_memory = insert_symbolic_memory(
+                                state.symbolic_memory, target_mem_pointer, 4, BitVecVal(6513249, 32))
+                            logging.warning(
+                                "================Initiated an scanf string: abc=================\n")
                         else:
                             exit("$scanf error")
                 elif name == '$strlen':
                     mem_pointer = param_list[0].as_long()
-                    the_string = C_extract_string_by_mem_pointer(mem_pointer, self.data_section, state.symbolic_memory)
+                    the_string = C_extract_string_by_mem_pointer(
+                        mem_pointer, self.data_section, state.symbolic_memory)
                     the_string = the_string.as_long()
 
-                    string_length = len(the_string.to_bytes((the_string.bit_length() + 7) // 8, 'little'))
+                    string_length = len(the_string.to_bytes(
+                        (the_string.bit_length() + 7) // 8, 'little'))
                     state.symbolic_stack.append(BitVecVal(string_length, 32))
 
                     manually_constructed = True
-                    logging.warning("================$strlen! The length is: %s=================\n", string_length)
+                    logging.warning(
+                        "================$strlen! The length is: %s=================\n", string_length)
                 elif name == '$swap':
-                    the_one, the_other = param_list[0].as_long(), param_list[1].as_long()
-                    the_one_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_one, 1)
-                    the_other_mem = lookup_symbolic_memory(state.symbolic_memory, {}, the_other, 1)
-                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, the_one, 1, the_other_mem)
-                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, the_other, 1, the_one_mem)
-                    logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem, the_other_mem)
+                    the_one, the_other = param_list[0].as_long(
+                    ), param_list[1].as_long()
+                    the_one_mem = lookup_symbolic_memory(
+                        state.symbolic_memory, {}, the_one, 1)
+                    the_other_mem = lookup_symbolic_memory(
+                        state.symbolic_memory, {}, the_other, 1)
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, the_one, 1, the_other_mem)
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, the_other, 1, the_one_mem)
+                    logging.warning(
+                        "================$swap! Swap the two: %s and %s=================\n", the_one_mem, the_other_mem)
 
                 if not manually_constructed and return_str:
-                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                    tmp_bitvec = getConcreteBitVec(
+                        return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
                     state.symbolic_stack.append(tmp_bitvec)
 
             # normal function call is processed here
@@ -1429,9 +1467,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                             # has sidepath_call key param
                             if True not in set([x in str(param) for x in ['tapos', 'loc_1', 'loc_2', 'loc_3', 'current_time']]):
                                 if return_str:
-                                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                                    tmp_bitvec = getConcreteBitVec(
+                                        return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
                                     state.symbolic_stack.append(tmp_bitvec)
-                                    
+
                                 return False
                             else:
                                 # print(param)
@@ -1479,7 +1518,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 # sometimes branched function can't return value as expected
                 if return_str and not possible_call_results:
-                    tmp_bitvec = getConcreteBitVec(return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
+                    tmp_bitvec = getConcreteBitVec(
+                        return_str, internal_function_name + '_ret_' + return_str + '_' + self.current_function.name + '_' + str(state.pc))
                     state.symbolic_stack.append(tmp_bitvec)
 
                     return False
@@ -1509,7 +1549,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                         return False
 
-                    logging.debug('===================situation %s======================' % i)
+                    # logging.debug('===================situation %s======================' % i)
 
                     # if have outer_need_ret but no return_value, means the callee's this branch is failed
                     if outer_need_ret and return_value is None:
@@ -1751,6 +1791,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                 halt = True
         else:
-            raise Exception('Instruction:', instr, 'not match in emul_parametric function')
+            raise Exception('Instruction:', instr,
+                            'not match in emul_parametric function')
 
         return halt

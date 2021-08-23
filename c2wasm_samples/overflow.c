@@ -20,6 +20,7 @@ int add_two_variable(a, b)
 int main(void)
 {
     unsigned int num = 0xffffffff;
+    printf("%x", num);
     add_one(num);
 
     unsigned int a = 0xfffffff0;

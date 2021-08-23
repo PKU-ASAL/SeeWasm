@@ -151,10 +151,10 @@
     local.get 10
     return)
   (func $__original_main (type 2) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     local.set 0
-    i32.const 32
+    i32.const 48
     local.set 1
     local.get 0
     local.get 1
@@ -166,59 +166,77 @@
     local.set 3
     local.get 2
     local.get 3
-    i32.store offset=28
+    i32.store offset=44
     i32.const -1
     local.set 4
     local.get 2
     local.get 4
-    i32.store offset=24
+    i32.store offset=40
     local.get 2
-    i32.load offset=24
+    i32.load offset=40
     local.set 5
+    local.get 2
     local.get 5
+    i32.store
+    i32.const 1062
+    local.set 6
+    local.get 6
+    local.get 2
+    call $printf
+    drop
+    local.get 2
+    i32.load offset=40
+    local.set 7
+    local.get 7
     call $add_one
     drop
     i32.const -16
-    local.set 6
-    local.get 2
-    local.get 6
-    i32.store offset=20
-    i32.const 16
-    local.set 7
-    local.get 2
-    local.get 7
-    i32.add
     local.set 8
     local.get 2
     local.get 8
-    i32.store
-    i32.const 1062
+    i32.store offset=36
+    i32.const 32
     local.set 9
-    local.get 9
     local.get 2
+    local.get 9
+    i32.add
+    local.set 10
+    local.get 2
+    local.get 10
+    i32.store offset=16
+    i32.const 1062
+    local.set 11
+    i32.const 16
+    local.set 12
+    local.get 2
+    local.get 12
+    i32.add
+    local.set 13
+    local.get 11
+    local.get 13
     call $scanf
     drop
     local.get 2
-    i32.load offset=20
-    local.set 10
+    i32.load offset=36
+    local.set 14
     local.get 2
-    i32.load offset=16
-    local.set 11
-    local.get 10
-    local.get 11
+    i32.load offset=32
+    local.set 15
+    local.get 14
+    local.get 15
     call $add_two_variable
     drop
     i32.const 0
-    local.set 12
-    i32.const 32
-    local.set 13
+    local.set 16
+    i32.const 48
+    local.set 17
     local.get 2
-    local.get 13
+    local.get 17
     i32.add
-    local.set 14
-    local.get 14
+    local.set 18
+    local.get 18
     global.set 0
-    local.get 12
+    local.get 16
     return)
   (func $main (type 3) (param i32 i32) (result i32)
     (local i32)
