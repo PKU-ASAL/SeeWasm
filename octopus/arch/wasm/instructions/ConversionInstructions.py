@@ -3,6 +3,7 @@
 from .. exceptions import *
 from z3 import *
 
+
 class ConversionInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name

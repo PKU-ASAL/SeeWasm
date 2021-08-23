@@ -10,6 +10,8 @@ import gvar
 sys.setrecursionlimit(4096)
 
 # check whether the argument is positive
+
+
 def check_not_neg(value):
     ivalue = int(value)
     if ivalue < 0:
@@ -98,7 +100,7 @@ def main():
     octo_disasm = None
     octo_cfg = None
     func_index2func_name = None
-    
+
     # the verbose
     if args.verbose:
         gvar.logging_level_verbose = True

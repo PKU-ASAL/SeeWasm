@@ -4,6 +4,7 @@ from z3 import *
 from collections import defaultdict
 from octopus.arch.wasm.utils import ask_user_input, bcolors
 
+
 class ClassPropertyDescriptor:
     def __init__(self, fget, fset=None):
         self.fget = fget
@@ -26,15 +27,17 @@ class ClassPropertyDescriptor:
         self.fset = func
         return self
 
+
 def classproperty(func):
     if not isinstance(func, (classmethod, staticmethod)):
         func = classmethod(func)
     return ClassPropertyDescriptor(func)
 
+
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
-    _bbs_graph = defaultdict(lambda: defaultdict(str)) # nested dict
+    _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -74,7 +77,7 @@ class Graph:
         cls.func_to_bbs = dict()
         for func in funcs:
             func_name, func_bbs = func.name, func.basicblocks
-            # get the name of bb in func_bbs 
+            # get the name of bb in func_bbs
             func_bbs = [bb.name for bb in func_bbs]
             cls.func_to_bbs[func_name] = func_bbs
 
@@ -84,8 +87,8 @@ class Graph:
         # sort the edges, according to the edge.from and edge.to
         # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
         # TODO quite a huge overhead, try another way
-        edges = sorted(edges, key = lambda x: (x.node_from, x.node_to))
-        type_ids = defaultdict(lambda : defaultdict(int))
+        edges = sorted(edges, key=lambda x: (x.node_from, x.node_to))
+        type_ids = defaultdict(lambda: defaultdict(int))
         for edge in edges:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
@@ -93,7 +96,7 @@ class Graph:
             # we have to make the value as a list as the br_table may have multiple conditional_true branches
             ty = edge_type + '_' + str(type_ids[node_from][edge_type])
             cls.bbs_graph[node_from][ty] = node_to
-            type_ids[node_from][edge_type] += 1 
+            type_ids[node_from][edge_type] += 1
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -106,6 +109,7 @@ class Graph:
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
 
+    # entry to analyze a file
     def traverse(self):
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
@@ -115,41 +119,50 @@ class Graph:
         func = cls.wasmVM.get_wasm_func_name(func)
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
-            state, has_ret = cls.wasmVM.init_state(func, param_str, return_str, [])
-        # store the caller func
+            state, has_ret = cls.wasmVM.init_state(
+                func, param_str, return_str, [])
+
+        # switch the state from caller to callee
         caller_func_name = state.current_func_name
-        # set the callee func
         state.current_func_name = cls.wasmVM.cfg.get_function(func).name
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
+
         vis = defaultdict(int)
         circles = set()
         cls.pre(entry_bb, vis, circles)
         vis = defaultdict(int)
 
-        final_states = cls.visit([state], has_ret, entry_bb, vis, circles, cls.manual_guide)
-        # recover the caller func
+        final_states = cls.visit(
+            [state], has_ret, entry_bb, vis, circles, cls.manual_guide)
+
+        # restore the caller func
         state.current_func_name = caller_func_name
+
         return final_states
 
+    # `circles` maintains the circle entry in CFG
     @classmethod
     def pre(cls, blk, vis, circles):
-        if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2: # br_if and has visited
+        if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2:  # br_if and has visited
             circles.add(blk)
             return
         vis[blk] = 1
         for ty in cls.bbs_graph[blk]:
             cls.pre(cls.bbs_graph[blk][ty], vis, circles)
+        vis[blk] = 0
 
     @classmethod
     def visit(cls, states, has_ret, blk, vis, circles, guided, branches=None):
         if not guided and vis[blk] > 0:
             return states
+
         instructions = cls.bb_to_instructions[blk]
-        halt, emul_states = cls.wasmVM.emulate_basic_block(states, has_ret, instructions)
+        halt, emul_states = cls.wasmVM.emulate_basic_block(
+            states, has_ret, instructions)
         if halt or len(cls.bbs_graph[blk]) == 0:
             return emul_states
         vis[blk] += 1
@@ -159,17 +172,22 @@ class Graph:
             print(
                 f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
             if len(emul_states) == 1:
-                print(f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                state_index = ask_user_input(emul_states, isbr=False, onlyone=True)
+                print(
+                    f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                state_index = ask_user_input(
+                    emul_states, isbr=False, onlyone=True)
             else:
-                print(f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
+                print(
+                    f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
                 print(f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-                state_index = ask_user_input(emul_states, isbr=False)  # 0 for state, is a flag
+                state_index = ask_user_input(
+                    emul_states, isbr=False)  # 0 for state, is a flag
             state_item = emul_states[state_index]
             emul_states = [state_item]
 
         for state_item in emul_states:
-            branches = cls.bbs_graph[blk] if branches is None else branches
+            if not branches:
+                branches = cls.bbs_graph[blk]
             avail_br = []
             for type in branches:
                 if type.startswith('conditional_') and isinstance(state_item, dict):
@@ -185,26 +203,34 @@ class Graph:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
                 if len(avail_br) == 1:
-                    print(f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    avail_br = [ask_user_input(emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
+                    print(
+                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                    avail_br = [ask_user_input(
+                        emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
                 else:
                     print(f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
                     print(f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    avail_br = [ask_user_input(emul_states, isbr=True, branches=branches, state_item=state_item)]
+                    avail_br = [ask_user_input(
+                        emul_states, isbr=True, branches=branches, state_item=state_item)]
 
             for type in avail_br:
                 nxt_blk = cls.bbs_graph[blk][type]
-                state = state_item[type] if isinstance(state_item, dict) else state_item
+                state = state_item[type] if isinstance(
+                    state_item, dict) else state_item
                 if not guided:
                     if nxt_blk in circles:
                         enter_states = [state]
                         for i in range(cls.loop_maximum_rounds):
-                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_false_0'])
-                        enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true_0'])
+                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, [
+                                                     'conditional_false_0'])
+                        enter_states = cls.visit(
+                            enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true_0'])
                         final_states.extend(enter_states)
                     else:
-                        final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
+                        final_states.extend(
+                            cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
                 else:
-                    final_states.extend(cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
+                    final_states.extend(
+                        cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
         vis[blk] -= 1
         return final_states if len(final_states) > 0 else states

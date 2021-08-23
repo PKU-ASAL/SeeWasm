@@ -1,0 +1,1838 @@
+DEBUG:root:
+PC:		1
+Current Func:	$func1707
+Instruction:	get_global 0
+Instr-offset:	0
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		2
+Current Func:	$func1707
+Instruction:	set_local 1
+Instr-offset:	2
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		3
+Current Func:	$func1707
+Instruction:	block -64
+Instr-offset:	4
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		4
+Current Func:	$func1707
+Instruction:	block -64
+Instr-offset:	6
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		5
+Current Func:	$func1707
+Instruction:	block -64
+Instr-offset:	8
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		6
+Current Func:	$func1707
+Instruction:	block -64
+Instr-offset:	10
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		7
+Current Func:	$func1707
+Instruction:	get_local 0
+Instr-offset:	12
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		8
+Current Func:	$func1707
+Instruction:	br_table 6, [0, 0, 0, 0, 1, 1], 2
+Instr-offset:	14
+Stack:		[$func1707_loc_0_i32]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[]
+
+DEBUG:root:
+PC:		9
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	23
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		10
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	24
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		11
+Current Func:	$func1707
+Instruction:	get_global 2
+Instr-offset:	26
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		12
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	28
+Stack:		[0, 0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		13
+Current Func:	$func1707
+Instruction:	i32.load 2, 16
+Instr-offset:	29
+Stack:		[0, 0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		14
+Current Func:	$func1707
+Instruction:	i32.le_u
+Instr-offset:	32
+Stack:		[0, load_i32*(16)]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		15
+Current Func:	$func1707
+Instruction:	if -64
+Instr-offset:	33
+Stack:		[1]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3)]
+
+DEBUG:root:
+PC:		16
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	35
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		17
+Current Func:	$func1707
+Instruction:	i32.const 8
+Instr-offset:	37
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		18
+Current Func:	$func1707
+Instruction:	i32.sub
+Instr-offset:	39
+Stack:		[0, 8]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		19
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	40
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		20
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	42
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		21
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	44
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		22
+Current Func:	$func1707
+Instruction:	i64.const 378929152
+Instr-offset:	46
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		23
+Current Func:	$func1707
+Instruction:	i64.store 3, 0
+Instr-offset:	52
+Stack:		[4294967288, 378929152]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		24
+Current Func:	$func1707
+Instruction:	i32.const 0
+Instr-offset:	55
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		25
+Current Func:	$func1707
+Instruction:	call 900
+Instr-offset:	57
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		26
+Current Func:	$func1707
+Instruction:	get_global 0
+Instr-offset:	60
+Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		27
+Current Func:	$func1707
+Instruction:	set_local 1
+Instr-offset:	62
+Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25, 4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		28
+Current Func:	$func1707
+Instruction:	br_if 3
+Instr-offset:	64
+Stack:		[runtime.morestack_noctxt_ret_i32_$func1707_25]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True]
+
+DEBUG:root:
+PC:		29
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	66
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		30
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	67
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		31
+Current Func:	$func1707
+Instruction:	i32.const 80
+Instr-offset:	69
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		32
+Current Func:	$func1707
+Instruction:	i32.sub
+Instr-offset:	72
+Stack:		[4294967288, 80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		33
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	73
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		34
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	75
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		35
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	77
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		36
+Current Func:	$func1707
+Instruction:	i64.extend_u/i32
+Instr-offset:	79
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		37
+Current Func:	$func1707
+Instruction:	i64.const 64
+Instr-offset:	80
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		38
+Current Func:	$func1707
+Instruction:	i64.add
+Instr-offset:	83
+Stack:		[4294967208, 64]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		39
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	84
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		40
+Current Func:	$func1707
+Instruction:	i64.const 0
+Instr-offset:	85
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		41
+Current Func:	$func1707
+Instruction:	i64.store 3, 0
+Instr-offset:	87
+Stack:		[4294967272, 0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		42
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	90
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		43
+Current Func:	$func1707
+Instruction:	i64.extend_u/i32
+Instr-offset:	92
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		44
+Current Func:	$func1707
+Instruction:	i64.const 64
+Instr-offset:	93
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		45
+Current Func:	$func1707
+Instruction:	i64.add
+Instr-offset:	96
+Stack:		[4294967208, 64]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		46
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	97
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		47
+Current Func:	$func1707
+Instruction:	i64.const 0
+Instr-offset:	98
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		48
+Current Func:	$func1707
+Instruction:	i64.store 3, 8
+Instr-offset:	100
+Stack:		[4294967272, 0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152, (4294967272, 4294967280): 0}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		49
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	103
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		50
+Current Func:	$func1707
+Instruction:	i64.extend_u/i32
+Instr-offset:	105
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		51
+Current Func:	$func1707
+Instruction:	i64.const 64
+Instr-offset:	106
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		52
+Current Func:	$func1707
+Instruction:	i64.add
+Instr-offset:	109
+Stack:		[4294967208, 64]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		53
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	110
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		54
+Current Func:	$func1707
+Instruction:	i64.const 82432
+Instr-offset:	111
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		55
+Current Func:	$func1707
+Instruction:	i64.store 3, 0
+Instr-offset:	115
+Stack:		[4294967272, 82432]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578765312}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		56
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	118
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		57
+Current Func:	$func1707
+Instruction:	i64.extend_u/i32
+Instr-offset:	120
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		58
+Current Func:	$func1707
+Instruction:	i64.const 64
+Instr-offset:	121
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		59
+Current Func:	$func1707
+Instruction:	i64.add
+Instr-offset:	124
+Stack:		[4294967208, 64]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		60
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	125
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		61
+Current Func:	$func1707
+Instruction:	i64.const 303200
+Instr-offset:	126
+Stack:		[4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		62
+Current Func:	$func1707
+Instruction:	i64.store 3, 8
+Instr-offset:	130
+Stack:		[4294967272, 303200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004359523052452826227578847744}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		63
+Current Func:	$func1707
+Instruction:	nop
+Instr-offset:	133
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		64
+Current Func:	$func1707
+Instruction:	i64.const 1323272
+Instr-offset:	134
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		65
+Current Func:	$func1707
+Instruction:	i32.wrap/i64
+Instr-offset:	139
+Stack:		[1323272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		66
+Current Func:	$func1707
+Instruction:	i64.load 3, 0
+Instr-offset:	140
+Stack:		[1323272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		67
+Current Func:	$func1707
+Instruction:	set_local 2
+Instr-offset:	143
+Stack:		[load_i64*(1323272)]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		68
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	145
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		69
+Current Func:	$func1707
+Instruction:	i64.const 308512
+Instr-offset:	147
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		70
+Current Func:	$func1707
+Instruction:	i64.store 3, 0
+Instr-offset:	151
+Stack:		[4294967208, 308512]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		71
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	154
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967216): 308512}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		72
+Current Func:	$func1707
+Instruction:	get_local 2
+Instr-offset:	156
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967216): 308512}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		73
+Current Func:	$func1707
+Instruction:	i64.store 3, 8
+Instr-offset:	158
+Stack:		[4294967208, load_i64*(1323272)]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967216): 308512}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		74
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	161
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		75
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	163
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		76
+Current Func:	$func1707
+Instruction:	i64.extend_u/i32
+Instr-offset:	165
+Stack:		[4294967208, 4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		77
+Current Func:	$func1707
+Instruction:	i64.const 64
+Instr-offset:	166
+Stack:		[4294967208, 4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		78
+Current Func:	$func1707
+Instruction:	i64.add
+Instr-offset:	169
+Stack:		[4294967208, 4294967208, 64]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		79
+Current Func:	$func1707
+Instruction:	i64.store 3, 16
+Instr-offset:	170
+Stack:		[4294967208, 4294967272]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967224): Concat(load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		80
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	173
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967232): Concat(4294967272, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		81
+Current Func:	$func1707
+Instruction:	i64.const 1
+Instr-offset:	175
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967232): Concat(4294967272, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		82
+Current Func:	$func1707
+Instruction:	i64.store 3, 24
+Instr-offset:	177
+Stack:		[4294967208, 1]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967232): Concat(4294967272, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		83
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	180
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967240): Concat(18446744078004518888, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		84
+Current Func:	$func1707
+Instruction:	i64.const 1
+Instr-offset:	182
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967240): Concat(18446744078004518888, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		85
+Current Func:	$func1707
+Instruction:	i64.store 3, 32
+Instr-offset:	184
+Stack:		[4294967208, 1]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967240): Concat(18446744078004518888, load_i64*(1323272), 308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		86
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	187
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		87
+Current Func:	$func1707
+Instruction:	i32.const 8
+Instr-offset:	189
+Stack:		[4294967208]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		88
+Current Func:	$func1707
+Instruction:	i32.sub
+Instr-offset:	191
+Stack:		[4294967208, 8]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		89
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	192
+Stack:		[4294967200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967208, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		90
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	194
+Stack:		[4294967200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967208, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		91
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	196
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		92
+Current Func:	$func1707
+Instruction:	i64.const 378929156
+Instr-offset:	198
+Stack:		[4294967200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		93
+Current Func:	$func1707
+Instruction:	i64.store 3, 0
+Instr-offset:	204
+Stack:		[4294967200, 378929156]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967208, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       308512)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		94
+Current Func:	$func1707
+Instruction:	i32.const 0
+Instr-offset:	207
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		95
+Current Func:	$func1707
+Instruction:	call 0x697
+Instr-offset:	209
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+WARNING:root:=============$fmt.Fprintln============
+DEBUG:root:
+PC:		96
+Current Func:	$func1707
+Instruction:	get_global 0
+Instr-offset:	212
+Stack:		[fmt.Fprintln_ret_i32_$func1707_95]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		97
+Current Func:	$func1707
+Instruction:	set_local 1
+Instr-offset:	214
+Stack:		[fmt.Fprintln_ret_i32_$func1707_95, 4294967200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		98
+Current Func:	$func1707
+Instruction:	br_if 2
+Instr-offset:	216
+Stack:		[fmt.Fprintln_ret_i32_$func1707_95]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0]
+
+DEBUG:root:
+PC:		99
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	218
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		100
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	219
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		101
+Current Func:	$func1707
+Instruction:	i32.const 80
+Instr-offset:	221
+Stack:		[4294967200]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		102
+Current Func:	$func1707
+Instruction:	i32.add
+Instr-offset:	224
+Stack:		[4294967200, 80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		103
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	225
+Stack:		[4294967280]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		104
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	227
+Stack:		[4294967280]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		105
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	229
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		106
+Current Func:	$func1707
+Instruction:	i32.const 8
+Instr-offset:	231
+Stack:		[4294967280]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		107
+Current Func:	$func1707
+Instruction:	i32.add
+Instr-offset:	233
+Stack:		[4294967280, 8]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		108
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	234
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967280, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		109
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	236
+Stack:		[4294967288]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967280, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		110
+Current Func:	$func1707
+Instruction:	i32.const 0
+Instr-offset:	238
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		111
+Current Func:	$func1707
+Instruction:	return
+Instr-offset:	240
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, fmt.Fprintln_ret_i32_$func1707_95 == 0]
+
+DEBUG:root:
+PC:		99
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	243
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, Not(fmt.Fprintln_ret_i32_$func1707_95 == 0)]
+
+DEBUG:root:
+PC:		100
+Current Func:	$func1707
+Instruction:	i32.const 1
+Instr-offset:	244
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, Not(fmt.Fprintln_ret_i32_$func1707_95 == 0)]
+
+DEBUG:root:
+PC:		101
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	246
+Stack:		[1]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967200, 2: load_i64*(1323272)}
+Global Var:	{0: 4294967200, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967272, 4294967296): 128942908737904063004365116105255974963628818944, (4294967200, 4294967248): Concat(340282366920938463481821351509772730344,
+       load_i64*(1323272),
+       5691041907668281567084548)}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, runtime.morestack_noctxt_ret_i32_$func1707_25 == 0, Not(fmt.Fprintln_ret_i32_$func1707_95 == 0)]
+
+DEBUG:root:
+PC:		29
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	243
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, Not(runtime.morestack_noctxt_ret_i32_$func1707_25 == 0)]
+
+DEBUG:root:
+PC:		30
+Current Func:	$func1707
+Instruction:	i32.const 1
+Instr-offset:	244
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, Not(runtime.morestack_noctxt_ret_i32_$func1707_25 == 0)]
+
+DEBUG:root:
+PC:		31
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	246
+Stack:		[1]
+Local Var:	{0: $func1707_loc_0_i32, 1: 4294967288}
+Global Var:	{0: 4294967288, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{(4294967288, 4294967296): 378929152}
+Constraints:	[Or($func1707_loc_0_i32 == 0,
+   $func1707_loc_0_i32 == 1,
+   $func1707_loc_0_i32 == 2,
+   $func1707_loc_0_i32 == 3), True, Not(runtime.morestack_noctxt_ret_i32_$func1707_25 == 0)]
+
+DEBUG:root:
+PC:		9
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	218
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		10
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	219
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		11
+Current Func:	$func1707
+Instruction:	i32.const 80
+Instr-offset:	221
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		12
+Current Func:	$func1707
+Instruction:	i32.add
+Instr-offset:	224
+Stack:		[0, 80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		13
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	225
+Stack:		[80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		14
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	227
+Stack:		[80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 80}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		15
+Current Func:	$func1707
+Instruction:	get_local 1
+Instr-offset:	229
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 80}
+Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		16
+Current Func:	$func1707
+Instruction:	i32.const 8
+Instr-offset:	231
+Stack:		[80]
+Local Var:	{0: $func1707_loc_0_i32, 1: 80}
+Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		17
+Current Func:	$func1707
+Instruction:	i32.add
+Instr-offset:	233
+Stack:		[80, 8]
+Local Var:	{0: $func1707_loc_0_i32, 1: 80}
+Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		18
+Current Func:	$func1707
+Instruction:	tee_local 1
+Instr-offset:	234
+Stack:		[88]
+Local Var:	{0: $func1707_loc_0_i32, 1: 80}
+Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		19
+Current Func:	$func1707
+Instruction:	set_global 0
+Instr-offset:	236
+Stack:		[88]
+Local Var:	{0: $func1707_loc_0_i32, 1: 88}
+Global Var:	{0: 80, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		20
+Current Func:	$func1707
+Instruction:	i32.const 0
+Instr-offset:	238
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 88}
+Global Var:	{0: 88, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		21
+Current Func:	$func1707
+Instruction:	return
+Instr-offset:	240
+Stack:		[0]
+Local Var:	{0: $func1707_loc_0_i32, 1: 88}
+Global Var:	{0: 88, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[Or($func1707_loc_0_i32 == 4, $func1707_loc_0_i32 == 5)]
+
+DEBUG:root:
+PC:		9
+Current Func:	$func1707
+Instruction:	end
+Instr-offset:	241
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[6 <= $func1707_loc_0_i32]
+
+DEBUG:root:
+PC:		10
+Current Func:	$func1707
+Instruction:	unreachable
+Instr-offset:	242
+Stack:		[]
+Local Var:	{0: $func1707_loc_0_i32, 1: 0}
+Global Var:	{0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+Memory:		{}
+Constraints:	[6 <= $func1707_loc_0_i32]
+

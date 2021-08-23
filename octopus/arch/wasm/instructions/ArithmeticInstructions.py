@@ -16,6 +16,7 @@ float_helper_map = {
     'f64': Float64
 }
 
+
 class ArithmeticInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name
@@ -25,17 +26,19 @@ class ArithmeticInstructions:
     def emulate(self, state):
         def do_emulate_arithmetic_int_instruction(state):
             instr_type = self.instr_name[:3]
-            
+
             if '.clz' in self.instr_name or '.ctz' in self.instr_name:
                 # wasm documentation says:
                 # This instruction is fully defined when all bits are zero; it returns the number of bits in the operand type.
                 state.symbolic_stack.pop()
-                state.symbolic_stack.append(BitVecVal(helper_map[instr_type], helper_map[instr_type]))
+                state.symbolic_stack.append(
+                    BitVecVal(helper_map[instr_type], helper_map[instr_type]))
             elif '.popcnt' in self.instr_name:
                 # wasm documentation says:
                 # This instruction is fully defined when all bits are zero; it returns 0.
                 state.symbolic_stack.pop()
-                state.symbolic_stack.append(BitVecVal(0, helper_map[instr_type]))
+                state.symbolic_stack.append(
+                    BitVecVal(0, helper_map[instr_type]))
             else:
                 arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
@@ -82,12 +85,16 @@ class ArithmeticInstructions:
 
             instr_type = self.instr_name[:3]
 
-            two_arguments_instrs = ['add', 'sub', 'mul', 'div', 'min', 'max', 'copysign']
-            one_argument_instrs = ['sqrt', 'floor', 'ceil', 'trunc', 'nearest', 'abs', 'neg']
+            two_arguments_instrs = ['add', 'sub',
+                                    'mul', 'div', 'min', 'max', 'copysign']
+            one_argument_instrs = ['sqrt', 'floor',
+                                   'ceil', 'trunc', 'nearest', 'abs', 'neg']
 
             # add instr_type before each instr
-            two_arguments_instrs = [str(instr_type + '.' + i) for i in two_arguments_instrs]
-            one_argument_instrs = [str(instr_type + '.' + i) for i in one_argument_instrs]
+            two_arguments_instrs = [str(instr_type + '.' + i)
+                                    for i in two_arguments_instrs]
+            one_argument_instrs = [str(instr_type + '.' + i)
+                                   for i in one_argument_instrs]
 
             # pop two elements
             if self.instr_name in two_arguments_instrs:
@@ -128,19 +135,23 @@ class ArithmeticInstructions:
                 elif '.floor' in self.instr_name:
                     # round toward negative
                     rm = RTN()
-                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = simplify(
+                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
                 elif '.ceil' in self.instr_name:
                     # round toward positive
                     rm = RTP()
-                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = simplify(
+                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
                 elif '.trunc' in self.instr_name:
                     # round toward zero
                     rm = RTZ()
-                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = simplify(
+                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
                 elif '.nearest' in self.instr_name:
                     # round to integeral ties to even
                     rm = RNE()
-                    result = simplify(fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = simplify(
+                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
                 elif '.abs' in self.instr_name:
                     result = simplify(fpAbs(arg1))
                 elif '.neg' in self.instr_name:
@@ -151,7 +162,7 @@ class ArithmeticInstructions:
                 raise UnsupportInstructionError
 
             return False
-        
+
         op_type = self.instr_name[:1]
         if op_type == 'i':
             do_emulate_arithmetic_int_instruction(state)

@@ -5,6 +5,7 @@ from z3 import *
 from struct import unpack
 import re
 
+
 class ConstantInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
         self.instr_name = instr_name
@@ -41,7 +42,8 @@ class ConstantInstructions:
                 # extend with '0' till const_num length is 4 bytes
                 current_const_num_length = len(const_num)
 
-                need_zero = (8 - current_const_num_length) if const_type_prefix == 'f32' else (16 - current_const_num_length)
+                need_zero = (8 - current_const_num_length) if const_type_prefix == 'f32' else (
+                    16 - current_const_num_length)
                 const_num = '0' * need_zero + const_num
 
                 if const_type_prefix == 'f32':

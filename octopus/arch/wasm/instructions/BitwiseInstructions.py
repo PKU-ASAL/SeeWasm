@@ -9,6 +9,7 @@ helper_map = {
     'i64': 64,
 }
 
+
 class BitwiseInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name

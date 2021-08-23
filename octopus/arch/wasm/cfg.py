@@ -172,12 +172,14 @@ def enum_blocks_edges(function_id, instructions):
     # needed because 'if' don't used label
     for index, inst in enumerate(instructions[:-1]):
         if inst.name == 'if':
-            g_block = next(iter([b for b in blocks_list if b[1] == inst.offset]), None)
+            g_block = next(
+                iter([b for b in blocks_list if b[1] == inst.offset]), None)
             jump_target = g_block[2] + 1
             inst.xref.append(jump_target)
             xrefs.append(jump_target)
         elif inst.name == 'else':
-            g_block = next(iter([b for b in blocks_list if b[1] == inst.offset]), None)
+            g_block = next(
+                iter([b for b in blocks_list if b[1] == inst.offset]), None)
             jump_target = g_block[2] + 1
             inst.xref.append(jump_target)
             xrefs.append(jump_target)
@@ -228,14 +230,17 @@ def enum_blocks_edges(function_id, instructions):
         # unconditional jump - br
         if inst.is_branch_unconditional:
             for ref in inst.xref:
-                edges.append(Edge(block.name, format_bb_name(function_id, ref), EDGE_UNCONDITIONAL))
+                edges.append(Edge(block.name, format_bb_name(
+                    function_id, ref), EDGE_UNCONDITIONAL))
         # conditionnal jump - br_if, if, br_table
         elif inst.is_branch_conditional:
             if inst.name == 'if':
                 edges.append(Edge(block.name,
-                                  format_bb_name(function_id, inst.offset_end + 1),
+                                  format_bb_name(
+                                      function_id, inst.offset_end + 1),
                                   EDGE_CONDITIONAL_TRUE))
-                if_b = next(iter([b for b in blocks_list if b[1] == inst.offset]), None)
+                if_b = next(
+                    iter([b for b in blocks_list if b[1] == inst.offset]), None)
                 # else_block = blocks_list[blocks_list.index(if_block) + 1]
                 jump_target = if_b[2] + 1
                 edges.append(Edge(block.name,
@@ -250,9 +255,11 @@ def enum_blocks_edges(function_id, instructions):
                     for _block in basicblocks:
                         if ref and _block.instructions[0].offset == ref:
                             if _index != len(inst.xref) - 1:
-                                edges.append(Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE))
+                                edges.append(
+                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE))
                             else:
-                                edges.append(Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE))
+                                edges.append(
+                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE))
                             break
             else:
                 for ref in inst.xref:
@@ -263,7 +270,8 @@ def enum_blocks_edges(function_id, instructions):
                                           EDGE_CONDITIONAL_TRUE))
                 # create conditionnal false edge
                 edges.append(Edge(block.name,
-                                  format_bb_name(function_id, inst.offset_end + 1),
+                                  format_bb_name(
+                                      function_id, inst.offset_end + 1),
                                   EDGE_CONDITIONAL_FALSE))
         # instruction that end the flow
         elif [i.name for i in block.instructions if i.is_halt]:
@@ -277,13 +285,16 @@ def enum_blocks_edges(function_id, instructions):
                 instructions[instructions.index(inst) + 1].name == 'else':
 
             else_ins = instructions[instructions.index(inst) + 1]
-            else_b = next(iter([b for b in blocks_list if b[1] == else_ins.offset]), None)
+            else_b = next(
+                iter([b for b in blocks_list if b[1] == else_ins.offset]), None)
 
-            edges.append(Edge(block.name, format_bb_name(function_id, else_b[2] + 1), EDGE_FALLTHROUGH))
+            edges.append(Edge(block.name, format_bb_name(
+                function_id, else_b[2] + 1), EDGE_FALLTHROUGH))
         # add the last intruction "end" in the last block
         elif inst.offset != instructions[-1].offset:
             # EDGE_FALLTHROUGH
-            edges.append(Edge(block.name, format_bb_name(function_id, inst.offset_end + 1), EDGE_FALLTHROUGH))
+            edges.append(Edge(block.name, format_bb_name(
+                function_id, inst.offset_end + 1), EDGE_FALLTHROUGH))
 
     # prevent duplicate edges
     edges = list(set(edges))
@@ -390,15 +401,18 @@ class WasmCFG(CFG):
         """
         nodes, edges = self.get_functions_call_edges()
         if format_fname:
-            nodes_longname, edges = self.get_functions_call_edges(format_fname=True)
+            nodes_longname, edges = self.get_functions_call_edges(
+                format_fname=True)
 
         g = Digraph(filename, filename=filename)
         g.attr(rankdir='LR')
 
         with g.subgraph(name='global') as c:
 
-            export_list = [p[0] for p in self.analyzer.func_prototypes if p[3] == 'export']
-            import_list = [p[0] for p in self.analyzer.func_prototypes if p[3] == 'import']
+            export_list = [p[0]
+                           for p in self.analyzer.func_prototypes if p[3] == 'export']
+            import_list = [p[0]
+                           for p in self.analyzer.func_prototypes if p[3] == 'import']
             call_indirect_list = enum_func_name_call_indirect(self.functions)
 
             try:
@@ -423,13 +437,15 @@ class WasmCFG(CFG):
                     fillcolor = DESIGN_IMPORT.get('fillcolor')
                     shape = DESIGN_IMPORT.get('shape')
                     style = DESIGN_IMPORT.get('style')
-                    c.node(node_name, fillcolor=fillcolor, shape=shape, style=style)
+                    c.node(node_name, fillcolor=fillcolor,
+                           shape=shape, style=style)
                 elif node in export_list:
                     logging.debug('export ' + node)
                     fillcolor = DESIGN_EXPORT.get('fillcolor')
                     shape = DESIGN_EXPORT.get('shape')
                     style = DESIGN_EXPORT.get('style')
-                    c.node(node_name, fillcolor=fillcolor, shape=shape, style=style)
+                    c.node(node_name, fillcolor=fillcolor,
+                           shape=shape, style=style)
 
                 if node in indirect_target:
                     logging.debug('indirect_target ' + node)
@@ -438,7 +454,8 @@ class WasmCFG(CFG):
                 if node in call_indirect_list:
                     logging.debug('contain call_indirect ' + node)
                     style = "dashed"
-                c.node(node_name, fillcolor=fillcolor, shape=shape, style=style)
+                c.node(node_name, fillcolor=fillcolor,
+                       shape=shape, style=style)
 
             # check if multiple same edges
             # in that case, put the number into label

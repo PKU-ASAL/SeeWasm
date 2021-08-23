@@ -131,7 +131,8 @@ class WasmModuleAnalyzer(object):
             param_str = ''
             return_str = ''
 
-            param_str += ' '.join([LANG_TYPE.get(_x) for _x in entry.param_types])
+            param_str += ' '.join([LANG_TYPE.get(_x)
+                                  for _x in entry.param_types])
             if entry.return_type:
                 return_str = '%s' % LANG_TYPE.get(entry.return_type)
 
@@ -254,11 +255,13 @@ class WasmModuleAnalyzer(object):
 
             for cur_insn in entry.init:
                 # only keep the number
-                current_instruction = format_instruction(cur_insn).split(' ')[1]
+                current_instruction = format_instruction(
+                    cur_insn).split(' ')[1]
                 # 'end' follows a 'const', so break
                 break
 
-            fmt = format_kind_global(mutability, content_type, current_instruction)
+            fmt = format_kind_global(
+                mutability, content_type, current_instruction)
             globals_l.append(fmt)
 
         return globals_l
@@ -462,7 +465,8 @@ class WasmModuleAnalyzer(object):
                     self.names = self.__decode_name_section(cur_sec_data)
                 else:
                     # TODO - handle properly .debug_str section
-                    self.customs.append(self.__decode_unknown_section(cur_sec_data))
+                    self.customs.append(
+                        self.__decode_unknown_section(cur_sec_data))
 
         # create ordered list of functions
         self.func_prototypes = self.get_func_prototypes_ordered()
@@ -473,7 +477,8 @@ class WasmModuleAnalyzer(object):
         return True if matching_list else False
 
     def get_emscripten_calls(self):
-        res = [x for x, _, _, _ in self.func_prototypes if is_emscripten_func(x)]
+        res = [x for x, _, _,
+               _ in self.func_prototypes if is_emscripten_func(x)]
         return res
 
     # emscripten syscall from:
@@ -481,7 +486,8 @@ class WasmModuleAnalyzer(object):
     # * http://gauss.ececs.uc.edu/Courses/c4029/code/syscall_32.tbl.html
     def contains_emscripten_syscalls(self):
         EMSCRIPTEN_SYSCALL_JSON = '/signatures/emscripten_syscalls.json'
-        path = os.path.dirname(os.path.realpath(__file__)) + EMSCRIPTEN_SYSCALL_JSON
+        path = os.path.dirname(os.path.realpath(
+            __file__)) + EMSCRIPTEN_SYSCALL_JSON
 
         json_data = open(path).read()
         data = json.loads(json_data)

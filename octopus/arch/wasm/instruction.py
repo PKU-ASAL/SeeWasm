@@ -17,7 +17,8 @@ class WasmInstruction(Instruction):
         self.description = description
         self.operand_size = operand_size
         if len(insn_byte) > 1:
-            self.operand = insn_byte[-operand_size:]  # Immediate operand if any
+            # Immediate operand if any
+            self.operand = insn_byte[-operand_size:]
         else:
             self.operand = None
             # specific interpretation of operand value
@@ -32,14 +33,14 @@ class WasmInstruction(Instruction):
     def __eq__(self, other):
         """ Instructions are equal if all features match  """
         return self.opcode == other.opcode and \
-               self.name == other.name and \
-               self.offset == other.offset and \
-               self.insn_byte == other.insn_byte and \
-               self.operand_size == other.operand_size and \
-               self.pops == other.pops and \
-               self.pushes == other.pushes and \
-               self.operand_interpretation == other.operand_interpretation and \
-               self.description == other.description
+            self.name == other.name and \
+            self.offset == other.offset and \
+            self.insn_byte == other.insn_byte and \
+            self.operand_size == other.operand_size and \
+            self.pops == other.pops and \
+            self.pushes == other.pushes and \
+            self.operand_interpretation == other.operand_interpretation and \
+            self.description == other.description
 
     def __str__(self):
         """ String representation of the instruction """
@@ -163,5 +164,3 @@ class WasmInstruction(Instruction):
     def is_block_terminator(self):
         """ Return True if the instruction is a basic block terminator """
         return self.name in ['else', 'end']
-
-

@@ -13,7 +13,6 @@ class WasmVMstate(VMstate):
         self.constraints = []
 
         # instruction
-        self.pc = 0
         self.instr = None
 
         # current function name
