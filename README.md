@@ -31,6 +31,18 @@ To analyze the files written in other programming languages, you have to generat
 
 ### C -> Wasm
 
+#### One-Shot Solution
+
+Write your own `[file_name].c` file in the `c2wasm_samples` folder. Then, `cd` to the folder, and run:
+
+```shell
+./gen.sh [file_name]
+```
+
+The corresponding files would be generated.
+
+#### Manual Generation
+
 To generate Wasm file from C, we recommend the tool: [Emscripten](https://emscripten.org/index.html). You can follow its [official instruction](https://emscripten.org/docs/getting_started/downloads.html) to install it in your local environment. To verify if emcc is installed successfully, run `emcc --check` in your terminal to see if any error happens.
 
 After emcc is installed, use the command:
@@ -40,6 +52,12 @@ emcc [file_name].c -g3 -s WASM=1 -o [file_name].html
 
 Here, `-g3` means the generated Wasm file would keep the debug information, which would be used in the following stage.
 The above command would generate three files: `[file_name].html`, `[file_name].js` and `[file_name].wasm`. The first two files provide the hosting environment for the Wasm file. Thus, we can only focus on the `[file_name].wasm`, in which all the logic in C is transferred to Wasm instructions.
+
+Moreover, our tool requires a *WebAssembly Text* file with the same name of the Wasm file. You have to install the official tool [wasm2wat](https://github.com/WebAssembly/wabt) and use the command:
+
+```shell
+wasm2wat [file_name].wasm > [file_name].wat
+```
 
 To run the generated Wasm file, please refer to [this part](#analyze-specific-functions).
 
