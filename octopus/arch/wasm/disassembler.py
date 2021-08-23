@@ -42,8 +42,10 @@ class WasmDisassembler(Disassembler):
         operand_interpretation = None
 
         if imm_struct is not None:
-            operand_size, operand, _ = imm_struct.from_raw(None, bytecode_wnd[1:])
-            insn = inst_namedtuple(OPCODE_MAP[opcode_id], operand, 1 + operand_size)
+            operand_size, operand, _ = imm_struct.from_raw(
+                None, bytecode_wnd[1:])
+            insn = inst_namedtuple(
+                OPCODE_MAP[opcode_id], operand, 1 + operand_size)
             operand_interpretation = format_instruction(insn)
         insn_byte = bytecode_wnd[:1 + operand_size].tobytes()
         instruction = WasmInstruction(opcode_id, name, imm_struct, operand_size,

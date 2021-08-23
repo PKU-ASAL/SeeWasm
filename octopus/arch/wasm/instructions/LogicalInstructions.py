@@ -10,6 +10,7 @@ helper_map = {
     'f64': [11, 53]
 }
 
+
 class LogicalInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name
@@ -22,7 +23,8 @@ class LogicalInstructions:
             if 'eqz' in self.instr_name:
                 arg0 = state.symbolic_stack.pop()
 
-                assert arg0.size() == helper_map[instr_type], f"in `eqz` the argument popped size is {arg0.size()} instead of {helper_map[instr_type]}"
+                assert arg0.size(
+                ) == helper_map[instr_type], f"in `eqz` the argument popped size is {arg0.size()} instead of {helper_map[instr_type]}"
 
                 result = simplify(arg0 == 0)
                 if is_bool(result):
@@ -37,7 +39,8 @@ class LogicalInstructions:
                 #     state.symbolic_stack.append(BitVecVal(0, 32))
                 #     return False
 
-                assert is_bv(arg1) and is_bv(arg2), f"in `logical` instruction, arg1 or arg2 type is wrong instead of BitVec"
+                assert is_bv(arg1) and is_bv(
+                    arg2), f"in `logical` instruction, arg1 or arg2 type is wrong instead of BitVec"
 
                 if 'eq' in self.instr_name:
                     result = simplify(arg1 == arg2)
@@ -72,7 +75,8 @@ class LogicalInstructions:
             if is_bv_value(result):
                 state.symbolic_stack.append(result)
             else:
-                logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
+                logical_result = BitVec(
+                    'logical_ans_(' + str(result) + ')', 32)
                 state.constraints.append(logical_result == If(
                     result, BitVecVal(1, 32), BitVecVal(0, 32)))
                 state.symbolic_stack.append(logical_result)
@@ -83,8 +87,10 @@ class LogicalInstructions:
             arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
             instr_type = self.instr_name[:3]
 
-            assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits() == helper_map[instr_type][1], 'emul_logical_f_instr arg1 type mismatch'
-            assert arg2.ebits() == helper_map[instr_type][0] and arg2.sbits() == helper_map[instr_type][0], 'emul_logical_f_instr arg2 type mismatch'
+            assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
+            ) == helper_map[instr_type][1], 'emul_logical_f_instr arg1 type mismatch'
+            assert arg2.ebits() == helper_map[instr_type][0] and arg2.sbits(
+            ) == helper_map[instr_type][0], 'emul_logical_f_instr arg2 type mismatch'
 
             if 'eq' in self.instr_name:
                 result = simplify(fpEQ(arg1, arg2))
@@ -111,13 +117,14 @@ class LogicalInstructions:
             if is_bv_value(result):
                 state.symbolic_stack.append(result)
             else:
-                logical_result = BitVec('logical_ans_(' + str(result) + ')', 32)
+                logical_result = BitVec(
+                    'logical_ans_(' + str(result) + ')', 32)
                 state.constraints.append(logical_result == If(
                     result, BitVecVal(1, 32), BitVecVal(0, 32)))
                 state.symbolic_stack.append(logical_result)
 
             return False
-        
+
         op_type = self.instr_name[:1]
         if op_type == 'i':
             do_emulate_logical_int_instruction(state)

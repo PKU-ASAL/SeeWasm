@@ -40,7 +40,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # print(offset, size, data)
             if offset == '4':
                 exit("The offset of data section is 4, please check")
-                self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='little'), size * 8)
+                self.data_section[(offset, offset + size)] = BitVecVal(
+                    int.from_bytes(data, byteorder='little'), size * 8)
             else:
                 # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
                 # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
@@ -59,9 +60,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         func_index = None
         for index, wat_func_name in self.func_index2func_name.items():
-                if wat_func_name == func_name:
-                    func_index = index
-                    break
+            if wat_func_name == func_name:
+                func_index = index
+                break
         return '$func' + str(func_index)
 
     def get_signature(self, func_name):
@@ -96,7 +97,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         state = WasmVMstate()
 
         for i, local in enumerate(param_str.split(' ')):
-            state.local_var[i] = getConcreteBitVec(local, func_name + '_loc_' + str(i) + '_' + local)
+            state.local_var[i] = getConcreteBitVec(
+                local, func_name + '_loc_' + str(i) + '_' + local)
 
         # deal with the globals
         self.init_globals(state)
@@ -112,10 +114,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         halt = False
         for instruction in instructions:
             next_states = []
-            for state in states: #TODO: embarassing parallel
+            for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
                 state.pc += 1
-                halt, ret = self.emulate_one_instruction(instruction, state, 0, has_ret, 0)
+                halt, ret = self.emulate_one_instruction(
+                    instruction, state, 0, has_ret, 0)
                 if ret is not None:
                     next_states.extend(ret)
                 else:
@@ -162,7 +165,8 @@ Constraints:\t{state.constraints}\n''')
                 # logging.warning(state.constraints)
                 # exit()
 
-        instr_obj = instruction_map[instr.group](instr.name, instr.operand, instr.operand_interpretation)
+        instr_obj = instruction_map[instr.group](
+            instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':
             return instr_obj.emulate(state, self.data_section), None
         elif instr.group == 'Control':

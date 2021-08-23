@@ -3,6 +3,7 @@ import re
 
 from . exceptions import *
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -29,8 +30,10 @@ def getConcreteBitVec(type, name):
         raise UnsupportZ3TypeError
 
 # 该函数用于抽取 C 通过 -g3 等级编译得到的 wat 文件中的对应的 function index 和 function 名称之间的关系
-# This script will maintain a *map* structure, consisting of the function index and the corresponding 
+# This script will maintain a *map* structure, consisting of the function index and the corresponding
 # function name that obtained from the compiler from C to Wasm with -g3 debuggability
+
+
 def extract_mapping(file_path):
     with open(file_path) as fp:
         text = fp.read()
@@ -43,9 +46,11 @@ def extract_mapping(file_path):
 
     return mapper
 
+
 def show_state_info(state_index, states):
     state = states[state_index]
-    state_infos = state.items() if isinstance(state, dict) else [('fallthrough', state)]
+    state_infos = state.items() if isinstance(
+        state, dict) else [('fallthrough', state)]
     for _, info in state_infos:
         print(f'''
 PC:\t\t{info.pc}
@@ -60,8 +65,10 @@ Constraints:\t{info.constraints[:-1]}\n''')
 def show_branch_info(branch, branches, state):
     bb_name = branches[branch]
     if branch in ['conditional_true', 'conditional_false']:
-        print(f'[!] The constraint: {bcolors.WARNING}"{state[branch].constraints[-1]}"{bcolors.ENDC} will be appended')
-    print(f'[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}')
+        print(
+            f'[!] The constraint: {bcolors.WARNING}"{state[branch].constraints[-1]}"{bcolors.ENDC} will be appended')
+    print(
+        f'[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}')
     # commented, TODO, need revise, uncomment if neccessary
     # print(f'[!] Its instruction begins at offset {cls.bb_to_instructions[bb_name][0].offset}')
     # print(f'[!] The leading instructions are showed as follows:')
@@ -70,6 +77,7 @@ def show_branch_info(branch, branches, state):
     #     if i >= 10:
     #         break
     #     print(f'\t{instr.operand_interpretation}')
+
 
 def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=None):
     # the flag can be 0 or 1,
@@ -94,9 +102,10 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
             # if there is only one possible state
             if onlyone and not isbr:
                 user_input = ("1 " + user_input) if user_input == 'i' else "1"
-            elif onlyone and isbr: # if there is only one possible branch
+            elif onlyone and isbr:  # if there is only one possible branch
                 branch_symbol = branch_mapping[list(branches.keys())[0]]
-                user_input = branch_symbol + " " + user_input if user_input == 'i' else branch_symbol
+                user_input = branch_symbol + " " + \
+                    user_input if user_input == 'i' else branch_symbol
 
             if ' ' in user_input:
                 concerned_variable, ask_for_info = user_input.split(' ')
@@ -105,7 +114,8 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
             else:
                 concerned_variable = user_input
 
-            concerned_variable = branch_mapping[concerned_variable] if isbr else int(concerned_variable) - 1
+            concerned_variable = branch_mapping[concerned_variable] if isbr else int(
+                concerned_variable) - 1
             if not ask_for_info:
                 break
             if isbr:
@@ -114,6 +124,7 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
                 show_state_info(concerned_variable, emul_states)
             print('')
         except:
-            print(f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
+            print(
+                f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
 
     return concerned_variable

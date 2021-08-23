@@ -4,6 +4,8 @@ import re
 from octopus.arch.wasm.utils import getConcreteBitVec
 
 # deal with load instruction
+
+
 def load_instr(instr, state, data_section):
     base = state.symbolic_stack.pop()
     assert is_bv(base), f"in load_instr `base` type is {type(base)}"
@@ -22,14 +24,16 @@ def load_instr(instr, state, data_section):
 
     # determine how many bytes should be loaded
     # the dict is like {'8': 1}
-    bytes_length_mapping = {str(k):k//8 for k in range(8, 65, 8)}
+    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
     instr_name = instr.split(' ')[0]
     if len(instr_name) == 8:
         load_length = bytes_length_mapping[instr_name[1:3]]
     else:
-        load_length = bytes_length_mapping[re.search(r"load([0-9]+)\_", instr_name).group(1)]
-    
-    val = lookup_symbolic_memory(state.symbolic_memory, data_section, addr, load_length)
+        load_length = bytes_length_mapping[re.search(
+            r"load([0-9]+)\_", instr_name).group(1)]
+
+    val = lookup_symbolic_memory(
+        state.symbolic_memory, data_section, addr, load_length)
 
     # cast to other type of bit vector
     float_mapping = {
@@ -39,7 +43,7 @@ def load_instr(instr, state, data_section):
     if len(instr_name) == 8 and instr_name[0] == "f":
         val = simplify(fpBVToFP(val, float_mapping[instr_name[:3]]()))
     elif instr_name[-2] == "_":
-        if instr_name[-1] == "s": # sign extend
+        if instr_name[-1] == "s":  # sign extend
             val = simplify(SignExt(int(instr_name[1:3]) - load_length*8, val))
         else:
             val = simplify(ZeroExt(int(instr_name[1:3]) - load_length*8, val))
@@ -48,7 +52,8 @@ def load_instr(instr, state, data_section):
     if val is not None:
         state.symbolic_stack.append(val)
     else:
-        state.symbolic_stack.append(getConcreteBitVec(instr_name[:3], f'load_{instr_name[:3]}*({str(addr)})'))
+        state.symbolic_stack.append(getConcreteBitVec(
+            instr_name[:3], f'load_{instr_name[:3]}*({str(addr)})'))
 
 
 # deal with store instruction
@@ -69,16 +74,19 @@ def store_instr(instr, state):
 
     # determine how many bytes should be stored
     # the dict is like {'8': 1}
-    bytes_length_mapping = {str(k):k//8 for k in range(8, 65, 8)}
+    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
     instr_name = instr.split(' ')[0]
     if len(instr_name) == 9:
         if instr_name[0] == 'f':
             val = fpToIEEEBV(val)
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, bytes_length_mapping[instr_name[1:3]], val)
+        state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, bytes_length_mapping[instr_name[1:3]], val)
     else:
-        stored_length = bytes_length_mapping[re.search(r"store([0-9]+)", instr_name).group(1)]
+        stored_length = bytes_length_mapping[re.search(
+            r"store([0-9]+)", instr_name).group(1)]
         val = simplify(Extract(stored_length*8-1, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, addr, stored_length, val)
+        state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, stored_length, val)
 
 
 # GUIDANCE:
@@ -106,25 +114,31 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
         return symbolic_memory.get((dest, simplify(dest + length)), None)
 
     # other cases
-    in_symbolic_memory, is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length)
+    in_symbolic_memory, is_existed, existed_start, existed_end = lookup_overlapped_symbolic_memory(
+        symbolic_memory, data_section, dest, length)
     if not is_existed:
         return None
-    
-    overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
+
+    overlapped_start, overlapped_end = calc_overlap(
+        existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
     # in data section
     if not in_symbolic_memory:
         # convert data section piece into BitVecVal
-        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
+        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(
+            existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
         data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
     else:
-        data = simplify(Extract(high * 8 - 1, low * 8, symbolic_memory[(existed_start, existed_end)]))
-    
+        data = simplify(Extract(high * 8 - 1, low * 8,
+                        symbolic_memory[(existed_start, existed_end)]))
+
     if data.size() < length * 8:
         data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
     return data
 
 # dest type can only be bitvecref or int
+
+
 def insert_symbolic_memory(symbolic_memory, dest, length, data):
     # if dest type is `BitVecRef`, insert directly
     if type(dest) == BitVecRef:
@@ -132,7 +146,8 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
     # if dest type is `int`
     else:
         # the existed_start and existed_end are all int
-        _, is_overlapped, existed_start, existed_end = lookup_overlapped_symbolic_memory(symbolic_memory, dict(), dest, length)
+        _, is_overlapped, existed_start, existed_end = lookup_overlapped_symbolic_memory(
+            symbolic_memory, dict(), dest, length)
         if not is_overlapped:
             # insert directly
             symbolic_memory[(dest, dest + length)] = data
@@ -151,15 +166,18 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
 
             # the flag to tell whether the memory has been inserted
             is_inserted = False
-            overlapped_start, overlapped_end = calc_overlap(existed_start, existed_end, dest, length)
+            overlapped_start, overlapped_end = calc_overlap(
+                existed_start, existed_end, dest, length)
             if dest < overlapped_start:
                 # case 3-5
                 if overlapped_end < existed_end:
                     # case 3
                     first_part = data
-                    original = symbolic_memory.pop((existed_start, existed_end))
-                    high, low = existed_end - existed_start, overlapped_end - existed_start 
-                    second_part = simplify(Extract(high * 8 - 1, low * 8, original))
+                    original = symbolic_memory.pop(
+                        (existed_start, existed_end))
+                    high, low = existed_end - existed_start, overlapped_end - existed_start
+                    second_part = simplify(
+                        Extract(high * 8 - 1, low * 8, original))
                     data = simplify(Concat(second_part, first_part))
 
                     symbolic_memory[(dest, existed_end)] = data
@@ -176,9 +194,11 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 if overlapped_end < existed_end:
                     # case 6
                     first_part = data
-                    original = symbolic_memory.pop((existed_start, existed_end))
+                    original = symbolic_memory.pop(
+                        (existed_start, existed_end))
                     high, low = existed_end - existed_start, overlapped_end - existed_start
-                    second_part = simplify(Extract(high * 8 - 1, low * 8, original))
+                    second_part = simplify(
+                        Extract(high * 8 - 1, low * 8, original))
                     data = simplify(Concat(second_part, first_part))
                     symbolic_memory[(dest, existed_end)] = data
                     is_inserted = True
@@ -192,7 +212,8 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 # case 9-11
                 if overlapped_end >= existed_end:
                     # case 10 and 11
-                    original = symbolic_memory.pop((existed_start, existed_end))
+                    original = symbolic_memory.pop(
+                        (existed_start, existed_end))
                     high = overlapped_start - existed_start
                     first_part = simplify(Extract(high * 8 - 1, 0, original))
                     second_part = data
@@ -200,13 +221,16 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                     symbolic_memory[(existed_start, dest + length)] = data
                 else:
                     # case 9
-                    original = symbolic_memory.pop((existed_start, existed_end))
+                    original = symbolic_memory.pop(
+                        (existed_start, existed_end))
                     high = overlapped_start - existed_start
                     first_part = simplify(Extract(high * 8 - 1, 0, original))
                     second_part = data
                     high, low = existed_end - existed_start, overlapped_end - existed_start
-                    third_part = simplify(Extract(high * 8 - 1, low * 8, original))
-                    data = simplify(Concat(third_part, second_part, first_part))
+                    third_part = simplify(
+                        Extract(high * 8 - 1, low * 8, original))
+                    data = simplify(
+                        Concat(third_part, second_part, first_part))
                     symbolic_memory[(existed_start, existed_end)] = data
 
     return merge_symbolic_memory(symbolic_memory)
@@ -279,11 +303,11 @@ def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, lengt
                 found = True
                 break
         return found, existed_start, existed_end
-    
+
     found, existed_start, existed_end = iterate_find_overlap(data_section)
     if found:
         return False, True, existed_start, existed_end
-    
+
     found, existed_start, existed_end = iterate_find_overlap(symbolic_memory)
     if found:
         return True, True, existed_start, existed_end

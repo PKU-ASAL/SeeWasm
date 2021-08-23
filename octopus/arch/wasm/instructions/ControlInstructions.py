@@ -11,6 +11,7 @@ from octopus.arch.wasm.utils import getConcreteBitVec
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap'}
 GO_LIBRARY_FUNCS = {'runtime.morestack_noctxt', 'fmt.Fprintln'}
 
+
 class ControlInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
         self.instr_name = instr_name
@@ -18,7 +19,7 @@ class ControlInstructions:
         self.instr_string = instr_string
         self.skip_command = {'loop', 'end', 'br', 'else', 'nop', 'block'}
         self.term_command = {'unreachable', 'return'}
-    
+
     def init_state_before_call(self, param_str, return_str, has_ret, state):
         num_arg = 0
         # this flag indicates whether the caller executes and returns properly
@@ -44,7 +45,8 @@ class ControlInstructions:
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(local, state.current_func_name + '_loc_' + str(i) + '_' + local)
+                new_state.local_var[i] = getConcreteBitVec(
+                    local, state.current_func_name + '_loc_' + str(i) + '_' + local)
         else:
             for x in range(num_arg):
                 new_state.local_var[num_arg - 1 - x] = arg[x]
@@ -61,11 +63,13 @@ class ControlInstructions:
             return False, None
         if self.instr_name in self.term_command:
             return False, None
-        
+
         if self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
-            assert is_bv(op) or is_bool(op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true_0': copy.deepcopy(state), 'conditional_false_0': copy.deepcopy(state)}
+            assert is_bv(op) or is_bool(
+                op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
+            states = {'conditional_true_0': copy.deepcopy(
+                state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 op = simplify(op != 0)
             states['conditional_true_0'].constraints.append(op)
@@ -76,12 +80,14 @@ class ControlInstructions:
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true_0': copy.deepcopy(state), 'conditional_false_0': copy.deepcopy(state)}
+            states = {'conditional_true_0': copy.deepcopy(
+                state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 cond = simplify(op != 0)
 
             states['conditional_true_0'].constraints.append(cond)
-            states['conditional_false_0'].constraints.append(simplify(Not(cond)))
+            states['conditional_false_0'].constraints.append(
+                simplify(Not(cond)))
             return False, [states]
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
@@ -90,7 +96,7 @@ class ControlInstructions:
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
-            
+
             # operands of br_table instruction
             ops = [i for i in self.instr_operand]
             n_br, br_lis = ops[0], ops[1:-1]
@@ -102,10 +108,12 @@ class ControlInstructions:
 
             states = []
             for target, index_list in target_branch2index.items():
-                staten = {'conditional_true_' + str(target): copy.deepcopy(state)}
+                staten = {'conditional_true_' +
+                          str(target): copy.deepcopy(state)}
                 index_list = [(op == i) for i in index_list]
                 cond = simplify(Or(index_list))
-                staten['conditional_true_' + str(target)].constraints.append(cond)
+                staten['conditional_true_' +
+                       str(target)].constraints.append(cond)
                 states.append(staten)
 
             staten = {'conditional_false_0': copy.deepcopy(state)}
@@ -115,7 +123,7 @@ class ControlInstructions:
             return False, states
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
-            
+
             # get the callee's function signature
             try:
                 f_offset = int(self.instr_operand)
@@ -127,18 +135,23 @@ class ControlInstructions:
 
             # find a more readable name, need -g3 compiling and --need-mapper
             if func_index2func_name is not None:
-                readable_name = func_index2func_name[int(re.search('(\d+)', internal_function_name).group())]
+                readable_name = func_index2func_name[int(
+                    re.search('(\d+)', internal_function_name).group())]
 
             new_states = []
             if readable_name in C_LIBRARY_FUNCS:
-                func = PredefinedFunction(readable_name, state.current_func_name)
+                func = PredefinedFunction(
+                    readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             elif readable_name in GO_LIBRARY_FUNCS:
-                func = PredefinedFunction(readable_name, state.current_func_name)
+                func = PredefinedFunction(
+                    readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             else:
-                new_state, new_has_ret = self.init_state_before_call(param_str, return_str, has_ret, state)
-                possible_states = Graph.traverse_one(internal_function_name, new_state, new_has_ret)
+                new_state, new_has_ret = self.init_state_before_call(
+                    param_str, return_str, has_ret, state)
+                possible_states = Graph.traverse_one(
+                    internal_function_name, new_state, new_has_ret)
                 possible_call_results = []
                 for pstate in possible_states:
                     to_be_returned = None
@@ -151,7 +164,8 @@ class ControlInstructions:
                                 to_be_returned = BitVecVal(1, 32)
                             else:
                                 raise NotDeterminedRetValError
-                    possible_call_results.append((to_be_returned, copy.deepcopy(pstate)))
+                    possible_call_results.append(
+                        (to_be_returned, copy.deepcopy(pstate)))
 
                 # for stack balance
                 outer_need_ret = has_ret.pop()
@@ -162,7 +176,8 @@ class ControlInstructions:
                         return_constraint_tuple[0], return_constraint_tuple[1].constraints, return_constraint_tuple[
                             1].symbolic_memory, return_constraint_tuple[1].globals
 
-                    logging.debug('===================situation %s======================' % i)
+                    logging.debug(
+                        '===================situation %s======================' % i)
                     # if have outer_need_ret but no return_value, means the callee's this branch is failed
                     if outer_need_ret and return_value is None:
                         continue

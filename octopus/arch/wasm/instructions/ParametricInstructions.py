@@ -1,5 +1,6 @@
 from octopus.arch.wasm.exceptions import UnsupportInstructionError
 
+
 class ParametricInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name
@@ -103,7 +104,7 @@ class ParametricInstructions:
 
                     new_state.symbolic_stack.append(arg2)
                     self.emulate(new_state, depth + 1, has_ret, call_depth)
-                    
+
                     self.current_basicblock = self.basicblock_per_instr[instr.offset]
                 else:
                     self.current_function.constraint_flags.append(-1)
@@ -140,7 +141,7 @@ class ParametricInstructions:
 
                     state.symbolic_stack.append(arg1)
                     self.emulate(state, depth + 1, has_ret, call_depth)
-                    
+
                     self.current_basicblock = self.basicblock_per_instr[instr.offset]
 
                     logging.debug('[+] depth: %s' % depth)
