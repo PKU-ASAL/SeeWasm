@@ -116,7 +116,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
-                state.pc += 1
                 halt, ret = self.emulate_one_instruction(
                     instruction, state, 0, has_ret, 0)
                 if ret is not None:
@@ -149,10 +148,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         logging.debug(f'''
-PC:\t\t{state.pc}
 Current Func:\t{state.current_func_name}
 Instruction:\t{instr.operand_interpretation}
-Instr-offset:\t{instr.offset}
+Offset:\t\t{instr.offset}
 Stack:\t\t{state.symbolic_stack}
 Local Var:\t{state.local_var}
 Global Var:\t{state.globals}

@@ -53,7 +53,6 @@ def show_state_info(state_index, states):
         state, dict) else [('fallthrough', state)]
     for _, info in state_infos:
         print(f'''
-PC:\t\t{info.pc}
 Current Func:\t{info.current_func_name}
 Stack:\t\t{info.symbolic_stack}
 Local Var:\t{info.local_var}

@@ -116,5 +116,5 @@ class PredefinedFunction:
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
-                                               state.pc))
+                                               state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)

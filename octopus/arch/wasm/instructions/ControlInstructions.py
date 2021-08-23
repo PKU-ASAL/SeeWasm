@@ -54,7 +54,6 @@ class ControlInstructions:
         # set the remaining local vars as None
         for x in range(num_arg, len(new_state.local_var)):
             new_state.local_var.pop(x)
-        new_state.pc = 0
 
         return new_state, new_has_ret
 
