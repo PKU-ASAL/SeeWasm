@@ -27,11 +27,6 @@ class LogicalInstructions:
                 ) == helper_map[instr_type], f"in `eqz` the argument popped size is {arg0.size()} instead of {helper_map[instr_type]}"
 
                 result = simplify(arg0 == 0)
-                if is_bool(result):
-                    if is_true(result):
-                        result = BitVecVal(1, 32)
-                    elif is_false(result):
-                        result = BitVecVal(0, 32)
             else:
                 arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
                 # [call 4] [tee_local 5] [i32.const 0] [i32.lt_s] [br_if]
@@ -65,21 +60,13 @@ class LogicalInstructions:
                 else:
                     raise UnsupportInstructionError
 
-                if is_bool(result):
-                    if is_true(result):
-                        result = BitVecVal(1, 32)
-                    elif is_false(result):
-                        result = BitVecVal(0, 32)
+            assert is_bool(
+                result), "the result of logical instruction must be true"
 
-            # check the result type
-            if is_bv_value(result):
-                state.symbolic_stack.append(result)
-            else:
-                logical_result = BitVec(
-                    'logical_ans_(' + str(result) + ')', 32)
-                state.constraints.append(logical_result == If(
-                    result, BitVecVal(1, 32), BitVecVal(0, 32)))
-                state.symbolic_stack.append(logical_result)
+            # constraint and stack
+            state.constraints += [result]
+            state.symbolic_stack.append(
+                simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
             return False
 
@@ -107,21 +94,12 @@ class LogicalInstructions:
             else:
                 raise UnsupportInstructionError
 
-            if is_bool(result):
-                if is_true(result):
-                    result = BitVecVal(1, 32)
-                elif is_false(result):
-                    result = BitVecVal(0, 32)
-
-            # check the result type
-            if is_bv_value(result):
-                state.symbolic_stack.append(result)
-            else:
-                logical_result = BitVec(
-                    'logical_ans_(' + str(result) + ')', 32)
-                state.constraints.append(logical_result == If(
-                    result, BitVecVal(1, 32), BitVecVal(0, 32)))
-                state.symbolic_stack.append(logical_result)
+            assert is_bool(
+                result), "the result of logical instruction must be true"
+            # constraint and stack
+            state.constraints += [result]
+            state.symbolic_stack.append(
+                simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
             return False
 
