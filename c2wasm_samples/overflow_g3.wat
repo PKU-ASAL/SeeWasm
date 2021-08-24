@@ -1,8 +1,8 @@
 (module
   (type (;0;) (func (param i32) (result i32)))
   (type (;1;) (func (param i32 i32 i32) (result i32)))
-  (type (;2;) (func (param i32 i32) (result i32)))
-  (type (;3;) (func (result i32)))
+  (type (;2;) (func (result i32)))
+  (type (;3;) (func (param i32 i32) (result i32)))
   (type (;4;) (func (param i32 i64 i64 i64 i64)))
   (type (;5;) (func (param i32)))
   (type (;6;) (func (param i32 i32)))
@@ -44,58 +44,7 @@
   (import "wasi_snapshot_preview1" "fd_seek" (func $legalimport$__wasi_fd_seek (type 11)))
   (func $__wasm_call_ctors (type 9)
     call $emscripten_stack_init)
-  (func $add_one (type 0) (param i32) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
-    global.get 0
-    local.set 1
-    i32.const 16
-    local.set 2
-    local.get 1
-    local.get 2
-    i32.sub
-    local.set 3
-    local.get 3
-    global.set 0
-    local.get 3
-    local.get 0
-    i32.store offset=12
-    local.get 3
-    i32.load offset=12
-    local.set 4
-    i32.const 1
-    local.set 5
-    local.get 4
-    local.get 5
-    i32.add
-    local.set 6
-    local.get 3
-    local.get 6
-    i32.store offset=8
-    local.get 3
-    i32.load offset=8
-    local.set 7
-    local.get 3
-    local.get 7
-    i32.store
-    i32.const 1062
-    local.set 8
-    local.get 8
-    local.get 3
-    call $printf
-    drop
-    i32.const 0
-    local.set 9
-    i32.const 16
-    local.set 10
-    local.get 3
-    local.get 10
-    i32.add
-    local.set 11
-    local.get 11
-    global.set 0
-    local.get 9
-    return)
-  (func $add_two_variable (type 2) (param i32 i32) (result i32)
+  (func $add_two_variable (type 3) (param i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     local.set 2
@@ -188,117 +137,11 @@
     global.set 0
     local.get 19
     return)
-  (func $minus_one (type 0) (param i32) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
-    global.get 0
-    local.set 1
-    i32.const 16
-    local.set 2
-    local.get 1
-    local.get 2
-    i32.sub
-    local.set 3
-    local.get 3
-    global.set 0
-    local.get 3
-    local.get 0
-    i32.store offset=12
-    local.get 3
-    i32.load offset=12
-    local.set 4
-    i32.const 1
-    local.set 5
-    local.get 4
-    local.get 5
-    i32.sub
-    local.set 6
-    local.get 3
-    local.get 6
-    i32.store offset=8
-    local.get 3
-    i32.load offset=8
-    local.set 7
-    local.get 3
-    local.get 7
-    i32.store
-    i32.const 1062
-    local.set 8
-    local.get 8
-    local.get 3
-    call $printf
-    drop
-    i32.const 0
-    local.set 9
-    i32.const 16
-    local.set 10
-    local.get 3
-    local.get 10
-    i32.add
-    local.set 11
-    local.get 11
-    global.set 0
-    local.get 9
-    return)
-  (func $minus_two_variable (type 2) (param i32 i32) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
-    global.get 0
-    local.set 2
-    i32.const 16
-    local.set 3
-    local.get 2
-    local.get 3
-    i32.sub
-    local.set 4
-    local.get 4
-    global.set 0
-    local.get 4
-    local.get 0
-    i32.store offset=12
-    local.get 4
-    local.get 1
-    i32.store offset=8
-    local.get 4
-    i32.load offset=12
-    local.set 5
-    local.get 4
-    i32.load offset=8
-    local.set 6
-    local.get 5
-    local.get 6
-    i32.sub
-    local.set 7
-    local.get 4
-    local.get 7
-    i32.store offset=4
-    local.get 4
-    i32.load offset=4
-    local.set 8
-    local.get 4
-    local.get 8
-    i32.store
-    i32.const 1062
-    local.set 9
-    local.get 9
-    local.get 4
-    call $printf
-    drop
-    i32.const 0
-    local.set 10
-    i32.const 16
-    local.set 11
-    local.get 4
-    local.get 11
-    i32.add
-    local.set 12
-    local.get 12
-    global.set 0
-    local.get 10
-    return)
-  (func $__original_main (type 3) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
+  (func $__original_main (type 2) (result i32)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     local.set 0
-    i32.const 48
+    i32.const 16
     local.set 1
     local.get 0
     local.get 1
@@ -310,106 +153,56 @@
     local.set 3
     local.get 2
     local.get 3
-    i32.store offset=44
-    i32.const -1
+    i32.store offset=12
+    i32.const -16
     local.set 4
     local.get 2
     local.get 4
-    i32.store offset=40
-    local.get 2
-    i32.load offset=40
+    i32.store offset=8
+    i32.const 4
     local.set 5
     local.get 2
     local.get 5
+    i32.add
+    local.set 6
+    local.get 2
+    local.get 6
     i32.store
     i32.const 1062
-    local.set 6
-    local.get 6
-    local.get 2
-    call $printf
-    drop
-    local.get 2
-    i32.load offset=40
     local.set 7
     local.get 7
-    call $add_one
-    drop
-    i32.const -16
-    local.set 8
     local.get 2
-    local.get 8
-    i32.store offset=36
-    i32.const 32
-    local.set 9
-    local.get 2
-    local.get 9
-    i32.add
-    local.set 10
-    local.get 2
-    local.get 10
-    i32.store offset=16
-    i32.const 1062
-    local.set 11
-    i32.const 16
-    local.set 12
-    local.get 2
-    local.get 12
-    i32.add
-    local.set 13
-    local.get 11
-    local.get 13
     call $scanf
     drop
     local.get 2
-    i32.load offset=36
-    local.set 14
+    i32.load offset=8
+    local.set 8
     local.get 2
-    i32.load offset=32
-    local.set 15
-    local.get 14
-    local.get 15
+    i32.load offset=4
+    local.set 9
+    local.get 8
+    local.get 9
     call $add_two_variable
     drop
     i32.const 0
-    local.set 16
+    local.set 10
+    i32.const 16
+    local.set 11
     local.get 2
-    local.get 16
-    i32.store offset=40
-    local.get 2
-    i32.load offset=40
-    local.set 17
-    local.get 17
-    call $minus_one
-    drop
-    local.get 2
-    i32.load offset=32
-    local.set 18
-    local.get 2
-    i32.load offset=36
-    local.set 19
-    local.get 18
-    local.get 19
-    call $minus_two_variable
-    drop
-    i32.const 0
-    local.set 20
-    i32.const 48
-    local.set 21
-    local.get 2
-    local.get 21
+    local.get 11
     i32.add
-    local.set 22
-    local.get 22
+    local.set 12
+    local.get 12
     global.set 0
-    local.get 20
+    local.get 10
     return)
-  (func $main (type 2) (param i32 i32) (result i32)
+  (func $main (type 3) (param i32 i32) (result i32)
     (local i32)
     call $__original_main
     local.set 2
     local.get 2
     return)
-  (func $scanf (type 2) (param i32 i32) (result i32)
+  (func $scanf (type 3) (param i32 i32) (result i32)
     (local i32)
     global.get 0
     i32.const 16
@@ -428,7 +221,7 @@
     i32.add
     global.set 0
     local.get 1)
-  (func $vscanf (type 2) (param i32 i32) (result i32)
+  (func $vscanf (type 3) (param i32 i32) (result i32)
     i32.const 0
     i32.load offset=1092
     local.get 0
@@ -617,7 +410,7 @@
     i32.add
     i32.const 10
     i32.lt_u)
-  (func $__errno_location (type 3) (result i32)
+  (func $__errno_location (type 2) (result i32)
     i32.const 3704)
   (func $copysignl (type 4) (param i32 i64 i64 i64 i64)
     local.get 0
@@ -6709,7 +6502,7 @@
     i32.add
     global.set 0
     local.get 4)
-  (func $arg_n (type 2) (param i32 i32) (result i32)
+  (func $arg_n (type 3) (param i32 i32) (result i32)
     (local i32)
     global.get 0
     i32.const 16
@@ -6911,7 +6704,7 @@
     i32.add
     global.set 0
     local.get 4)
-  (func $__ofl_lock (type 3) (result i32)
+  (func $__ofl_lock (type 2) (result i32)
     i32.const 3708
     call $__lock
     i32.const 3716)
@@ -6992,7 +6785,7 @@
     local.get 0
     i32.load
     i32.eqz)
-  (func $__pthread_self (type 3) (result i32)
+  (func $__pthread_self (type 2) (result i32)
     i32.const 2288)
   (func $mbrtowc (type 8) (param i32 i32 i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32)
@@ -10439,9 +10232,9 @@
     local.get 0
     local.get 2
     i64.store offset=8)
-  (func $__fe_getround (type 3) (result i32)
+  (func $__fe_getround (type 2) (result i32)
     i32.const 0)
-  (func $__fe_raise_inexact (type 3) (result i32)
+  (func $__fe_raise_inexact (type 2) (result i32)
     i32.const 0)
   (func $__letf2 (type 13) (param i64 i64 i64 i64) (result i32)
     (local i32 i64 i64)
@@ -10853,11 +10646,11 @@
     i32.const -16
     i32.and
     global.set 1)
-  (func $emscripten_stack_get_free (type 3) (result i32)
+  (func $emscripten_stack_get_free (type 2) (result i32)
     global.get 0
     global.get 1
     i32.sub)
-  (func $emscripten_stack_get_end (type 3) (result i32)
+  (func $emscripten_stack_get_end (type 2) (result i32)
     global.get 1)
   (func $dlmalloc (type 0) (param i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
@@ -14837,7 +14630,7 @@
       select
       i32.store offset=3820
     end)
-  (func $dlrealloc (type 2) (param i32 i32) (result i32)
+  (func $dlrealloc (type 3) (param i32 i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       local.get 0
@@ -14915,7 +14708,7 @@
     local.get 0
     call $dlfree
     local.get 2)
-  (func $try_realloc_chunk (type 2) (param i32 i32) (result i32)
+  (func $try_realloc_chunk (type 3) (param i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32)
     local.get 0
     i32.load offset=4
@@ -16219,7 +16012,7 @@
       local.get 1
       i32.store offset=8
     end)
-  (func $emscripten_get_heap_size (type 3) (result i32)
+  (func $emscripten_get_heap_size (type 2) (result i32)
     memory.size
     i32.const 16
     i32.shl)
@@ -17699,7 +17492,7 @@
     local.get 1
     i32.store8
     i32.const 1)
-  (func $wctomb (type 2) (param i32 i32) (result i32)
+  (func $wctomb (type 3) (param i32 i32) (result i32)
     block  ;; label = @1
       local.get 0
       br_if 0 (;@1;)
@@ -21340,7 +21133,7 @@
   (func $__DOUBLE_BITS (type 33) (param f64) (result i64)
     local.get 0
     i64.reinterpret_f64)
-  (func $printf (type 2) (param i32 i32) (result i32)
+  (func $printf (type 3) (param i32 i32) (result i32)
     (local i32)
     global.get 0
     i32.const 16
@@ -21364,7 +21157,7 @@
   (func $__lockfile (type 0) (param i32) (result i32)
     i32.const 1)
   (func $__unlockfile (type 5) (param i32))
-  (func $stackSave (type 3) (result i32)
+  (func $stackSave (type 2) (result i32)
     global.get 0)
   (func $stackRestore (type 5) (param i32)
     local.get 0

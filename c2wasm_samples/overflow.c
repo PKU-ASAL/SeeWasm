@@ -40,18 +40,18 @@ int minus_two_variable(b, a)
 
 int main(void)
 {
-    unsigned int num = 0xffffffff;
-    printf("%x", num);
-    add_one(num);
+    // unsigned int num = 0xffffffff;
+    // printf("%x", num);
+    // add_one(num);
 
     unsigned int a = 0xfffffff0;
     unsigned int b;
     scanf("%x", &b);
     add_two_variable(a, b);
 
-    num = 0;
-    minus_one(num);
-    minus_two_variable(b, a);
+    // num = 0;
+    // minus_one(num);
+    // minus_two_variable(b, a);
 
     return 0;
 }

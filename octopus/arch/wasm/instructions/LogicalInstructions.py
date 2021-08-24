@@ -62,9 +62,6 @@ class LogicalInstructions:
 
             assert is_bool(
                 result), "the result of logical instruction must be true"
-
-            # constraint and stack
-            state.constraints += [result]
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
@@ -96,8 +93,6 @@ class LogicalInstructions:
 
             assert is_bool(
                 result), "the result of logical instruction must be true"
-            # constraint and stack
-            state.constraints += [result]
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
