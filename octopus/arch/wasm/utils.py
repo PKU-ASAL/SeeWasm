@@ -1,7 +1,14 @@
 from z3 import *
 import re
+from enum import Enum
 
 from . exceptions import *
+
+
+class Enable_Lasers(Enum):
+    OVERFLOW = 1
+    OTHER = 2
+    ANOTHER = 4
 
 
 class bcolors:

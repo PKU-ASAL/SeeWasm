@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 
 int add_one(num)
 {
@@ -6,34 +7,17 @@ int add_one(num)
     unsigned int num_one = num + 1;
     printf("%x", num_one);
 
+    assert(num_one <= num);
+
     return 0;
 }
 
 int add_two_variable(a, b)
 {
-    if (b > 2)
-    {
-        return 0;
-    }
     unsigned int c = a + b;
     printf("%x", c);
 
-    return 0;
-}
-
-int minus_one(num)
-{
-    // underflow here
-    unsigned int num_one = num - 1;
-    printf("%x", num_one);
-
-    return 0;
-}
-
-int minus_two_variable(b, a)
-{
-    unsigned int c = b - a;
-    printf("%x", c);
+    assert(c <= a && c <= b);
 
     return 0;
 }
@@ -48,10 +32,6 @@ int main(void)
     unsigned int b;
     scanf("%x", &b);
     add_two_variable(a, b);
-
-    num = 0;
-    minus_one(num);
-    minus_two_variable(b, a);
 
     return 0;
 }

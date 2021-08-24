@@ -1,6 +1,9 @@
 # emulate the arithmetic related instructions
 
 from .. exceptions import *
+from octopus.arch.wasm.utils import Enable_Lasers
+from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
+
 from z3 import *
 import logging
 
@@ -22,9 +25,14 @@ class ArithmeticInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    # TODO overflow check in this function?
     def emulate(self, state):
-        def do_emulate_arithmetic_int_instruction(state):
+        overflow_check_flag = False
+        overflow_laser = None
+        if state.lasers & Enable_Lasers.OVERFLOW.value:
+            overflow_check_flag = True
+            overflow_laser = OverflowLaser()
+
+        def do_emulate_arithmetic_int_instruction(state, overflow_check_flag, laser):
             instr_type = self.instr_name[:3]
 
             if '.clz' in self.instr_name or '.ctz' in self.instr_name:
@@ -58,27 +66,30 @@ class ArithmeticInstructions:
                 ) == helper_map[instr_type], f"in arithmetic instruction, arg2 size is {arg2.size()} instead of {helper_map[instr_type]}"
 
                 if '.sub' in self.instr_name:
-                    result = simplify(arg2 - arg1)
+                    result = arg2 - arg1
                 elif '.add' in self.instr_name:
-                    result = simplify(arg2 + arg1)
+                    result = arg2 + arg1
                 elif '.mul' in self.instr_name:
-                    result = simplify(arg2 * arg1)
+                    result = arg2 * arg1
                 elif '.div_s' in self.instr_name:
-                    result = simplify(arg2 / arg1)
+                    result = arg2 / arg1
                 elif '.div_u' in self.instr_name:
-                    result = simplify(UDiv(arg2, arg1))
+                    result = UDiv(arg2, arg1)
                 elif '.rem_s' in self.instr_name:
-                    result = simplify(SRem(arg2, arg1))
+                    result = SRem(arg2, arg1)
                 elif '.rem_u' in self.instr_name:
-                    result = simplify(URem(arg2, arg1))
+                    result = URem(arg2, arg1)
                 else:
                     raise UnsupportInstructionError
 
+                if overflow_check_flag:
+                    laser.fire(result, state.constraints)
+                result = simplify(result)
                 state.symbolic_stack.append(result)
 
             return False
 
-        def do_emulate_arithmetic_float_instruction(instr, state):
+        def do_emulate_arithmetic_float_instruction(state, overflow_check_flag, laser):
             # TODO need to be clarified
             # wasm default rounding rules
             rm = RNE()
@@ -165,9 +176,11 @@ class ArithmeticInstructions:
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_arithmetic_int_instruction(state)
+            do_emulate_arithmetic_int_instruction(
+                state, overflow_check_flag, overflow_laser)
         else:
-            do_emulate_arithmetic_float_instruction(state)
+            do_emulate_arithmetic_float_instruction(
+                state, overflow_check_flag, overflow_laser)
 
 
 # ------------------------------------------------

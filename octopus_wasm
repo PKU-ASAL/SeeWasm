@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 from octopus.arch.wasm.utils import extract_mapping
 from octopus.arch.wasm.graph import *
+from octopus.arch.wasm.utils import Enable_Lasers
+
 import argparse
-import logging
 import sys
 import gvar
 
 sys.setrecursionlimit(4096)
 
-# check whether the argument is positive
-
 
 def check_not_neg(value):
+    # check whether the argument is positive
     ivalue = int(value)
     if ivalue < 0:
         raise argparse.ArgumentTypeError("Random should be a positive number")
@@ -74,6 +74,11 @@ def main():
     features.add_argument('--manual_guide',
                           action='store_true',
                           help='allow users to manually guide the control flow')
+
+    # vulnerability detector
+    lasers = parser.add_argument_group('Lasers')
+    lasers.add_argument('--overflow', action='store_true',
+                        help="fire the overflow vulnerability detector")
 
     analyze = parser.add_mutually_exclusive_group(required=False)
     analyze.add_argument('-s', '--symbolic',
@@ -156,8 +161,13 @@ def main():
     # import necessary library
     from octopus.arch.wasm.emulator_revise import WasmSSAEmulatorEngine
     if args.symbolic:
+        # record the lasers that users required
+        user_asked_lasers = 0
+        if args.overflow:
+            user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
+
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, args.timeout, func_index2func_name=func_index2func_name)
+            octo_bytecode, user_asked_lasers, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide

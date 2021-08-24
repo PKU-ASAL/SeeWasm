@@ -134,8 +134,12 @@ class ControlInstructions:
 
             # find a more readable name, need -g3 compiling and --need-mapper
             if func_index2func_name is not None:
-                readable_name = func_index2func_name[int(
-                    re.search('(\d+)', internal_function_name).group())]
+                try:
+                    readable_name = func_index2func_name[int(
+                        re.search('(\d+)', internal_function_name).group())]
+                except AttributeError:
+                    # if the internal_function_name is the readable name already
+                    readable_name = internal_function_name
 
             new_states = []
             if readable_name in C_LIBRARY_FUNCS:
