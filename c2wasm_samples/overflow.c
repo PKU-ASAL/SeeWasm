@@ -1,21 +1,42 @@
 #include <stdio.h>
 
-int add_one(num)
+int signed_int_add(void)
 {
-    // overflow here
-    unsigned int num_one = num + 1;
-    printf("%x", num_one);
+    int a, b;
+    a = 2147483640;
+    // b = 1;
+    scanf("%d", &b);
+    int c = a + b;
+    printf("%d", c);
 
     return 0;
 }
 
-int add_two_variable(a)
+int signed_int_add_restricted(void)
 {
-    unsigned int b;
-    scanf("%u", &b);
-    if (b > 2)
+    int a, b;
+    a = 2147483640;
+    // b = 1;
+    scanf("%d", &b);
+    if (b > 3)
     {
-        return 0;
+        return -1;
+    }
+    int c = a + b;
+    printf("%d", c);
+
+    return 0;
+}
+
+int unsigned_int_add_restricted(void)
+{
+    unsigned int a, b;
+    a = 2147483640;
+    // b = 1;
+    scanf("%u", &b);
+    if (b > 3)
+    {
+        return -1;
     }
     unsigned int c = a + b;
     printf("%u", c);
@@ -23,35 +44,11 @@ int add_two_variable(a)
     return 0;
 }
 
-int minus_one(num)
-{
-    // underflow here
-    unsigned int num_one = num - 1;
-    printf("%x", num_one);
-
-    return 0;
-}
-
-int minus_two_variable(b, a)
-{
-    unsigned int c = b - a;
-    printf("%x", c);
-
-    return 0;
-}
-
 int main(void)
 {
-    // unsigned int num = 0xffffffff;
-    // printf("%x", num);
-    // add_one(num);
-
-    unsigned int a = 0xfffffff0;
-    add_two_variable(a);
-
-    // num = 0;
-    // minus_one(num);
-    // minus_two_variable(b, a);
+    signed_int_add();
+    signed_int_add_restricted();
+    unsigned_int_add_restricted();
 
     return 0;
 }

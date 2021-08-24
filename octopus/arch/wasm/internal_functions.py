@@ -65,10 +65,12 @@ class PredefinedFunction:
                     # move to the next position where the new variable should be inserted
                     mem_pointer += 4
 
-                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4,
-                                                                   BitVec('variable' + str(i), 32))
+                    inserted_variable = BitVec(
+                        f"variable{str(i)}_{state.current_func_name}", 32)
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, target_mem_pointer, 4, inserted_variable)
                     logging.warning(
-                        "================Initiated an scanf integer: %s!=================\n", '$scanf_variable' + str(i))
+                        f"================Initiated an scanf integer: variable{str(i)}_{state.current_func_name}!=================\n")
                 elif pattern_str == '%s':
                     # as the basic unit in wasm is i32.load
                     target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
