@@ -25,6 +25,7 @@ class DivZeroLaser:
         new_cond = deepcopy(original_constraints)
 
         if expr.decl().name() in div_operations:
+            # if the dividend is zero, it's vulnerable
             new_cond += [op2 == 0]
             if self._check(new_cond):
                 logging.warning(

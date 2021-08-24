@@ -6,9 +6,9 @@ In this project, we have implemented a **symbolic execution engine** for Wasm fi
 
 Currently, we have supported some of standard C library functions, and we are going to support Go in the following stage.
 
-|          |     C      |  Go   | EWasm | EOSIO |
-| :------: | :--------: | :---: | :---: | :---: |
-| Progress | Working on |  WIP  |  WIP  | Done  |
+|          |     C      |     Go     | EWasm | EOSIO | Rust  |
+| :------: | :--------: | :--------: | :---: | :---: | :---: |
+| Progress | Working on | Working on | TODO  | Done  | TODO  |
 
 ##  Prerequisites 
 To run the samples (some simple Wasm files compiled from C), you have to install some python libraries as follows:
@@ -82,7 +82,7 @@ The `main` function in Go file is named as `main.main` in the Wat file.
 
 In this section, we would show how to use Wasm-SE to analyze the generated Wasm file.
 
-### Analyze specific function(s)
+### Analyze Specific Function(s)
 
 To specify which functions would be analyzed, i.e., as the entry point during the symbolic execution, we should use the following command:
 
@@ -94,7 +94,20 @@ Here, in the `[entry_func]`, users are allowed to specify the entry functions. F
 Moreover, `--need-mapper` is compulsory, because it can make a mapping between Wasm function indice and standard C library functions' name.
 Also, you can use `-v` to output each Wasm instruction's behavior.
 
+### Enable Vulnerability Detector
+
+The goal of Wasm-SE is to automatically identify vulnerabilities in scanned files. Currently, we are working on the implementation of detectors, and some of them have been achieved.
+The details are shown in below:
+
+| Vulnerability Type | Integer  Overflow / Underflow | Div Zero | Buffer Overflow |
+| :----------------: | :---------------------------: | :------: | :-------------: |
+|    **Progress**    |          Working on           |   Done   |      TODO       |
+
+Users can input `--overflow` or `--divzero` to enable the corresponding detectors.
+
 ----
+
+**NOTE: BELOW IS DEPRECATED**
 
 # Compile WASM from C
 
