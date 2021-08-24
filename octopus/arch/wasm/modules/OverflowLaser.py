@@ -25,7 +25,8 @@ class OverflowLaser:
         new_cond = deepcopy(original_constraints)
 
         if expr.decl().name() in overflow_group:
-            new_cond += [Or(op1 + op2 < op1, op1 + op2 < op2)]
+            # unsigned
+            new_cond += [Or(ULT(op1 + op2, op1), ULT(op1 + op2, op2))]
             if self._check(new_cond):
                 logging.warning(
                     f'{bcolors.WARNING}The "{expr.decl().name()}" of op1 ({op1}) and op2 ({op2}) may overflow!{bcolors.ENDC}')

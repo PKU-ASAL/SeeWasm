@@ -34,7 +34,7 @@ class PredefinedFunction:
 
             the_string = ""
             for pattern_str in pattern_list:
-                if pattern_str == '%d' or pattern_str == '%x':
+                if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
                     the_string += str(loaded_data)
                 elif pattern_str == '%s':
                     the_string += str(C_extract_string_by_mem_pointer(
@@ -57,7 +57,7 @@ class PredefinedFunction:
             pattern_list = [i.strip() for i in pattern_list]
 
             for i, pattern_str in enumerate(pattern_list):
-                if pattern_str == '%d' or pattern_str == '%x':
+                if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
                     # as the basic unit in wasm is i32.load
                     target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
                                                                 mem_pointer, 4).as_long()

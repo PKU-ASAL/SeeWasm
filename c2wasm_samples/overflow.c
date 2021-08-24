@@ -9,14 +9,16 @@ int add_one(num)
     return 0;
 }
 
-int add_two_variable(a, b)
+int add_two_variable(a)
 {
+    unsigned int b;
+    scanf("%u", &b);
     if (b > 2)
     {
         return 0;
     }
     unsigned int c = a + b;
-    printf("%x", c);
+    printf("%u", c);
 
     return 0;
 }
@@ -45,9 +47,7 @@ int main(void)
     // add_one(num);
 
     unsigned int a = 0xfffffff0;
-    unsigned int b;
-    scanf("%x", &b);
-    add_two_variable(a, b);
+    add_two_variable(a);
 
     // num = 0;
     // minus_one(num);
