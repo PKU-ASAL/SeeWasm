@@ -17,6 +17,23 @@ int add_two_variable(a, b)
     return 0;
 }
 
+int minus_one(num)
+{
+    // underflow here
+    unsigned int num_one = num - 1;
+    printf("%x", num_one);
+
+    return 0;
+}
+
+int minus_two_variable(b, a)
+{
+    unsigned int c = b - a;
+    printf("%x", c);
+
+    return 0;
+}
+
 int main(void)
 {
     unsigned int num = 0xffffffff;
@@ -27,6 +44,10 @@ int main(void)
     unsigned int b;
     scanf("%x", &b);
     add_two_variable(a, b);
+
+    num = 0;
+    minus_one(num);
+    minus_two_variable(b, a);
 
     return 0;
 }

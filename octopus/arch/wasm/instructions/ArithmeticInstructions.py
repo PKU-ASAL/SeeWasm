@@ -66,25 +66,25 @@ class ArithmeticInstructions:
                 ) == helper_map[instr_type], f"in arithmetic instruction, arg2 size is {arg2.size()} instead of {helper_map[instr_type]}"
 
                 if '.sub' in self.instr_name:
-                    result = simplify(arg2 - arg1)
+                    result = arg2 - arg1
                 elif '.add' in self.instr_name:
                     result = arg2 + arg1
-                    if overflow_check_flag:
-                        laser.fire(result)
-                    result = simplify(result)
                 elif '.mul' in self.instr_name:
-                    result = simplify(arg2 * arg1)
+                    result = arg2 * arg1
                 elif '.div_s' in self.instr_name:
-                    result = simplify(arg2 / arg1)
+                    result = arg2 / arg1
                 elif '.div_u' in self.instr_name:
-                    result = simplify(UDiv(arg2, arg1))
+                    result = UDiv(arg2, arg1)
                 elif '.rem_s' in self.instr_name:
-                    result = simplify(SRem(arg2, arg1))
+                    result = SRem(arg2, arg1)
                 elif '.rem_u' in self.instr_name:
-                    result = simplify(URem(arg2, arg1))
+                    result = URem(arg2, arg1)
                 else:
                     raise UnsupportInstructionError
 
+                if overflow_check_flag:
+                    laser.fire(result)
+                result = simplify(result)
                 state.symbolic_stack.append(result)
 
             return False
