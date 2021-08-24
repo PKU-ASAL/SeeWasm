@@ -79,6 +79,8 @@ def main():
     lasers = parser.add_argument_group('Lasers')
     lasers.add_argument('--overflow', action='store_true',
                         help="fire the overflow vulnerability detector")
+    lasers.add_argument('--divzero', action='store_true',
+                        help="fire the div-zero vulnerability detector")
 
     analyze = parser.add_mutually_exclusive_group(required=False)
     analyze.add_argument('-s', '--symbolic',
@@ -165,6 +167,8 @@ def main():
         user_asked_lasers = 0
         if args.overflow:
             user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
+        if args.divzero:
+            user_asked_lasers ^= Enable_Lasers.DIVZERO.value
 
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, user_asked_lasers, func_index2func_name=func_index2func_name)

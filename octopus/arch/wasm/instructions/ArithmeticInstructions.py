@@ -1,5 +1,6 @@
 # emulate the arithmetic related instructions
 
+from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
 from octopus.arch.wasm.utils import Enable_Lasers
 from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
@@ -32,7 +33,16 @@ class ArithmeticInstructions:
             overflow_check_flag = True
             overflow_laser = OverflowLaser()
 
-        def do_emulate_arithmetic_int_instruction(state, overflow_check_flag, laser):
+        div_zero_flag = False
+        div_zero_laser = None
+        if state.lasers & Enable_Lasers.DIVZERO.value:
+            div_zero_flag = True
+            div_zero_laser = DivZeroLaser()
+
+        flags = [overflow_check_flag, div_zero_flag]
+        laser_objs = [overflow_laser, div_zero_laser]
+
+        def do_emulate_arithmetic_int_instruction(state, flags, laser_objs):
             instr_type = self.instr_name[:3]
 
             if '.clz' in self.instr_name or '.ctz' in self.instr_name:
@@ -82,14 +92,18 @@ class ArithmeticInstructions:
                 else:
                     raise UnsupportInstructionError
 
+                overflow_check_flag, div_zero_flag = flags[0], flags[1]
+                overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
                 if overflow_check_flag:
-                    laser.fire(result, state.constraints)
+                    overflow_laser.fire(result, state.constraints)
+                if div_zero_flag:
+                    div_zero_laser.fire(result, state.constraints)
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 
             return False
 
-        def do_emulate_arithmetic_float_instruction(state, overflow_check_flag, laser):
+        def do_emulate_arithmetic_float_instruction(state, flags, laser_objs):
             # TODO need to be clarified
             # wasm default rounding rules
             rm = RNE()
@@ -117,23 +131,21 @@ class ArithmeticInstructions:
                 ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg2 type mismatch'
 
                 if '.add' in self.instr_name:
-                    result = simplify(fpAdd(rm, arg2, arg1))
+                    result = fpAdd(rm, arg2, arg1)
                 elif '.sub' in self.instr_name:
-                    result = simplify(fpSub(rm, arg2, arg1))
+                    result = fpSub(rm, arg2, arg1)
                 elif '.mul' in self.instr_name:
-                    result = simplify(fpMul(rm, arg2, arg1))
+                    result = fpMul(rm, arg2, arg1)
                 elif '.div' in self.instr_name:
-                    result = simplify(fpDiv(rm, arg2, arg1))
+                    result = fpDiv(rm, arg2, arg1)
                 elif '.min' in self.instr_name:
-                    result = simplify(fpMin(arg2, arg1))
+                    result = fpMin(arg2, arg1)
                 elif '.max' in self.instr_name:
-                    result = simplify(fpMax(arg2, arg1))
+                    result = fpMax(arg2, arg1)
                 elif '.copysign' in self.instr_name == 'f32.copysign':
                     # extract arg2's sign to overwrite arg1's sign
                     if arg2.isPositive() ^ arg1.isPositive():
-                        result = simplify(fpNeg(arg1))
-
-                state.symbolic_stack.append(result)
+                        result = fpNeg(arg1)
             # pop one element
             elif self.instr_name in one_argument_instrs:
                 arg1 = state.symbolic_stack.pop()
@@ -142,45 +154,47 @@ class ArithmeticInstructions:
                 ) == helper_map[instr_type][1], 'In do_emulate_arithmetic_float_instruction, arg1 type mismatch'
 
                 if '.sqrt' in self.instr_name:
-                    result = simplify(fpSqrt(rm, arg1))
+                    result = fpSqrt(rm, arg1)
                 elif '.floor' in self.instr_name:
                     # round toward negative
                     rm = RTN()
-                    result = simplify(
-                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
                 elif '.ceil' in self.instr_name:
                     # round toward positive
                     rm = RTP()
-                    result = simplify(
-                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
                 elif '.trunc' in self.instr_name:
                     # round toward zero
                     rm = RTZ()
-                    result = simplify(
-                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
                 elif '.nearest' in self.instr_name:
                     # round to integeral ties to even
                     rm = RNE()
-                    result = simplify(
-                        fpFPToFP(rm, arg1, float_helper_map[instr_type]()))
+                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
                 elif '.abs' in self.instr_name:
-                    result = simplify(fpAbs(arg1))
+                    result = fpAbs(arg1)
                 elif '.neg' in self.instr_name:
-                    result = simplify(fpNeg(arg1))
-
-                state.symbolic_stack.append(result)
+                    result = fpNeg(arg1)
             else:
                 raise UnsupportInstructionError
+
+            overflow_check_flag, div_zero_flag = flags[0], flags[1]
+            overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
+            if overflow_check_flag:
+                overflow_laser.fire(result, state.constraints)
+            if div_zero_flag:
+                div_zero_laser.fire(result, state.constraints)
+
+            result = simplify(result)
+            state.symbolic_stack.append(result)
 
             return False
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_arithmetic_int_instruction(
-                state, overflow_check_flag, overflow_laser)
+            do_emulate_arithmetic_int_instruction(state, flags, laser_objs)
         else:
-            do_emulate_arithmetic_float_instruction(
-                state, overflow_check_flag, overflow_laser)
+            do_emulate_arithmetic_float_instruction(state, flags, laser_objs)
 
 
 # ------------------------------------------------

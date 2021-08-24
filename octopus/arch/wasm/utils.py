@@ -7,7 +7,7 @@ from . exceptions import *
 
 class Enable_Lasers(Enum):
     OVERFLOW = 1
-    OTHER = 2
+    DIVZERO = 2
     ANOTHER = 4
 
 
