@@ -11,6 +11,10 @@ int add_one(num)
 
 int add_two_variable(a, b)
 {
+    if (b > 2)
+    {
+        return 0;
+    }
     unsigned int c = a + b;
     printf("%x", c);
 

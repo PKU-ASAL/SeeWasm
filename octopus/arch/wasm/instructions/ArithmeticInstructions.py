@@ -83,7 +83,7 @@ class ArithmeticInstructions:
                     raise UnsupportInstructionError
 
                 if overflow_check_flag:
-                    laser.fire(result)
+                    laser.fire(result, state.constraints)
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 
