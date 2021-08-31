@@ -49,6 +49,8 @@ class OverflowLaser:
             logging.warning(
                 f'{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free which may result in overflow!{bcolors.ENDC}')
         else:
-            print(op2con)
+            # step 3:
+            # infer the data type according to its passed instruction
+            # print(op2con)
             logging.warning(
                 f'{bcolors.WARNING}Cannot determine overflow problem{bcolors.ENDC}')

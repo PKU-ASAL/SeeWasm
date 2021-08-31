@@ -12,6 +12,11 @@ C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap'}
 GO_LIBRARY_FUNCS = {'runtime.morestack_noctxt', 'fmt.Fprintln'}
 
 
+# we heuristically define that if a func is not start with 'main', it is a library function
+def IS_GO_LIBRARY_FUNCS(x): return not(x.startswith('main'))
+def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
+
+
 class ControlInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
         self.instr_name = instr_name
@@ -142,11 +147,8 @@ class ControlInstructions:
                     readable_name = internal_function_name
 
             new_states = []
-            if readable_name in C_LIBRARY_FUNCS:
-                func = PredefinedFunction(
-                    readable_name, state.current_func_name)
-                func.emul(state, param_str, return_str, data_section)
-            elif readable_name in GO_LIBRARY_FUNCS:
+            # if the callee is a library function
+            if IS_C_LIBRARY_FUNCS(readable_name) or IS_GO_LIBRARY_FUNCS(readable_name):
                 func = PredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)

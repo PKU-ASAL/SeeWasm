@@ -1,9 +1,10 @@
+# these functions are predefined and we will emulate their behaviors
+
 from .memory import lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from .utils import getConcreteBitVec
 from z3 import *
 import logging
-import gvar
 
 
 class PredefinedFunction:
@@ -110,8 +111,6 @@ class PredefinedFunction:
             logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem,
                             the_other_mem)
         # ------------------------ GO Library -------------------------------
-        elif self.name == 'runtime.morestack_noctxt':
-            pass
         elif self.name == 'fmt.Fprintln':
             logging.warning("=============$fmt.Fprintln============")
 
