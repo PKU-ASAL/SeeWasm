@@ -23,7 +23,7 @@ class PredefinedFunction:
             for _ in range(num_arg):
                 param_list.append(state.symbolic_stack.pop())
 
-        if self.name == 'printf':
+        if self.name == 'printf' or self.name == 'iprintf':
             # has to use as_long()
             mem_pointer, start_pointer = param_list[0].as_long(
             ), param_list[1].as_long()

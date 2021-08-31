@@ -8,12 +8,13 @@ from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
 
-C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap'}
-GO_LIBRARY_FUNCS = {'runtime.morestack_noctxt', 'fmt.Fprintln'}
+C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap', 'iprintf'}
+GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
+                    'internal_poll', 'syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js'}
 
 
-# we heuristically define that if a func is not start with 'main', it is a library function
-def IS_GO_LIBRARY_FUNCS(x): return not(x.startswith('main'))
+# we heuristically define that if a func is start with the pre-defined substring, it is a library function
+def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS))
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
 
 
@@ -149,6 +150,7 @@ class ControlInstructions:
             new_states = []
             # if the callee is a library function
             if IS_C_LIBRARY_FUNCS(readable_name) or IS_GO_LIBRARY_FUNCS(readable_name):
+                logging.warning(f"Invoked a library function: {readable_name}")
                 func = PredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
