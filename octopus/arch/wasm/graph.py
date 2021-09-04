@@ -1,7 +1,7 @@
 import copy
 
 from z3 import *
-from collections import defaultdict
+from collections import defaultdict, deque
 from octopus.arch.wasm.utils import ask_user_input, bcolors
 
 
@@ -38,6 +38,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
+    _rev_bbs_graph = defaultdict(lambda : defaultdict(str))
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -57,6 +58,10 @@ class Graph:
     @classproperty
     def bbs_graph(cls):
         return cls._bbs_graph
+
+    @classproperty
+    def rev_bbs_graph(cls):
+        return cls._rev_bbs_graph
 
     @classproperty
     def bb_to_instructions(cls):
@@ -96,6 +101,7 @@ class Graph:
             # we have to make the value as a list as the br_table may have multiple conditional_true branches
             ty = edge_type + '_' + str(type_ids[node_from][edge_type])
             cls.bbs_graph[node_from][ty] = node_to
+            cls.rev_bbs_graph[node_to][ty] = node_from
             type_ids[node_from][edge_type] += 1
 
         # goal 1: append those single node into the bbs_graph
@@ -125,112 +131,124 @@ class Graph:
         # switch the state from caller to callee
         caller_func_name = state.current_func_name
         state.current_func_name = cls.wasmVM.cfg.get_function(func).name
-
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
 
+        blks = entry_func_bbs
+        intervals = cls.intervals_gen(entry_bb, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
-        circles = set()
-        cls.pre(entry_bb, vis, circles)
-        vis = defaultdict(int)
-
-        final_states = cls.visit(
-            [state], has_ret, entry_bb, vis, circles, cls.manual_guide)
-
+        heads = {v: head for head in intervals for v in intervals[head]}
+        _, final_states = cls.test_visit([state], has_ret, entry_bb, heads, vis)
         # restore the caller func
         state.current_func_name = caller_func_name
-
         return final_states
 
-    # `circles` maintains the circle entry in CFG
     @classmethod
-    def pre(cls, blk, vis, circles):
-        if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2:  # br_if and has visited
-            circles.add(blk)
-            return
-        vis[blk] = 1
-        for ty in cls.bbs_graph[blk]:
-            cls.pre(cls.bbs_graph[blk][ty], vis, circles)
-        vis[blk] = 0
-
-    @classmethod
-    def visit(cls, states, has_ret, blk, vis, circles, guided, branches=None):
-        if not guided and vis[blk] > 0:
-            return states
-
-        instructions = cls.bb_to_instructions[blk]
-        halt, emul_states = cls.wasmVM.emulate_basic_block(
-            states, has_ret, instructions)
-        if halt or len(cls.bbs_graph[blk]) == 0:
-            return emul_states
-        vis[blk] += 1
-        final_states = []
-        if guided:
-            # show how many possible states here, and ask the user to choose one
-            print(
-                f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-            if len(emul_states) == 1:
-                print(
-                    f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                state_index = ask_user_input(
-                    emul_states, isbr=False, onlyone=True)
-            else:
-                print(
-                    f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-                print(f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-                state_index = ask_user_input(
-                    emul_states, isbr=False)  # 0 for state, is a flag
-            state_item = emul_states[state_index]
-            emul_states = [state_item]
-
-        for state_item in emul_states:
-            if not branches:
-                branches = cls.bbs_graph[blk]
-            avail_br = []
-            for type in branches:
-                if type.startswith('conditional_') and isinstance(state_item, dict):
-                    if type not in state_item:
-                        continue
-                    state = state_item[type]
+    def can_cut(cls, type, state):
+        if isinstance(state, dict):
+            if type.startswith('conditional_'):
+                if type in state:
+                    state = state[type]
                     solver = Solver()
                     solver.add(*state.constraints)
                     if sat != solver.check():
-                        continue
-                avail_br.append(type)
+                        return True
+        return False
+
+    @classmethod
+    def intervals_gen(cls, blk, blk_lis, revg, g):
+        intervals = {}
+        nodes = set(blk_lis)
+        que = deque([blk])
+        while que:
+            u = que.popleft()
+            new_interval = {u}
+            while True:
+                succs = set([g[v][t] for v in new_interval for t in g[v]])
+                succs = succs - new_interval
+                ext = set()
+                for v in succs:
+                    prevs = set([revg[v][t] for t in revg[v]])
+                    if prevs <= new_interval:
+                        ext.add(v)
+                new_interval |= ext
+                if not ext:
+                    break
+            nodes = nodes - new_interval
+            new_header = set()
+            for v in nodes:
+                prevs = set([revg[v][t] for t in revg[v]])
+                if not prevs.isdisjoint(new_interval):
+                    new_header.add(v)
+            que.extend(list(new_header))
+            intervals[u] = new_interval
+        return intervals
+
+    @classmethod
+    def test_visit(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
+        vis[prev] = True
+        cnt = defaultdict(int) # could be replaced with weights
+        que = deque([(states, has_ret, blk)])
+        final_states = []
+        response_to = set()
+        while que:
+            state, has_ret, u = que.popleft()
+            nlist = cls.bbs_graph[u]
+            if blk != heads[u]:
+                new_response_to, emul_states = cls.test_visit(state, has_ret, u, heads, vis, guided, blk)
+                nlist = {p[0]: p[1] for p in new_response_to if heads[p[1]] == blk}
+                new_response_to -= {(p, nlist[p]) for p in nlist}
+                response_to = response_to | new_response_to
+            else:
+                _, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, cls.bb_to_instructions[u])
             if guided:
+                # show how many possible states here, and ask the user to choose one
                 print(
-                    f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
-                if len(avail_br) == 1:
+                    f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
+                if len(emul_states) == 1:
                     print(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    avail_br = [ask_user_input(
-                        emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
+                    state_index = ask_user_input(
+                        emul_states, isbr=False, onlyone=True)
                 else:
-                    print(f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
-                    print(f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    avail_br = [ask_user_input(
-                        emul_states, isbr=True, branches=branches, state_item=state_item)]
+                    print(
+                        f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
+                    print(
+                        f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
+                    state_index = ask_user_input(
+                        emul_states, isbr=False)  # 0 for state, is a flag
+                state_item = emul_states[state_index]
+                emul_states = [state_item]
 
-            for type in avail_br:
-                nxt_blk = cls.bbs_graph[blk][type]
-                state = state_item[type] if isinstance(
-                    state_item, dict) else state_item
-                if not guided:
-                    if nxt_blk in circles:
-                        enter_states = [state]
-                        for i in range(cls.loop_maximum_rounds):
-                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, [
-                                                     'conditional_false_0'])
-                        enter_states = cls.visit(
-                            enter_states, has_ret, nxt_blk, vis, circles, guided, ['conditional_true_0'])
-                        final_states.extend(enter_states)
+            response_to |= {(ty, heads[nlist[ty]]) for ty in nlist if vis[heads[nlist[ty]]]}
+            for state_item in emul_states:
+                avail_br = list(filter(lambda ty: not cls.can_cut(ty, state_item), nlist))
+                if guided:
+                    print(
+                        f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
+                    if len(avail_br) == 1:
+                        print(
+                            f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                        avail_br = [ask_user_input(
+                            emul_states, isbr=True, onlyone=True, branches=avail_br, state_item=state_item)]
                     else:
-                        final_states.extend(
-                            cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
-                else:
-                    final_states.extend(
-                        cls.visit([state], has_ret, nxt_blk, vis, circles, guided))
-        vis[blk] -= 1
-        return final_states if len(final_states) > 0 else states
+                        print(
+                            f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
+                        print(
+                            f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
+                        avail_br = [ask_user_input(
+                            emul_states, isbr=True, branches=avail_br, state_item=state_item)]
+                flag = True
+                for ty in avail_br:
+                    v = nlist[ty]
+                    state = state_item[ty] if isinstance(state_item, dict) else state_item
+                    if (heads[v] == heads[blk] or heads[u] == heads[blk]) and (cnt[v] < cls._loop_maximum_rounds and not vis[heads[v]]):
+                        cnt[v] += 1
+                        que.append(([copy.deepcopy(state)], has_ret, v))
+                        flag = False
+                if flag:
+                    final_states.append(copy.deepcopy(state_item['conditional_false_0'] if isinstance(state_item, dict) else state_item))
+        vis[prev] = False
+        return response_to, final_states
