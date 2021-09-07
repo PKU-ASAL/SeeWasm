@@ -5,12 +5,20 @@ from collections import defaultdict
 
 from octopus.arch.wasm.utils import bcolors
 
-overflow_group = {'bvadd', 'bvmul'}
+overflow_group = {'bvadd', 'bvmul', 'bvsub'}
 
 
 class OverflowLaser:
     def __init__(self):
         pass
+
+    def _check(self, constraint):
+        s = Solver()
+        s.add(constraint)
+        if sat == s.check():
+            print(s.model())
+            return True
+        return False
 
     def fire(self, expr, original_constraints):
         # two operands
@@ -47,10 +55,28 @@ class OverflowLaser:
                 break
         if free_variable:
             logging.warning(
-                f'{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free which may result in overflow!{bcolors.ENDC}')
-        else:
-            # step 3:
-            # infer the data type according to its passed instruction
-            # print(op2con)
-            logging.warning(
-                f'{bcolors.WARNING}Cannot determine overflow problem{bcolors.ENDC}')
+                f'{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free, which may result in overflow!{bcolors.ENDC}')
+            return
+
+        # step 3:
+        # infer the data type according to its passed instruction
+        # print(op2con)
+        op_name = expr.decl().name()
+        if op_name == 'bvadd':
+            # signed
+            new_cond += [Not(BVAddNoOverflow(op1, op2, True))]
+            if self._check(new_cond):
+                logging.warning(
+                    f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+        elif op_name == 'bvsub':
+            # signed
+            new_cond += [Not(BVSubNoUnderflow(op1, op2, True))]
+            if self._check(new_cond):
+                logging.warning(
+                    f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (signed){bcolors.ENDC}')
+        elif op_name == 'bvmul':
+            # signed
+            new_cond += [Not(BVMulNoOverflow(op1, op2, True))]
+            if self._check(new_cond):
+                logging.warning(
+                    f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
