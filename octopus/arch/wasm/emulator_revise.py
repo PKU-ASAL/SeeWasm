@@ -97,9 +97,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def init_state(self, func_name, param_str, return_str, has_ret):
         state = WasmVMstate()
 
-        for i, local in enumerate(param_str.split(' ')):
-            state.local_var[i] = getConcreteBitVec(
-                local, func_name + '_loc_' + str(i) + '_' + local)
+        if param_str != '':
+            for i, local in enumerate(param_str.split(' ')):
+                state.local_var[i] = getConcreteBitVec(
+                    local, func_name + '_loc_' + str(i) + '_' + local)
 
         # deal with the globals
         self.init_globals(state)
