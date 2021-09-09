@@ -20,7 +20,7 @@ class OverflowLaser:
             return True
         return False
 
-    def fire(self, expr, original_constraints):
+    def fire(self, expr, original_constraints, sign_mapping):
         # two operands
         op1, op2 = expr.arg(0), expr.arg(1)
         # copy the original_constraints
@@ -60,23 +60,35 @@ class OverflowLaser:
 
         # step 3:
         # infer the data type according to its passed instruction
-        # print(op2con)
+
+        # speculate the sign, default is signed
+        is_signed = sign_mapping.get(
+            op1.hash(), True) & sign_mapping.get(op2.hash(), True)
         op_name = expr.decl().name()
         if op_name == 'bvadd':
-            # signed
-            new_cond += [Not(BVAddNoOverflow(op1, op2, True))]
+            new_cond += [Not(BVAddNoOverflow(op1, op2, is_signed))]
             if self._check(new_cond):
-                logging.warning(
-                    f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                if is_signed:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                else:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
         elif op_name == 'bvsub':
-            # signed
-            new_cond += [Not(BVSubNoUnderflow(op1, op2, True))]
+            new_cond += [Not(BVSubNoUnderflow(op1, op2, is_signed))]
             if self._check(new_cond):
-                logging.warning(
-                    f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (signed){bcolors.ENDC}')
+                if is_signed:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (signed){bcolors.ENDC}')
+                else:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (unsigned){bcolors.ENDC}')
         elif op_name == 'bvmul':
-            # signed
-            new_cond += [Not(BVMulNoOverflow(op1, op2, True))]
+            new_cond += [Not(BVMulNoOverflow(op1, op2, is_signed))]
             if self._check(new_cond):
-                logging.warning(
-                    f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                if is_signed:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                else:
+                    logging.warning(
+                        f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
