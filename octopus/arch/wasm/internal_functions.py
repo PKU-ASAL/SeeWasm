@@ -25,8 +25,11 @@ class PredefinedFunction:
 
         if self.name == 'printf' or self.name == 'iprintf':
             # has to use as_long()
-            mem_pointer, start_pointer = param_list[0].as_long(
-            ), param_list[1].as_long()
+            mem_pointer = param_list[0].as_long() if is_bv_value(
+                param_list[0]) else param_list[0]
+            start_pointer = param_list[1].as_long() if is_bv_value(
+                param_list[1]) else param_list[1]
+
             pattern, loaded_data = C_extract_string_by_start_pointer(
                 start_pointer, mem_pointer, data_section, state.symbolic_memory)
 
@@ -48,8 +51,11 @@ class PredefinedFunction:
             #     the_string = f"'{ord(the_string)}'"
             logging.warning("%s\n", the_string)
         elif self.name == 'scanf':
-            mem_pointer, start_pointer = param_list[0].as_long(
-            ), param_list[1].as_long()
+            mem_pointer = param_list[0].as_long() if is_bv_value(
+                param_list[0]) else param_list[0]
+            start_pointer = param_list[1].as_long() if is_bv_value(
+                param_list[1]) else param_list[1]
+
             pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
                                                                      state.symbolic_memory)
 
@@ -61,7 +67,9 @@ class PredefinedFunction:
                 if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
                     # as the basic unit in wasm is i32.load
                     target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
-                                                                mem_pointer, 4).as_long()
+                                                                mem_pointer, 4)
+                    if is_bv_value(target_mem_pointer):
+                        target_mem_pointer = target_mem_pointer.as_long()
                     # TODO recheck here
                     # move to the next position where the new variable should be inserted
                     mem_pointer += 4
