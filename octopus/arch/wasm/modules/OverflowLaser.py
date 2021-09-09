@@ -1,3 +1,5 @@
+# Implement an integer overflow detector
+
 from z3 import *
 import logging
 from copy import deepcopy

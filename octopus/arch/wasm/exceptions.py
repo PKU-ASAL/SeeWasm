@@ -1,4 +1,4 @@
-# define our own exceptions
+# This file defines our own exceptions
 
 # used in `utils.py`
 # indicating that the variable type is not in ['i32', 'i64', 'f32', 'f64']

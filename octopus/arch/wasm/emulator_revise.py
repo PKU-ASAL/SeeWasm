@@ -1,3 +1,6 @@
+# This file will initiate a Wasm Symbolic Execution Engine
+# Also, it implements the Instruction Dispatcher
+
 import copy
 import logging
 import re

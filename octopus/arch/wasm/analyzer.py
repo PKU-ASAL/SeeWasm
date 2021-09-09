@@ -1,3 +1,6 @@
+# This file is written by Octopus
+# Its purpose is to analyze and parse the decoded Wasm bytecode
+
 # from wasm.decode import decode_module
 import io
 import json

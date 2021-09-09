@@ -1,4 +1,4 @@
-# this file is for the implementation of C library functions
+# This file is related to the implementation of some C library functions
 
 import logging
 from z3 import *

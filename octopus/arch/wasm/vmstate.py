@@ -1,3 +1,5 @@
+# This file defines the `state` that will be passed within Wasm-SE
+
 from octopus.engine.engine import VMstate
 
 from collections import defaultdict

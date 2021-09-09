@@ -1,3 +1,8 @@
+# This is the key component of Wasm-SE
+# It implements an algorithm to select the next path to go in the CFG
+# Currently, we have DFS, and interval-related routing algorithm
+# We plan to add RL and random to guide the symbolic execution
+
 import copy
 
 from z3 import *
@@ -38,7 +43,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
-    _rev_bbs_graph = defaultdict(lambda : defaultdict(str))
+    _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -137,10 +142,12 @@ class Graph:
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
 
         blks = entry_func_bbs
-        intervals = cls.intervals_gen(entry_bb, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        intervals = cls.intervals_gen(
+            entry_bb, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
-        _, final_states = cls.test_visit([state], has_ret, entry_bb, heads, vis)
+        _, final_states = cls.test_visit(
+            [state], has_ret, entry_bb, heads, vis)
         # restore the caller func
         state.current_func_name = caller_func_name
         return final_states
@@ -189,7 +196,7 @@ class Graph:
     @classmethod
     def test_visit(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
         vis[prev] = True
-        cnt = defaultdict(int) # could be replaced with weights
+        cnt = defaultdict(int)  # could be replaced with weights
         que = deque([(states, has_ret, blk)])
         final_states = []
         response_to = set()
@@ -197,12 +204,15 @@ class Graph:
             state, has_ret, u = que.popleft()
             nlist = cls.bbs_graph[u]
             if blk != heads[u]:
-                new_response_to, emul_states = cls.test_visit(state, has_ret, u, heads, vis, guided, blk)
-                nlist = {p[0]: p[1] for p in new_response_to if heads[p[1]] == blk}
+                new_response_to, emul_states = cls.test_visit(
+                    state, has_ret, u, heads, vis, guided, blk)
+                nlist = {p[0]: p[1]
+                         for p in new_response_to if heads[p[1]] == blk}
                 new_response_to -= {(p, nlist[p]) for p in nlist}
                 response_to = response_to | new_response_to
             else:
-                _, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, cls.bb_to_instructions[u])
+                _, emul_states = cls.wasmVM.emulate_basic_block(
+                    state, has_ret, cls.bb_to_instructions[u])
             if guided:
                 # show how many possible states here, and ask the user to choose one
                 print(
@@ -222,9 +232,11 @@ class Graph:
                 state_item = emul_states[state_index]
                 emul_states = [state_item]
 
-            response_to |= {(ty, heads[nlist[ty]]) for ty in nlist if vis[heads[nlist[ty]]]}
+            response_to |= {(ty, heads[nlist[ty]])
+                            for ty in nlist if vis[heads[nlist[ty]]]}
             for state_item in emul_states:
-                avail_br = list(filter(lambda ty: not cls.can_cut(ty, state_item), nlist))
+                avail_br = list(
+                    filter(lambda ty: not cls.can_cut(ty, state_item), nlist))
                 if guided:
                     print(
                         f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
@@ -243,12 +255,14 @@ class Graph:
                 flag = True
                 for ty in avail_br:
                     v = nlist[ty]
-                    state = state_item[ty] if isinstance(state_item, dict) else state_item
+                    state = state_item[ty] if isinstance(
+                        state_item, dict) else state_item
                     if (heads[v] == heads[blk] or heads[u] == heads[blk]) and (cnt[v] < cls._loop_maximum_rounds and not vis[heads[v]]):
                         cnt[v] += 1
                         que.append(([copy.deepcopy(state)], has_ret, v))
                         flag = False
                 if flag:
-                    final_states.append(copy.deepcopy(state_item['conditional_false_0'] if isinstance(state_item, dict) else state_item))
+                    final_states.append(copy.deepcopy(
+                        state_item['conditional_false_0'] if isinstance(state_item, dict) else state_item))
         vis[prev] = False
         return response_to, final_states

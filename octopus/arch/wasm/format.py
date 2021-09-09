@@ -1,3 +1,6 @@
+# This file is written by Octopus
+# It is for formatting
+
 import re
 
 from octopus.arch.wasm.constant import LANG_TYPE

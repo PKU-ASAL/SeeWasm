@@ -1,4 +1,4 @@
-# these functions are predefined and we will emulate their behaviors
+# These functions are predefined and we will emulate their behaviors
 
 from .memory import lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
