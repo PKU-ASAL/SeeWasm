@@ -1,4 +1,6 @@
 import os
+import time
+
 import pytest
 import sh
 
@@ -15,10 +17,13 @@ for case in case_lists:
     cmd_lists.append(['octopus_wasm', '-f', file_path, '-s',
                      '--onlyfunc', 'main', '--need_mapper'])
 
-python_cmd = sh.Command('python3.6')
-for cmd in cmd_lists:
+python_cmd = sh.Command('python3.7')
+for i, cmd in enumerate(cmd_lists):
     try:
+        start = time.perf_counter()
         python_cmd(cmd)
+        end = time.perf_counter()
+        print('Case: ', case_lists[i], 'Duration: ', end - start)
     except sh.ErrorReturnCode as e:
         print(e)
         pytest.fail(e)

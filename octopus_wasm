@@ -180,10 +180,7 @@ def main():
         Graph.extract_basic_blocks()
         if args.onlyfunc:
             graph = Graph(args.onlyfunc)
-            start = time.perf_counter()
             graph.traverse()
-            end = time.perf_counter()
-            print('Duration: ', end - start)
         else:
             raise Exception("Please specify at least one entry function")
 
