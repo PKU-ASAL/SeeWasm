@@ -1,3 +1,6 @@
+# This file will initiate a Wasm Symbolic Execution Engine
+# Also, it implements the Instruction Dispatcher
+
 import copy
 import logging
 import re
@@ -31,6 +34,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
         self.lasers = user_asked_lasers
+
+        # all the exports function's name
+        self.exported_func_names = [i["field_str"]
+                                    for i in self.ana.exports if i["kind"] == 0]
 
         self.data_section = dict()
         # init memory section with data section
@@ -83,13 +90,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return param_str, return_str
 
-    def init_globals(self, state):
+    def init_globals(self, state, is_exported):
         for i, item in enumerate(self.ana.globals):
             op_type = item[0]
             if op_type == 'i32':
-                op_val = BitVecVal(item[1], 32)
+                op_val = BitVecVal(item[1], 32) if is_exported else BitVec(
+                    'global_' + str(i) + '_i32', 32)
             elif op_type == 'i64':
-                op_val = BitVecVal(item[1], 64)
+                op_val = BitVecVal(item[1], 64) if is_exported else BitVec(
+                    'global_' + str(i) + '_i64', 64)
             else:
                 raise UnsupportGlobalTypeError
             state.globals[i] = op_val
@@ -97,12 +106,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def init_state(self, func_name, param_str, return_str, has_ret):
         state = WasmVMstate()
 
-        for i, local in enumerate(param_str.split(' ')):
-            state.local_var[i] = getConcreteBitVec(
-                local, func_name + '_loc_' + str(i) + '_' + local)
+        if param_str != '':
+            for i, local in enumerate(param_str.split(' ')):
+                state.local_var[i] = getConcreteBitVec(
+                    local, func_name + '_loc_' + str(i) + '_' + local)
 
         # deal with the globals
-        self.init_globals(state)
+        # if the entry function is not exported, make them as symbols
+        is_exported = func_name in self.exported_func_names
+        self.init_globals(state, is_exported)
 
         if return_str:
             has_ret.append(True)

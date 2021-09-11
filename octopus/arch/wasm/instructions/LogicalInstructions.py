@@ -1,7 +1,10 @@
 # emulate the logical related instructions
 
-from .. exceptions import *
+from octopus.arch.wasm.exceptions import *
+from octopus.arch.wasm.utils import Enable_Lasers
+
 from z3 import *
+from collections import defaultdict
 
 helper_map = {
     'i32': 32,
@@ -18,7 +21,11 @@ class LogicalInstructions:
 
     # TODO overflow check in this function?
     def emulate(self, state):
-        def do_emulate_logical_int_instruction(state):
+        overflow_check_flag = False
+        if state.lasers & Enable_Lasers.OVERFLOW.value:
+            overflow_check_flag = True
+
+        def do_emulate_logical_int_instruction(state, overflow_check_flag):
             instr_type = self.instr_name[:3]
             if 'eqz' in self.instr_name:
                 arg0 = state.symbolic_stack.pop()
@@ -38,27 +45,48 @@ class LogicalInstructions:
                     arg2), f"in `logical` instruction, arg1 or arg2 type is wrong instead of BitVec"
 
                 if 'eq' in self.instr_name:
-                    result = simplify(arg1 == arg2)
+                    result = arg1 == arg2
                 elif 'ne' in self.instr_name:
-                    result = simplify(arg1 != arg2)
+                    result = arg1 != arg2
                 elif 'lt_s' in self.instr_name:
-                    result = simplify(arg2 < arg1)
+                    result = arg2 < arg1
                 elif 'lt_u' in self.instr_name:
-                    result = simplify(ULT(arg2, arg1))
+                    result = ULT(arg2, arg1)
                 elif 'gt_s' in self.instr_name:
-                    result = simplify(arg2 > arg1)
+                    result = arg2 > arg1
                 elif 'gt_u' in self.instr_name:
-                    result = simplify(UGT(arg2, arg1))
+                    result = UGT(arg2, arg1)
                 elif 'le_s' in self.instr_name:
-                    result = simplify(arg2 <= arg1)
+                    result = arg2 <= arg1
                 elif 'le_u' in self.instr_name:
-                    result = simplify(ULE(arg2, arg1))
+                    result = ULE(arg2, arg1)
                 elif 'ge_s' in self.instr_name:
-                    result = simplify(arg2 >= arg1)
+                    result = arg2 >= arg1
                 elif 'ge_u' in self.instr_name:
-                    result = simplify(UGE(arg2, arg1))
+                    result = UGE(arg2, arg1)
                 else:
                     raise UnsupportInstructionError
+
+                # record if the op is signed or unsigned when the overflow check flag is enabled
+                def speculate_sign(op, instr_name, sign_mapping):
+                    # if the op is a bitvecval, we do not change anything
+                    if not(is_bv(op) and not is_bv_value(op)):
+                        return
+
+                    # unsigned is False and signed is True
+                    # the signed will overlap the unsigned
+                    if '_u' in instr_name:
+                        sign_mapping[op.hash()] = sign_mapping.get(
+                            op.hash(), 0) | 0
+                    else:
+                        sign_mapping[op.hash()] = sign_mapping.get(
+                            op.hash(), 0) | 1
+
+                if overflow_check_flag and ('_u' in self.instr_name or '_s' in self.instr_name):
+                    speculate_sign(arg1, self.instr_name, state.sign_mapping)
+                    speculate_sign(arg2, self.instr_name, state.sign_mapping)
+
+                result = simplify(result)
 
             assert is_bool(
                 result), "the result of logical instruction must be true"
@@ -100,6 +128,6 @@ class LogicalInstructions:
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_logical_int_instruction(state)
+            do_emulate_logical_int_instruction(state, overflow_check_flag)
         else:
             do_emulate_logical_float_instruction(state)

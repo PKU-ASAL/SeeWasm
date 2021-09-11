@@ -1,3 +1,6 @@
+# This file is the memory emulation
+# Can refer the corresponding description in EOSAFE
+
 from z3 import *
 import re
 

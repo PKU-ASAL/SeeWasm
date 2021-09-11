@@ -95,7 +95,7 @@ class ArithmeticInstructions:
                 overflow_check_flag, div_zero_flag = flags[0], flags[1]
                 overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
                 if overflow_check_flag:
-                    overflow_laser.fire(result, state.constraints)
+                    overflow_laser.fire(result, state.constraints, state.sign_mapping)
                 if div_zero_flag:
                     div_zero_laser.fire(result, state.constraints)
                 result = simplify(result)

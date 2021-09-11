@@ -1,3 +1,6 @@
+# This file is written by Octopus
+# It will parse each instructions in Wasm
+
 from octopus.arch.wasm.wasm import _groups
 from octopus.core.instruction import Instruction
 

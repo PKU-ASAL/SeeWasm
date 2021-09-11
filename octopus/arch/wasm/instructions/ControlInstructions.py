@@ -155,6 +155,12 @@ class ControlInstructions:
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             else:
+                # if the callee takes NO symbols as input:
+                # 1. the param_str is empty [Doing]
+                # 2. the params are all non-symbol [TODO]
+                if param_str == "":
+                    pass
+
                 new_state, new_has_ret = self.init_state_before_call(
                     param_str, return_str, has_ret, state)
                 possible_states = Graph.traverse_one(
@@ -183,8 +189,6 @@ class ControlInstructions:
                         return_constraint_tuple[0], return_constraint_tuple[1].constraints, return_constraint_tuple[
                             1].symbolic_memory, return_constraint_tuple[1].globals
 
-                    logging.debug(
-                        '===================situation %s======================' % i)
                     # if have outer_need_ret but no return_value, means the callee's this branch is failed
                     if outer_need_ret and return_value is None:
                         continue

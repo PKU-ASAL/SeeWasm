@@ -1,4 +1,5 @@
-# for graph visualisation
+# This file is written by Octopus
+# Its purpose is to generate the CFG and visualize it
 
 from logging import getLogger
 
