@@ -155,8 +155,9 @@ class Graph:
         intervals = cls.intervals_gen(entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
-        _, final_states = cls.test_visit([state], has_ret, entry, heads, vis, cls.manual_guide, entry)
-        return final_states[entry]
+        heads['return'] = 'return'
+        _, final_states = cls.test_visit([state], has_ret, entry, heads, vis, cls.manual_guide, "return")
+        return final_states["return"]
 
     @classmethod
     def sat_cut(cls, state):
@@ -312,7 +313,7 @@ class Graph:
                 emul_states = defaultdict(list)
                 emul_states.update({v: ret_states[v] for v in ret_states if heads[v] == blk})
                 for v in ret_states:
-                    if heads[v] != blk and vis[heads[v]]:
+                    if (heads[v] != blk and vis[heads[v]]) or v == 'return':
                         final_states[v].extend(ret_states[v])
                         response_to[v] |= new_response_to[v]
             else:
@@ -320,7 +321,7 @@ class Graph:
             nlist = set(filter(lambda p: (heads[p[1]] == blk or heads[u] == blk) and (weights[p] == 0 or cnt[p] < weights[p]), nlist))
             if len(nlist) == 0:
                 emul_states = emul_states[blk] if isinstance(emul_states, dict) else emul_states
-                final_states[prev].extend(emul_states)
+                final_states["return"].extend(emul_states)
                 continue
             avail_br = {}
             for ty, v in nlist:
