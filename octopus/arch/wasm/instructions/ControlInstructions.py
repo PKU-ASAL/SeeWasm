@@ -8,9 +8,11 @@ from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
 
-C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen', 'swap', 'iprintf'}
+C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
+                   'swap', 'iprintf'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
                     'internal_poll', 'syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js'}
+TERMINATED_FUNCS = {'__assert_fail'}
 
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
@@ -154,6 +156,9 @@ class ControlInstructions:
                 func = PredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
+            elif readable_name in TERMINATED_FUNCS:
+                logging.warning(f"Call: '__assert_fail'!")
+                return False, None
             else:
                 # if the callee takes NO symbols as input:
                 # 1. the param_str is empty [Doing]

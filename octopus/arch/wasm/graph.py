@@ -38,7 +38,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
-    _rev_bbs_graph = defaultdict(lambda : defaultdict(str))
+    _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
     _loop_maximum_rounds = 5
     _wasmVM = None
     manual_guide = False
@@ -136,7 +136,7 @@ class Graph:
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
         blks = entry_func_bbs
-        final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
+        final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
         # restore the caller func
         state.current_func_name = caller_func_name
         return final_states
@@ -147,16 +147,19 @@ class Graph:
         circles = set()
         cls.pre(entry, vis, circles)
         vis = defaultdict(int)
-        final_states = cls.visit([state], has_ret, entry, vis, circles, cls.manual_guide)
+        final_states = cls.visit(
+            [state], has_ret, entry, vis, circles, cls.manual_guide)
         return final_states
 
     @classmethod
     def algo_interval(cls, entry, state, has_ret, blks):
-        intervals = cls.intervals_gen(entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        intervals = cls.intervals_gen(
+            entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
         heads['return'] = 'return'
-        _, final_states = cls.test_visit([state], has_ret, entry, heads, vis, cls.manual_guide, "return")
+        _, final_states = cls.test_visit(
+            [state], has_ret, entry, heads, vis, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
@@ -191,7 +194,8 @@ class Graph:
     def visit(cls, states, has_ret, blk, vis, circles, guided, prev=None, branches=None):
         vis[prev] += 1
         instructions = cls.bb_to_instructions[blk]
-        _, emul_states = cls.wasmVM.emulate_basic_block(states, has_ret, instructions)
+        _, emul_states = cls.wasmVM.emulate_basic_block(
+            states, has_ret, instructions)
         final_states = []
         if guided:
             # show how many possible states here, and ask the user to choose one
@@ -237,7 +241,8 @@ class Graph:
 
             for type in avail_br:
                 nxt_blk = cls.bbs_graph[blk][type]
-                state = state_item[type] if isinstance(state_item, dict) else state_item
+                state = state_item[type] if isinstance(
+                    state_item, dict) else state_item
                 if not guided:
                     if vis[nxt_blk] > 0:
                         final_states.append(state)
@@ -250,10 +255,12 @@ class Graph:
                             final_states.extend(exit_states)
                             enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
                                                      ['conditional_false_0'])
-                        exit_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk, ['conditional_true_0'])
+                        exit_states = cls.visit(
+                            enter_states, has_ret, nxt_blk, vis, circles, guided, blk, ['conditional_true_0'])
                         final_states.extend(exit_states)
                     else:
-                        exit_states = cls.visit([copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk)
+                        exit_states = cls.visit(
+                            [copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk)
                         final_states.extend(exit_states)
                 else:
                     final_states.extend(
@@ -299,34 +306,43 @@ class Graph:
         while que:
             state, u = que.popleft()
             nlist = cls.bbs_graph[u].items()
-            if len(nlist) >= 2: # this part should be encapsulated into a method
+            if len(nlist) >= 2:  # this part should be encapsulated into a method
                 for edge in nlist:
                     if weights[edge] == 0:
                         # put weights on edges, which could be move to preprocessing part
-                        if edge[0] == 'conditional_true_0': # for true branch, one more execution, because the loop needs to jump out
+                        # for true branch, one more execution, because the loop needs to jump out
+                        if edge[0] == 'conditional_true_0':
                             weights[edge] = cls.loop_maximum_rounds + 1
-                        else: # for false branch, do maximum rounds' execution
+                        else:  # for false branch, do maximum rounds' execution
                             weights[edge] = cls.loop_maximum_rounds
             if blk != heads[u]:
-                new_response_to, ret_states = cls.test_visit(state, has_ret, u, heads, vis, guided, blk)
-                nlist = set().union(*[new_response_to[v] for v in new_response_to if heads[v] == blk])
+                new_response_to, ret_states = cls.test_visit(
+                    state, has_ret, u, heads, vis, guided, blk)
+                nlist = set().union(*[new_response_to[v]
+                                      for v in new_response_to if heads[v] == blk])
                 emul_states = defaultdict(list)
-                emul_states.update({v: ret_states[v] for v in ret_states if heads[v] == blk})
+                emul_states.update(
+                    {v: ret_states[v] for v in ret_states if heads[v] == blk})
                 for v in ret_states:
                     if (heads[v] != blk and vis[heads[v]]) or v == 'return':
                         final_states[v].extend(ret_states[v])
                         response_to[v] |= new_response_to[v]
             else:
-                _, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, cls.bb_to_instructions[u])
-            nlist = set(filter(lambda p: (heads[p[1]] == blk or heads[u] == blk) and (weights[p] == 0 or cnt[p] < weights[p]), nlist))
+                _, emul_states = cls.wasmVM.emulate_basic_block(
+                    state, has_ret, cls.bb_to_instructions[u])
+            nlist = set(filter(lambda p: (heads[p[1]] == blk or heads[u] == blk) and (
+                weights[p] == 0 or cnt[p] < weights[p]), nlist))
             if len(nlist) == 0:
-                emul_states = emul_states[blk] if isinstance(emul_states, dict) else emul_states
+                emul_states = emul_states[blk] if isinstance(
+                    emul_states, dict) else emul_states
                 final_states["return"].extend(emul_states)
                 continue
             avail_br = {}
             for ty, v in nlist:
-                emul_states = emul_states[v] if isinstance(emul_states, dict) else emul_states
-                valid_state = list(map(lambda s: s[ty] if isinstance(s, dict) else s, filter(lambda s: not cls.can_cut(ty, s), emul_states)))
+                emul_states = emul_states[v] if isinstance(
+                    emul_states, dict) else emul_states
+                valid_state = list(map(lambda s: s[ty] if isinstance(
+                    s, dict) else s, filter(lambda s: not cls.can_cut(ty, s), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(ty, v)] = valid_state
             if guided:
@@ -335,20 +351,23 @@ class Graph:
                 if len(avail_br) == 1:
                     print(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    br_idx = ask_user_input(emul_states, isbr=True, onlyone=True, branches=avail_br)
+                    br_idx = ask_user_input(
+                        emul_states, isbr=True, onlyone=True, branches=avail_br)
                 else:
                     print(
                         f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
                     print(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    br_idx = ask_user_input(emul_states, isbr=True, branches=avail_br)
+                    br_idx = ask_user_input(
+                        emul_states, isbr=True, branches=avail_br)
                 emul_states = avail_br[br_idx]
                 print(
                     f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
                 if len(emul_states) == 1:
                     print(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    state_index = ask_user_input(emul_states, isbr=False, onlyone=True)
+                    state_index = ask_user_input(
+                        emul_states, isbr=False, onlyone=True)
                 else:
                     print(
                         f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")

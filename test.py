@@ -8,8 +8,8 @@ import sh
 testcase_dir = './c2wasm_samples/'
 cmd_lists = []
 
-case_lists = ['hello', 'print_rhombic', 'simple_condition',
-              'simple_rotate_array', 'intadd', 'bubble_sort', 'simple_loop', 'hello_array']
+case_lists = ['hello', 'simple_condition',
+              'simple_rotate_array', 'intadd', 'bubble_sort', 'simple_loop', 'hello_array', 'divzero', 'overflow_but_check', 'overflow']
 
 for case in case_lists:
     case_file = case + '_g3.wasm'
@@ -17,7 +17,7 @@ for case in case_lists:
     cmd_lists.append(['octopus_wasm', '-f', file_path, '-s',
                      '--onlyfunc', 'main', '--need_mapper'])
 
-python_cmd = sh.Command('python3.7')
+python_cmd = sh.Command('python3.6')
 for i, cmd in enumerate(cmd_lists):
     try:
         start = time.perf_counter()
