@@ -92,7 +92,7 @@ class Graph:
         # sort the edges, according to the edge.from and edge.to
         # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
         # TODO quite a huge overhead, try another way
-        edges = sorted(edges, key=lambda x: (x.node_from, x.node_to))
+        edges = sorted(edges, key=lambda x: (x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
         type_ids = defaultdict(lambda: defaultdict(int))
         for edge in edges:
             # there are four types of edges:
