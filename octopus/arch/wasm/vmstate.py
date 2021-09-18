@@ -24,7 +24,12 @@ class WasmVMstate(VMstate):
         self.sign_mapping = defaultdict(bool)
 
     def __str__(self):
-        return str(self.__dict__)
+        return f'''Current Func:\t{self.current_func_name}
+Stack:\t\t{self.symbolic_stack}
+Local Var:\t{self.local_var}
+Global Var:\t{self.globals}
+Memory:\t\t{self.symbolic_memory}
+Constraints:\t{self.constraints}\n'''
 
     def details(self):
         raise NotImplementedError

@@ -163,15 +163,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
-        logging.debug(f'''
-Current Func:\t{state.current_func_name}
-Instruction:\t{instr.operand_interpretation}
-Offset:\t\t{instr.offset}
-Stack:\t\t{state.symbolic_stack}
-Local Var:\t{state.local_var}
-Global Var:\t{state.globals}
-Memory:\t\t{state.symbolic_memory}
-Constraints:\t{state.constraints}\n''')
+        logging.debug(
+            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
 
         for c in state.constraints:
             if type(c) != BoolRef:
