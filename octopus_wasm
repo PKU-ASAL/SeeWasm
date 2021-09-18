@@ -76,6 +76,9 @@ def main():
     features.add_argument('--manual_guide',
                           action='store_true',
                           help='allow users to manually guide the control flow')
+    features.add_argument('--concrete_globals',
+                          action='store_true',
+                          help='use the value in global section despite the function is exported')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
@@ -173,7 +176,7 @@ def main():
             user_asked_lasers ^= Enable_Lasers.DIVZERO.value
 
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, user_asked_lasers, func_index2func_name=func_index2func_name)
+            octo_bytecode, user_asked_lasers, args.concrete_globals, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
