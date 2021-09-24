@@ -7,7 +7,8 @@ import json
 import os
 from logging import getLogger
 
-from wasm import (format_instruction, format_lang_type, format_mutability, decode_module, SEC_UNK, SEC_CODE)
+from wasm import (format_instruction, format_lang_type,
+                  format_mutability, decode_module, SEC_UNK, SEC_CODE)
 from wasm.modtypes import (TypeSection,
                            ImportSection,
                            FunctionSection,
@@ -477,43 +478,62 @@ class WasmModuleAnalyzer(object):
                     self.customs.append(
                         self.__decode_unknown_section(cur_sec_data))
 
+        # create dwarfinfo and func_offsets
         self.analyze_debug_info(sections)
         # create ordered list of functions
         self.func_prototypes = self.get_func_prototypes_ordered()
         return True
 
     def analyze_debug_info(self, sections):
+        """
+        analyze dwarf info in wasm file, stored in self.dwarfinfo and self.func_offsets
+        self.func_offsets contains offsets of defined function in the module, without import functions.
+
+        the offset is the offset of the first instruction in function defination to the start of Code Section
+        (relative within wasm file's Code Section). So that it's compatible with the DWARF for WebAssembly specification.
+        .. seealso:: https://yurydelendik.github.io/webassembly-dwarf/#pc
+        """
         data = {i: None for i in dwarf_section_names}
         offset = 8
         for _, cur_sec_data in sections:
             len_dict = cur_sec_data.get_decoder_meta()['lengths']
+            # whole section size
             size = len_dict['id'] + len_dict['payload_len'] + \
                 cur_sec_data.payload_len
-            # 在真正的数据之前的size
             name = None
             if cur_sec_data.id == SEC_UNK:
                 name = cur_sec_data.name.tobytes().decode()
-                # debug info 相关 Section
+                # if it's debug info related Section
                 if name in dwarf_section_names:
-                    # Custom Section 的在 payload 之前的部分的大小
+                    # data size before real payload (Custom Section)
                     payload_header_size = len_dict['id'] + len_dict['payload_len'] + \
                         len_dict['name'] + len_dict['name_len']
                     stream = io.BytesIO()
                     payload_data = cur_sec_data.payload.tobytes()
                     stream.write(payload_data)
-                    # 'stream name global_offset size address'
                     data[name] = DebugSectionDescriptor(
-                        stream, name, offset+payload_header_size, len(payload_data), 0)
+                        stream=stream,
+                        name=name,
+                        global_offset=offset+payload_header_size,
+                        size=len(payload_data),
+                        address=0)  # not within address space
             elif cur_sec_data.id == SEC_CODE:
-                vec_code_len_dict = cur_sec_data.payload.get_decoder_meta()['lengths']
-                func_offset = len_dict['id'] + len_dict['payload_len'] + vec_code_len_dict['count']
+                # calculate first instruction offset of functions
+                vec_code_len_dict = cur_sec_data.payload.get_decoder_meta()[
+                    'lengths']
+                func_offset = len_dict['id'] + \
+                    len_dict['payload_len'] + vec_code_len_dict['count']
                 functions = cur_sec_data.payload.bodies
                 for function in functions:
                     function_len_dict = function.get_decoder_meta()['lengths']
-                    code_offset = func_offset + function_len_dict['body_size'] + function_len_dict['local_count'] + function_len_dict['locals']
+                    code_offset = func_offset + \
+                        function_len_dict['body_size'] + \
+                        function_len_dict['local_count'] + \
+                        function_len_dict['locals']
                     # function's first instruction relative offset of the Code Section
                     self.func_offsets.append(code_offset)
-                    func_offset += function_len_dict['body_size'] + function.body_size
+                    func_offset += function_len_dict['body_size'] + \
+                        function.body_size
             offset += size
         (debug_info_sec_name, debug_aranges_sec_name, debug_abbrev_sec_name,
             debug_str_sec_name, debug_line_sec_name, debug_frame_sec_name,
@@ -540,18 +560,26 @@ class WasmModuleAnalyzer(object):
         )
 
     def get_real_addr(self, func_ind, func_offset):
-        # non import function
+        """converts function id and instruction offset within function to instruction offset within Code Section"""
+        # is not import function, and prevents negative index
         assert func_ind >= len(self.imports_func)
         return self.func_offsets[func_ind - len(self.imports_func)] + func_offset
 
     def get_source_location(self, func_ind, func_offset, full_path=True):
+        """get source location by function id and instruction offset within function"""
         return self.get_source_location_by_addr(self.get_real_addr(func_ind, func_offset), full_path)
 
     def get_func_name(self, func_ind, func_offset):
+        """get source function name by function id and instruction offset within function"""
         return self.get_func_name_by_addr(self.get_real_addr(func_ind, func_offset))
 
     def get_source_location_by_addr(self, addr, full_path=True):
-        # Based on https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
+        """
+        get source location by instruction offset within Code Section
+        if absolute directory infomation is recorded, set full_path to True, returns absolute path in filename.
+        it's possible that column is 0. which means not recorded.
+        """
+        # from https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
         # Go over all the line programs in the DWARF information, looking for
         # one that describes the given address.
         for CU in self.dwarfinfo.iter_CUs():
@@ -585,7 +613,8 @@ class WasmModuleAnalyzer(object):
         return None, None, None
 
     def get_func_name_by_addr(self, addr):
-        # https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
+        """get source function name by instruction offset within Code Section"""
+        # from https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
         # Go over all DIEs in the DWARF information, looking for a subprogram
         # entry with an address range that includes the given address. Note that
         # TODO this simplifies things by disregarding subprograms that may have
@@ -602,14 +631,15 @@ class WasmModuleAnalyzer(object):
                         # (similarly to DW_AT_low_pc); for class 'constant', it's
                         # an offset from DW_AT_low_pc.
                         highpc_attr = DIE.attributes['DW_AT_high_pc']
-                        highpc_attr_class = describe_form_class(highpc_attr.form)
+                        highpc_attr_class = describe_form_class(
+                            highpc_attr.form)
                         if highpc_attr_class == 'address':
                             highpc = highpc_attr.value
                         elif highpc_attr_class == 'constant':
                             highpc = lowpc + highpc_attr.value
                         else:
                             print('Error: invalid DW_AT_high_pc class:',
-                                highpc_attr_class)
+                                  highpc_attr_class)
                             continue
 
                         if lowpc <= addr < highpc:
@@ -830,16 +860,16 @@ def is_emscripten_func(x):
 
 
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
-                 '.debug_str', '.debug_line', '.debug_frame',
-                 '.debug_loc', '.debug_ranges', '.debug_pubtypes',
-                 '.debug_pubnames', '.debug_addr', '.debug_str_offsets')
+                       '.debug_str', '.debug_line', '.debug_frame',
+                       '.debug_loc', '.debug_ranges', '.debug_pubtypes',
+                       '.debug_pubnames', '.debug_addr', '.debug_str_offsets')
 
 
 def lpe_filename(line_program, file_index):
     """
-    Retrieving the full filename associated with a line program entry
-    https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
+    Retrieving the full filename associated with a line program entry.
     """
+    # from https://github.com/eliben/pyelftools/blob/master/examples/dwarf_lineprogram_filenames.py#L68
     lp_header = line_program.header
     file_entries = lp_header["file_entry"]
 
