@@ -4,6 +4,8 @@ from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
 from octopus.arch.wasm.utils import Enable_Lasers
 from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
+from octopus.arch.wasm.dawrf_parser import get_source_location
+from octopus.arch.wasm.utils import bcolors
 
 from z3 import *
 import logging
@@ -26,7 +28,7 @@ class ArithmeticInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    def emulate(self, state):
+    def emulate(self, state, analyzer):
         overflow_check_flag = False
         overflow_laser = None
         if state.lasers & Enable_Lasers.OVERFLOW.value:
@@ -42,7 +44,7 @@ class ArithmeticInstructions:
         flags = [overflow_check_flag, div_zero_flag]
         laser_objs = [overflow_laser, div_zero_laser]
 
-        def do_emulate_arithmetic_int_instruction(state, flags, laser_objs):
+        def do_emulate_arithmetic_int_instruction(state, flags, laser_objs, analyzer):
             instr_type = self.instr_name[:3]
 
             if '.clz' in self.instr_name or '.ctz' in self.instr_name:
@@ -95,7 +97,19 @@ class ArithmeticInstructions:
                 overflow_check_flag, div_zero_flag = flags[0], flags[1]
                 overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
                 if overflow_check_flag:
-                    overflow_laser.fire(result, state.constraints, state.sign_mapping)
+                    overflowed = overflow_laser.fire(
+                        result, state.constraints, state.sign_mapping)
+                    if overflowed:
+                        func_ind = int(
+                            state.current_func_name[state.current_func_name.find('func')+4:])
+                        func_offset = state.instr.offset
+                        imports_func = analyzer.imports_func
+                        func_offsets = analyzer.func_offsets
+                        dwarfinfo = analyzer.dwarfinfo
+                        original_file, line_no, col_no = get_source_location(func_ind, func_offset,
+                                                                             imports_func, func_offsets, dwarfinfo)
+                        logging.warning(
+                            f'{bcolors.WARNING}Overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
                 if div_zero_flag:
                     div_zero_laser.fire(result, state.constraints)
                 result = simplify(result)
@@ -192,176 +206,7 @@ class ArithmeticInstructions:
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_arithmetic_int_instruction(state, flags, laser_objs)
+            do_emulate_arithmetic_int_instruction(
+                state, flags, laser_objs, analyzer)
         else:
             do_emulate_arithmetic_float_instruction(state, flags, laser_objs)
-
-
-# ------------------------------------------------
-# original code (for overflow check)
-# after i32.sub:
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     if True:
-#         state.constraints.append(
-#             simplify(Extract(31, 30, arg2) ^ Extract(31, 30, arg2)) == 1)
-#         state.constraints.append(
-#             Extract(30, 0, arg2)+Extract(30, 0, arg1) > 2147483647)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-# after i64.sub:
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     if True:
-#         state.constraints.append(
-#             simplify(Extract(63, 62, arg2) ^ Extract(63, 62, arg2)) == 1)
-#         state.constraints.append(
-#             Extract(62, 0, arg2)+Extract(62, 0, arg1) > 9223372036854775807)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-# after i32.add
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     # if (is_bv_value(arg1) and str(arg2).startswith('load')) or (is_bv_value(arg2) and str(arg1).startswith('load')):
-#     if is_bv_value(arg1) or is_bv_value(arg2):
-#         pass
-#     else:
-#         state.constraints.append(
-#             simplify(Extract(31, 30, arg2) ^ Extract(31, 30, arg2)) == 0)
-#         state.constraints.append(
-#             Extract(30, 0, arg2)+Extract(30, 0, arg1) > 2147483647)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-# after i64.add:
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     # if (is_bv_value(arg1) and str(arg2).startswith('load')) or (is_bv_value(arg2) and str(arg1).startswith('load')):
-#     if is_bv_value(arg1) or is_bv_value(arg2):
-#         pass
-#     else:
-#         state.constraints.append(
-#             simplify(Extract(63, 62, arg2) ^ Extract(63, 62, arg2)) == 0)
-#         state.constraints.append(
-#             Extract(62, 0, arg2)+Extract(62, 0, arg1) > 9223372036854775807)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-# after i32.mul:
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     if is_bv_value(arg1) and not is_bv_value(arg2):
-#         if 'load' in str(arg2):
-#             state.constraints.append(arg2 > 0)
-#         state.constraints.append(arg1.as_signed_long() > 0)
-#         state.constraints.append(
-#             simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg1) != arg2)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-#     elif is_bv_value(arg2) and not is_bv_value(arg1):
-#         if 'load' in str(arg1):
-#             state.constraints.append(arg1 > 0)
-#         state.constraints.append(arg2.as_signed_long() > 0)
-#         state.constraints.append(
-#             simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-#     else:
-#         state.constraints.append(
-#             simplify(Extract(31, 0, ZeroExt(32, arg2)*ZeroExt(32, arg1)) / arg2) != arg1)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-# after i64.mul:
-# if self.lasers == ['overflow'] and ('loc' in str(arg1) or 'loc' in str(arg2)):
-#     # print(self.instr_name, arg1, arg2, result)
-#     if is_bv_value(arg1) and not is_bv_value(arg2):
-#         if 'load' in str(arg2):
-#             state.constraints.append(arg2 > 0)
-#         state.constraints.append(arg1.as_signed_long() > 0)
-#         state.constraints.append(
-#             simplify(Extract(63, 0, ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg1) != arg2)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-#     elif is_bv_value(arg2) and not is_bv_value(arg1):
-#         if 'load' in str(arg1):
-#             state.constraints.append(arg1 > 0)
-#         state.constraints.append(arg2.as_signed_long() > 0)
-#         state.constraints.append(
-#             simplify(Extract(63, 0, ZeroExt(64, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-#     else:
-#         state.constraints.append(
-#             simplify(Extract(63, 0, ZeroExt(63, arg2)*ZeroExt(64, arg1)) / arg2) != arg1)
-#         overflow_check_flag = 'overflow_check_flag ' + \
-#             str(result)
-#         state.key_import_func_visited.append(
-#             overflow_check_flag)
-
-
-# ------------------------------------------------
-# original code (for rollback check)
-# after i32.rem_u:
-# if self.quick['roll_back']:
-#     state.symbolic_stack.append(result)
-#     # calculating time is not what we need
-#     if 'current_time' in str(arg2) and is_bv_value(arg1) and \
-#             arg1.as_long() in [60, 3600, 86400]:
-#         return False
-#     elif is_bv_value(arg1) and is_bv_value(arg2):
-#         return False
-
-#     state.key_import_func_visited.append(result)
-#     state_tmp_list = [None, None]
-#     state_tmp_list[1] = copy.deepcopy(state)
-
-#     current_result = copy.deepcopy(state_tmp_list)
-#     self.result.append(current_result)
-
-#     # remove 'roll_back' for quick finish
-#     self.lasers.remove('roll_back')
-
-#     return True
-
-# after i64.rem_u:
-# if self.quick['roll_back']:
-#     state.symbolic_stack.append(result)
-#     # calculating time is not what we need
-#     if 'current_time' in str(arg2) and is_bv_value(arg1) and \
-#             arg1.as_long() in [60, 3600, 86400]:
-#         return False
-#     elif is_bv_value(arg1) and is_bv_value(arg2):
-#         return False
-
-#     state.key_import_func_visited.append(result)
-#     state_tmp_list = [None, None]
-#     state_tmp_list[1] = copy.deepcopy(state)
-
-#     current_result = copy.deepcopy(state_tmp_list)
-#     self.result.append(current_result)
-
-#     # remove 'roll_back' for quick finish
-#     self.lasers.remove('roll_back')
-
-#     return True

@@ -18,7 +18,7 @@ class OverflowLaser:
         s = Solver()
         s.add(constraint)
         if sat == s.check():
-            print(s.model())
+            # print(s.model())
             return True
         return False
 
@@ -27,6 +27,8 @@ class OverflowLaser:
         op1, op2 = expr.arg(0), expr.arg(1)
         # copy the original_constraints
         new_cond = deepcopy(original_constraints)
+        # indicate if it is overflowed
+        overflowed = False
 
         # we only consider the instructions in `overflow_group`
         if expr.decl().name() not in overflow_group:
@@ -58,7 +60,7 @@ class OverflowLaser:
         if free_variable:
             logging.warning(
                 f'{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free, which may result in overflow!{bcolors.ENDC}')
-            return
+            overflowed = True
 
         # step 3:
         # infer the data type according to its passed instruction
@@ -76,6 +78,7 @@ class OverflowLaser:
                 else:
                     logging.warning(
                         f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
+                overflowed = True
         elif op_name == 'bvsub':
             new_cond += [Not(BVSubNoUnderflow(op1, op2, is_signed))]
             if self._check(new_cond):
@@ -85,6 +88,7 @@ class OverflowLaser:
                 else:
                     logging.warning(
                         f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (unsigned){bcolors.ENDC}')
+                overflowed = True
         elif op_name == 'bvmul':
             new_cond += [Not(BVMulNoOverflow(op1, op2, is_signed))]
             if self._check(new_cond):
@@ -94,3 +98,5 @@ class OverflowLaser:
                 else:
                     logging.warning(
                         f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
+                overflowed = True
+        return overflowed

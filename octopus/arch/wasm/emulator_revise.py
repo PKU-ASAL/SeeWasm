@@ -187,6 +187,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.data_section)
         elif instr.group == 'Parametric':
             return instr_obj.emulate(state, depth, has_ret, call_depth)
+        elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64':
+            instr_obj.emulate(state, self.ana)
+            return False, None
         else:
             instr_obj.emulate(state)
             return False, None
