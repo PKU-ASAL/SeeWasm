@@ -15,3 +15,5 @@ z3-solver==4.8.5
 # WASM / EOS
 wasm==1.2
 
+# DWARF debug info
+pyelftools==0.27
