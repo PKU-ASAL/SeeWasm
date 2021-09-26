@@ -9,10 +9,10 @@ from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
 
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
-                   'swap', 'iprintf'}
+                   'swap', 'iprintf', 'strcpy', 'strcat'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
                     'internal_poll', 'syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js'}
-TERMINATED_FUNCS = {'__assert_fail'}
+TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
@@ -61,7 +61,12 @@ class ControlInstructions:
 
         # set the remaining local vars as None
         for x in range(num_arg, len(new_state.local_var)):
-            new_state.local_var.pop(x)
+            try:
+                new_state.local_var.pop(x)
+            except KeyError:
+                # if some of the local var is unused during the caller
+                # there is no need to pop it, thus continue the loop
+                continue
 
         return new_state, new_has_ret
 
@@ -157,7 +162,8 @@ class ControlInstructions:
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section)
             elif readable_name in TERMINATED_FUNCS:
-                logging.warning(f"Call: '__assert_fail'!")
+                logging.warning(
+                    f"Terminated function invoked: {readable_name}")
                 return False, None
             else:
                 # if the callee takes NO symbols as input:
