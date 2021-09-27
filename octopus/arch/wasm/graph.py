@@ -149,7 +149,7 @@ class Graph:
     def algo_dfs(cls, entry, state, has_ret, blks=None):
         vis = defaultdict(int)
         circles = set()
-        cls.pre(entry, vis, circles)
+        cls.calc_circle(entry, vis, circles)
         vis = defaultdict(int)
         final_states = cls.visit(
             [state], has_ret, entry, vis, circles, cls.manual_guide)
@@ -162,7 +162,7 @@ class Graph:
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
         heads['return'] = 'return'
-        _, final_states = cls.test_visit(
+        _, final_states = cls.visit_interval(
             [state], has_ret, entry, heads, vis, cls.manual_guide, "return")
         return final_states["return"]
 
@@ -185,13 +185,14 @@ class Graph:
         return False
 
     @classmethod
-    def pre(cls, blk, vis, circles):
+    def calc_circle(cls, blk, vis, circles):
+        '''determine if there is a circle in CFG, add the circle's entry block into the `circles`'''
         if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2:  # br_if and has visited
             circles.add(blk)
             return
         vis[blk] = 1
-        for ty in cls.bbs_graph[blk]:
-            cls.pre(cls.bbs_graph[blk][ty], vis, circles)
+        for edge_type in cls.bbs_graph[blk]:
+            cls.calc_circle(cls.bbs_graph[blk][edge_type], vis, circles)
         vis[blk] = 0
 
     @classmethod
@@ -237,7 +238,7 @@ class Graph:
                         emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
                 else:
                     print(
-                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
+                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
                     print(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
                     avail_br = [ask_user_input(
@@ -254,6 +255,7 @@ class Graph:
                     if nxt_blk in circles:
                         enter_states = [copy.deepcopy(state)]
                         for i in range(cls.loop_maximum_rounds):
+
                             exit_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
                                                     ['conditional_true_0'])
                             final_states.extend(exit_states)
@@ -278,8 +280,8 @@ class Graph:
         nodes = set(blk_lis)
         que = deque([blk])
         while que:
-            u = que.popleft()
-            new_interval = {u}
+            current_block = que.popleft()
+            new_interval = {current_block}
             while True:
                 succs = set([g[v][t] for v in new_interval for t in g[v]])
                 succs = succs - new_interval
@@ -298,32 +300,34 @@ class Graph:
                 if not prevs.isdisjoint(new_interval):
                     new_header.add(v)
             que.extend(list(new_header))
-            intervals[u] = new_interval
+            intervals[current_block] = new_interval
         return intervals
 
     @classmethod
-    def test_visit(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
+    def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
+        '''`blk` is the head of an interval'''
         vis[prev] = True
         cnt, weights = defaultdict(int), defaultdict(int)
         que = deque([(states, blk)])
         final_states, response_to = defaultdict(list), defaultdict(set)
         while que:
-            state, u = que.popleft()
-            nlist = cls.bbs_graph[u].items()
-            if len(nlist) >= 2:  # this part should be encapsulated into a method
-                for edge in nlist:
-                    if weights[edge] == 0:
+            state, current_block = que.popleft()
+            succs_list = cls.bbs_graph[current_block].items()
+            if len(succs_list) >= 2:  # this part should be encapsulated into a method
+                for br_dest_pair in succs_list:
+                    if weights[br_dest_pair] == 0:
                         # put weights on edges, which could be move to preprocessing part
                         # for true branch, one more execution, because the loop needs to jump out
-                        if edge[0] == 'conditional_true_0':
-                            weights[edge] = cls.loop_maximum_rounds + 1
+                        if br_dest_pair[0] == 'conditional_true_0':
+                            weights[br_dest_pair] = cls.loop_maximum_rounds + 1
                         else:  # for false branch, do maximum rounds' execution
-                            weights[edge] = cls.loop_maximum_rounds
-            if blk != heads[u]:
-                new_response_to, ret_states = cls.test_visit(
-                    state, has_ret, u, heads, vis, guided, blk)
-                nlist = set().union(*[new_response_to[v]
-                                      for v in new_response_to if heads[v] == blk])
+                            weights[br_dest_pair] = cls.loop_maximum_rounds
+            # if they belong to two intervals
+            if blk != heads[current_block]:
+                new_response_to, ret_states = cls.visit_interval(
+                    state, has_ret, current_block, heads, vis, guided, blk)
+                succs_list = set().union(*[new_response_to[v]
+                                           for v in new_response_to if heads[v] == blk])
                 emul_states = defaultdict(list)
                 emul_states.update(
                     {v: ret_states[v] for v in ret_states if heads[v] == blk})
@@ -333,22 +337,24 @@ class Graph:
                         response_to[v] |= new_response_to[v]
             else:
                 _, emul_states = cls.wasmVM.emulate_basic_block(
-                    state, has_ret, cls.bb_to_instructions[u])
-            nlist = set(filter(lambda p: (heads[p[1]] == blk or heads[u] == blk) and (
-                weights[p] == 0 or cnt[p] < weights[p]), nlist))
-            if len(nlist) == 0:
+                    state, has_ret, cls.bb_to_instructions[current_block])
+            # TODO give a desctiption here
+            succs_list = set(filter(lambda p: (heads[p[1]] == blk or heads[current_block] == blk) and (
+                weights[p] == 0 or cnt[p] < weights[p]), succs_list))
+            if len(succs_list) == 0:
                 emul_states = emul_states[blk] if isinstance(
                     emul_states, dict) else emul_states
                 final_states["return"].extend(emul_states)
                 continue
             avail_br = {}
-            for ty, v in nlist:
-                emul_states = emul_states[v] if isinstance(
+            for edge_type, next_block in succs_list:
+                emul_states = emul_states[next_block] if isinstance(
                     emul_states, dict) else emul_states
-                valid_state = list(map(lambda s: s[ty] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(ty, s), emul_states)))
+                # TODO give a description here
+                valid_state = list(map(lambda s: s[edge_type] if isinstance(
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
                 if len(valid_state) > 0:
-                    avail_br[(ty, v)] = valid_state
+                    avail_br[(edge_type, next_block)] = valid_state
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
@@ -359,7 +365,7 @@ class Graph:
                         emul_states, isbr=True, onlyone=True, branches=avail_br)
                 else:
                     print(
-                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), u (unconditional))")
+                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
                     print(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
                     br_idx = ask_user_input(
@@ -382,12 +388,12 @@ class Graph:
                 state_item = emul_states[state_index]
                 avail_br = {br_idx: [state_item]}
             for br in avail_br:
-                (ty, v), valid_state = br, avail_br[br]
-                if vis[heads[v]]:
-                    final_states[v].extend(valid_state)
-                    response_to[v].add(br)
+                (edge_type, next_block), valid_state = br, avail_br[br]
+                if vis[heads[next_block]]:
+                    final_states[next_block].extend(valid_state)
+                    response_to[next_block].add(br)
                 else:
                     cnt[br] += 1
-                    que.append((valid_state, v))
+                    que.append((valid_state, next_block))
         vis[prev] = False
         return response_to, final_states
