@@ -30,10 +30,11 @@ MAX = 42
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, user_asked_lasers, concrete_globals=False, func_index2func_name=None):
+    def __init__(self, bytecode, user_asked_lasers, algo, concrete_globals=False, func_index2func_name=None):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
         self.lasers = user_asked_lasers
+        self.algo = algo
 
         # all the exports function's name
         self.exported_func_names = [i["field_str"]

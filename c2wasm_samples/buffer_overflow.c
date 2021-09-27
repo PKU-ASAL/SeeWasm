@@ -23,16 +23,16 @@ void vulnerableFunc2(void)
 
 void nonVulnerableFunc(void)
 {
-    char buffer[20];
+    char buffer[30];
 
     strcpy(buffer, "this is non-vulnerable");
 }
 
 int main(void)
 {
+    nonVulnerableFunc();
     vulnerableFunc();
     vulnerableFunc2();
-    nonVulnerableFunc();
 
     return 0;
 }

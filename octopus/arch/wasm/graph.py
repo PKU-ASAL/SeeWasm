@@ -83,8 +83,7 @@ class Graph:
         for func in funcs:
             func_name, func_bbs = func.name, func.basicblocks
             # get the name of bb in func_bbs
-            func_bbs = [bb.name for bb in func_bbs]
-            cls.func_to_bbs[func_name] = func_bbs
+            cls.func_to_bbs[func_name] = [bb.name for bb in func_bbs]
 
         # adjacent graph for basic blocks, like:
         # {'block_3_0': ['block_3_6', 'block_3_9']}
@@ -92,16 +91,18 @@ class Graph:
         # sort the edges, according to the edge.from and edge.to
         # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
         # TODO quite a huge overhead, try another way
-        edges = sorted(edges, key=lambda x: (x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
+        edges = sorted(edges, key=lambda x: (
+            x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
         type_ids = defaultdict(lambda: defaultdict(int))
         for edge in edges:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
             node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
-            # we have to make the value as a list as the br_table may have multiple conditional_true branches
-            ty = edge_type + '_' + str(type_ids[node_from][edge_type])
-            cls.bbs_graph[node_from][ty] = node_to
-            cls.rev_bbs_graph[node_to][ty] = node_from
+            # we append a number after the edge type as the br_table may have multiple conditional_true branches
+            numbered_edge_type = edge_type + '_' + \
+                str(type_ids[node_from][edge_type])
+            cls.bbs_graph[node_from][numbered_edge_type] = node_to
+            cls.rev_bbs_graph[node_to][numbered_edge_type] = node_from
             type_ids[node_from][edge_type] += 1
 
         # goal 1: append those single node into the bbs_graph
@@ -136,7 +137,10 @@ class Graph:
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
         blks = entry_func_bbs
-        final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
+        if cls.wasmVM.algo == 'dfs':
+            final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
+        elif cls.wasmVM.algo == 'interval':
+            final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
         # restore the caller func
         state.current_func_name = caller_func_name
         return final_states

@@ -120,6 +120,8 @@ class PredefinedFunction:
                             the_other_mem)
         elif self.name == 'strcpy':
             # TODO implement
+            src, dest = param_list[0].as_long(), param_list[1].as_long()
+            print(dest, src)
             exit('strcpy!')
         elif self.name == 'strcat':
             # TODO implement

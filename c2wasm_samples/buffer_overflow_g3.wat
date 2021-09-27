@@ -193,9 +193,9 @@
     local.get 2
     local.get 3
     i32.store offset=12
+    call $nonVulnerableFunc
     call $vulnerableFunc
     call $vulnerableFunc2
-    call $nonVulnerableFunc
     i32.const 0
     local.set 4
     i32.const 16
