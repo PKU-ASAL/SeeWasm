@@ -27,7 +27,7 @@ void vulnerableFunc2(void)
     strcat(dest, src);
 
     // print to test
-    printf("Final destination string : |%s|", dest);
+    printf("Final destination string : %s", dest);
 }
 
 void nonVulnerableFunc(void)

@@ -134,7 +134,20 @@ class PredefinedFunction:
                 state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
         elif self.name == 'strcat':
             # TODO implement
-            exit('strcat!')
+            src, dest = param_list[0].as_long(), param_list[1].as_long()
+
+            # extract the string according to pointers
+            src_string = C_extract_string_by_mem_pointer(
+                src, data_section, state.symbolic_memory)
+            dest_string = C_extract_string_by_mem_pointer(
+                dest, data_section, state.symbolic_memory)
+
+            # concatenate two strings
+            string_len = len(dest_string) + len(src_string) + 1
+            little_endian_num = int.from_bytes(str.encode(
+                f'{dest_string}{src_string}\x00'), "little")
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
         # ------------------------ GO Library -------------------------------
         elif self.name == 'fmt.Fprintln':
             logging.warning("=============$fmt.Fprintln============")

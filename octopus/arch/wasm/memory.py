@@ -148,6 +148,7 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
         symbolic_memory[(dest, simplify(dest + length))] = data
     # if dest type is `int`
     else:
+        # TODO if the to be inserted interval overlaps more than one existed intervals, it cannot be properly handled
         # the existed_start and existed_end are all int
         _, is_overlapped, existed_start, existed_end = lookup_overlapped_symbolic_memory(
             symbolic_memory, dict(), dest, length)
