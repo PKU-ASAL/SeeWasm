@@ -40,6 +40,8 @@ class PredefinedFunction:
             for pattern_str in pattern_list:
                 if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
                     the_string += str(loaded_data)
+                elif pattern_str == '%c':
+                    the_string += chr(loaded_data.as_long())
                 elif pattern_str == '%s':
                     the_string += str(C_extract_string_by_mem_pointer(
                         loaded_data.as_long(), data_section, state.symbolic_memory))
@@ -119,10 +121,17 @@ class PredefinedFunction:
             logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem,
                             the_other_mem)
         elif self.name == 'strcpy':
-            # TODO implement
             src, dest = param_list[0].as_long(), param_list[1].as_long()
-            print(dest, src)
-            exit('strcpy!')
+            # extract the string according to the src pointer
+            src_string, _ = C_extract_string_by_start_pointer(
+                src, _, data_section, state.symbolic_memory)
+            src_string_len = len(src_string) + 1  # the tailing \x00
+            # the little endian is refer to the implementation of scanf
+            little_endian_num = int.from_bytes(
+                str.encode(f'{src_string}\x00'), "little")
+
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
         elif self.name == 'strcat':
             # TODO implement
             exit('strcat!')

@@ -307,6 +307,8 @@ class Graph:
     def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         vis[prev] = True
+        # `cnt` is the traversed times
+        # `weights` is the upper bound of how many times the edge can be traversed
         cnt, weights = defaultdict(int), defaultdict(int)
         que = deque([(states, blk)])
         final_states, response_to = defaultdict(list), defaultdict(set)
@@ -322,7 +324,7 @@ class Graph:
                             weights[br_dest_pair] = cls.loop_maximum_rounds + 1
                         else:  # for false branch, do maximum rounds' execution
                             weights[br_dest_pair] = cls.loop_maximum_rounds
-            # if they belong to two intervals
+            # two intervals, use DFS to traverse between intervals
             if blk != heads[current_block]:
                 new_response_to, ret_states = cls.visit_interval(
                     state, has_ret, current_block, heads, vis, guided, blk)
@@ -335,6 +337,7 @@ class Graph:
                     if (heads[v] != blk and vis[heads[v]]) or v == 'return':
                         final_states[v].extend(ret_states[v])
                         response_to[v] |= new_response_to[v]
+            # current block is still in the same interval, emulate it directly
             else:
                 _, emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])

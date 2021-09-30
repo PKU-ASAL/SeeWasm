@@ -27,7 +27,7 @@
   (func $__wasm_call_ctors (type 3)
     call $emscripten_stack_init)
   (func $vulnerableFunc (type 3)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     local.set 0
     i32.const 16
@@ -46,48 +46,13 @@
     local.set 4
     local.get 4
     local.set 5
-    i32.const 1113
+    i32.const 1116
     local.set 6
     local.get 5
     local.get 6
     call $strcpy
     drop
-    i32.const 16
-    local.set 7
-    local.get 2
-    local.get 7
-    i32.add
-    local.set 8
-    local.get 8
-    global.set 0
-    return)
-  (func $vulnerableFunc2 (type 3)
-    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
-    global.get 0
-    local.set 0
-    i32.const 80
-    local.set 1
-    local.get 0
-    local.get 1
-    i32.sub
-    local.set 2
-    local.get 2
-    global.set 0
-    i32.const 48
-    local.set 3
-    local.get 2
-    local.get 3
-    i32.add
-    local.set 4
-    local.get 4
-    local.set 5
-    i32.const 1152
-    local.set 6
-    local.get 5
-    local.get 6
-    call $strcpy
-    drop
-    i32.const 16
+    i32.const 8
     local.set 7
     local.get 2
     local.get 7
@@ -95,11 +60,14 @@
     local.set 8
     local.get 8
     local.set 9
+    local.get 2
+    local.get 9
+    i32.store
     i32.const 1085
     local.set 10
-    local.get 9
     local.get 10
-    call $strcpy
+    local.get 2
+    call $printf
     drop
     i32.const 16
     local.set 11
@@ -108,50 +76,13 @@
     i32.add
     local.set 12
     local.get 12
-    local.set 13
-    i32.const 48
-    local.set 14
-    local.get 2
-    local.get 14
-    i32.add
-    local.set 15
-    local.get 15
-    local.set 16
-    local.get 13
-    local.get 16
-    call $strcat
-    drop
-    i32.const 16
-    local.set 17
-    local.get 2
-    local.get 17
-    i32.add
-    local.set 18
-    local.get 18
-    local.set 19
-    local.get 2
-    local.get 19
-    i32.store
-    i32.const 1024
-    local.set 20
-    local.get 20
-    local.get 2
-    call $printf
-    drop
-    i32.const 80
-    local.set 21
-    local.get 2
-    local.get 21
-    i32.add
-    local.set 22
-    local.get 22
     global.set 0
     return)
-  (func $nonVulnerableFunc (type 3)
-    (local i32 i32 i32 i32 i32 i32 i32)
+  (func $vulnerableFunc2 (type 3)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     local.set 0
-    i32.const 32
+    i32.const 112
     local.set 1
     local.get 0
     local.get 1
@@ -159,21 +90,181 @@
     local.set 2
     local.get 2
     global.set 0
-    local.get 2
+    i32.const 80
     local.set 3
-    i32.const 1129
-    local.set 4
+    local.get 2
     local.get 3
+    i32.add
+    local.set 4
     local.get 4
+    local.set 5
+    i32.const 1155
+    local.set 6
+    local.get 5
+    local.get 6
     call $strcpy
     drop
-    i32.const 32
-    local.set 5
+    i32.const 48
+    local.set 7
     local.get 2
-    local.get 5
+    local.get 7
     i32.add
+    local.set 8
+    local.get 8
+    local.set 9
+    i32.const 1088
+    local.set 10
+    local.get 9
+    local.get 10
+    call $strcpy
+    drop
+    i32.const 80
+    local.set 11
+    local.get 2
+    local.get 11
+    i32.add
+    local.set 12
+    local.get 12
+    local.set 13
+    local.get 2
+    local.get 13
+    i32.store
+    i32.const 1085
+    local.set 14
+    local.get 14
+    local.get 2
+    call $printf
+    drop
+    i32.const 48
+    local.set 15
+    local.get 2
+    local.get 15
+    i32.add
+    local.set 16
+    local.get 16
+    local.set 17
+    local.get 2
+    local.get 17
+    i32.store offset=16
+    i32.const 1085
+    local.set 18
+    i32.const 16
+    local.set 19
+    local.get 2
+    local.get 19
+    i32.add
+    local.set 20
+    local.get 18
+    local.get 20
+    call $printf
+    drop
+    i32.const 48
+    local.set 21
+    local.get 2
+    local.get 21
+    i32.add
+    local.set 22
+    local.get 22
+    local.set 23
+    i32.const 80
+    local.set 24
+    local.get 2
+    local.get 24
+    i32.add
+    local.set 25
+    local.get 25
+    local.set 26
+    local.get 23
+    local.get 26
+    call $strcat
+    drop
+    i32.const 48
+    local.set 27
+    local.get 2
+    local.get 27
+    i32.add
+    local.set 28
+    local.get 28
+    local.set 29
+    local.get 2
+    local.get 29
+    i32.store offset=32
+    i32.const 1024
+    local.set 30
+    i32.const 32
+    local.set 31
+    local.get 2
+    local.get 31
+    i32.add
+    local.set 32
+    local.get 30
+    local.get 32
+    call $printf
+    drop
+    i32.const 112
+    local.set 33
+    local.get 2
+    local.get 33
+    i32.add
+    local.set 34
+    local.get 34
+    global.set 0
+    return)
+  (func $nonVulnerableFunc (type 3)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
+    global.get 0
+    local.set 0
+    i32.const 48
+    local.set 1
+    local.get 0
+    local.get 1
+    i32.sub
+    local.set 2
+    local.get 2
+    global.set 0
+    i32.const 16
+    local.set 3
+    local.get 2
+    local.get 3
+    i32.add
+    local.set 4
+    local.get 4
+    local.set 5
+    i32.const 1132
     local.set 6
+    local.get 5
     local.get 6
+    call $strcpy
+    drop
+    local.get 2
+    i32.load8_u offset=17
+    local.set 7
+    i32.const 24
+    local.set 8
+    local.get 7
+    local.get 8
+    i32.shl
+    local.set 9
+    local.get 9
+    local.get 8
+    i32.shr_s
+    local.set 10
+    local.get 2
+    local.get 10
+    i32.store
+    i32.const 1170
+    local.set 11
+    local.get 11
+    local.get 2
+    call $printf
+    drop
+    i32.const 48
+    local.set 12
+    local.get 2
+    local.get 12
+    i32.add
+    local.set 13
+    local.get 13
     global.set 0
     return)
   (func $__original_main (type 2) (result i32)
@@ -2797,7 +2888,7 @@
                                   local.get 7
                                   i32.load offset=64
                                   local.tee 1
-                                  i32.const 1177
+                                  i32.const 1183
                                   local.get 1
                                   select
                                   local.tee 12
@@ -3638,15 +3729,15 @@
         local.get 9
         call $out
         local.get 0
-        i32.const 1105
-        i32.const 1167
+        i32.const 1108
+        i32.const 1173
         local.get 5
         i32.const 32
         i32.and
         local.tee 12
         select
-        i32.const 1109
-        i32.const 1171
+        i32.const 1112
+        i32.const 1177
         local.get 12
         select
         local.get 1
@@ -4649,7 +4740,7 @@
                 i32.eqz
                 br_if 2 (;@4;)
                 local.get 0
-                i32.const 1175
+                i32.const 1181
                 i32.const 1
                 call $out
                 local.get 18
@@ -4810,7 +4901,7 @@
                       br_if 1 (;@8;)
                     end
                     local.get 0
-                    i32.const 1175
+                    i32.const 1181
                     i32.const 1
                     call $out
                   end
@@ -5213,7 +5304,7 @@
     local.get 1
     i32.store offset=12
     i32.const 0
-    i32.load offset=1184
+    i32.load offset=1192
     local.get 0
     local.get 1
     call $vfprintf
@@ -5503,5 +5594,5 @@
   (export "emscripten_stack_get_end" (func $emscripten_stack_get_end))
   (export "dynCall_jiji" (func $legalstub$dynCall_jiji))
   (elem (;0;) (i32.const 1) $__emscripten_stdout_close $__stdio_write $__emscripten_stdout_seek $fmt_fp $pop_arg_long_double)
-  (data (;0;) (i32.const 1024) "Final destination string : |%s|\00-+   0X0x\00-0X+0X 0X-0x+0x 0x\00This is destination\00nan\00inf\00abcdefsdfsdfsdf\00this is non-vulnerable\00This is source\00NAN\00INF\00.\00(null)\00\90\06\00\00\00\00\00\00\00\00\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
+  (data (;0;) (i32.const 1024) "Final destination string : |%s|\00-+   0X0x\00-0X+0X 0X-0x+0x 0x\00%s\00This is destination\00nan\00inf\00abcdefsdfsdfsdf\00this is non-vulnerable\00This is source\00%c\00NAN\00INF\00.\00(null)\00\00\00\90\06\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
   (data (;1;) (i32.const 1680) "\05\00\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\02\00\00\00\03\00\00\00(\08\00\00\00\04\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0a\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\90\06\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00P\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"))
