@@ -74,7 +74,7 @@ Then, you can use the following command to compile a `[file_name].go` into `[fil
 GOOS=js GOARCH=wasm go build -o [file_name].wasm
 ```
 
-The folder `go_samples` contains a hello-world Go source code along with its corresponding Wasm and Wat files. Note that the Wat file is larger than 60M, because it contains all the necessary functions that are used to interact with the hosting environment (JavaScript here as we assigned).
+The folder `go_samples.nosync` contains a hello-world Go source code along with its corresponding Wasm and Wat files. Note that the Wat file is larger than 60M, because it contains all the necessary functions that are used to interact with the hosting environment (JavaScript here as we assigned).
 The `main` function in Go file is named as `main.main` in the Wat file.
 
 
