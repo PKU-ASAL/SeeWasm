@@ -7,6 +7,7 @@ from octopus.arch.wasm.exceptions import *
 from octopus.arch.wasm.internal_functions import PredefinedFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec
+from octopus.arch.wasm.memory import lookup_symbolic_memory
 
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
                    'swap', 'iprintf', 'strcpy', 'strcat'}

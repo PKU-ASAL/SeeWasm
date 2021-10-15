@@ -3,7 +3,7 @@
 import logging
 from z3 import *
 
-from octopus.arch.wasm.memory import lookup_symbolic_memory, insert_symbolic_memory
+from octopus.arch.wasm.memory import lookup_symbolic_memory
 
 
 def C_extract_string_by_start_pointer(start_pointer, mem_pointer, data_section, symbolic_memory):

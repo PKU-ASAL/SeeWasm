@@ -153,101 +153,71 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
         symbolic_memory[(dest, simplify(dest + length))] = data
     # if dest type is `int`
     else:
-        # TODO if the to be inserted interval overlaps more than one existed intervals, it cannot be properly handled
         # the existed_start and existed_end are all int
         tmp_result = lookup_overlapped_symbolic_memory(
             symbolic_memory, dict(), dest, length)
-        assert len(
-            tmp_result) == 1, f"({dest}, {dest+length}) overlaps {len(tmp_result)} intervals, which is impossible. Please note if there is a memory OOB write."
 
-        _, is_overlapped, existed_start, existed_end = tmp_result[0]
-        if not is_overlapped:
-            # insert directly
-            symbolic_memory[(dest, dest + length)] = data
-        else:
-            # case 3-11
-            # existed:          [____fixed____]
-            # case 3: [_____________]         |
-            # case 4: [_______________________]
-            # case 5: [____________________________]
-            # case 6:           [_____]       |
-            # case 7:           [_____________]
-            # case 8:           [___________________]
-            # case 9:           |   [___]     |
-            # case 10:          |   [_________]
-            # case 11:          |   [_________________]
+        # step 1:
+        # mark the updated part
+        used_sub_intervals = []
+        for item in tmp_result:
+            _, is_overlapped, existed_start, existed_end = item
+            if not is_overlapped:
+                continue
 
-            # the flag to tell whether the memory has been inserted
-            is_inserted = False
+            to_concat = []
             overlapped_start, overlapped_end = calc_overlap(
                 existed_start, existed_end, dest, length)
-            if dest < overlapped_start:
-                # case 3-5
-                if overlapped_end < existed_end:
-                    # case 3
-                    first_part = data
-                    original = symbolic_memory.pop(
-                        (existed_start, existed_end))
-                    high, low = existed_end - existed_start, overlapped_end - existed_start
-                    second_part = simplify(
-                        Extract(high * 8 - 1, low * 8, original))
-                    data = simplify(Concat(second_part, first_part))
+            # step 1.1: pop the original
+            original = symbolic_memory.pop((existed_start, existed_end))
 
-                    symbolic_memory[(dest, existed_end)] = data
-                    is_inserted = True
-                else:
-                    # case 4 and 5
-                    # pop original
-                    symbolic_memory.pop((existed_start, existed_end))
-                    symbolic_memory[(dest, dest + length)] = data
-                    is_inserted = True
+            # step 1.2: calculate the first part
+            high, low = overlapped_start - existed_start, 0
+            if high != low:
+                to_concat.insert(0, simplify(
+                    Extract(high * 8 - 1, low * 8, original)))
 
-            if not is_inserted and overlapped_start == existed_start:
-                # case 6-8
-                if overlapped_end < existed_end:
-                    # case 6
-                    first_part = data
-                    original = symbolic_memory.pop(
-                        (existed_start, existed_end))
-                    high, low = existed_end - existed_start, overlapped_end - existed_start
-                    second_part = simplify(
-                        Extract(high * 8 - 1, low * 8, original))
-                    data = simplify(Concat(second_part, first_part))
-                    symbolic_memory[(dest, existed_end)] = data
-                    is_inserted = True
-                else:
-                    # case 7 and 8
-                    symbolic_memory.pop((existed_start, existed_end))
-                    symbolic_memory[(dest, dest + length)] = data
-                    is_inserted = True
+            # step 1.3: calculate the second part
+            high, low = overlapped_end - dest, overlapped_start - dest
+            if high != low:
+                to_concat.insert(0, simplify(
+                    Extract(high * 8 - 1, low * 8, data)))
 
-            if not is_inserted and overlapped_start > existed_start:
-                # case 9-11
-                if overlapped_end >= existed_end:
-                    # case 10 and 11
-                    original = symbolic_memory.pop(
-                        (existed_start, existed_end))
-                    high = overlapped_start - existed_start
-                    first_part = simplify(
-                        Extract(high * 8 - 1, 0, original))
-                    second_part = data
-                    data = simplify(Concat(second_part, first_part))
-                    symbolic_memory[(existed_start, dest + length)] = data
-                else:
-                    # case 9
-                    original = symbolic_memory.pop(
-                        (existed_start, existed_end))
-                    high = overlapped_start - existed_start
-                    first_part = simplify(
-                        Extract(high * 8 - 1, 0, original))
-                    second_part = data
-                    high, low = existed_end - existed_start, overlapped_end - existed_start
-                    third_part = simplify(
-                        Extract(high * 8 - 1, low * 8, original))
-                    data = simplify(
-                        Concat(third_part, second_part, first_part))
-                    symbolic_memory[(existed_start, existed_end)] = data
+            # step 1.4: calculate the third part
+            high, low = existed_end - existed_start, overlapped_end - existed_start
+            if high != low:
+                to_concat.insert(0, simplify(
+                    Extract(high * 8 - 1, low * 8, original)))
 
+            # step 1.5: concat
+            to_insert = simplify(Concat(to_concat)) if len(
+                to_concat) > 1 else to_concat[0]
+
+            # step 1.6: insert into the memory
+            symbolic_memory[(existed_start, existed_end)] = to_insert
+
+            # step 1.7: record in `used_sub_intervals`
+            used_sub_intervals.append([overlapped_start, overlapped_end])
+
+        # step 2:
+        # insert the sub-intervals of the incoming interval that were not marked in `used_sub_intervals` into the memory
+        used_sub_intervals.append([dest-1, dest])
+        used_sub_intervals.append([dest+length, dest+length+1])
+        used_sub_intervals.sort(key=lambda a: a[0])
+        free_intervals = []
+        for i in range(1, len(used_sub_intervals)):
+            prevEnd = used_sub_intervals[i - 1][1]
+            currStart = used_sub_intervals[i][0]
+            if prevEnd < currStart:
+                free_intervals.append([prevEnd, currStart])
+
+        for i in free_intervals:
+            high, low = i[1] - dest, i[0] - dest
+            symbolic_memory[(i[0], i[1])] = simplify(
+                Extract(high * 8 - 1, low * 8, data))
+
+    # step 3:
+    # merge and return
     return merge_symbolic_memory(symbolic_memory)
 
 
