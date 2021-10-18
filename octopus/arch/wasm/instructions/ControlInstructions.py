@@ -71,7 +71,7 @@ class ControlInstructions:
 
         return new_state, new_has_ret
 
-    def emulate(self, state, has_ret, func_prototypes, func_index2func_name, data_section):
+    def emulate(self, state, has_ret, func_prototypes, func_index2func_name, data_section, analyzer):
         if self.instr_name in self.skip_command:
             return False, None
         if self.instr_name in self.term_command:
@@ -161,7 +161,7 @@ class ControlInstructions:
                 logging.warning(f"Invoked a library function: {readable_name}")
                 func = PredefinedFunction(
                     readable_name, state.current_func_name)
-                func.emul(state, param_str, return_str, data_section)
+                func.emul(state, param_str, return_str, data_section, analyzer)
             elif readable_name in TERMINATED_FUNCS:
                 logging.warning(
                     f"Terminated function invoked: {readable_name}")

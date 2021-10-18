@@ -103,11 +103,8 @@ class ArithmeticInstructions:
                         func_ind = int(
                             state.current_func_name[state.current_func_name.find('func')+4:])
                         func_offset = state.instr.offset
-                        imports_func = analyzer.imports_func
-                        func_offsets = analyzer.func_offsets
-                        dwarfinfo = analyzer.dwarfinfo
                         original_file, line_no, col_no = get_source_location(
-                            func_ind, func_offset, imports_func, func_offsets, dwarfinfo)
+                            analyzer, func_ind, func_offset)
                         logging.warning(
                             f'{bcolors.WARNING}Overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
                 if div_zero_flag:
@@ -116,11 +113,8 @@ class ArithmeticInstructions:
                         func_ind = int(
                             state.current_func_name[state.current_func_name.find('func')+4:])
                         func_offset = state.instr.offset
-                        imports_func = analyzer.imports_func
-                        func_offsets = analyzer.func_offsets
-                        dwarfinfo = analyzer.dwarfinfo
                         original_file, line_no, col_no = get_source_location(
-                            func_ind, func_offset, imports_func, func_offsets, dwarfinfo)
+                            analyzer, func_ind, func_offset)
                         logging.warning(
                             f'{bcolors.WARNING}Div-zero! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
                 result = simplify(result)

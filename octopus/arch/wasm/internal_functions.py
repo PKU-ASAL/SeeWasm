@@ -1,5 +1,6 @@
 # These functions are predefined and we will emulate their behaviors
 
+from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg
 from .memory import lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from .utils import getConcreteBitVec
@@ -12,7 +13,7 @@ class PredefinedFunction:
         self.name = name
         self.cur_func = cur_func_name
 
-    def emul(self, state, param_str, return_str, data_section):
+    def emul(self, state, param_str, return_str, data_section, analyzer):
         # if the return value is dependent on the library function, we will manually contruct it
         # and jump over the process in which it append a symbol according to the signature of the function
         manually_constructed = False
@@ -57,6 +58,8 @@ class PredefinedFunction:
                 param_list[0]) else param_list[0]
             start_pointer = param_list[1].as_long() if is_bv_value(
                 param_list[1]) else param_list[1]
+            addr = decode_vararg(state, mem_pointer, 0) # get addr of vararg 0.
+            var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
                                                                      state.symbolic_memory)
@@ -122,6 +125,7 @@ class PredefinedFunction:
                             the_other_mem)
         elif self.name == 'strcpy':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
+            var_type, var_size = decode_var_type(analyzer, state, dest)
             # extract the string according to the src pointer
             src_string, _ = C_extract_string_by_start_pointer(
                 src, _, data_section, state.symbolic_memory)

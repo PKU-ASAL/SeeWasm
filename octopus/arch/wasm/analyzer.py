@@ -29,6 +29,7 @@ from octopus.arch.wasm.format import (format_kind_function,
                                       format_kind_memory,
                                       format_kind_global)
 from octopus.core.utils import bytecode_to_bytes
+from octopus.arch.wasm.dawrf_parser import dwarf_section_names
 
 logging = getLogger(__name__)
 
@@ -57,7 +58,7 @@ class WasmModuleAnalyzer(object):
         self.customs = list()
         self.func_prototypes = list()
         self.func_offsets = list()
-        self.dwarfinfo = None
+        self.dwarf_info = None
         # self.strings = list() - TODO
 
         if analysis:
@@ -82,7 +83,7 @@ class WasmModuleAnalyzer(object):
         self.customs = list()
         self.func_prototypes = list()
         self.func_offsets = list()
-        self.dwarfinfo = None
+        self.dwarf_info = None
 
     def __str__(self):
         return str(self.show())
@@ -477,7 +478,7 @@ class WasmModuleAnalyzer(object):
                     self.customs.append(
                         self.__decode_unknown_section(cur_sec_data))
 
-        # create dwarfinfo and func_offsets
+        # create dwarf_info and func_offsets
         self.analyze_debug_info(sections)
         # create ordered list of functions
         self.func_prototypes = self.get_func_prototypes_ordered()
@@ -485,7 +486,7 @@ class WasmModuleAnalyzer(object):
 
     def analyze_debug_info(self, sections):
         """
-        analyze dwarf info in wasm file, stored in self.dwarfinfo and self.func_offsets
+        analyze dwarf info in wasm file, stored in self.dwarf_info and self.func_offsets
         self.func_offsets contains offsets of defined function in the module, without import functions.
 
         the offset is the offset of the first instruction in function defination to the start of Code Section
@@ -539,7 +540,7 @@ class WasmModuleAnalyzer(object):
             debug_loc_sec_name, debug_ranges_sec_name, debug_pubtypes_name,
             debug_pubnames_name, debug_addr_name, debug_str_offsets_name) = dwarf_section_names
 
-        self.dwarfinfo = DWARFInfo(config=DwarfConfig(
+        self.dwarf_info = DWARFInfo(config=DwarfConfig(
             little_endian=True,
             default_address_size=4,
             machine_arch='wasm'),
@@ -767,9 +768,3 @@ def is_emscripten_func(x):
         return True
     else:
         return False
-
-
-dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
-                       '.debug_str', '.debug_line', '.debug_frame',
-                       '.debug_loc', '.debug_ranges', '.debug_pubtypes',
-                       '.debug_pubnames', '.debug_addr', '.debug_str_offsets')
