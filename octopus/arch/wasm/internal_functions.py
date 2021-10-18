@@ -4,6 +4,8 @@ from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg
 from .memory import lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from .utils import getConcreteBitVec
+from octopus.arch.wasm.utils import Enable_Lasers, bcolors
+from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from z3 import *
 import logging
 
@@ -128,13 +130,18 @@ class PredefinedFunction:
                             the_other_mem)
         elif self.name == 'strcpy':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
-            # the destination's type (should be array) and its corresponding size
-            var_type, var_size = decode_var_type(analyzer, state, dest)
 
             # extract the string according to the src pointer
             src_string, _ = C_extract_string_by_start_pointer(
                 src, _, data_section, state.symbolic_memory)
             src_string_len = len(src_string) + 1  # the tailing \x00
+
+            # enable the buffer overflow check
+            if state.lasers & Enable_Lasers.BUFFER.value:
+                buffer_overflow_laser = BufferOverflowLaser()
+                buffer_overflow_laser.fire(
+                    analyzer, state, dest, src_string, src_string_len)
+
             # the little endian is refer to the implementation of scanf
             little_endian_num = int.from_bytes(
                 str.encode(f'{src_string}\x00'), "little")
@@ -153,6 +160,13 @@ class PredefinedFunction:
 
             # concatenate two strings
             string_len = len(dest_string) + len(src_string) + 1
+
+            # enable the buffer overflow check
+            if state.lasers & Enable_Lasers.BUFFER.value:
+                buffer_overflow_laser = BufferOverflowLaser()
+                buffer_overflow_laser.fire(
+                    analyzer, state, dest, dest_string+src_string, string_len)
+
             little_endian_num = int.from_bytes(str.encode(
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(

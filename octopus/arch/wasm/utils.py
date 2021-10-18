@@ -10,7 +10,8 @@ from . exceptions import *
 class Enable_Lasers(Enum):
     OVERFLOW = 1
     DIVZERO = 2
-    ANOTHER = 4
+    BUFFER = 4
+    ANOTHER = 8
 
 
 class bcolors:
