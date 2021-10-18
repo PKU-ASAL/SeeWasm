@@ -58,7 +58,10 @@ class PredefinedFunction:
                 param_list[0]) else param_list[0]
             start_pointer = param_list[1].as_long() if is_bv_value(
                 param_list[1]) else param_list[1]
-            addr = decode_vararg(state, mem_pointer, 0) # get addr of vararg 0.
+
+            # parse the scanf's argument's type
+            # get addr of vararg 0.
+            addr = decode_vararg(state, mem_pointer, 0)
             var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
@@ -125,7 +128,9 @@ class PredefinedFunction:
                             the_other_mem)
         elif self.name == 'strcpy':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
+            # the destination's type (should be array) and its corresponding size
             var_type, var_size = decode_var_type(analyzer, state, dest)
+
             # extract the string according to the src pointer
             src_string, _ = C_extract_string_by_start_pointer(
                 src, _, data_section, state.symbolic_memory)

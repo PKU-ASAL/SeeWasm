@@ -5,6 +5,8 @@ import re
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser
 
+from octopus.arch.wasm.memory import lookup_symbolic_memory
+
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
                        '.debug_str', '.debug_line', '.debug_frame',
                        '.debug_loc', '.debug_ranges', '.debug_pubtypes',
@@ -134,7 +136,8 @@ def decode_vararg(state, addr_stack, index):
     to access memory for real vararg argument.
     """
     addr = addr_stack + index * 4
-    addr = state.symbolic_memory[(addr, addr+4)].as_long()
+    addr = lookup_symbolic_memory(
+        state.symbolic_memory, dict(), addr, 4).as_long()
     return addr
 
 
@@ -166,8 +169,12 @@ def decode_var_type(ana, state, addr_stack):
     Using function address in state to find related function DIE.
     returns type_die, variable_size
     """
-    func_ind = int(
-        state.current_func_name[state.current_func_name.find('func')+4:])
+    func_ind = -1
+    for i, item in enumerate(ana.func_prototypes):
+        if item[0] == state.current_func_name:
+            func_ind = i
+            break
+    assert func_ind != -1, f"Cannot find the func index of func: {state.current_func_name}"
     func_offset = state.instr.offset
     func_DIE = get_func_DIE(ana, func_ind, func_offset)
     if func_DIE == None:
