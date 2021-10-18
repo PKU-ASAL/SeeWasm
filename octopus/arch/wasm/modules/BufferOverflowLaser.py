@@ -4,7 +4,7 @@ from z3 import *
 import logging
 
 from octopus.arch.wasm.utils import bcolors
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg
+from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
 
 
 class BufferOverflowLaser:
@@ -22,4 +22,11 @@ class BufferOverflowLaser:
                 f"{bcolors.WARNING}The string '{the_string}' may result in buffer overflow due to unlimited copy and write{bcolors.ENDC}")
             buffer_overflowed = True
 
-        return buffer_overflowed
+        if buffer_overflowed:
+            func_ind = int(
+                state.current_func_name[state.current_func_name.find('func')+4:])
+            func_offset = state.instr.offset
+            original_file, line_no, col_no = get_source_location(
+                analyzer, func_ind, func_offset)
+            logging.warning(
+                f'{bcolors.WARNING}Buffer overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
