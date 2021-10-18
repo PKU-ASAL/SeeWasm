@@ -12,9 +12,14 @@ class BufferOverflowLaser:
         pass
 
     def fire(self, analyzer, state, dest, the_string, the_string_len):
+        buffer_overflowed = False
+
         # the destination's type (should be array) and its corresponding size
         _, var_size = decode_var_type(analyzer, state, dest)
 
         if the_string_len > var_size:
             logging.warning(
                 f"{bcolors.WARNING}The string '{the_string}' may result in buffer overflow due to unlimited copy and write{bcolors.ENDC}")
+            buffer_overflowed = True
+
+        return buffer_overflowed

@@ -1,6 +1,6 @@
 # These functions are predefined and we will emulate their behaviors
 
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg
+from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
 from .memory import lookup_symbolic_memory, insert_symbolic_memory
 from .helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from .utils import getConcreteBitVec
@@ -139,8 +139,16 @@ class PredefinedFunction:
             # enable the buffer overflow check
             if state.lasers & Enable_Lasers.BUFFER.value:
                 buffer_overflow_laser = BufferOverflowLaser()
-                buffer_overflow_laser.fire(
+                buffer_overflowed = buffer_overflow_laser.fire(
                     analyzer, state, dest, src_string, src_string_len)
+                if buffer_overflowed:
+                    func_ind = int(
+                        state.current_func_name[state.current_func_name.find('func')+4:])
+                    func_offset = state.instr.offset
+                    original_file, line_no, col_no = get_source_location(
+                        analyzer, func_ind, func_offset)
+                    logging.warning(
+                        f'{bcolors.WARNING}Buffer overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
 
             # the little endian is refer to the implementation of scanf
             little_endian_num = int.from_bytes(
@@ -164,8 +172,16 @@ class PredefinedFunction:
             # enable the buffer overflow check
             if state.lasers & Enable_Lasers.BUFFER.value:
                 buffer_overflow_laser = BufferOverflowLaser()
-                buffer_overflow_laser.fire(
-                    analyzer, state, dest, dest_string+src_string, string_len)
+                buffer_overflowed = buffer_overflow_laser.fire(
+                    analyzer, state, dest, dest_string + src_string, string_len)
+                if buffer_overflowed:
+                    func_ind = int(
+                        state.current_func_name[state.current_func_name.find('func')+4:])
+                    func_offset = state.instr.offset
+                    original_file, line_no, col_no = get_source_location(
+                        analyzer, func_ind, func_offset)
+                    logging.warning(
+                        f'{bcolors.WARNING}Buffer overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
 
             little_endian_num = int.from_bytes(str.encode(
                 f'{dest_string}{src_string}\x00'), "little")
