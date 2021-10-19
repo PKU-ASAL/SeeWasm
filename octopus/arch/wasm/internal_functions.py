@@ -149,7 +149,6 @@ class CPredefinedFunction:
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
         elif self.name == 'strcat':
-            # TODO implement
             src, dest = param_list[0].as_long(), param_list[1].as_long()
 
             # extract the string according to pointers
@@ -198,6 +197,10 @@ class GoPredefinedFunction:
         # ------------------------ GO Library -------------------------------
         if self.name == 'fmt.Fprintln':
             logging.warning("=============$fmt.Fprintln============")
+        elif self.name == 'memset':
+            length, byte_data, dest = param_list[0], param_list[1], param_list[2]
+            # TODO
+            # what if the destination is a symbol
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
