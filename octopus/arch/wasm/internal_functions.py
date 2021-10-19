@@ -10,7 +10,7 @@ from z3 import *
 import logging
 
 
-class PredefinedFunction:
+class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
         self.name = name
         self.cur_func = cur_func_name
@@ -171,8 +171,32 @@ class PredefinedFunction:
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+
+        if not manually_constructed and return_str:
+            tmp_bitvec = getConcreteBitVec(return_str,
+                                           self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
+                                               state.instr.offset))
+            state.symbolic_stack.append(tmp_bitvec)
+
+
+class GoPredefinedFunction:
+    def __init__(self, name, cur_func_name):
+        self.name = name
+        self.cur_func = cur_func_name
+
+    def emul(self, state, param_str, return_str, data_section, analyzer):
+        # if the return value is dependent on the library function, we will manually contruct it
+        # and jump over the process in which it append a symbol according to the signature of the function
+        manually_constructed = False
+
+        param_list = []
+        if param_str:
+            num_arg = len(param_str.split(' '))
+            for _ in range(num_arg):
+                param_list.append(state.symbolic_stack.pop())
+
         # ------------------------ GO Library -------------------------------
-        elif self.name == 'fmt.Fprintln':
+        if self.name == 'fmt.Fprintln':
             logging.warning("=============$fmt.Fprintln============")
 
         if not manually_constructed and return_str:

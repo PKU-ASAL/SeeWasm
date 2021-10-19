@@ -4,10 +4,9 @@ import logging
 from collections import defaultdict
 
 from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.internal_functions import PredefinedFunction
+from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction
 from octopus.arch.wasm.graph import Graph
-from octopus.arch.wasm.utils import getConcreteBitVec
-from octopus.arch.wasm.memory import lookup_symbolic_memory
+from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
                    'swap', 'iprintf', 'strcpy', 'strcat'}
@@ -157,9 +156,16 @@ class ControlInstructions:
 
             new_states = []
             # if the callee is a library function
-            if IS_C_LIBRARY_FUNCS(readable_name) or IS_GO_LIBRARY_FUNCS(readable_name):
-                logging.warning(f"Invoked a library function: {readable_name}")
-                func = PredefinedFunction(
+            if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(readable_name):
+                logging.warning(
+                    f"Invoked a C library function: {readable_name}")
+                func = CPredefinedFunction(
+                    readable_name, state.current_func_name)
+                func.emul(state, param_str, return_str, data_section, analyzer)
+            elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(readable_name):
+                logging.warning(
+                    f"Invoked a Go library function: {readable_name}")
+                func = GoPredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section, analyzer)
             elif readable_name in TERMINATED_FUNCS:
