@@ -9,8 +9,11 @@ class VariableInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    # TODO overflow check in this function?
     def emulate(self, state):
+        # TODO
+        # for go_samples.nosync/tinygo_main.wasm, the global.get operand would be prefixed by four \x80
+        if self.instr_operand.startswith(b'\x80\x80\x80\x80'):
+            self.instr_operand = self.instr_operand[4:]
         op = int.from_bytes(self.instr_operand, byteorder='big')
 
         if self.instr_name == 'get_local':

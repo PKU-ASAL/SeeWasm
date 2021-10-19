@@ -4,3 +4,7 @@ __pycache__
 .vscode
 out.txt
 log/
+go_samples.nosync/div_zero/main.c
+go_samples.nosync/div_zero/main.h
+go_samples.nosync/div_zero/tinygo_main.c
+go_samples.nosync/div_zero/tinygo_main.h
