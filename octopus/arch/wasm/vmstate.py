@@ -18,8 +18,6 @@ class WasmVMstate(VMstate):
         self.instr = None
         # current function name
         self.current_func_name = None
-        # lasers, vulnerability detector
-        self.lasers = 0
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
 

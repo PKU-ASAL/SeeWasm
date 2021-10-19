@@ -1,7 +1,7 @@
 # emulate the logical related instructions
 
 from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.utils import Enable_Lasers
+from octopus.arch.wasm.utils import Enable_Lasers, Configuration
 
 from z3 import *
 from collections import defaultdict
@@ -22,7 +22,7 @@ class LogicalInstructions:
     # TODO overflow check in this function?
     def emulate(self, state):
         overflow_check_flag = False
-        if state.lasers & Enable_Lasers.OVERFLOW.value:
+        if Configuration.get_lasers() & Enable_Lasers.OVERFLOW.value:
             overflow_check_flag = True
 
         def do_emulate_logical_int_instruction(state, overflow_check_flag):

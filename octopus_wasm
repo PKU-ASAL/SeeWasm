@@ -4,7 +4,7 @@ import time
 
 from octopus.arch.wasm.utils import extract_mapping
 from octopus.arch.wasm.graph import *
-from octopus.arch.wasm.utils import Enable_Lasers
+from octopus.arch.wasm.utils import Configuration
 
 import argparse
 import sys
@@ -36,6 +36,12 @@ def main():
     inputs.add_argument('-rf', '--rawfile',
                         type=argparse.FileType('r'),
                         metavar='BYTECODE')
+    inputs.add_argument('--source_type',
+                        default='c',
+                        const='c',
+                        nargs='?',
+                        choices=['c', 'go'],
+                        help='type of source file, used by library function emulator')
 
     features = parser.add_argument_group('Features')
     features.add_argument('-d', '--disassemble',
@@ -99,9 +105,6 @@ def main():
     analyze.add_argument('-s', '--symbolic',
                          action='store_true',
                          help='perform the symbolic execution for EOS contract')
-    analyze.add_argument('-l', '--lasers',
-                         nargs='+',
-                         help='specify the list of module name of lasers')
 
     graph = parser.add_argument_group('Graph options')
     graph.add_argument('--simplify', action='store_true',
@@ -176,17 +179,13 @@ def main():
     # import necessary library
     from octopus.arch.wasm.emulator_revise import WasmSSAEmulatorEngine
     if args.symbolic:
-        # record the lasers that users required
-        user_asked_lasers = 0
-        if args.overflow:
-            user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
-        if args.divzero:
-            user_asked_lasers ^= Enable_Lasers.DIVZERO.value
-        if args.buffer:
-            user_asked_lasers ^= Enable_Lasers.BUFFER.value
+        Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
+        Configuration.set_source_type(args.source_type)
+        Configuration.set_algo(args.algo)
+        Configuration.set_concrete_globals(args.concrete_globals)
 
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, user_asked_lasers, args.algo, args.concrete_globals, func_index2func_name=func_index2func_name)
+            octo_bytecode, func_index2func_name=func_index2func_name)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
@@ -197,9 +196,7 @@ def main():
         else:
             raise Exception("Please specify at least one entry function")
 
-    if not args.disassemble and not args.symbolic \
-            and not args.cfg and not args.call and not args.lasers \
-            and not args.analyzer and not args.analytic:
+    if not args.disassemble and not args.symbolic and not args.cfg and not args.call and not args.analyzer and not args.analytic:
         parser.print_help()
 
 

@@ -2,7 +2,7 @@
 
 from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
-from octopus.arch.wasm.utils import Enable_Lasers
+from octopus.arch.wasm.utils import Enable_Lasers, Configuration
 from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
 from octopus.arch.wasm.dawrf_parser import get_source_location
 from octopus.arch.wasm.utils import bcolors
@@ -31,13 +31,13 @@ class ArithmeticInstructions:
     def emulate(self, state, analyzer):
         overflow_check_flag = False
         overflow_laser = None
-        if state.lasers & Enable_Lasers.OVERFLOW.value:
+        if Configuration.get_lasers() & Enable_Lasers.OVERFLOW.value:
             overflow_check_flag = True
             overflow_laser = OverflowLaser()
 
         div_zero_flag = False
         div_zero_laser = None
-        if state.lasers & Enable_Lasers.DIVZERO.value:
+        if Configuration.get_lasers() & Enable_Lasers.DIVZERO.value:
             div_zero_flag = True
             div_zero_laser = DivZeroLaser()
 

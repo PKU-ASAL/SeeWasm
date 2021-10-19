@@ -7,6 +7,53 @@ from enum import Enum
 from . exceptions import *
 
 
+class Configuration:
+    """
+    The static class that maintain the user's input option
+    """
+    _user_asked_lasers = 0
+    _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
+    _algo = 'dfs'       # the traverse algorithm, default is dfs, we also have 'interval'
+    _concrete_globals = False   # init the global with the declaration in global sections
+
+    @staticmethod
+    def set_lasers(overflow, divzero, buffer):
+        if overflow:
+            Configuration._user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
+        if divzero:
+            Configuration._user_asked_lasers ^= Enable_Lasers.DIVZERO.value
+        if buffer:
+            Configuration._user_asked_lasers ^= Enable_Lasers.BUFFER.value
+
+    @staticmethod
+    def get_lasers():
+        return Configuration._user_asked_lasers
+
+    @staticmethod
+    def set_source_type(source_type):
+        Configuration._source_type = source_type
+
+    @staticmethod
+    def get_source_type():
+        return Configuration._source_type
+
+    @staticmethod
+    def set_algo(algo):
+        Configuration._algo = algo
+
+    @staticmethod
+    def get_algo():
+        return Configuration._algo
+
+    @staticmethod
+    def set_concrete_globals(concrete_globals):
+        Configuration._concrete_globals = concrete_globals
+
+    @staticmethod
+    def get_concrete_globals():
+        return Configuration._concrete_globals
+
+
 class Enable_Lasers(Enum):
     OVERFLOW = 1
     DIVZERO = 2

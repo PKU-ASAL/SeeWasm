@@ -4,7 +4,7 @@ from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_s
 from octopus.arch.wasm.memory import lookup_symbolic_memory, insert_symbolic_memory
 from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from octopus.arch.wasm.utils import getConcreteBitVec
-from octopus.arch.wasm.utils import Enable_Lasers, bcolors
+from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from z3 import *
 import logging
@@ -137,7 +137,7 @@ class PredefinedFunction:
             src_string_len = len(src_string) + 1  # the tailing \x00
 
             # enable the buffer overflow check
-            if state.lasers & Enable_Lasers.BUFFER.value:
+            if Configuration.get_lasers() & Enable_Lasers.BUFFER.value:
                 buffer_overflow_laser = BufferOverflowLaser()
                 buffer_overflow_laser.fire(
                     analyzer, state, dest, src_string, src_string_len)
@@ -162,7 +162,7 @@ class PredefinedFunction:
             string_len = len(dest_string) + len(src_string) + 1
 
             # enable the buffer overflow check
-            if state.lasers & Enable_Lasers.BUFFER.value:
+            if Configuration.get_lasers() & Enable_Lasers.BUFFER.value:
                 buffer_overflow_laser = BufferOverflowLaser()
                 buffer_overflow_laser.fire(
                     analyzer, state, dest, dest_string + src_string, string_len)

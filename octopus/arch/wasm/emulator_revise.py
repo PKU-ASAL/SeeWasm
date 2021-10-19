@@ -30,18 +30,13 @@ MAX = 42
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, user_asked_lasers, algo, concrete_globals=False, func_index2func_name=None):
+    def __init__(self, bytecode, func_index2func_name=None):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
-        self.lasers = user_asked_lasers
-        self.algo = algo
 
         # all the exports function's name
         self.exported_func_names = [i["field_str"]
                                     for i in self.ana.exports if i["kind"] == 0]
-
-        # init the global with the declaration in global sections
-        self.concrete_globals = concrete_globals
 
         self.data_section = dict()
         # init memory section with data section
@@ -120,7 +115,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         is_exported = func_name in self.exported_func_names
         # if the --concrete_globals is set, we ignore if the current function is exported
         # i.e., we can regard the current function is exported
-        if self.concrete_globals:
+        if Configuration.get_concrete_globals():
             is_exported = True
         self.init_globals(state, is_exported)
 
@@ -128,9 +123,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             has_ret.append(True)
         else:
             has_ret.append(False)
-
-        # pass the lasers
-        state.lasers = self.lasers
 
         return state, has_ret
 

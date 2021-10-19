@@ -2,7 +2,7 @@ import copy
 
 from z3 import *
 from collections import defaultdict, deque
-from octopus.arch.wasm.utils import ask_user_input, bcolors
+from octopus.arch.wasm.utils import ask_user_input, bcolors, Configuration
 
 
 class ClassPropertyDescriptor:
@@ -137,9 +137,9 @@ class Graph:
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
         blks = entry_func_bbs
-        if cls.wasmVM.algo == 'dfs':
+        if Configuration.get_algo() == 'dfs':
             final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
-        elif cls.wasmVM.algo == 'interval':
+        elif Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
         # restore the caller func
         state.current_func_name = caller_func_name
