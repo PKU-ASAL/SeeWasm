@@ -194,8 +194,8 @@ class GoPredefinedFunction:
             for _ in range(num_arg):
                 param_list.append(state.symbolic_stack.pop())
 
-        # ------------------------ GO Library -------------------------------
-        if self.name == 'fmt.Fprintln':
+        # ------------------------ TinyGO Library -------------------------------
+        if self.name == 'fmt.Println':
             logging.warning("=============$fmt.Fprintln============")
         elif self.name == 'memset':
             length, byte_data, dest = param_list[0], param_list[1], param_list[2]
