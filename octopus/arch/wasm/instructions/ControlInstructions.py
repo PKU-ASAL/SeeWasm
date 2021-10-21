@@ -11,8 +11,10 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
                    'swap', 'iprintf', 'strcpy', 'strcat'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
-                    'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js'}
+                    'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
+# below functions are not regarded as library function, need step in
+NEED_STEP_IN = {'fmt.Println'}
 
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
@@ -156,13 +158,13 @@ class ControlInstructions:
 
             new_states = []
             # if the callee is a library function
-            if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(readable_name):
+            if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN:
                 logging.warning(
                     f"Invoked a C library function: {readable_name}")
                 func = CPredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section, analyzer)
-            elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(readable_name):
+            elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN:
                 logging.warning(
                     f"Invoked a Go library function: {readable_name}")
                 func = GoPredefinedFunction(
