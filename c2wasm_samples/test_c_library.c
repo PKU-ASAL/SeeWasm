@@ -60,6 +60,10 @@ void test_math_funcs()
 
     printf("Value1 = %f \n", ceil(val1));
     printf("Value2 = %f \n", ceil(val2));
+
+    double x = 1;
+    printf("The exponential value of %lf is %lf\n", x, exp(x));
+    printf("The exponential value of %lf is %lf\n", x + 1, exp(x + 1));
 }
 
 int main(void)

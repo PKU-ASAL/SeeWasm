@@ -6,22 +6,23 @@
   (type (;4;) (func (result i32)))
   (type (;5;) (func (param i32)))
   (type (;6;) (func (param i32 i64 i32) (result i64)))
-  (type (;7;) (func (param i32 i64 i64 i32)))
-  (type (;8;) (func (param i32 i32 i32 i32 i32) (result i32)))
-  (type (;9;) (func (param i32 f64 i32 i32 i32 i32) (result i32)))
-  (type (;10;) (func (param i32 i32)))
-  (type (;11;) (func (param i64 i32) (result i32)))
-  (type (;12;) (func (param i32 i32 i32 i32) (result i32)))
-  (type (;13;) (func (param f64 i32) (result f64)))
-  (type (;14;) (func (param i64 i64) (result f64)))
-  (type (;15;) (func (param i32 i32 i32 i32 i32 i32 i32) (result i32)))
-  (type (;16;) (func (param i32 i32 i32)))
-  (type (;17;) (func (param i32 i32 i32 i32)))
-  (type (;18;) (func (param i64 i32 i32) (result i32)))
-  (type (;19;) (func (param i32 i32 i32 i32 i32)))
-  (type (;20;) (func (param f64) (result i64)))
-  (type (;21;) (func (param i32 i32 i64 i32) (result i64)))
-  (import "wasi_snapshot_preview1" "fd_write" (func $__wasi_fd_write (type 12)))
+  (type (;7;) (func (param f64) (result i64)))
+  (type (;8;) (func (param f64 i32) (result f64)))
+  (type (;9;) (func (param i32 i64 i64 i32)))
+  (type (;10;) (func (param i32 i32 i32 i32 i32) (result i32)))
+  (type (;11;) (func (param i32 f64 i32 i32 i32 i32) (result i32)))
+  (type (;12;) (func (param i32 i32)))
+  (type (;13;) (func (param i64 i32) (result i32)))
+  (type (;14;) (func (param i32 i32 i32 i32) (result i32)))
+  (type (;15;) (func (param f64) (result f64)))
+  (type (;16;) (func (param i64 i64) (result f64)))
+  (type (;17;) (func (param i32 i32 i32 i32 i32 i32 i32) (result i32)))
+  (type (;18;) (func (param i32 i32 i32)))
+  (type (;19;) (func (param i32 i32 i32 i32)))
+  (type (;20;) (func (param i64 i32 i32) (result i32)))
+  (type (;21;) (func (param i32 i32 i32 i32 i32)))
+  (type (;22;) (func (param i32 i32 i64 i32) (result i64)))
+  (import "wasi_snapshot_preview1" "fd_write" (func $__wasi_fd_write (type 14)))
   (import "env" "emscripten_memcpy_big" (func $emscripten_memcpy_big (type 0)))
   (import "env" "setTempRet0" (func $setTempRet0 (type 5)))
   (func $__wasm_call_ctors (type 3)
@@ -205,7 +206,7 @@
     i32.const 0
     local.set 8
     local.get 8
-    i32.load offset=1264
+    i32.load offset=1296
     local.set 9
     local.get 7
     local.get 9
@@ -217,13 +218,13 @@
     i32.add
     local.set 11
     local.get 8
-    i64.load offset=1256
+    i64.load offset=1288
     local.set 12
     local.get 11
     local.get 12
     i64.store
     local.get 8
-    i64.load offset=1248
+    i64.load offset=1280
     local.set 13
     local.get 5
     local.get 13
@@ -245,13 +246,13 @@
     i32.const 0
     local.set 19
     local.get 19
-    i32.load16_u offset=1276 align=1
+    i32.load16_u offset=1308 align=1
     local.set 20
     local.get 18
     local.get 20
     i32.store16 align=1
     local.get 19
-    i64.load offset=1268 align=1
+    i64.load offset=1300 align=1
     local.set 21
     local.get 16
     local.get 21
@@ -329,7 +330,7 @@
     i32.const 0
     local.set 8
     local.get 8
-    i64.load offset=1302 align=2
+    i64.load offset=1334 align=2
     local.set 9
     local.get 7
     local.get 9
@@ -341,7 +342,7 @@
     i32.add
     local.set 11
     local.get 8
-    i64.load offset=1296
+    i64.load offset=1328
     local.set 12
     local.get 11
     local.get 12
@@ -353,13 +354,13 @@
     i32.add
     local.set 14
     local.get 8
-    i64.load offset=1288
+    i64.load offset=1320
     local.set 15
     local.get 14
     local.get 15
     i64.store
     local.get 8
-    i64.load offset=1280
+    i64.load offset=1312
     local.set 16
     local.get 5
     local.get 16
@@ -413,10 +414,10 @@
     global.set 0
     return)
   (func $test_math_funcs (type 3)
-    (local i32 i32 i32 i32 i32 f32 f64 f64 i32 i32 i32 f32 f64 f64 i32 i32 i32 f32 f64 f64 f32 f64 f64 i32 i32 i32 i32 i32)
+    (local i32 i32 i32 i32 i32 f32 f64 f64 i32 i32 i32 f32 f64 f64 i32 i32 i32 f32 f64 f64 f32 f64 f64 i32 i32 i32 f64 f64 f64 f64 i32 i32 i32 f64 f64 f64 f64 f64 f64 f64 i32 i32 i32 i32 i32)
     global.get 0
     local.set 0
-    i32.const 80
+    i32.const 128
     local.set 1
     local.get 0
     local.get 1
@@ -428,14 +429,14 @@
     local.set 3
     local.get 2
     local.get 3
-    i32.store offset=76
+    i32.store offset=124
     i32.const 1077097267
     local.set 4
     local.get 2
     local.get 4
-    i32.store offset=72
+    i32.store offset=120
     local.get 2
-    f32.load offset=76
+    f32.load offset=124
     local.set 5
     local.get 5
     f64.promote_f32
@@ -446,7 +447,7 @@
     local.get 2
     local.get 7
     f64.store offset=32
-    i32.const 1225
+    i32.const 1262
     local.set 8
     i32.const 32
     local.set 9
@@ -459,7 +460,7 @@
     call $printf
     drop
     local.get 2
-    f32.load offset=72
+    f32.load offset=120
     local.set 11
     local.get 11
     f64.promote_f32
@@ -470,7 +471,7 @@
     local.get 2
     local.get 13
     f64.store offset=16
-    i32.const 1211
+    i32.const 1248
     local.set 14
     i32.const 16
     local.set 15
@@ -483,7 +484,7 @@
     call $printf
     drop
     local.get 2
-    f32.load offset=76
+    f32.load offset=124
     local.set 17
     local.get 17
     f64.promote_f32
@@ -499,7 +500,7 @@
     call $printf
     drop
     local.get 2
-    f32.load offset=72
+    f32.load offset=120
     local.set 20
     local.get 20
     f64.promote_f32
@@ -510,7 +511,7 @@
     local.get 2
     local.get 22
     f64.store offset=48
-    i32.const 1211
+    i32.const 1248
     local.set 23
     i32.const 48
     local.set 24
@@ -522,13 +523,84 @@
     local.get 25
     call $printf
     drop
-    i32.const 80
+    f64.const 0x1p+0 (;=1;)
     local.set 26
     local.get 2
     local.get 26
-    i32.add
+    f64.store offset=104
+    local.get 2
+    f64.load offset=104
     local.set 27
+    local.get 2
+    f64.load offset=104
+    local.set 28
+    local.get 28
+    call $exp
+    local.set 29
+    local.get 2
+    local.get 29
+    f64.store offset=72
+    local.get 2
     local.get 27
+    f64.store offset=64
+    i32.const 1211
+    local.set 30
+    i32.const 64
+    local.set 31
+    local.get 2
+    local.get 31
+    i32.add
+    local.set 32
+    local.get 30
+    local.get 32
+    call $printf
+    drop
+    local.get 2
+    f64.load offset=104
+    local.set 33
+    f64.const 0x1p+0 (;=1;)
+    local.set 34
+    local.get 33
+    local.get 34
+    f64.add
+    local.set 35
+    local.get 2
+    f64.load offset=104
+    local.set 36
+    f64.const 0x1p+0 (;=1;)
+    local.set 37
+    local.get 36
+    local.get 37
+    f64.add
+    local.set 38
+    local.get 38
+    call $exp
+    local.set 39
+    local.get 2
+    local.get 39
+    f64.store offset=88
+    local.get 2
+    local.get 35
+    f64.store offset=80
+    i32.const 1211
+    local.set 40
+    i32.const 80
+    local.set 41
+    local.get 2
+    local.get 41
+    i32.add
+    local.set 42
+    local.get 40
+    local.get 42
+    call $printf
+    drop
+    i32.const 128
+    local.set 43
+    local.get 2
+    local.get 43
+    i32.add
+    local.set 44
+    local.get 44
     global.set 0
     return)
   (func $__original_main (type 4) (result i32)
@@ -570,6 +642,193 @@
     local.set 2
     local.get 2
     return)
+  (func $exp (type 15) (param f64) (result f64)
+    (local i64 i32 i32 f64 f64 f64)
+    local.get 0
+    i64.reinterpret_f64
+    local.tee 1
+    i64.const 63
+    i64.shr_u
+    i32.wrap_i64
+    local.set 2
+    block  ;; label = @1
+      block  ;; label = @2
+        block  ;; label = @3
+          block  ;; label = @4
+            block  ;; label = @5
+              block  ;; label = @6
+                block  ;; label = @7
+                  block  ;; label = @8
+                    local.get 1
+                    i64.const 32
+                    i64.shr_u
+                    i32.wrap_i64
+                    i32.const 2147483647
+                    i32.and
+                    local.tee 3
+                    i32.const 1082532651
+                    i32.lt_u
+                    br_if 0 (;@8;)
+                    block  ;; label = @9
+                      local.get 0
+                      call $__DOUBLE_BITS
+                      i64.const 9223372036854775807
+                      i64.and
+                      i64.const 9218868437227405312
+                      i64.le_u
+                      br_if 0 (;@9;)
+                      local.get 0
+                      return
+                    end
+                    block  ;; label = @9
+                      local.get 0
+                      f64.const 0x1.62e42fefa39efp+9 (;=709.783;)
+                      f64.gt
+                      i32.eqz
+                      br_if 0 (;@9;)
+                      local.get 0
+                      f64.const 0x1p+1023 (;=8.98847e+307;)
+                      f64.mul
+                      return
+                    end
+                    local.get 0
+                    f64.const -0x1.6232bdd7abcd2p+9 (;=-708.396;)
+                    f64.lt
+                    i32.eqz
+                    br_if 1 (;@7;)
+                    f64.const 0x0p+0 (;=0;)
+                    local.set 4
+                    local.get 0
+                    f64.const -0x1.74910d52d3051p+9 (;=-745.133;)
+                    f64.lt
+                    i32.eqz
+                    br_if 1 (;@7;)
+                    br 6 (;@2;)
+                  end
+                  local.get 3
+                  i32.const 1071001155
+                  i32.lt_u
+                  br_if 3 (;@4;)
+                  local.get 3
+                  i32.const 1072734898
+                  i32.lt_u
+                  br_if 1 (;@6;)
+                end
+                block  ;; label = @7
+                  local.get 0
+                  f64.const 0x1.71547652b82fep+0 (;=1.4427;)
+                  f64.mul
+                  local.get 2
+                  i32.const 3
+                  i32.shl
+                  i32.const 1344
+                  i32.add
+                  f64.load
+                  f64.add
+                  local.tee 4
+                  f64.abs
+                  f64.const 0x1p+31 (;=2.14748e+09;)
+                  f64.lt
+                  i32.eqz
+                  br_if 0 (;@7;)
+                  local.get 4
+                  i32.trunc_f64_s
+                  local.set 3
+                  br 2 (;@5;)
+                end
+                i32.const -2147483648
+                local.set 3
+                br 1 (;@5;)
+              end
+              local.get 2
+              i32.const 1
+              i32.xor
+              local.get 2
+              i32.sub
+              local.set 3
+            end
+            local.get 0
+            local.get 3
+            f64.convert_i32_s
+            local.tee 4
+            f64.const -0x1.62e42feep-1 (;=-0.693147;)
+            f64.mul
+            f64.add
+            local.tee 0
+            local.get 4
+            f64.const 0x1.a39ef35793c76p-33 (;=1.90821e-10;)
+            f64.mul
+            local.tee 5
+            f64.sub
+            local.set 6
+            br 1 (;@3;)
+          end
+          local.get 3
+          i32.const 1043333120
+          i32.le_u
+          br_if 2 (;@1;)
+          i32.const 0
+          local.set 3
+          f64.const 0x0p+0 (;=0;)
+          local.set 5
+          local.get 0
+          local.set 6
+        end
+        local.get 0
+        local.get 6
+        local.get 6
+        local.get 6
+        local.get 6
+        f64.mul
+        local.tee 4
+        local.get 4
+        local.get 4
+        local.get 4
+        local.get 4
+        f64.const 0x1.6376972bea4dp-25 (;=4.13814e-08;)
+        f64.mul
+        f64.const -0x1.bbd41c5d26bf1p-20 (;=-1.65339e-06;)
+        f64.add
+        f64.mul
+        f64.const 0x1.1566aaf25de2cp-14 (;=6.61376e-05;)
+        f64.add
+        f64.mul
+        f64.const -0x1.6c16c16bebd93p-9 (;=-0.00277778;)
+        f64.add
+        f64.mul
+        f64.const 0x1.555555555553ep-3 (;=0.166667;)
+        f64.add
+        f64.mul
+        f64.sub
+        local.tee 4
+        f64.mul
+        f64.const 0x1p+1 (;=2;)
+        local.get 4
+        f64.sub
+        f64.div
+        local.get 5
+        f64.sub
+        f64.add
+        f64.const 0x1p+0 (;=1;)
+        f64.add
+        local.set 4
+        local.get 3
+        i32.eqz
+        br_if 0 (;@2;)
+        local.get 4
+        local.get 3
+        call $scalbn
+        local.set 4
+      end
+      local.get 4
+      return
+    end
+    local.get 0
+    f64.const 0x1p+0 (;=1;)
+    f64.add)
+  (func $__DOUBLE_BITS (type 7) (param f64) (result i64)
+    local.get 0
+    i64.reinterpret_f64)
   (func $__strchrnul (type 1) (param i32 i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
@@ -1889,8 +2148,87 @@
       end
     end
     i32.const 0)
+  (func $scalbn (type 8) (param f64 i32) (result f64)
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 1
+        i32.const 1024
+        i32.lt_s
+        br_if 0 (;@2;)
+        local.get 0
+        f64.const 0x1p+1023 (;=8.98847e+307;)
+        f64.mul
+        local.set 0
+        block  ;; label = @3
+          local.get 1
+          i32.const 2047
+          i32.ge_s
+          br_if 0 (;@3;)
+          local.get 1
+          i32.const -1023
+          i32.add
+          local.set 1
+          br 2 (;@1;)
+        end
+        local.get 0
+        f64.const 0x1p+1023 (;=8.98847e+307;)
+        f64.mul
+        local.set 0
+        local.get 1
+        i32.const 3069
+        local.get 1
+        i32.const 3069
+        i32.lt_s
+        select
+        i32.const -2046
+        i32.add
+        local.set 1
+        br 1 (;@1;)
+      end
+      local.get 1
+      i32.const -1023
+      i32.gt_s
+      br_if 0 (;@1;)
+      local.get 0
+      f64.const 0x1p-1022 (;=2.22507e-308;)
+      f64.mul
+      local.set 0
+      block  ;; label = @2
+        local.get 1
+        i32.const -2045
+        i32.le_s
+        br_if 0 (;@2;)
+        local.get 1
+        i32.const 1022
+        i32.add
+        local.set 1
+        br 1 (;@1;)
+      end
+      local.get 0
+      f64.const 0x1p-1022 (;=2.22507e-308;)
+      f64.mul
+      local.set 0
+      local.get 1
+      i32.const -3066
+      local.get 1
+      i32.const -3066
+      i32.gt_s
+      select
+      i32.const 2044
+      i32.add
+      local.set 1
+    end
+    local.get 0
+    local.get 1
+    i32.const 1023
+    i32.add
+    i64.extend_i32_u
+    i64.const 52
+    i64.shl
+    f64.reinterpret_i64
+    f64.mul)
   (func $__errno_location (type 4) (result i32)
-    i32.const 2192)
+    i32.const 2240)
   (func $__wasi_syscall_ret (type 2) (param i32) (result i32)
     block  ;; label = @1
       local.get 0
@@ -2540,9 +2878,9 @@
     end
     local.get 0)
   (func $emscripten_stack_init (type 3)
-    i32.const 5246208
+    i32.const 5246256
     global.set 2
-    i32.const 3316
+    i32.const 3364
     i32.const 15
     i32.add
     i32.const -16
@@ -2555,7 +2893,7 @@
   (func $emscripten_stack_get_end (type 4) (result i32)
     global.get 1)
   (func $__pthread_self (type 4) (result i32)
-    i32.const 1956)
+    i32.const 2004)
   (func $wcrtomb (type 0) (param i32 i32 i32) (result i32)
     (local i32)
     i32.const 1
@@ -2714,7 +3052,7 @@
     local.get 1
     i32.const 0
     call $wcrtomb)
-  (func $frexp (type 13) (param f64 i32) (result f64)
+  (func $frexp (type 8) (param f64 i32) (result f64)
     (local i64 i32)
     block  ;; label = @1
       local.get 0
@@ -2774,7 +3112,7 @@
       local.set 0
     end
     local.get 0)
-  (func $__ashlti3 (type 7) (param i32 i64 i64 i32)
+  (func $__ashlti3 (type 9) (param i32 i64 i64 i32)
     (local i64)
     block  ;; label = @1
       block  ;; label = @2
@@ -2821,7 +3159,7 @@
     local.get 0
     local.get 2
     i64.store offset=8)
-  (func $__lshrti3 (type 7) (param i32 i64 i64 i32)
+  (func $__lshrti3 (type 9) (param i32 i64 i64 i32)
     (local i64)
     block  ;; label = @1
       block  ;; label = @2
@@ -2868,7 +3206,7 @@
     local.get 0
     local.get 2
     i64.store offset=8)
-  (func $__trunctfdf2 (type 14) (param i64 i64) (result f64)
+  (func $__trunctfdf2 (type 16) (param i64 i64) (result f64)
     (local i32 i64 i64 i32)
     global.get 0
     i32.const 32
@@ -3056,11 +3394,11 @@
   (func $__lock (type 5) (param i32))
   (func $__unlock (type 5) (param i32))
   (func $__ofl_lock (type 4) (result i32)
-    i32.const 3304
+    i32.const 3352
     call $__lock
-    i32.const 3312)
+    i32.const 3360)
   (func $__ofl_unlock (type 3)
-    i32.const 3304
+    i32.const 3352
     call $__unlock)
   (func $__towrite (type 2) (param i32) (result i32)
     (local i32)
@@ -3213,7 +3551,7 @@
       local.set 4
     end
     local.get 4)
-  (func $__vfprintf_internal (type 8) (param i32 i32 i32 i32 i32) (result i32)
+  (func $__vfprintf_internal (type 10) (param i32 i32 i32 i32 i32) (result i32)
     (local i32 i32 i32)
     global.get 0
     i32.const 208
@@ -3405,7 +3743,7 @@
     i32.add
     global.set 0
     local.get 1)
-  (func $printf_core (type 15) (param i32 i32 i32 i32 i32 i32 i32) (result i32)
+  (func $printf_core (type 17) (param i32 i32 i32 i32 i32 i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i64)
     global.get 0
     i32.const 80
@@ -3860,7 +4198,7 @@
                         i32.const 58
                         i32.mul
                         i32.add
-                        i32.const 1263
+                        i32.const 1311
                         i32.add
                         i32.load8_u
                         local.tee 13
@@ -4412,7 +4750,7 @@
                         local.get 13
                         local.get 1
                         local.get 5
-                        call_indirect (type 9)
+                        call_indirect (type 11)
                         local.set 1
                         br 8 (;@2;)
                       end
@@ -4586,7 +4924,7 @@
     i32.add
     global.set 0
     local.get 20)
-  (func $out (type 16) (param i32 i32 i32)
+  (func $out (type 18) (param i32 i32 i32)
     block  ;; label = @1
       local.get 0
       i32.load8_u
@@ -4636,7 +4974,7 @@
       end
     end
     local.get 1)
-  (func $pop_arg (type 17) (param i32 i32 i32 i32)
+  (func $pop_arg (type 19) (param i32 i32 i32 i32)
     block  ;; label = @1
       local.get 1
       i32.const 20
@@ -4785,9 +5123,9 @@
       local.get 0
       local.get 2
       local.get 3
-      call_indirect (type 10)
+      call_indirect (type 12)
     end)
-  (func $fmt_x (type 18) (param i64 i32 i32) (result i32)
+  (func $fmt_x (type 20) (param i64 i32 i32) (result i32)
     (local i32)
     block  ;; label = @1
       local.get 0
@@ -4802,7 +5140,7 @@
         i32.wrap_i64
         i32.const 15
         i32.and
-        i32.const 1792
+        i32.const 1840
         i32.add
         i32.load8_u
         local.get 2
@@ -4821,7 +5159,7 @@
       end
     end
     local.get 1)
-  (func $fmt_o (type 11) (param i64 i32) (result i32)
+  (func $fmt_o (type 13) (param i64 i32) (result i32)
     (local i32)
     block  ;; label = @1
       local.get 0
@@ -4852,7 +5190,7 @@
       end
     end
     local.get 1)
-  (func $fmt_u (type 11) (param i64 i32) (result i32)
+  (func $fmt_u (type 13) (param i64 i32) (result i32)
     (local i64 i32 i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -4924,7 +5262,7 @@
       end
     end
     local.get 1)
-  (func $pad (type 19) (param i32 i32 i32 i32 i32)
+  (func $pad (type 21) (param i32 i32 i32 i32 i32)
     (local i32)
     global.get 0
     i32.const 256
@@ -4989,7 +5327,7 @@
     i32.const 4
     i32.const 5
     call $__vfprintf_internal)
-  (func $fmt_fp (type 9) (param i32 f64 i32 i32 i32 i32) (result i32)
+  (func $fmt_fp (type 11) (param i32 f64 i32 i32 i32 i32) (result i32)
     (local i32 i32 i64 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i64 i32 i32 i32 i32 f64)
     global.get 0
     i32.const 560
@@ -5004,7 +5342,7 @@
     block  ;; label = @1
       block  ;; label = @2
         local.get 1
-        call $__DOUBLE_BITS
+        call $__DOUBLE_BITS.1
         local.tee 8
         i64.const -1
         i64.gt_s
@@ -5016,7 +5354,7 @@
         local.get 1
         f64.neg
         local.tee 1
-        call $__DOUBLE_BITS
+        call $__DOUBLE_BITS.1
         local.set 8
         br 1 (;@1;)
       end
@@ -6452,7 +6790,7 @@
         end
         local.get 12
         local.get 18
-        i32.const 1792
+        i32.const 1840
         i32.add
         i32.load8_u
         local.get 19
@@ -6607,7 +6945,7 @@
     local.get 2
     i32.lt_s
     select)
-  (func $pop_arg_long_double (type 10) (param i32 i32)
+  (func $pop_arg_long_double (type 12) (param i32 i32)
     (local i32)
     local.get 1
     local.get 1
@@ -6629,7 +6967,7 @@
     i64.load
     call $__trunctfdf2
     f64.store)
-  (func $__DOUBLE_BITS (type 20) (param f64) (result i64)
+  (func $__DOUBLE_BITS.1 (type 7) (param f64) (result i64)
     local.get 0
     i64.reinterpret_f64)
   (func $printf (type 1) (param i32 i32) (result i32)
@@ -6643,7 +6981,7 @@
     local.get 1
     i32.store offset=12
     i32.const 0
-    i32.load offset=1312
+    i32.load offset=1360
     local.get 0
     local.get 1
     call $vfprintf
@@ -6779,11 +7117,11 @@
       local.set 2
       block  ;; label = @2
         i32.const 0
-        i32.load offset=1952
+        i32.load offset=2000
         i32.eqz
         br_if 0 (;@2;)
         i32.const 0
-        i32.load offset=1952
+        i32.load offset=2000
         call $fflush
         local.set 2
       end
@@ -6887,13 +7225,13 @@
     i64.const 0
     i64.store offset=4 align=4
     i32.const 0)
-  (func $dynCall_jiji (type 21) (param $fptr i32) (param $0 i32) (param $1 i64) (param $2 i32) (result i64)
+  (func $dynCall_jiji (type 22) (param $fptr i32) (param $0 i32) (param $1 i64) (param $2 i32) (result i64)
     local.get $0
     local.get $1
     local.get $2
     local.get $fptr
     call_indirect (type 6))
-  (func $legalstub$dynCall_jiji (type 8) (param i32 i32 i32 i32 i32) (result i32)
+  (func $legalstub$dynCall_jiji (type 10) (param i32 i32 i32 i32 i32) (result i32)
     (local i64)
     local.get 0
     local.get 1
@@ -6916,7 +7254,7 @@
     i32.wrap_i64)
   (table (;0;) 6 6 funcref)
   (memory (;0;) 256 256)
-  (global (;0;) (mut i32) (i32.const 5246208))
+  (global (;0;) (mut i32) (i32.const 5246256))
   (global (;1;) (mut i32) (i32.const 0))
   (global (;2;) (mut i32) (i32.const 0))
   (export "memory" (memory 0))
@@ -6933,5 +7271,5 @@
   (export "emscripten_stack_get_end" (func $emscripten_stack_get_end))
   (export "dynCall_jiji" (func $legalstub$dynCall_jiji))
   (elem (;0;) (i32.const 1) $__emscripten_stdout_close $__stdio_write $__emscripten_stdout_seek $fmt_fp $pop_arg_long_double)
-  (data (;0;) (i32.const 1024) "-+   0X0x\00-0X+0X 0X-0x+0x 0x\00nan\00inf\00abcdef\00NAN\00INF\00ABCDEF\00str1 is equal to str2\00str1 is less than str2\00str2 is less than str1\00.\00(null)\00String after |%c| is - |%s|\0a\00The substring is: %s\0a\00Value2 = %f \0a\00Value1 = %f \0a\00\00\00\00\00\00\00\00\00\00TutorialsPoint\00\00\00\00\00\00Point\00\00\00\00\00\00\00http://www.tutorialspoint.com\00\00\00\10\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
-  (data (;1;) (i32.const 1808) "\05\00\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\02\00\00\00\03\00\00\00\a8\08\00\00\00\04\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0a\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\d0\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"))
+  (data (;0;) (i32.const 1024) "-+   0X0x\00-0X+0X 0X-0x+0x 0x\00nan\00inf\00abcdef\00NAN\00INF\00ABCDEF\00str1 is equal to str2\00str1 is less than str2\00str2 is less than str1\00.\00(null)\00String after |%c| is - |%s|\0a\00The substring is: %s\0a\00The exponential value of %lf is %lf\0a\00Value2 = %f \0a\00Value1 = %f \0a\00\00\00\00\00TutorialsPoint\00\00\00\00\00\00Point\00\00\00\00\00\00\00http://www.tutorialspoint.com\00\00\00\00\00\00\00\00\00\e0?\00\00\00\00\00\00\e0\bf@\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
+  (data (;1;) (i32.const 1856) "\05\00\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\02\00\00\00\03\00\00\00\d8\08\00\00\00\04\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0a\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00@\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"))

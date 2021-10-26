@@ -9,6 +9,7 @@ from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
 from z3 import *
 import logging
+import math
 
 
 class CPredefinedFunction:
@@ -203,8 +204,23 @@ class CPredefinedFunction:
                     ret = haystack_p + offset
                     state.symbolic_stack.append(BitVecVal(ret, 32))
                     manually_constructed = True
-        elif self.name == 'floor':
-            pass
+        elif self.name == 'exp':
+            exponent = param_list[0]
+            if isinstance(exponent, FPNumRef):
+                # we have to adopt this trick to convert it to a float number
+                exponent = simplify(fpToReal(exponent)).as_string()
+                if '/' in exponent:
+                    i = exponent.find('/')
+                    exponent = int(exponent[:i]) / int(exponent[i+1:])
+                else:
+                    exponent = float(exponent)
+
+                ret = math.e ** exponent
+                state.symbolic_stack.append(FPVal(ret, Float64()))
+                manually_constructed = True
+            else:  # if it is a symbol, z3 does not support
+                raise UnsupportExternalFuncError
+
         else:
             raise UnsupportExternalFuncError
 
