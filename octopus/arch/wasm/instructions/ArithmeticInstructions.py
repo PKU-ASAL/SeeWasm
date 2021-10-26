@@ -176,20 +176,16 @@ class ArithmeticInstructions:
                     result = fpSqrt(rm, arg1)
                 elif '.floor' in self.instr_name:
                     # round toward negative
-                    rm = RTN()
-                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
+                    result = fpRoundToIntegral(RTN(), arg1)
                 elif '.ceil' in self.instr_name:
                     # round toward positive
-                    rm = RTP()
-                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
+                    result = fpRoundToIntegral(RTP(), arg1)
                 elif '.trunc' in self.instr_name:
                     # round toward zero
-                    rm = RTZ()
-                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
+                    result = fpRoundToIntegral(RTZ(), arg1)
                 elif '.nearest' in self.instr_name:
                     # round to integeral ties to even
-                    rm = RNE()
-                    result = fpFPToFP(rm, arg1, float_helper_map[instr_type]())
+                    result = fpRoundToIntegral(RNE(), arg1)
                 elif '.abs' in self.instr_name:
                     result = fpAbs(arg1)
                 elif '.neg' in self.instr_name:

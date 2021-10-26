@@ -52,15 +52,14 @@ void test_math_funcs()
 {
     float val1, val2, val3, val4;
 
-    val1 = 1.6;
-    val2 = 1.2;
-    val3 = 2.8;
-    val4 = 2.3;
+    val1 = -1.6;
+    val2 = 2.8;
 
     printf("Value1 = %f \n", floor(val1));
     printf("Value2 = %f \n", floor(val2));
-    printf("Value3 = %f \n", floor(val3));
-    printf("Value4 = %f \n", floor(val4));
+
+    printf("Value1 = %f \n", ceil(val1));
+    printf("Value2 = %f \n", ceil(val2));
 }
 
 int main(void)
