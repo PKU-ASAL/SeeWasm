@@ -55,13 +55,20 @@ void test_math_funcs()
     val1 = -1.6;
     val2 = 2.8;
 
+    printf("floor testing below:");
     printf("Value1 = %f \n", floor(val1));
     printf("Value2 = %f \n", floor(val2));
 
+    printf("ceil testing below:");
     printf("Value1 = %f \n", ceil(val1));
     printf("Value2 = %f \n", ceil(val2));
 
+    printf("sqrt testing below:");
+    printf("Value1 = %f \n", sqrt(val1));
+    printf("Value2 = %f \n", sqrt(val2));
+
     double x = 1;
+    printf("exp testing below:");
     printf("The exponential value of %lf is %lf\n", x, exp(x));
     printf("The exponential value of %lf is %lf\n", x + 1, exp(x + 1));
 }
