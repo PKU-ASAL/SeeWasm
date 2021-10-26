@@ -182,11 +182,15 @@ class CPredefinedFunction:
                 ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
                 state.symbolic_stack.append(BitVecVal(ret, 32))
                 manually_constructed = True
-        elif self.name == 'strstr':
+        elif self.name == 'strstr' or self.name == 'strchr':
             needle_p, haystack_p = param_list[0].as_long(
             ), param_list[1].as_long()
-            needle = C_extract_string_by_mem_pointer(
-                needle_p, data_section, state.symbolic_memory)
+            if self.name == 'strchr':
+                # needle_p is not a pointer, ascii code instead
+                needle = chr(needle_p)
+            else:
+                needle = C_extract_string_by_mem_pointer(
+                    needle_p, data_section, state.symbolic_memory)
             haystack = C_extract_string_by_mem_pointer(
                 haystack_p, data_section, state.symbolic_memory)
 

@@ -36,10 +36,22 @@ void test_strstr()
     printf("The substring is: %s\n", ret);
 }
 
+void test_strchr()
+{
+    const char str[] = "http://www.tutorialspoint.com";
+    const char ch = '.';
+    char *ret;
+
+    ret = strchr(str, ch);
+
+    printf("String after |%c| is - |%s|\n", ch, ret);
+}
+
 int main(void)
 {
     test_strcmp();
     test_strstr();
+    test_strchr();
 
     return 0;
 }
