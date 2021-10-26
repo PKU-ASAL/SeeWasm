@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 void test_strcmp()
 {
@@ -47,11 +48,27 @@ void test_strchr()
     printf("String after |%c| is - |%s|\n", ch, ret);
 }
 
+void test_math_funcs()
+{
+    float val1, val2, val3, val4;
+
+    val1 = 1.6;
+    val2 = 1.2;
+    val3 = 2.8;
+    val4 = 2.3;
+
+    printf("Value1 = %f \n", floor(val1));
+    printf("Value2 = %f \n", floor(val2));
+    printf("Value3 = %f \n", floor(val3));
+    printf("Value4 = %f \n", floor(val4));
+}
+
 int main(void)
 {
     test_strcmp();
     test_strstr();
     test_strchr();
+    test_math_funcs();
 
     return 0;
 }

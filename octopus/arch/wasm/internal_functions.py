@@ -6,6 +6,7 @@ from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extr
 from octopus.arch.wasm.utils import getConcreteBitVec
 from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
+from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
 from z3 import *
 import logging
 
@@ -202,6 +203,10 @@ class CPredefinedFunction:
                     ret = haystack_p + offset
                     state.symbolic_stack.append(BitVecVal(ret, 32))
                     manually_constructed = True
+        elif self.name == 'floor':
+            pass
+        else:
+            raise UnsupportExternalFuncError
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
