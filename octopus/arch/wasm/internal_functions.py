@@ -170,6 +170,18 @@ class CPredefinedFunction:
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+        elif self.name == 'strcmp':
+            str2_p, str1_p = param_list[0].as_long(), param_list[1].as_long()
+            str1 = C_extract_string_by_mem_pointer(
+                str1_p, data_section, state.symbolic_memory)
+            str2 = C_extract_string_by_mem_pointer(
+                str2_p, data_section, state.symbolic_memory)
+
+            # if both str1 and str2 are string literal
+            if isinstance(str1, str) and isinstance(str2, str):
+                ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
+                state.symbolic_stack.append(BitVecVal(ret, 32))
+                manually_constructed = True
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
