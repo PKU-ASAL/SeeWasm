@@ -25,9 +25,21 @@ void test_strcmp()
     }
 }
 
+void test_strstr()
+{
+    const char haystack[20] = "TutorialsPoint";
+    const char needle[10] = "Point";
+    char *ret;
+
+    ret = strstr(haystack, needle);
+
+    printf("The substring is: %s\n", ret);
+}
+
 int main(void)
 {
     test_strcmp();
+    test_strstr();
 
     return 0;
 }

@@ -182,6 +182,22 @@ class CPredefinedFunction:
                 ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
                 state.symbolic_stack.append(BitVecVal(ret, 32))
                 manually_constructed = True
+        elif self.name == 'strstr':
+            needle_p, haystack_p = param_list[0].as_long(
+            ), param_list[1].as_long()
+            needle = C_extract_string_by_mem_pointer(
+                needle_p, data_section, state.symbolic_memory)
+            haystack = C_extract_string_by_mem_pointer(
+                haystack_p, data_section, state.symbolic_memory)
+
+            # if both haystack and needle are string literals
+            if isinstance(needle, str) and isinstance(haystack, str):
+                offset = haystack.find(needle)
+                # found it
+                if offset != -1:
+                    ret = haystack_p + offset
+                    state.symbolic_stack.append(BitVecVal(ret, 32))
+                    manually_constructed = True
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
