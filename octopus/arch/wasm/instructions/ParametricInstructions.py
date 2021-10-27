@@ -2,6 +2,7 @@ import copy
 from octopus.arch.wasm.exceptions import UnsupportInstructionError
 from z3 import *
 
+
 class ParametricInstructions:
     def __init__(self, instr_name, instr_operand, _):
         self.instr_name = instr_name
@@ -13,7 +14,8 @@ class ParametricInstructions:
             state.symbolic_stack.pop()
             return False, None
         elif self.instr_name == 'select':  # select instruction
-            arg0, arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            arg0, arg1, arg2 = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
             assert is_bv(arg0) or is_bool(
                 arg0), f"in select, arg0 type is {type(arg0)} instead of bv or bool"
             if is_bv(arg0):
