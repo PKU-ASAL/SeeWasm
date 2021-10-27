@@ -228,6 +228,12 @@ class CPredefinedFunction:
         elif self.name == 'putchar':
             the_char = param_list[0]
             logging.warning("%s\n", the_char)
+        elif self.name == 'abs':
+            candidate_num = param_list[0]
+            abs_num = simplify(
+                If(candidate_num > 0, candidate_num, -candidate_num))
+            state.symbolic_stack.append(abs_num)
+            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 

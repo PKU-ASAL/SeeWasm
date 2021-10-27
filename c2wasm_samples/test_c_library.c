@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 void test_strcmp()
 {
@@ -71,6 +72,13 @@ void test_math_funcs()
     printf("exp testing below:");
     printf("The exponential value of %lf is %lf\n", x, exp(x));
     printf("The exponential value of %lf is %lf\n", x + 1, exp(x + 1));
+
+    int a, b;
+    printf("abs testing below:");
+    a = abs(5);
+    printf("value of a = %d\n", a);
+    b = abs(-10);
+    printf("value of b = %d\n", b);
 }
 
 void test_char()
