@@ -114,6 +114,21 @@ void test_strn_funcs()
     printf("Final destination string : %s", dest);
 }
 
+void test_alloc()
+{
+    char *str;
+
+    str = (char *)malloc(15);
+    strcpy(str, "tutorialspoint");
+    printf("%s", str);
+
+    str = (char *)realloc(str, 25);
+    strcat(str, ".com");
+    printf("%s", str);
+
+    free(str);
+}
+
 int main(void)
 {
     test_strcmp();
@@ -122,6 +137,7 @@ int main(void)
     test_math_funcs();
     test_char();
     test_strn_funcs();
+    test_alloc();
 
     return 0;
 }

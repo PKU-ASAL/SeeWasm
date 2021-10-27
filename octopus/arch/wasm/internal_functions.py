@@ -277,6 +277,9 @@ class CPredefinedFunction:
                 If(candidate_num > 0, candidate_num, -candidate_num))
             state.symbolic_stack.append(abs_num)
             manually_constructed = True
+        elif self.name == 'emscripten_resize_heap':
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
