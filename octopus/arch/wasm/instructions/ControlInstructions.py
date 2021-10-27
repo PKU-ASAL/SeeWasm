@@ -1,3 +1,5 @@
+import copy
+
 from z3 import *
 import re
 import logging
@@ -11,10 +13,14 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
                    'swap', 'iprintf', 'strcpy', 'strcat'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
-                    'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
+                    'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', '_os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 # below functions are not regarded as library function, need step in
-NEED_STEP_IN = {'fmt.Println'}
+NEED_STEP_IN = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
+                '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
+                '_*fmt.buffer_.writeString', '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
+                '_syscall/js.Value_.isNumber', 'syscall/js.makeValue',
+                '_*sync.Pool_.Get', 'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
 
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
@@ -51,7 +57,7 @@ class ControlInstructions:
 
         # init state of internal call
         new_state = copy.deepcopy(state)
-        new_has_ret = has_ret
+        new_has_ret = copy.deepcopy(has_ret)
 
         if need_to_reset:
             for i, local in enumerate(param_str.split(' ')):
@@ -119,22 +125,18 @@ class ControlInstructions:
             target_branch2index = defaultdict(list)
             for index, target in enumerate(br_lis):
                 target_branch2index[target].append(index)
-
-            states = []
+            states = {}
             for target, index_list in target_branch2index.items():
-                staten = {'conditional_true_' +
-                          str(target): copy.deepcopy(state)}
-                index_list = [(op == i) for i in index_list]
+                new_state = copy.deepcopy(state)
+                index_list = [simplify(op == i) for i in index_list]
                 cond = simplify(Or(index_list))
-                staten['conditional_true_' +
-                       str(target)].constraints.append(cond)
-                states.append(staten)
-
-            staten = {'conditional_false_0': copy.deepcopy(state)}
+                new_state.constraints.append(cond)
+                states['conditional_true_' + str(target)] = new_state
+            false_state = copy.deepcopy(state)
             cond = simplify(op >= n_br)
-            staten['conditional_false_0'].constraints.append(cond)
-            states.append(staten)
-            return False, states
+            false_state.constraints.append(cond)
+            states['conditional_false_0'] = false_state
+            return False, [states]
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
 
@@ -172,12 +174,13 @@ class ControlInstructions:
                 func.emul(state, param_str, return_str, data_section, analyzer)
             elif readable_name in TERMINATED_FUNCS:
                 logging.warning(
-                    f"Terminated function invoked: {readable_name}")
+                    f"Terminated function invoked: {readable_name} ")
                 return False, None
             else:
                 # if the callee takes NO symbols as input:
                 # 1. the param_str is empty [Doing]
                 # 2. the params are all non-symbol [TODO]
+                # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
                 if param_str == "":
                     pass
 
@@ -227,4 +230,6 @@ class ControlInstructions:
                 new_states.append(state)
             return False, new_states
         else:
+            print(self.instr_name)
             raise UnsupportInstructionError
+

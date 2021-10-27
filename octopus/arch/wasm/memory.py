@@ -115,11 +115,10 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     # try to directly load from symbolic memory
     if type(dest) == BitVecRef:
         return symbolic_memory.get((dest, simplify(dest + length)), None)
-
-    # other cases, lookup the interval in data section and memory
+        # other cases, lookup the interval in data section and memory
     tmp_result = lookup_overlapped_symbolic_memory(
         symbolic_memory, data_section, dest, length)
-    # we assert the loaded interval can only cover at most one intervals
+# we assert the loaded interval can only cover at most one intervals
     assert len(
         tmp_result) == 1, f"the loaded data covers two and more intervals, please check"
     in_symbolic_memory, is_existed, existed_start, existed_end = tmp_result[0]
@@ -127,6 +126,7 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     # if it cannot be found in either data section nor memory
     if not is_existed:
         # TODO uninitiated memory access?
+        return BitVec(0, 32) # Since Tinygo will memset all memory to zero at the initial, any address will be zero
         return BitVec(f'load*({dest})', 8*length)
 
     overlapped_start, overlapped_end = calc_overlap(
@@ -141,11 +141,9 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     else:
         data = simplify(Extract(high * 8 - 1, low * 8,
                         symbolic_memory[(existed_start, existed_end)]))
-
     if data.size() < length * 8:
         data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
     return data
-
 
 # dest type can only be bitvecref or int
 def insert_symbolic_memory(symbolic_memory, dest, length, data):
@@ -245,12 +243,11 @@ def merge_symbolic_memory(symbolic_memory):
             first_part = symbolic_memory_dup.pop(current_key)
             second_part = symbolic_memory_dup.pop(next_key)
             data = simplify(Concat(second_part, first_part))
-
             symbolic_memory_dup[(current_key[0], next_key[1])] = data
 
             int_keys.remove(current_key)
             int_keys.remove(next_key)
-            int_keys.insert(0, (current_key[0], next_key[1]))
+            int_keys.insert(i, (current_key[0], next_key[1]))
             continue
         else:
             i += 1
@@ -264,11 +261,10 @@ def calc_overlap(existed_start, existed_end, dest, length):
     else:
         overlapped_start = dest
 
-    if dest + length < existed_end:
+    if dest + length <= existed_end:
         overlapped_end = dest + length
     else:
         overlapped_end = existed_end
-
     return overlapped_start, overlapped_end
 
 

@@ -14,6 +14,7 @@ from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 from .instructions import *
 from octopus.arch.wasm.utils import getConcreteBitVec
+from octopus.arch.wasm.memory import insert_symbolic_memory
 
 sys.setrecursionlimit(4096)
 
@@ -104,7 +105,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def init_state(self, func_name, param_str, return_str, has_ret):
         state = WasmVMstate()
-
         if param_str != '':
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(

@@ -1,4 +1,5 @@
 import copy
+import logging
 
 from z3 import *
 from collections import defaultdict, deque
@@ -39,7 +40,7 @@ class Graph:
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
-    _loop_maximum_rounds = 5
+    _loop_maximum_rounds = 10
     _wasmVM = None
     manual_guide = False
 
@@ -99,8 +100,11 @@ class Graph:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
             node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
             # we append a number after the edge type as the br_table may have multiple conditional_true branches
-            numbered_edge_type = edge_type + '_' + \
-                str(type_ids[node_from][edge_type])
+            if not edge_type[-1].isdigit():
+                numbered_edge_type = edge_type + '_' + \
+                    str(type_ids[node_from][edge_type])
+            else:
+                numbered_edge_type = edge_type
             cls.bbs_graph[node_from][numbered_edge_type] = node_to
             cls.rev_bbs_graph[node_to][numbered_edge_type] = node_from
             type_ids[node_from][edge_type] += 1
@@ -115,7 +119,6 @@ class Graph:
                 cls.bbs_graph[bb_name] = defaultdict(str)
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
-
     # entry to analyze a file
     def traverse(self):
         for entry_func in self.entries:
@@ -156,11 +159,26 @@ class Graph:
         return final_states
 
     @classmethod
+    def extract_edges(cls, entry):
+        edges = set()
+        que = deque([entry])
+        while que:
+            u = que.popleft()
+            for br in cls.bbs_graph[u]:
+                v = cls.bbs_graph[u][br]
+                if (u, v) not in edges:
+                    edges.add((u, v))
+                    que.append(v)
+        for edge in edges:
+            print(edge[0], edge[1])
+
+    @classmethod
     def algo_interval(cls, entry, state, has_ret, blks):
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
+        # cls.extract_edges(entry)
         heads['return'] = 'return'
         _, final_states = cls.visit_interval(
             [state], has_ret, entry, heads, vis, cls.manual_guide, "return")
@@ -168,6 +186,7 @@ class Graph:
 
     @classmethod
     def sat_cut(cls, state):
+        state.constraints = list(set(state.constraints))
         solver = Solver()
         solver.add(*state.constraints)
         return sat != solver.check()
@@ -180,7 +199,7 @@ class Graph:
             if type.startswith('conditional_'):
                 if type in state:
                     return cls.sat_cut(state[type])
-        elif type.startswith('conditional_'):
+        elif cls.sat_cut(state):
             return True
         return False
 
@@ -221,6 +240,10 @@ class Graph:
             state_item = emul_states[state_index]
             emul_states = [state_item]
 
+        specify = branches is not None
+        adj_bb = cls.bbs_graph[blk]
+        if branches:
+            branches = [br for br in adj_bb if br.startswith(branches[0])]
         if not branches:
             branches = cls.bbs_graph[blk]
         for state_item in emul_states:
@@ -255,14 +278,14 @@ class Graph:
                     if nxt_blk in circles:
                         enter_states = [copy.deepcopy(state)]
                         for i in range(cls.loop_maximum_rounds):
-
                             exit_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
-                                                    ['conditional_true_0'])
+                                                    ['conditional_true'])
+                            print(exit_states[0])
                             final_states.extend(exit_states)
                             enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
-                                                     ['conditional_false_0'])
+                                                     ['conditional_false'])
                         exit_states = cls.visit(
-                            enter_states, has_ret, nxt_blk, vis, circles, guided, blk, ['conditional_true_0'])
+                            enter_states, has_ret, nxt_blk, vis, circles, guided, blk, ['conditional_true'])
                         final_states.extend(exit_states)
                     else:
                         exit_states = cls.visit(
@@ -272,7 +295,7 @@ class Graph:
                     final_states.extend(
                         cls.visit([copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk))
         vis[prev] -= 1
-        return final_states if len(branches) > 0 else emul_states
+        return final_states if specify else emul_states # TODO: Fix the Bug : may return a dict state, which is illegal.
 
     @classmethod
     def intervals_gen(cls, blk, blk_lis, revg, g):
@@ -304,7 +327,7 @@ class Graph:
         return intervals
 
     @classmethod
-    def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
+    def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None, lim=True):
         '''`blk` is the head of an interval'''
         vis[prev] = True
         # `cnt` is the traversed times
@@ -315,7 +338,7 @@ class Graph:
         while que:
             state, current_block = que.popleft()
             succs_list = cls.bbs_graph[current_block].items()
-            if len(succs_list) >= 2:  # this part should be encapsulated into a method
+            if len(succs_list) >= 2 and lim:  # this part should be encapsulated into a method
                 for br_dest_pair in succs_list:
                     if weights[br_dest_pair] == 0:
                         # put weights on edges, which could be move to preprocessing part
@@ -327,7 +350,7 @@ class Graph:
             # two intervals, use DFS to traverse between intervals
             if blk != heads[current_block]:
                 new_response_to, ret_states = cls.visit_interval(
-                    state, has_ret, current_block, heads, vis, guided, blk)
+                    state, has_ret, current_block, heads, vis, guided, blk, lim)
                 succs_list = set().union(*[new_response_to[v]
                                            for v in new_response_to if heads[v] == blk])
                 emul_states = defaultdict(list)
@@ -342,13 +365,13 @@ class Graph:
                 _, emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])
             # TODO give a desctiption here
-            succs_list = set(filter(lambda p: (heads[p[1]] == blk or heads[current_block] == blk) and (
-                weights[p] == 0 or cnt[p] < weights[p]), succs_list))
             if len(succs_list) == 0:
                 emul_states = emul_states[blk] if isinstance(
                     emul_states, dict) else emul_states
                 final_states["return"].extend(emul_states)
                 continue
+            succs_list = set(filter(lambda p: (heads[p[1]] == blk or heads[current_block] == blk) and (
+                    weights[p] == 0 or cnt[p] < weights[p] or not lim), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
                 emul_states = emul_states[next_block] if isinstance(
@@ -357,7 +380,7 @@ class Graph:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
                     s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
                 if len(valid_state) > 0:
-                    avail_br[(edge_type, next_block)] = valid_state
+                    avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")

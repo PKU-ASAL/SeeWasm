@@ -8,7 +8,7 @@ from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from z3 import *
 import logging
-
+from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory
 
 class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -177,6 +177,20 @@ class CPredefinedFunction:
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
 
+_values = {0: BitVec("NaN", 32), 1: BitVecVal(0, 32), 2: BitVec("null", 32), 3: BoolVal(True),
+           4: BoolVal(False), 5: BitVec("global", 32), 6: BitVec("global.Go", 32)} # module the memory map in wasm_exec.js
+
+def calculateHeapAddresses(state, data_section):
+    val_81328 = simplify(lookup_symbolic_memory(state.symbolic_memory, data_section, 81328, 4) + 15) & 4294967280 # calculate heap start
+    val_81328 = simplify(val_81328)
+    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 81328, 4, val_81328) # save the heap start
+    val_85336 = lookup_symbolic_memory(state.symbolic_memory, data_section, 85336, 4) # heap end address
+    val_diff = simplify((val_85336 - val_81328) >> 6) # meta_data_size
+    val_85336 = simplify(val_85336 - val_diff) # heap end - meta_data_size (meta_data_start)
+    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85464, 4, val_85336) # save the meta data (of the heap) start
+    val_3 = simplify((val_85336 - val_81328) >> 4) # remain heap size (remain block numbers, per block 16 bytes)
+    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85472, 4, val_3) # save the remain block numbers (endBlock)
+
 
 class GoPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -195,15 +209,71 @@ class GoPredefinedFunction:
                 param_list.append(state.symbolic_stack.pop())
 
         # ------------------------ TinyGO Library -------------------------------
-        if self.name == 'fmt.Println':
-            logging.warning("=============$fmt.Fprintln============")
+        if self.name == 'runtime.calculateHeapAddresses': # could be step in, remain for understanding the memory structure.
+            calculateHeapAddresses(state, data_section)
+            manually_constructed = True
         elif self.name == 'memset':
             length, byte_data, dest = param_list[0], param_list[1], param_list[2]
-            # TODO
-            # what if the destination is a symbol
+            state.symbolic_stack.append(dest)
+            manually_constructed = True
+        elif self.name == 'runtime.alloc': # Assume the memory is enough, and never need to grow
+            sz = param_list[0]
+            heapStart = lookup_symbolic_memory(state.symbolic_memory, data_section, 81328, 4)
+            neededBlocks = simplify((BitVecVal(15, 32) + sz) >> BitVecVal(4, 32)) # bytes per block == 16
+            nextAlloc = lookup_symbolic_memory(state.symbolic_memory, data_section, 85468, 4) # next alloc block index
+            index = simplify(nextAlloc + neededBlocks)
+            nextAlloc = index
+            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85468, 4, nextAlloc)
+            thisAlloc = simplify(index - neededBlocks)
+            thisAlloc_v = thisAlloc.as_long()
+            nextAlloc_v = nextAlloc.as_long()
+            for i in range(thisAlloc_v, nextAlloc_v):
+                alloc_at = simplify(heapStart + BitVecVal(i << 4, 32)).as_long()
+                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at, 8,
+                                                               simplify(Extract(63, 0, BitVecVal(0, 64))))
+                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at + 8, 8,
+                                                               simplify(Extract(63, 0, BitVecVal(0, 64))))
+            headPtr = simplify(heapStart + BitVecVal(thisAlloc_v << 4, 32))
+            state.symbolic_stack.append(headPtr)
+            manually_constructed = True
+        elif self.name == 'memcpy':
+            length, src, dest = param_list[0], param_list[1], param_list[2]
+            src_addr = src.as_long()
+            dest_addr = dest.as_long()
+            len_v = length.as_long()
+            vlis = [lookup_symbolic_memory(state.symbolic_memory, data_section, src_addr + i, 1) for i in range(len_v)]
+            for i, v in enumerate(vlis):
+                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, dest_addr + i, 1, v)
+            state.symbolic_stack.append(dest)
+            manually_constructed = True
+        elif self.name == 'syscall/js.valueGet':
+            p_len, p_str, v_addr, retval = param_list[2], param_list[3], param_list[4], param_list[5]
+            prop = lookup_symbolic_memory(state.symbolic_memory, data_section, p_str.as_long(), p_len.as_long())
+            value = lookup_symbolic_memory(state.symbolic_memory, data_section, v_addr.as_long(), 4)
+            value = _values[value.as_long()]
+            _bs = prop.as_binary_string()
+            _bs_lis = [_bs[max(i-8,0):i] for i in range(len(_bs), 0, -8)]
+            prop = ''.join(map(lambda x: chr(int(x, base=2)),_bs_lis))
+            result = value.decl().name() + '_' + prop
+            idx = None
+            for _id in _values:
+                if _values[_id].decl().name() == result:
+                    idx = _id
+                    break
+            if idx is None:
+                idx = len(_values)
+                _values[len(_values)] = BitVec(result, 32)
+            # print(_values)
+            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, retval.as_long() + 4, 4, BitVecVal(2146959360 | 4, 32))
+            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, retval.as_long(), 4, BitVecVal(idx, 32))
+            manually_constructed = True
+        elif self.name == 'runtime.putchar':
+            ch = param_list[0]
+            print(chr(ch.as_long()), end='')
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
+
