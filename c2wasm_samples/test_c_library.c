@@ -73,12 +73,24 @@ void test_math_funcs()
     printf("The exponential value of %lf is %lf\n", x + 1, exp(x + 1));
 }
 
+void test_char()
+{
+    char c;
+
+    printf("Enter character: ");
+    c = getchar();
+
+    printf("Character entered: ");
+    putchar(c);
+}
+
 int main(void)
 {
     test_strcmp();
     test_strstr();
     test_strchr();
     test_math_funcs();
+    test_char();
 
     return 0;
 }

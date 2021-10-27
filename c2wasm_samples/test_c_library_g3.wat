@@ -1,19 +1,19 @@
 (module
-  (type (;0;) (func (param i32 i32 i32) (result i32)))
-  (type (;1;) (func (param i32 i32) (result i32)))
-  (type (;2;) (func (param i32) (result i32)))
+  (type (;0;) (func (param i32) (result i32)))
+  (type (;1;) (func (param i32 i32 i32) (result i32)))
+  (type (;2;) (func (param i32 i32) (result i32)))
   (type (;3;) (func))
   (type (;4;) (func (result i32)))
   (type (;5;) (func (param i32)))
   (type (;6;) (func (param i32 i64 i32) (result i64)))
-  (type (;7;) (func (param f64) (result i64)))
-  (type (;8;) (func (param f64 i32) (result f64)))
-  (type (;9;) (func (param i32 i64 i64 i32)))
-  (type (;10;) (func (param i32 i32 i32 i32 i32) (result i32)))
-  (type (;11;) (func (param i32 f64 i32 i32 i32 i32) (result i32)))
-  (type (;12;) (func (param i32 i32)))
-  (type (;13;) (func (param i64 i32) (result i32)))
-  (type (;14;) (func (param i32 i32 i32 i32) (result i32)))
+  (type (;7;) (func (param i32 i32 i32 i32 i32) (result i32)))
+  (type (;8;) (func (param i32 i32 i32 i32) (result i32)))
+  (type (;9;) (func (param f64) (result i64)))
+  (type (;10;) (func (param f64 i32) (result f64)))
+  (type (;11;) (func (param i32 i64 i64 i32)))
+  (type (;12;) (func (param i32 f64 i32 i32 i32 i32) (result i32)))
+  (type (;13;) (func (param i32 i32)))
+  (type (;14;) (func (param i64 i32) (result i32)))
   (type (;15;) (func (param f64) (result f64)))
   (type (;16;) (func (param i64 i64) (result f64)))
   (type (;17;) (func (param i32 i32 i32 i32 i32 i32 i32) (result i32)))
@@ -22,9 +22,13 @@
   (type (;20;) (func (param i64 i32 i32) (result i32)))
   (type (;21;) (func (param i32 i32 i32 i32 i32)))
   (type (;22;) (func (param i32 i32 i64 i32) (result i64)))
-  (import "wasi_snapshot_preview1" "fd_write" (func $__wasi_fd_write (type 14)))
-  (import "env" "emscripten_memcpy_big" (func $emscripten_memcpy_big (type 0)))
+  (type (;23;) (func (param i32 i64 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_close" (func $__wasi_fd_close (type 0)))
+  (import "wasi_snapshot_preview1" "fd_write" (func $__wasi_fd_write (type 8)))
+  (import "wasi_snapshot_preview1" "fd_read" (func $__wasi_fd_read (type 8)))
+  (import "env" "emscripten_memcpy_big" (func $emscripten_memcpy_big (type 1)))
   (import "env" "setTempRet0" (func $setTempRet0 (type 5)))
+  (import "wasi_snapshot_preview1" "fd_seek" (func $legalimport$__wasi_fd_seek (type 7)))
   (func $__wasm_call_ctors (type 3)
     call $emscripten_stack_init)
   (func $test_strcmp (type 3)
@@ -206,7 +210,7 @@
     i32.const 0
     local.set 8
     local.get 8
-    i32.load offset=1376
+    i32.load offset=1424
     local.set 9
     local.get 7
     local.get 9
@@ -218,13 +222,13 @@
     i32.add
     local.set 11
     local.get 8
-    i64.load offset=1368
+    i64.load offset=1416
     local.set 12
     local.get 11
     local.get 12
     i64.store
     local.get 8
-    i64.load offset=1360
+    i64.load offset=1408
     local.set 13
     local.get 5
     local.get 13
@@ -246,13 +250,13 @@
     i32.const 0
     local.set 19
     local.get 19
-    i32.load16_u offset=1388 align=1
+    i32.load16_u offset=1436 align=1
     local.set 20
     local.get 18
     local.get 20
     i32.store16 align=1
     local.get 19
-    i64.load offset=1380 align=1
+    i64.load offset=1428 align=1
     local.set 21
     local.get 16
     local.get 21
@@ -286,7 +290,7 @@
     local.get 2
     local.get 29
     i32.store
-    i32.const 1269
+    i32.const 1307
     local.set 30
     local.get 30
     local.get 2
@@ -330,7 +334,7 @@
     i32.const 0
     local.set 8
     local.get 8
-    i64.load offset=1414 align=2
+    i64.load offset=1462 align=2
     local.set 9
     local.get 7
     local.get 9
@@ -342,7 +346,7 @@
     i32.add
     local.set 11
     local.get 8
-    i64.load offset=1408
+    i64.load offset=1456
     local.set 12
     local.get 11
     local.get 12
@@ -354,13 +358,13 @@
     i32.add
     local.set 14
     local.get 8
-    i64.load offset=1400
+    i64.load offset=1448
     local.set 15
     local.get 14
     local.get 15
     i64.store
     local.get 8
-    i64.load offset=1392
+    i64.load offset=1440
     local.set 16
     local.get 5
     local.get 16
@@ -398,7 +402,7 @@
     local.get 2
     local.get 24
     i32.store
-    i32.const 1240
+    i32.const 1278
     local.set 25
     local.get 25
     local.get 2
@@ -455,7 +459,7 @@
     local.get 2
     local.get 9
     f64.store offset=64
-    i32.const 1342
+    i32.const 1380
     local.set 10
     i32.const 64
     local.set 11
@@ -479,7 +483,7 @@
     local.get 2
     local.get 15
     f64.store offset=48
-    i32.const 1328
+    i32.const 1366
     local.set 16
     i32.const 48
     local.set 17
@@ -575,7 +579,7 @@
     local.get 2
     local.get 36
     f64.store offset=80
-    i32.const 1328
+    i32.const 1366
     local.set 37
     i32.const 80
     local.set 38
@@ -615,7 +619,7 @@
     local.get 2
     local.get 43
     f64.store offset=96
-    i32.const 1291
+    i32.const 1329
     local.set 46
     i32.const 96
     local.set 47
@@ -654,7 +658,7 @@
     local.get 2
     local.get 51
     f64.store offset=112
-    i32.const 1291
+    i32.const 1329
     local.set 56
     i32.const 112
     local.set 57
@@ -673,6 +677,64 @@
     i32.add
     local.set 60
     local.get 60
+    global.set 0
+    return)
+  (func $test_char (type 3)
+    (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
+    global.get 0
+    local.set 0
+    i32.const 16
+    local.set 1
+    local.get 0
+    local.get 1
+    i32.sub
+    local.set 2
+    local.get 2
+    global.set 0
+    i32.const 1240
+    local.set 3
+    i32.const 0
+    local.set 4
+    local.get 3
+    local.get 4
+    call $printf
+    drop
+    call $getchar
+    local.set 5
+    local.get 2
+    local.get 5
+    i32.store8 offset=15
+    i32.const 1258
+    local.set 6
+    i32.const 0
+    local.set 7
+    local.get 6
+    local.get 7
+    call $printf
+    drop
+    local.get 2
+    i32.load8_u offset=15
+    local.set 8
+    i32.const 24
+    local.set 9
+    local.get 8
+    local.get 9
+    i32.shl
+    local.set 10
+    local.get 10
+    local.get 9
+    i32.shr_s
+    local.set 11
+    local.get 11
+    call $putchar
+    drop
+    i32.const 16
+    local.set 12
+    local.get 2
+    local.get 12
+    i32.add
+    local.set 13
+    local.get 13
     global.set 0
     return)
   (func $__original_main (type 4) (result i32)
@@ -696,6 +758,7 @@
     call $test_strstr
     call $test_strchr
     call $test_math_funcs
+    call $test_char
     i32.const 0
     local.set 4
     i32.const 16
@@ -708,7 +771,7 @@
     global.set 0
     local.get 4
     return)
-  (func $main (type 1) (param i32 i32) (result i32)
+  (func $main (type 2) (param i32 i32) (result i32)
     (local i32)
     call $__original_main
     local.set 2
@@ -793,7 +856,7 @@
                   local.get 2
                   i32.const 3
                   i32.shl
-                  i32.const 1424
+                  i32.const 1472
                   i32.add
                   f64.load
                   f64.add
@@ -898,10 +961,589 @@
     local.get 0
     f64.const 0x1p+0 (;=1;)
     f64.add)
-  (func $__DOUBLE_BITS (type 7) (param f64) (result i64)
+  (func $__DOUBLE_BITS (type 9) (param f64) (result i64)
     local.get 0
     i64.reinterpret_f64)
-  (func $__strchrnul (type 1) (param i32 i32) (result i32)
+  (func $putchar (type 0) (param i32) (result i32)
+    local.get 0
+    i32.const 0
+    i32.load offset=1492
+    call $fputc)
+  (func $fgetc (type 0) (param i32) (result i32)
+    (local i32)
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=76
+        i32.const 0
+        i32.lt_s
+        br_if 0 (;@2;)
+        local.get 0
+        call $__lockfile
+        br_if 1 (;@1;)
+      end
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=4
+        local.tee 1
+        local.get 0
+        i32.load offset=8
+        i32.ge_u
+        br_if 0 (;@2;)
+        local.get 0
+        local.get 1
+        i32.const 1
+        i32.add
+        i32.store offset=4
+        local.get 1
+        i32.load8_u
+        return
+      end
+      local.get 0
+      call $__uflow
+      return
+    end
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=4
+        local.tee 1
+        local.get 0
+        i32.load offset=8
+        i32.ge_u
+        br_if 0 (;@2;)
+        local.get 0
+        local.get 1
+        i32.const 1
+        i32.add
+        i32.store offset=4
+        local.get 1
+        i32.load8_u
+        local.set 1
+        br 1 (;@1;)
+      end
+      local.get 0
+      call $__uflow
+      local.set 1
+    end
+    local.get 0
+    call $__unlockfile
+    local.get 1)
+  (func $getchar (type 4) (result i32)
+    i32.const 0
+    i32.load offset=1488
+    call $fgetc)
+  (func $dummy (type 0) (param i32) (result i32)
+    local.get 0)
+  (func $__stdio_close (type 0) (param i32) (result i32)
+    local.get 0
+    i32.load offset=60
+    call $dummy
+    call $__wasi_fd_close)
+  (func $__stdio_seek (type 6) (param i32 i64 i32) (result i64)
+    (local i32)
+    global.get 0
+    i32.const 16
+    i32.sub
+    local.tee 3
+    global.set 0
+    local.get 0
+    i32.load offset=60
+    local.get 1
+    local.get 2
+    i32.const 255
+    i32.and
+    local.get 3
+    i32.const 8
+    i32.add
+    call $legalfunc$__wasi_fd_seek
+    call $__wasi_syscall_ret
+    local.set 0
+    local.get 3
+    i64.load offset=8
+    local.set 1
+    local.get 3
+    i32.const 16
+    i32.add
+    global.set 0
+    i64.const -1
+    local.get 1
+    local.get 0
+    select)
+  (func $__uflow (type 0) (param i32) (result i32)
+    (local i32 i32)
+    global.get 0
+    i32.const 16
+    i32.sub
+    local.tee 1
+    global.set 0
+    i32.const -1
+    local.set 2
+    block  ;; label = @1
+      local.get 0
+      call $__toread
+      br_if 0 (;@1;)
+      local.get 0
+      local.get 1
+      i32.const 15
+      i32.add
+      i32.const 1
+      local.get 0
+      i32.load offset=32
+      call_indirect (type 1)
+      i32.const 1
+      i32.ne
+      br_if 0 (;@1;)
+      local.get 1
+      i32.load8_u offset=15
+      local.set 2
+    end
+    local.get 1
+    i32.const 16
+    i32.add
+    global.set 0
+    local.get 2)
+  (func $__stdio_write (type 1) (param i32 i32 i32) (result i32)
+    (local i32 i32 i32 i32 i32 i32 i32)
+    global.get 0
+    i32.const 32
+    i32.sub
+    local.tee 3
+    global.set 0
+    local.get 3
+    local.get 0
+    i32.load offset=28
+    local.tee 4
+    i32.store offset=16
+    local.get 0
+    i32.load offset=20
+    local.set 5
+    local.get 3
+    local.get 2
+    i32.store offset=28
+    local.get 3
+    local.get 1
+    i32.store offset=24
+    local.get 3
+    local.get 5
+    local.get 4
+    i32.sub
+    local.tee 1
+    i32.store offset=20
+    local.get 1
+    local.get 2
+    i32.add
+    local.set 6
+    i32.const 2
+    local.set 7
+    local.get 3
+    i32.const 16
+    i32.add
+    local.set 1
+    block  ;; label = @1
+      block  ;; label = @2
+        block  ;; label = @3
+          block  ;; label = @4
+            local.get 0
+            i32.load offset=60
+            local.get 3
+            i32.const 16
+            i32.add
+            i32.const 2
+            local.get 3
+            i32.const 12
+            i32.add
+            call $__wasi_fd_write
+            call $__wasi_syscall_ret
+            br_if 0 (;@4;)
+            loop  ;; label = @5
+              local.get 6
+              local.get 3
+              i32.load offset=12
+              local.tee 4
+              i32.eq
+              br_if 2 (;@3;)
+              local.get 4
+              i32.const -1
+              i32.le_s
+              br_if 3 (;@2;)
+              local.get 1
+              local.get 4
+              local.get 1
+              i32.load offset=4
+              local.tee 8
+              i32.gt_u
+              local.tee 5
+              i32.const 3
+              i32.shl
+              i32.add
+              local.tee 9
+              local.get 9
+              i32.load
+              local.get 4
+              local.get 8
+              i32.const 0
+              local.get 5
+              select
+              i32.sub
+              local.tee 8
+              i32.add
+              i32.store
+              local.get 1
+              i32.const 12
+              i32.const 4
+              local.get 5
+              select
+              i32.add
+              local.tee 9
+              local.get 9
+              i32.load
+              local.get 8
+              i32.sub
+              i32.store
+              local.get 6
+              local.get 4
+              i32.sub
+              local.set 6
+              local.get 0
+              i32.load offset=60
+              local.get 1
+              i32.const 8
+              i32.add
+              local.get 1
+              local.get 5
+              select
+              local.tee 1
+              local.get 7
+              local.get 5
+              i32.sub
+              local.tee 7
+              local.get 3
+              i32.const 12
+              i32.add
+              call $__wasi_fd_write
+              call $__wasi_syscall_ret
+              i32.eqz
+              br_if 0 (;@5;)
+            end
+          end
+          local.get 6
+          i32.const -1
+          i32.ne
+          br_if 1 (;@2;)
+        end
+        local.get 0
+        local.get 0
+        i32.load offset=44
+        local.tee 1
+        i32.store offset=28
+        local.get 0
+        local.get 1
+        i32.store offset=20
+        local.get 0
+        local.get 1
+        local.get 0
+        i32.load offset=48
+        i32.add
+        i32.store offset=16
+        local.get 2
+        local.set 4
+        br 1 (;@1;)
+      end
+      i32.const 0
+      local.set 4
+      local.get 0
+      i32.const 0
+      i32.store offset=28
+      local.get 0
+      i64.const 0
+      i64.store offset=16
+      local.get 0
+      local.get 0
+      i32.load
+      i32.const 32
+      i32.or
+      i32.store
+      local.get 7
+      i32.const 2
+      i32.eq
+      br_if 0 (;@1;)
+      local.get 2
+      local.get 1
+      i32.load offset=4
+      i32.sub
+      local.set 4
+    end
+    local.get 3
+    i32.const 32
+    i32.add
+    global.set 0
+    local.get 4)
+  (func $__emscripten_stdout_close (type 0) (param i32) (result i32)
+    i32.const 0)
+  (func $__emscripten_stdout_seek (type 6) (param i32 i64 i32) (result i64)
+    i64.const 0)
+  (func $fputc (type 2) (param i32 i32) (result i32)
+    (local i32 i32)
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 1
+        i32.load offset=76
+        i32.const 0
+        i32.lt_s
+        br_if 0 (;@2;)
+        local.get 1
+        call $__lockfile
+        br_if 1 (;@1;)
+      end
+      block  ;; label = @2
+        local.get 0
+        i32.const 255
+        i32.and
+        local.tee 2
+        local.get 1
+        i32.load8_s offset=75
+        i32.eq
+        br_if 0 (;@2;)
+        local.get 1
+        i32.load offset=20
+        local.tee 3
+        local.get 1
+        i32.load offset=16
+        i32.ge_u
+        br_if 0 (;@2;)
+        local.get 1
+        local.get 3
+        i32.const 1
+        i32.add
+        i32.store offset=20
+        local.get 3
+        local.get 0
+        i32.store8
+        local.get 2
+        return
+      end
+      local.get 1
+      local.get 0
+      call $__overflow
+      return
+    end
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 0
+        i32.const 255
+        i32.and
+        local.tee 2
+        local.get 1
+        i32.load8_s offset=75
+        i32.eq
+        br_if 0 (;@2;)
+        local.get 1
+        i32.load offset=20
+        local.tee 3
+        local.get 1
+        i32.load offset=16
+        i32.ge_u
+        br_if 0 (;@2;)
+        local.get 1
+        local.get 3
+        i32.const 1
+        i32.add
+        i32.store offset=20
+        local.get 3
+        local.get 0
+        i32.store8
+        br 1 (;@1;)
+      end
+      local.get 1
+      local.get 0
+      call $__overflow
+      local.set 2
+    end
+    local.get 1
+    call $__unlockfile
+    local.get 2)
+  (func $__stdio_read (type 1) (param i32 i32 i32) (result i32)
+    (local i32 i32 i32 i32)
+    global.get 0
+    i32.const 32
+    i32.sub
+    local.tee 3
+    global.set 0
+    local.get 3
+    local.get 1
+    i32.store offset=16
+    local.get 3
+    local.get 2
+    local.get 0
+    i32.load offset=48
+    local.tee 4
+    i32.const 0
+    i32.ne
+    i32.sub
+    i32.store offset=20
+    local.get 0
+    i32.load offset=44
+    local.set 5
+    local.get 3
+    local.get 4
+    i32.store offset=28
+    local.get 3
+    local.get 5
+    i32.store offset=24
+    i32.const -1
+    local.set 4
+    block  ;; label = @1
+      block  ;; label = @2
+        block  ;; label = @3
+          local.get 0
+          i32.load offset=60
+          local.get 3
+          i32.const 16
+          i32.add
+          i32.const 2
+          local.get 3
+          i32.const 12
+          i32.add
+          call $__wasi_fd_read
+          call $__wasi_syscall_ret
+          br_if 0 (;@3;)
+          local.get 3
+          i32.load offset=12
+          local.tee 4
+          i32.const 0
+          i32.gt_s
+          br_if 1 (;@2;)
+        end
+        local.get 0
+        local.get 4
+        i32.const 48
+        i32.and
+        i32.const 16
+        i32.xor
+        local.get 0
+        i32.load
+        i32.or
+        i32.store
+        br 1 (;@1;)
+      end
+      local.get 4
+      local.get 3
+      i32.load offset=20
+      local.tee 6
+      i32.le_u
+      br_if 0 (;@1;)
+      local.get 0
+      local.get 0
+      i32.load offset=44
+      local.tee 5
+      i32.store offset=4
+      local.get 0
+      local.get 5
+      local.get 4
+      local.get 6
+      i32.sub
+      i32.add
+      i32.store offset=8
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=48
+        i32.eqz
+        br_if 0 (;@2;)
+        local.get 0
+        local.get 5
+        i32.const 1
+        i32.add
+        i32.store offset=4
+        local.get 2
+        local.get 1
+        i32.add
+        i32.const -1
+        i32.add
+        local.get 5
+        i32.load8_u
+        i32.store8
+      end
+      local.get 2
+      local.set 4
+    end
+    local.get 3
+    i32.const 32
+    i32.add
+    global.set 0
+    local.get 4)
+  (func $__ofl_lock (type 4) (result i32)
+    i32.const 4584
+    call $__lock
+    i32.const 4592)
+  (func $__ofl_unlock (type 3)
+    i32.const 4584
+    call $__unlock)
+  (func $__toread (type 0) (param i32) (result i32)
+    (local i32 i32)
+    local.get 0
+    local.get 0
+    i32.load8_u offset=74
+    local.tee 1
+    i32.const -1
+    i32.add
+    local.get 1
+    i32.or
+    i32.store8 offset=74
+    block  ;; label = @1
+      local.get 0
+      i32.load offset=20
+      local.get 0
+      i32.load offset=28
+      i32.le_u
+      br_if 0 (;@1;)
+      local.get 0
+      i32.const 0
+      i32.const 0
+      local.get 0
+      i32.load offset=36
+      call_indirect (type 1)
+      drop
+    end
+    local.get 0
+    i32.const 0
+    i32.store offset=28
+    local.get 0
+    i64.const 0
+    i64.store offset=16
+    block  ;; label = @1
+      local.get 0
+      i32.load
+      local.tee 1
+      i32.const 4
+      i32.and
+      i32.eqz
+      br_if 0 (;@1;)
+      local.get 0
+      local.get 1
+      i32.const 32
+      i32.or
+      i32.store
+      i32.const -1
+      return
+    end
+    local.get 0
+    local.get 0
+    i32.load offset=44
+    local.get 0
+    i32.load offset=48
+    i32.add
+    local.tee 2
+    i32.store offset=8
+    local.get 0
+    local.get 2
+    i32.store offset=4
+    local.get 1
+    i32.const 27
+    i32.shl
+    i32.const 31
+    i32.shr_s)
+  (func $__strchrnul (type 2) (param i32 i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -1019,7 +1661,7 @@
       return
     end
     local.get 0)
-  (func $strchr (type 1) (param i32 i32) (result i32)
+  (func $strchr (type 2) (param i32 i32) (result i32)
     local.get 0
     local.get 1
     call $__strchrnul
@@ -1032,7 +1674,7 @@
     i32.and
     i32.eq
     select)
-  (func $strstr (type 1) (param i32 i32) (result i32)
+  (func $strstr (type 2) (param i32 i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       local.get 1
@@ -1103,7 +1745,7 @@
       local.set 3
     end
     local.get 3)
-  (func $twobyte_strstr (type 1) (param i32 i32) (result i32)
+  (func $twobyte_strstr (type 2) (param i32 i32) (result i32)
     (local i32 i32 i32 i32)
     local.get 0
     i32.load8_u offset=1
@@ -1168,7 +1810,7 @@
     i32.const 0
     local.get 3
     select)
-  (func $threebyte_strstr (type 1) (param i32 i32) (result i32)
+  (func $threebyte_strstr (type 2) (param i32 i32) (result i32)
     (local i32 i32 i32 i32)
     local.get 0
     i32.const 2
@@ -1254,7 +1896,7 @@
     i32.const 0
     local.get 4
     select)
-  (func $fourbyte_strstr (type 1) (param i32 i32) (result i32)
+  (func $fourbyte_strstr (type 2) (param i32 i32) (result i32)
     (local i32 i32 i32 i32)
     local.get 0
     i32.const 3
@@ -1350,7 +1992,7 @@
     i32.const 0
     local.get 4
     select)
-  (func $twoway_strstr (type 1) (param i32 i32) (result i32)
+  (func $twoway_strstr (type 2) (param i32 i32) (result i32)
     (local i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)
     global.get 0
     i32.const 1056
@@ -1860,7 +2502,7 @@
     i32.add
     global.set 0
     local.get 6)
-  (func $memcmp (type 0) (param i32 i32 i32) (result i32)
+  (func $memcmp (type 1) (param i32 i32 i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -1937,7 +2579,7 @@
       return
     end
     i32.const 0)
-  (func $strcmp (type 1) (param i32 i32) (result i32)
+  (func $strcmp (type 2) (param i32 i32) (result i32)
     (local i32 i32)
     local.get 1
     i32.load8_u
@@ -1984,7 +2626,7 @@
     i32.const 255
     i32.and
     i32.sub)
-  (func $__stpcpy (type 1) (param i32 i32) (result i32)
+  (func $__stpcpy (type 2) (param i32 i32) (result i32)
     (local i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -2089,13 +2731,13 @@
       end
     end
     local.get 0)
-  (func $strcpy (type 1) (param i32 i32) (result i32)
+  (func $strcpy (type 2) (param i32 i32) (result i32)
     local.get 0
     local.get 1
     call $__stpcpy
     drop
     local.get 0)
-  (func $memchr (type 0) (param i32 i32 i32) (result i32)
+  (func $memchr (type 1) (param i32 i32 i32) (result i32)
     (local i32 i32)
     local.get 2
     i32.const 0
@@ -2220,7 +2862,22 @@
       end
     end
     i32.const 0)
-  (func $scalbn (type 8) (param f64 i32) (result f64)
+  (func $__lock (type 5) (param i32))
+  (func $__unlock (type 5) (param i32))
+  (func $__errno_location (type 4) (result i32)
+    i32.const 4596)
+  (func $__wasi_syscall_ret (type 0) (param i32) (result i32)
+    block  ;; label = @1
+      local.get 0
+      br_if 0 (;@1;)
+      i32.const 0
+      return
+    end
+    call $__errno_location
+    local.get 0
+    i32.store
+    i32.const -1)
+  (func $scalbn (type 10) (param f64 i32) (result f64)
     block  ;; label = @1
       block  ;; label = @2
         local.get 1
@@ -2299,200 +2956,124 @@
     i64.shl
     f64.reinterpret_i64
     f64.mul)
-  (func $__errno_location (type 4) (result i32)
-    i32.const 2320)
-  (func $__wasi_syscall_ret (type 2) (param i32) (result i32)
-    block  ;; label = @1
-      local.get 0
-      br_if 0 (;@1;)
-      i32.const 0
-      return
-    end
-    call $__errno_location
+  (func $__towrite (type 0) (param i32) (result i32)
+    (local i32)
     local.get 0
-    i32.store
-    i32.const -1)
-  (func $__stdio_write (type 0) (param i32 i32 i32) (result i32)
-    (local i32 i32 i32 i32 i32 i32 i32)
-    global.get 0
-    i32.const 32
-    i32.sub
-    local.tee 3
-    global.set 0
-    local.get 3
     local.get 0
-    i32.load offset=28
-    local.tee 4
-    i32.store offset=16
-    local.get 0
-    i32.load offset=20
-    local.set 5
-    local.get 3
-    local.get 2
-    i32.store offset=28
-    local.get 3
-    local.get 1
-    i32.store offset=24
-    local.get 3
-    local.get 5
-    local.get 4
-    i32.sub
+    i32.load8_u offset=74
     local.tee 1
-    i32.store offset=20
+    i32.const -1
+    i32.add
     local.get 1
-    local.get 2
-    i32.add
-    local.set 6
-    i32.const 2
-    local.set 7
-    local.get 3
-    i32.const 16
-    i32.add
-    local.set 1
+    i32.or
+    i32.store8 offset=74
     block  ;; label = @1
-      block  ;; label = @2
-        block  ;; label = @3
-          block  ;; label = @4
-            local.get 0
-            i32.load offset=60
-            local.get 3
-            i32.const 16
-            i32.add
-            i32.const 2
-            local.get 3
-            i32.const 12
-            i32.add
-            call $__wasi_fd_write
-            call $__wasi_syscall_ret
-            br_if 0 (;@4;)
-            loop  ;; label = @5
-              local.get 6
-              local.get 3
-              i32.load offset=12
-              local.tee 4
-              i32.eq
-              br_if 2 (;@3;)
-              local.get 4
-              i32.const -1
-              i32.le_s
-              br_if 3 (;@2;)
-              local.get 1
-              local.get 4
-              local.get 1
-              i32.load offset=4
-              local.tee 8
-              i32.gt_u
-              local.tee 5
-              i32.const 3
-              i32.shl
-              i32.add
-              local.tee 9
-              local.get 9
-              i32.load
-              local.get 4
-              local.get 8
-              i32.const 0
-              local.get 5
-              select
-              i32.sub
-              local.tee 8
-              i32.add
-              i32.store
-              local.get 1
-              i32.const 12
-              i32.const 4
-              local.get 5
-              select
-              i32.add
-              local.tee 9
-              local.get 9
-              i32.load
-              local.get 8
-              i32.sub
-              i32.store
-              local.get 6
-              local.get 4
-              i32.sub
-              local.set 6
-              local.get 0
-              i32.load offset=60
-              local.get 1
-              i32.const 8
-              i32.add
-              local.get 1
-              local.get 5
-              select
-              local.tee 1
-              local.get 7
-              local.get 5
-              i32.sub
-              local.tee 7
-              local.get 3
-              i32.const 12
-              i32.add
-              call $__wasi_fd_write
-              call $__wasi_syscall_ret
-              i32.eqz
-              br_if 0 (;@5;)
-            end
-          end
-          local.get 6
-          i32.const -1
-          i32.ne
-          br_if 1 (;@2;)
-        end
-        local.get 0
-        local.get 0
-        i32.load offset=44
-        local.tee 1
-        i32.store offset=28
-        local.get 0
-        local.get 1
-        i32.store offset=20
-        local.get 0
-        local.get 1
-        local.get 0
-        i32.load offset=48
-        i32.add
-        i32.store offset=16
-        local.get 2
-        local.set 4
-        br 1 (;@1;)
-      end
-      i32.const 0
-      local.set 4
-      local.get 0
-      i32.const 0
-      i32.store offset=28
-      local.get 0
-      i64.const 0
-      i64.store offset=16
-      local.get 0
       local.get 0
       i32.load
+      local.tee 1
+      i32.const 8
+      i32.and
+      i32.eqz
+      br_if 0 (;@1;)
+      local.get 0
+      local.get 1
       i32.const 32
       i32.or
       i32.store
-      local.get 7
-      i32.const 2
-      i32.eq
+      i32.const -1
+      return
+    end
+    local.get 0
+    i64.const 0
+    i64.store offset=4 align=4
+    local.get 0
+    local.get 0
+    i32.load offset=44
+    local.tee 1
+    i32.store offset=28
+    local.get 0
+    local.get 1
+    i32.store offset=20
+    local.get 0
+    local.get 1
+    local.get 0
+    i32.load offset=48
+    i32.add
+    i32.store offset=16
+    i32.const 0)
+  (func $__overflow (type 2) (param i32 i32) (result i32)
+    (local i32 i32 i32)
+    global.get 0
+    i32.const 16
+    i32.sub
+    local.tee 2
+    global.set 0
+    local.get 2
+    local.get 1
+    i32.store8 offset=15
+    block  ;; label = @1
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=16
+        local.tee 3
+        br_if 0 (;@2;)
+        i32.const -1
+        local.set 3
+        local.get 0
+        call $__towrite
+        br_if 1 (;@1;)
+        local.get 0
+        i32.load offset=16
+        local.set 3
+      end
+      block  ;; label = @2
+        local.get 0
+        i32.load offset=20
+        local.tee 4
+        local.get 3
+        i32.ge_u
+        br_if 0 (;@2;)
+        local.get 1
+        i32.const 255
+        i32.and
+        local.tee 3
+        local.get 0
+        i32.load8_s offset=75
+        i32.eq
+        br_if 0 (;@2;)
+        local.get 0
+        local.get 4
+        i32.const 1
+        i32.add
+        i32.store offset=20
+        local.get 4
+        local.get 1
+        i32.store8
+        br 1 (;@1;)
+      end
+      i32.const -1
+      local.set 3
+      local.get 0
+      local.get 2
+      i32.const 15
+      i32.add
+      i32.const 1
+      local.get 0
+      i32.load offset=36
+      call_indirect (type 1)
+      i32.const 1
+      i32.ne
       br_if 0 (;@1;)
       local.get 2
-      local.get 1
-      i32.load offset=4
-      i32.sub
-      local.set 4
+      i32.load8_u offset=15
+      local.set 3
     end
-    local.get 3
-    i32.const 32
+    local.get 2
+    i32.const 16
     i32.add
     global.set 0
-    local.get 4)
-  (func $__emscripten_stdout_close (type 2) (param i32) (result i32)
-    i32.const 0)
-  (func $__emscripten_stdout_seek (type 6) (param i32 i64 i32) (result i64)
-    i64.const 0)
-  (func $memset (type 0) (param i32 i32 i32) (result i32)
+    local.get 3)
+  (func $memset (type 1) (param i32 i32 i32) (result i32)
     (local i32 i32 i32 i64)
     block  ;; label = @1
       local.get 2
@@ -2678,13 +3259,13 @@
       end
     end
     local.get 0)
-  (func $isdigit (type 2) (param i32) (result i32)
+  (func $isdigit (type 0) (param i32) (result i32)
     local.get 0
     i32.const -48
     i32.add
     i32.const 10
     i32.lt_u)
-  (func $__memcpy (type 0) (param i32 i32 i32) (result i32)
+  (func $__memcpy (type 1) (param i32 i32 i32) (result i32)
     (local i32 i32 i32)
     block  ;; label = @1
       local.get 2
@@ -2950,9 +3531,9 @@
     end
     local.get 0)
   (func $emscripten_stack_init (type 3)
-    i32.const 5246336
+    i32.const 5247552
     global.set 2
-    i32.const 3444
+    i32.const 4664
     i32.const 15
     i32.add
     i32.const -16
@@ -2965,8 +3546,8 @@
   (func $emscripten_stack_get_end (type 4) (result i32)
     global.get 1)
   (func $__pthread_self (type 4) (result i32)
-    i32.const 2084)
-  (func $wcrtomb (type 0) (param i32 i32 i32) (result i32)
+    i32.const 2276)
+  (func $wcrtomb (type 1) (param i32 i32 i32) (result i32)
     (local i32)
     i32.const 1
     local.set 3
@@ -3113,7 +3694,7 @@
     local.get 1
     i32.store8
     i32.const 1)
-  (func $wctomb (type 1) (param i32 i32) (result i32)
+  (func $wctomb (type 2) (param i32 i32) (result i32)
     block  ;; label = @1
       local.get 0
       br_if 0 (;@1;)
@@ -3124,7 +3705,7 @@
     local.get 1
     i32.const 0
     call $wcrtomb)
-  (func $frexp (type 8) (param f64 i32) (result f64)
+  (func $frexp (type 10) (param f64 i32) (result f64)
     (local i64 i32)
     block  ;; label = @1
       local.get 0
@@ -3184,7 +3765,7 @@
       local.set 0
     end
     local.get 0)
-  (func $__ashlti3 (type 9) (param i32 i64 i64 i32)
+  (func $__ashlti3 (type 11) (param i32 i64 i64 i32)
     (local i64)
     block  ;; label = @1
       block  ;; label = @2
@@ -3231,7 +3812,7 @@
     local.get 0
     local.get 2
     i64.store offset=8)
-  (func $__lshrti3 (type 9) (param i32 i64 i64 i32)
+  (func $__lshrti3 (type 11) (param i32 i64 i64 i32)
     (local i64)
     block  ;; label = @1
       block  ;; label = @2
@@ -3463,61 +4044,7 @@
     i64.and
     i64.or
     f64.reinterpret_i64)
-  (func $__lock (type 5) (param i32))
-  (func $__unlock (type 5) (param i32))
-  (func $__ofl_lock (type 4) (result i32)
-    i32.const 3432
-    call $__lock
-    i32.const 3440)
-  (func $__ofl_unlock (type 3)
-    i32.const 3432
-    call $__unlock)
-  (func $__towrite (type 2) (param i32) (result i32)
-    (local i32)
-    local.get 0
-    local.get 0
-    i32.load8_u offset=74
-    local.tee 1
-    i32.const -1
-    i32.add
-    local.get 1
-    i32.or
-    i32.store8 offset=74
-    block  ;; label = @1
-      local.get 0
-      i32.load
-      local.tee 1
-      i32.const 8
-      i32.and
-      i32.eqz
-      br_if 0 (;@1;)
-      local.get 0
-      local.get 1
-      i32.const 32
-      i32.or
-      i32.store
-      i32.const -1
-      return
-    end
-    local.get 0
-    i64.const 0
-    i64.store offset=4 align=4
-    local.get 0
-    local.get 0
-    i32.load offset=44
-    local.tee 1
-    i32.store offset=28
-    local.get 0
-    local.get 1
-    i32.store offset=20
-    local.get 0
-    local.get 1
-    local.get 0
-    i32.load offset=48
-    i32.add
-    i32.store offset=16
-    i32.const 0)
-  (func $__fwritex (type 0) (param i32 i32 i32) (result i32)
+  (func $__fwritex (type 1) (param i32 i32 i32) (result i32)
     (local i32 i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -3548,7 +4075,7 @@
         local.get 1
         local.get 2
         i32.load offset=36
-        call_indirect (type 0)
+        call_indirect (type 1)
         return
       end
       block  ;; label = @2
@@ -3589,7 +4116,7 @@
         local.get 3
         local.get 2
         i32.load offset=36
-        call_indirect (type 0)
+        call_indirect (type 1)
         local.tee 4
         local.get 3
         i32.lt_u
@@ -3623,7 +4150,7 @@
       local.set 4
     end
     local.get 4)
-  (func $__vfprintf_internal (type 10) (param i32 i32 i32 i32 i32) (result i32)
+  (func $__vfprintf_internal (type 7) (param i32 i32 i32 i32 i32) (result i32)
     (local i32 i32 i32)
     global.get 0
     i32.const 208
@@ -3764,7 +4291,7 @@
         i32.const 0
         local.get 0
         i32.load offset=36
-        call_indirect (type 0)
+        call_indirect (type 1)
         drop
         local.get 0
         i32.const 0
@@ -4270,7 +4797,7 @@
                         i32.const 58
                         i32.mul
                         i32.add
-                        i32.const 1391
+                        i32.const 1439
                         i32.add
                         i32.load8_u
                         local.tee 13
@@ -4822,7 +5349,7 @@
                         local.get 13
                         local.get 1
                         local.get 5
-                        call_indirect (type 11)
+                        call_indirect (type 12)
                         local.set 1
                         br 8 (;@2;)
                       end
@@ -5009,7 +5536,7 @@
       call $__fwritex
       drop
     end)
-  (func $getint (type 2) (param i32) (result i32)
+  (func $getint (type 0) (param i32) (result i32)
     (local i32 i32 i32)
     i32.const 0
     local.set 1
@@ -5195,7 +5722,7 @@
       local.get 0
       local.get 2
       local.get 3
-      call_indirect (type 12)
+      call_indirect (type 13)
     end)
   (func $fmt_x (type 20) (param i64 i32 i32) (result i32)
     (local i32)
@@ -5212,7 +5739,7 @@
         i32.wrap_i64
         i32.const 15
         i32.and
-        i32.const 1920
+        i32.const 1968
         i32.add
         i32.load8_u
         local.get 2
@@ -5231,7 +5758,7 @@
       end
     end
     local.get 1)
-  (func $fmt_o (type 13) (param i64 i32) (result i32)
+  (func $fmt_o (type 14) (param i64 i32) (result i32)
     (local i32)
     block  ;; label = @1
       local.get 0
@@ -5262,7 +5789,7 @@
       end
     end
     local.get 1)
-  (func $fmt_u (type 13) (param i64 i32) (result i32)
+  (func $fmt_u (type 14) (param i64 i32) (result i32)
     (local i64 i32 i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -5392,14 +5919,14 @@
     i32.const 256
     i32.add
     global.set 0)
-  (func $vfprintf (type 0) (param i32 i32 i32) (result i32)
+  (func $vfprintf (type 1) (param i32 i32 i32) (result i32)
     local.get 0
     local.get 1
     local.get 2
-    i32.const 4
-    i32.const 5
+    i32.const 7
+    i32.const 8
     call $__vfprintf_internal)
-  (func $fmt_fp (type 11) (param i32 f64 i32 i32 i32 i32) (result i32)
+  (func $fmt_fp (type 12) (param i32 f64 i32 i32 i32 i32) (result i32)
     (local i32 i32 i64 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i64 i32 i32 i32 i32 f64)
     global.get 0
     i32.const 560
@@ -6862,7 +7389,7 @@
         end
         local.get 12
         local.get 18
-        i32.const 1920
+        i32.const 1968
         i32.add
         i32.load8_u
         local.get 19
@@ -7017,7 +7544,7 @@
     local.get 2
     i32.lt_s
     select)
-  (func $pop_arg_long_double (type 12) (param i32 i32)
+  (func $pop_arg_long_double (type 13) (param i32 i32)
     (local i32)
     local.get 1
     local.get 1
@@ -7039,10 +7566,10 @@
     i64.load
     call $__trunctfdf2
     f64.store)
-  (func $__DOUBLE_BITS.1 (type 7) (param f64) (result i64)
+  (func $__DOUBLE_BITS.1 (type 9) (param f64) (result i64)
     local.get 0
     i64.reinterpret_f64)
-  (func $printf (type 1) (param i32 i32) (result i32)
+  (func $printf (type 2) (param i32 i32) (result i32)
     (local i32)
     global.get 0
     i32.const 16
@@ -7053,7 +7580,7 @@
     local.get 1
     i32.store offset=12
     i32.const 0
-    i32.load offset=1440
+    i32.load offset=1492
     local.get 0
     local.get 1
     call $vfprintf
@@ -7063,10 +7590,10 @@
     i32.add
     global.set 0
     local.get 1)
-  (func $__lockfile (type 2) (param i32) (result i32)
+  (func $__lockfile (type 0) (param i32) (result i32)
     i32.const 1)
   (func $__unlockfile (type 5) (param i32))
-  (func $strlen (type 2) (param i32) (result i32)
+  (func $strlen (type 0) (param i32) (result i32)
     (local i32 i32 i32)
     local.get 0
     local.set 1
@@ -7144,7 +7671,7 @@
   (func $stackRestore (type 5) (param i32)
     local.get 0
     global.set 0)
-  (func $stackAlloc (type 2) (param i32) (result i32)
+  (func $stackAlloc (type 0) (param i32) (result i32)
     (local i32 i32)
     global.get 0
     local.get 0
@@ -7154,7 +7681,7 @@
     local.tee 1
     global.set 0
     local.get 1)
-  (func $fflush (type 2) (param i32) (result i32)
+  (func $fflush (type 0) (param i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       block  ;; label = @2
@@ -7189,11 +7716,11 @@
       local.set 2
       block  ;; label = @2
         i32.const 0
-        i32.load offset=2080
+        i32.load offset=2272
         i32.eqz
         br_if 0 (;@2;)
         i32.const 0
-        i32.load offset=2080
+        i32.load offset=2272
         call $fflush
         local.set 2
       end
@@ -7245,7 +7772,7 @@
       call $__ofl_unlock
     end
     local.get 2)
-  (func $__fflush_unlocked (type 2) (param i32) (result i32)
+  (func $__fflush_unlocked (type 0) (param i32) (result i32)
     (local i32 i32)
     block  ;; label = @1
       local.get 0
@@ -7259,7 +7786,7 @@
       i32.const 0
       local.get 0
       i32.load offset=36
-      call_indirect (type 0)
+      call_indirect (type 1)
       drop
       local.get 0
       i32.load offset=20
@@ -7303,7 +7830,7 @@
     local.get $2
     local.get $fptr
     call_indirect (type 6))
-  (func $legalstub$dynCall_jiji (type 10) (param i32 i32 i32 i32 i32) (result i32)
+  (func $legalstub$dynCall_jiji (type 7) (param i32 i32 i32 i32 i32) (result i32)
     (local i64)
     local.get 0
     local.get 1
@@ -7324,9 +7851,20 @@
     call $setTempRet0
     local.get 5
     i32.wrap_i64)
-  (table (;0;) 6 6 funcref)
+  (func $legalfunc$__wasi_fd_seek (type 23) (param i32 i64 i32 i32) (result i32)
+    local.get 0
+    local.get 1
+    i32.wrap_i64
+    local.get 1
+    i64.const 32
+    i64.shr_u
+    i32.wrap_i64
+    local.get 2
+    local.get 3
+    call $legalimport$__wasi_fd_seek)
+  (table (;0;) 9 9 funcref)
   (memory (;0;) 256 256)
-  (global (;0;) (mut i32) (i32.const 5246336))
+  (global (;0;) (mut i32) (i32.const 5247552))
   (global (;1;) (mut i32) (i32.const 0))
   (global (;2;) (mut i32) (i32.const 0))
   (export "memory" (memory 0))
@@ -7342,6 +7880,6 @@
   (export "emscripten_stack_get_free" (func $emscripten_stack_get_free))
   (export "emscripten_stack_get_end" (func $emscripten_stack_get_end))
   (export "dynCall_jiji" (func $legalstub$dynCall_jiji))
-  (elem (;0;) (i32.const 1) $__emscripten_stdout_close $__stdio_write $__emscripten_stdout_seek $fmt_fp $pop_arg_long_double)
-  (data (;0;) (i32.const 1024) "-+   0X0x\00-0X+0X 0X-0x+0x 0x\00nan\00inf\00abcdef\00NAN\00INF\00ABCDEF\00sqrt testing below:\00floor testing below:\00exp testing below:\00ceil testing below:\00str1 is equal to str2\00str1 is less than str2\00str2 is less than str1\00.\00(null)\00String after |%c| is - |%s|\0a\00The substring is: %s\0a\00The exponential value of %lf is %lf\0a\00Value2 = %f \0a\00Value1 = %f \0a\00\00\00\00\00TutorialsPoint\00\00\00\00\00\00Point\00\00\00\00\00\00\00http://www.tutorialspoint.com\00\00\00\00\00\00\00\00\00\e0?\00\00\00\00\00\00\e0\bf\90\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
-  (data (;1;) (i32.const 1936) "\05\00\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\02\00\00\00\03\00\00\00(\09\00\00\00\04\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0a\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\90\07\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00P\0d\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"))
+  (elem (;0;) (i32.const 1) $__stdio_close $__stdio_read $__stdio_seek $__emscripten_stdout_close $__stdio_write $__emscripten_stdout_seek $fmt_fp $pop_arg_long_double)
+  (data (;0;) (i32.const 1024) "-+   0X0x\00-0X+0X 0X-0x+0x 0x\00nan\00inf\00abcdef\00NAN\00INF\00ABCDEF\00sqrt testing below:\00floor testing below:\00exp testing below:\00ceil testing below:\00str1 is equal to str2\00str1 is less than str2\00str2 is less than str1\00.\00(null)\00Enter character: \00Character entered: \00String after |%c| is - |%s|\0a\00The substring is: %s\0a\00The exponential value of %lf is %lf\0a\00Value2 = %f \0a\00Value1 = %f \0a\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00TutorialsPoint\00\00\00\00\00\00Point\00\00\00\00\00\00\00http://www.tutorialspoint.com\00\00\00\00\00\00\00\00\00\e0?\00\00\00\00\00\00\e0\bf\c0\07\00\00P\08\00\00\00\00\00\00\00\00\00\00\11\00\0a\00\11\11\11\00\00\00\00\05\00\00\00\00\00\00\09\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0f\0a\11\11\11\03\0a\07\00\01\00\09\0b\0b\00\00\09\06\0b\00\00\0b\00\06\11\00\00\00\11\11\11\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\11\00\0a\0a\11\11\11\00\0a\00\00\02\00\09\0b\00\00\00\09\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\0d\00\00\00\04\0d\00\00\00\00\09\0e\00\00\00\00\00\0e\00\00\0e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\10\00\00\00\00\00\00\00\00\00\00\00\0f\00\00\00\00\0f\00\00\00\00\09\10\00\00\00\00\00\10\00\00\10\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\12\00\00\00\12\12\12\00\00\00\00\00\00\09\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\0a\00\00\00\00\0a\00\00\00\00\09\0b\00\00\00\00\00\0b\00\00\0b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\00\00\00\00\00\00\00\0c\00\00\00\00\0c\00\00\00\00\09\0c\00\00\00\00\00\0c\00\00\0c\00\000123456789ABCDEF")
+  (data (;1;) (i32.const 1984) "\09\00\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\02\00\00\00\00\00\00\00\03\00\00\00\d8\09\00\00\00\04\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\05\00\00\00\00\00\00\00\00\00\00\00\04\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\05\00\00\00\06\00\00\00\e8\0d\00\00\00\04\00\00\00\00\00\00\00\00\00\00\01\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0a\ff\ff\ff\ff\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00P\08\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00 \12\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"))
