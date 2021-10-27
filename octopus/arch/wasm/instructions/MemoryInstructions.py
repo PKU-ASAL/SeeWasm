@@ -10,13 +10,16 @@ class MemoryInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
         self.instr_str = instr_string
+        self.mem_cnt = 2
+        self.mem_step = 2
 
     # TODO overflow check in this function?
     def emulate(self, state, data_section):
         if self.instr_name == 'current_memory':
-            state.symbolic_stack.append(BitVec('current_memory_size', 32))
+            state.symbolic_stack.append(BitVecVal(self.mem_cnt, 32))
         elif self.instr_name == 'grow_memory':
-            pass
+            self.mem_cnt += self.mem_step
+            state.symbolic_stack.append(BitVecVal(1, 32))
         elif 'load' in self.instr_name:
             load_instr(self.instr_str, state, data_section)
         elif 'store' in self.instr_name:

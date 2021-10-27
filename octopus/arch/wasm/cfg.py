@@ -252,15 +252,16 @@ def enum_blocks_edges(function_id, instructions):
             # the others as consitional_true @wasm-se
             elif inst.name == 'br_table':
                 # conditional_true's
+                labels = [i for i in inst.insn_byte[2:]]
                 for _index, ref in enumerate(inst.xref):
                     for _block in basicblocks:
                         if ref and _block.instructions[0].offset == ref:
                             if _index != len(inst.xref) - 1:
                                 edges.append(
-                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE))
+                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE + '_' + str(labels[_index])))
                             else:
                                 edges.append(
-                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE))
+                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE + '_0'))
                             break
             else:
                 for ref in inst.xref:
