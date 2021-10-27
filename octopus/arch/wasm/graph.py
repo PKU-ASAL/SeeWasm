@@ -120,6 +120,7 @@ class Graph:
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
     # entry to analyze a file
+
     def traverse(self):
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
@@ -295,7 +296,8 @@ class Graph:
                     final_states.extend(
                         cls.visit([copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk))
         vis[prev] -= 1
-        return final_states if specify else emul_states # TODO: Fix the Bug : may return a dict state, which is illegal.
+        # TODO: Fix the Bug : may return a dict state, which is illegal.
+        return final_states if specify else emul_states
 
     @classmethod
     def intervals_gen(cls, blk, blk_lis, revg, g):
@@ -371,7 +373,7 @@ class Graph:
                 final_states["return"].extend(emul_states)
                 continue
             succs_list = set(filter(lambda p: (heads[p[1]] == blk or heads[current_block] == blk) and (
-                    weights[p] == 0 or cnt[p] < weights[p] or not lim), succs_list))
+                weights[p] == 0 or cnt[p] < weights[p] or not lim), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
                 emul_states = emul_states[next_block] if isinstance(
@@ -380,7 +382,8 @@ class Graph:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
                     s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
                 if len(valid_state) > 0:
-                    avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
+                    avail_br[(edge_type, next_block)
+                             ] = copy.deepcopy(valid_state)
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")

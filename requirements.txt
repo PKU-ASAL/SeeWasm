@@ -10,7 +10,7 @@ numpy>=1.14.2
 
 # ETH
 # ethereum>=2.3.0
-z3-solver==4.8.5
+z3-solver==4.8.12
 
 # WASM / EOS
 wasm==1.2

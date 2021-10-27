@@ -63,20 +63,40 @@ To run the generated Wasm file, please refer to [this part](#analyze-specific-fu
 
 ### Go -> Wasm
 
+There are two ways to translate Go code into Wasm code: original Go and TinyGo. **We strongly recommend use the latter one, i.e., TinyGo.**
+
+#### Original Go
 To compile Go code to Wasm file, you have to firstly make sure the Go environment is properly installed on your device.
 You can test it in your terminal by:
 ```shell
 go version
 ```
 
-Then, you can use the following command to compile a `[file_name].go` into `[file_name].wasm`.
+Then, you can use the following command to compile a `[file_name].go` into `[file_name].wasm`, and convert it into a Wat file.
 ```shell
 GOOS=js GOARCH=wasm go build -o [file_name].wasm
+wasm2wat [file_name].wasm -o [file_name].wat
 ```
 
-The folder `go_samples.nosync` contains a hello-world Go source code along with its corresponding Wasm and Wat files. Note that the Wat file is larger than 60M, because it contains all the necessary functions that are used to interact with the hosting environment (JavaScript here as we assigned).
+Note that the Wat file is larger than 60M, because it contains all the necessary functions that are used to interact with the hosting environment (JavaScript here as we assigned).
 The `main` function in Go file is named as `main.main` in the Wat file.
 
+#### TinyGo
+[TinyGo](https://tinygo.org/getting-started/install/) requires Go version greater than 1.15. You should install it and check it by:
+```shell
+tinygo
+```
+
+If it is successfully installed on your computer, you can use command below to generate the corresponding Wasm and Wat files.
+```shell
+tinygo build -o tinygo_main.wasm -target wasm ./main.go
+wasm2wat tinygo_main.wasm -o tinygo_main.wat
+```
+
+Note that, the entry of compiled Wasm is `_start`, thus the command to run the symbolic execution engine is (maybe you should change the python version on your demand):
+```shell
+python3.6 octopus_wasm -f './go_samples.nosync/hello_world/tinygo_main.wasm' -s --onlyfunc _start --need_mapper --concrete_globals --source_type go
+```
 
 ## Analyze
 

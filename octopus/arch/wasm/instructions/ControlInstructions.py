@@ -233,4 +233,3 @@ class ControlInstructions:
         else:
             print(self.instr_name)
             raise UnsupportInstructionError
-

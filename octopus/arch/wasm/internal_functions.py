@@ -150,6 +150,24 @@ class CPredefinedFunction:
 
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
+        elif self.name == 'strncpy':
+            length, src, dest = param_list[0].as_long(
+            ), param_list[1].as_long(), param_list[2].as_long()
+
+            # extract the string according to the src pointer
+            src_string, _ = C_extract_string_by_start_pointer(
+                src, _, data_section, state.symbolic_memory)
+            if len(src_string) >= length:
+                src_string = src_string[:length]
+            else:
+                src_string += '\x00'*(length - len(src_string))
+
+            # the little endian is refer to the implementation of scanf
+            little_endian_num = int.from_bytes(
+                str.encode(f'{src_string}'), "little")
+
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, length, BitVecVal(little_endian_num, 8*length))
         elif self.name == 'strcat':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
 
@@ -220,7 +238,20 @@ class CPredefinedFunction:
                 manually_constructed = True
             else:  # if it is a symbol, z3 does not support
                 raise UnsupportExternalFuncError
-
+        elif self.name == 'getchar':
+            ret = getConcreteBitVec(return_str, self.name + '_ret_' +
+                                    return_str + '_' + self.cur_func + '_' + str(state.instr.offset))
+            state.symbolic_stack.append(ret)
+            manually_constructed = True
+        elif self.name == 'putchar':
+            the_char = param_list[0]
+            logging.warning("%s\n", the_char)
+        elif self.name == 'abs':
+            candidate_num = param_list[0]
+            abs_num = simplify(
+                If(candidate_num > 0, candidate_num, -candidate_num))
+            state.symbolic_stack.append(abs_num)
+            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
@@ -230,19 +261,29 @@ class CPredefinedFunction:
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
 
+
 _values = {0: BitVec("NaN", 32), 1: BitVecVal(0, 32), 2: BitVec("null", 32), 3: BoolVal(True),
-           4: BoolVal(False), 5: BitVec("global", 32), 6: BitVec("global.Go", 32)} # module the memory map in wasm_exec.js
+           4: BoolVal(False), 5: BitVec("global", 32), 6: BitVec("global.Go", 32)}  # module the memory map in wasm_exec.js
+
 
 def calculateHeapAddresses(state, data_section):
-    val_81328 = simplify(lookup_symbolic_memory(state.symbolic_memory, data_section, 81328, 4) + 15) & 4294967280 # calculate heap start
+    val_81328 = simplify(lookup_symbolic_memory(
+        state.symbolic_memory, data_section, 81328, 4) + 15) & 4294967280  # calculate heap start
     val_81328 = simplify(val_81328)
-    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 81328, 4, val_81328) # save the heap start
-    val_85336 = lookup_symbolic_memory(state.symbolic_memory, data_section, 85336, 4) # heap end address
-    val_diff = simplify((val_85336 - val_81328) >> 6) # meta_data_size
-    val_85336 = simplify(val_85336 - val_diff) # heap end - meta_data_size (meta_data_start)
-    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85464, 4, val_85336) # save the meta data (of the heap) start
-    val_3 = simplify((val_85336 - val_81328) >> 4) # remain heap size (remain block numbers, per block 16 bytes)
-    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85472, 4, val_3) # save the remain block numbers (endBlock)
+    state.symbolic_memory = insert_symbolic_memory(
+        state.symbolic_memory, 81328, 4, val_81328)  # save the heap start
+    val_85336 = lookup_symbolic_memory(
+        state.symbolic_memory, data_section, 85336, 4)  # heap end address
+    val_diff = simplify((val_85336 - val_81328) >> 6)  # meta_data_size
+    # heap end - meta_data_size (meta_data_start)
+    val_85336 = simplify(val_85336 - val_diff)
+    state.symbolic_memory = insert_symbolic_memory(
+        state.symbolic_memory, 85464, 4, val_85336)  # save the meta data (of the heap) start
+    # remain heap size (remain block numbers, per block 16 bytes)
+    val_3 = simplify((val_85336 - val_81328) >> 4)
+    state.symbolic_memory = insert_symbolic_memory(
+        state.symbolic_memory, 85472, 4, val_3)  # save the remain block numbers (endBlock)
+
 
 class GoPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -261,26 +302,33 @@ class GoPredefinedFunction:
                 param_list.append(state.symbolic_stack.pop())
 
         # ------------------------ TinyGO Library -------------------------------
-        if self.name == 'runtime.calculateHeapAddresses': # could be step in, remain for understanding the memory structure.
+        # could be step in, remain for understanding the memory structure.
+        if self.name == 'runtime.calculateHeapAddresses':
             calculateHeapAddresses(state, data_section)
             manually_constructed = True
         elif self.name == 'memset':
             length, byte_data, dest = param_list[0], param_list[1], param_list[2]
             state.symbolic_stack.append(dest)
             manually_constructed = True
-        elif self.name == 'runtime.alloc': # Assume the memory is enough, and never need to grow
+        elif self.name == 'runtime.alloc':  # Assume the memory is enough, and never need to grow
             sz = param_list[0]
-            heapStart = lookup_symbolic_memory(state.symbolic_memory, data_section, 81328, 4)
-            neededBlocks = simplify((BitVecVal(15, 32) + sz) >> BitVecVal(4, 32)) # bytes per block == 16
-            nextAlloc = lookup_symbolic_memory(state.symbolic_memory, data_section, 85468, 4) # next alloc block index
+            heapStart = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, 81328, 4)
+            # bytes per block == 16
+            neededBlocks = simplify(
+                (BitVecVal(15, 32) + sz) >> BitVecVal(4, 32))
+            nextAlloc = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, 85468, 4)  # next alloc block index
             index = simplify(nextAlloc + neededBlocks)
             nextAlloc = index
-            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85468, 4, nextAlloc)
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, 85468, 4, nextAlloc)
             thisAlloc = simplify(index - neededBlocks)
             thisAlloc_v = thisAlloc.as_long()
             nextAlloc_v = nextAlloc.as_long()
             for i in range(thisAlloc_v, nextAlloc_v):
-                alloc_at = simplify(heapStart + BitVecVal(i << 4, 32)).as_long()
+                alloc_at = simplify(
+                    heapStart + BitVecVal(i << 4, 32)).as_long()
                 state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at, 8,
                                                                simplify(Extract(63, 0, BitVecVal(0, 64))))
                 state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at + 8, 8,
@@ -293,19 +341,23 @@ class GoPredefinedFunction:
             src_addr = src.as_long()
             dest_addr = dest.as_long()
             len_v = length.as_long()
-            vlis = [lookup_symbolic_memory(state.symbolic_memory, data_section, src_addr + i, 1) for i in range(len_v)]
+            vlis = [lookup_symbolic_memory(
+                state.symbolic_memory, data_section, src_addr + i, 1) for i in range(len_v)]
             for i, v in enumerate(vlis):
-                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, dest_addr + i, 1, v)
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, dest_addr + i, 1, v)
             state.symbolic_stack.append(dest)
             manually_constructed = True
         elif self.name == 'syscall/js.valueGet':
             p_len, p_str, v_addr, retval = param_list[2], param_list[3], param_list[4], param_list[5]
-            prop = lookup_symbolic_memory(state.symbolic_memory, data_section, p_str.as_long(), p_len.as_long())
-            value = lookup_symbolic_memory(state.symbolic_memory, data_section, v_addr.as_long(), 4)
+            prop = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, p_str.as_long(), p_len.as_long())
+            value = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, v_addr.as_long(), 4)
             value = _values[value.as_long()]
             _bs = prop.as_binary_string()
-            _bs_lis = [_bs[max(i-8,0):i] for i in range(len(_bs), 0, -8)]
-            prop = ''.join(map(lambda x: chr(int(x, base=2)),_bs_lis))
+            _bs_lis = [_bs[max(i-8, 0):i] for i in range(len(_bs), 0, -8)]
+            prop = ''.join(map(lambda x: chr(int(x, base=2)), _bs_lis))
             result = value.decl().name() + '_' + prop
             idx = None
             for _id in _values:
@@ -316,8 +368,10 @@ class GoPredefinedFunction:
                 idx = len(_values)
                 _values[len(_values)] = BitVec(result, 32)
             # print(_values)
-            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, retval.as_long() + 4, 4, BitVecVal(2146959360 | 4, 32))
-            state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, retval.as_long(), 4, BitVecVal(idx, 32))
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, retval.as_long() + 4, 4, BitVecVal(2146959360 | 4, 32))
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, retval.as_long(), 4, BitVecVal(idx, 32))
             manually_constructed = True
         elif self.name == 'runtime.putchar':
             ch = param_list[0]

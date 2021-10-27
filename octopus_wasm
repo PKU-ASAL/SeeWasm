@@ -86,8 +86,8 @@ def main():
                           action='store_true',
                           help='use the value in global section despite the function is exported')
     features.add_argument('--algo',
-                          default='dfs',
-                          const='dfs',
+                          default='interval',
+                          const='interval',
                           nargs='?',
                           choices=['dfs', 'interval'],
                           help='choose an algorithm to traverse, default is dfs')
