@@ -1,5 +1,6 @@
 import os
 import time
+from os import walk, path
 
 import pytest
 import sh
@@ -8,10 +9,14 @@ import sh
 testcase_dir = './c2wasm_samples/'
 cmd_lists = []
 
-case_lists = ['hello', 'simple_condition',
-              'simple_rotate_array', 'intadd', 'bubble_sort', 'simple_loop', 'hello_array', 'divzero', 'overflow_but_check', 'overflow']
+candidates = []
+for _, _, files in walk('./c2wasm_samples'):
+    for file in files:
+        if file.endswith('.c'):
+            candidates.append(file[:-2])
+candidates.remove('print_rhombic')
 
-for case in case_lists:
+for case in candidates:
     case_file = case + '_g3.wasm'
     file_path = os.path.join(testcase_dir, case_file)
     cmd_lists.append(['octopus_wasm', '-f', file_path, '-s',
@@ -23,7 +28,7 @@ for i, cmd in enumerate(cmd_lists):
         start = time.perf_counter()
         python_cmd(cmd)
         end = time.perf_counter()
-        print('Case: ', case_lists[i], 'Duration: ', end - start)
+        print('Case: ', candidates[i], 'Duration: ', end - start)
     except sh.ErrorReturnCode as e:
         print(e)
         pytest.fail(e)

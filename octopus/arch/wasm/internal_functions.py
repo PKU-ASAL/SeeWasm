@@ -6,9 +6,12 @@ from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extr
 from octopus.arch.wasm.utils import getConcreteBitVec
 from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
+from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
+from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory
 from z3 import *
 import logging
-from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory
+import math
+
 
 class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -170,6 +173,57 @@ class CPredefinedFunction:
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+        elif self.name == 'strcmp':
+            str2_p, str1_p = param_list[0].as_long(), param_list[1].as_long()
+            str1 = C_extract_string_by_mem_pointer(
+                str1_p, data_section, state.symbolic_memory)
+            str2 = C_extract_string_by_mem_pointer(
+                str2_p, data_section, state.symbolic_memory)
+
+            # if both str1 and str2 are string literal
+            if isinstance(str1, str) and isinstance(str2, str):
+                ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
+                state.symbolic_stack.append(BitVecVal(ret, 32))
+                manually_constructed = True
+        elif self.name == 'strstr' or self.name == 'strchr':
+            needle_p, haystack_p = param_list[0].as_long(
+            ), param_list[1].as_long()
+            if self.name == 'strchr':
+                # needle_p is not a pointer, ascii code instead
+                needle = chr(needle_p)
+            else:
+                needle = C_extract_string_by_mem_pointer(
+                    needle_p, data_section, state.symbolic_memory)
+            haystack = C_extract_string_by_mem_pointer(
+                haystack_p, data_section, state.symbolic_memory)
+
+            # if both haystack and needle are string literals
+            if isinstance(needle, str) and isinstance(haystack, str):
+                offset = haystack.find(needle)
+                # found it
+                if offset != -1:
+                    ret = haystack_p + offset
+                    state.symbolic_stack.append(BitVecVal(ret, 32))
+                    manually_constructed = True
+        elif self.name == 'exp':
+            exponent = param_list[0]
+            if isinstance(exponent, FPNumRef):
+                # we have to adopt this trick to convert it to a float number
+                exponent = simplify(fpToReal(exponent)).as_string()
+                if '/' in exponent:
+                    i = exponent.find('/')
+                    exponent = int(exponent[:i]) / int(exponent[i+1:])
+                else:
+                    exponent = float(exponent)
+
+                ret = math.e ** exponent
+                state.symbolic_stack.append(FPVal(ret, Float64()))
+                manually_constructed = True
+            else:  # if it is a symbol, z3 does not support
+                raise UnsupportExternalFuncError
+
+        else:
+            raise UnsupportExternalFuncError
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
@@ -190,7 +244,6 @@ def calculateHeapAddresses(state, data_section):
     state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85464, 4, val_85336) # save the meta data (of the heap) start
     val_3 = simplify((val_85336 - val_81328) >> 4) # remain heap size (remain block numbers, per block 16 bytes)
     state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, 85472, 4, val_3) # save the remain block numbers (endBlock)
-
 
 class GoPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -276,4 +329,3 @@ class GoPredefinedFunction:
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
-
