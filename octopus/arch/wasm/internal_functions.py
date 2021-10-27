@@ -220,7 +220,14 @@ class CPredefinedFunction:
                 manually_constructed = True
             else:  # if it is a symbol, z3 does not support
                 raise UnsupportExternalFuncError
-
+        elif self.name == 'getchar':
+            ret = getConcreteBitVec(return_str, self.name + '_ret_' +
+                                    return_str + '_' + self.cur_func + '_' + str(state.instr.offset))
+            state.symbolic_stack.append(ret)
+            manually_constructed = True
+        elif self.name == 'putchar':
+            the_char = param_list[0]
+            logging.warning("%s\n", the_char)
         else:
             raise UnsupportExternalFuncError
 
