@@ -144,7 +144,7 @@ class CPredefinedFunction:
                 buffer_overflow_laser.fire(
                     analyzer, state, dest, src_string, src_string_len)
 
-            # the little endian is refer to the implementation of scanf
+            # the little endian refers to the implementation of scanf
             little_endian_num = int.from_bytes(
                 str.encode(f'{src_string}\x00'), "little")
 
@@ -157,12 +157,14 @@ class CPredefinedFunction:
             # extract the string according to the src pointer
             src_string, _ = C_extract_string_by_start_pointer(
                 src, _, data_section, state.symbolic_memory)
+            # if the length of src_string exceeds the required length
+            # trunc it, or padding by \x00
             if len(src_string) >= length:
                 src_string = src_string[:length]
             else:
                 src_string += '\x00'*(length - len(src_string))
 
-            # the little endian is refer to the implementation of scanf
+            # the little endian refers to the implementation of scanf
             little_endian_num = int.from_bytes(
                 str.encode(f'{src_string}'), "little")
 
@@ -186,6 +188,29 @@ class CPredefinedFunction:
                 buffer_overflow_laser.fire(
                     analyzer, state, dest, dest_string + src_string, string_len)
 
+            little_endian_num = int.from_bytes(str.encode(
+                f'{dest_string}{src_string}\x00'), "little")
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+        elif self.name == 'strncat':
+            length, src, dest = param_list[0].as_long(
+            ), param_list[1].as_long(), param_list[2].as_long()
+
+            # extract the string according to pointers
+            src_string = C_extract_string_by_mem_pointer(
+                src, data_section, state.symbolic_memory)
+            dest_string = C_extract_string_by_mem_pointer(
+                dest, data_section, state.symbolic_memory)
+
+            if len(src_string) >= length:
+                src_string = src_string[:length]
+            else:
+                src_string += '\x00'*(length - len(src_string))
+
+            # concatenate two strings
+            string_len = len(dest_string) + len(src_string) + 1
+
+            # different with strncpy, strncat would explicitly append \x00
             little_endian_num = int.from_bytes(str.encode(
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
