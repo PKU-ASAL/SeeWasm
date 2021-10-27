@@ -92,6 +92,19 @@ void test_char()
     putchar(c);
 }
 
+void test_strn_funcs()
+{
+    char example[50];
+
+    strncpy(example, "TechOnTheNet.com knows strncpy!", 16);
+    example[16] = '\0';
+    printf("%s\n", example);
+
+    char example2[50];
+    strncpy(example, "Hello, world!", 20);
+    printf("%s\n", example);
+}
+
 int main(void)
 {
     test_strcmp();
@@ -99,6 +112,7 @@ int main(void)
     test_strchr();
     test_math_funcs();
     test_char();
+    test_strn_funcs();
 
     return 0;
 }

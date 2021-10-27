@@ -150,6 +150,24 @@ class CPredefinedFunction:
 
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
+        elif self.name == 'strncpy':
+            length, src, dest = param_list[0].as_long(
+            ), param_list[1].as_long(), param_list[2].as_long()
+
+            # extract the string according to the src pointer
+            src_string, _ = C_extract_string_by_start_pointer(
+                src, _, data_section, state.symbolic_memory)
+            if len(src_string) >= length:
+                src_string = src_string[:length]
+            else:
+                src_string += '\x00'*(length - len(src_string))
+
+            # the little endian is refer to the implementation of scanf
+            little_endian_num = int.from_bytes(
+                str.encode(f'{src_string}'), "little")
+
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, length, BitVecVal(little_endian_num, 8*length))
         elif self.name == 'strcat':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
 
