@@ -1,7 +1,6 @@
 # These functions are predefined and we will emulate their behaviors
 
 from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
-from octopus.arch.wasm.memory import lookup_symbolic_memory, insert_symbolic_memory
 from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
 from octopus.arch.wasm.utils import getConcreteBitVec
 from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
