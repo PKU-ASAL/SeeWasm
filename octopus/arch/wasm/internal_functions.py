@@ -278,6 +278,13 @@ class CPredefinedFunction:
             state.symbolic_stack.append(abs_num)
             manually_constructed = True
         elif self.name == 'emscripten_resize_heap':
+            '''
+            dlmalloc in C may call this function, which is imported.
+            Therefore, we have to manually emulate its behavior according to https://github.com/emscripten-core/emscripten/blob/be2fe9cdf2d6b7b9d0fc375177b9a18a2810fca4/system/lib/standalone/standalone.c#L104
+            However, return 1, meaning a success memory growth would lead to imbalance stack, which reason is unclear yet
+            I have to return 0 to indicate the memory growth is forbidden
+            '''
+            # TODO better emulate this function
             state.symbolic_stack.append(BitVecVal(0, 32))
             manually_constructed = True
         elif self.name == 'puts':
@@ -300,7 +307,8 @@ class CPredefinedFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             manually_constructed = True
         elif self.name == 'memcmp':
-            length, str2_p, str1_p = param_list[0].as_long(), param_list[1].as_long(), param_list[2].as_long()
+            length, str2_p, str1_p = param_list[0].as_long(
+            ), param_list[1].as_long(), param_list[2].as_long()
             str1 = C_extract_string_by_mem_pointer(
                 str1_p, data_section, state.symbolic_memory)
             str2 = C_extract_string_by_mem_pointer(
