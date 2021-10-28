@@ -129,6 +129,60 @@ void test_alloc()
     free(str);
 }
 
+void test_memset()
+{
+    char str[50];
+
+    strcpy(str, "This is string.h library function");
+    puts(str);
+
+    memset(str, '$', 7);
+    puts(str);
+}
+
+void test_memcpy()
+{
+    const char src[50] = "http://www.tutorialspoint.com";
+    char dest[50];
+    strcpy(dest, "Heloooo!!");
+    printf("%s\n", dest);
+    memcpy(dest, src, strlen(src) + 1);
+    printf("%s\n", dest);
+}
+
+void test_memcmp()
+{
+    char str1[15];
+    char str2[15];
+    int ret;
+
+    memcpy(str1, "abcdef", 6);
+    memcpy(str2, "ABCDEF", 6);
+
+    ret = memcmp(str1, str2, 5);
+
+    if (ret > 0)
+    {
+        printf("str2 is less than str1");
+    }
+    else if (ret < 0)
+    {
+        printf("str1 is less than str2");
+    }
+    else
+    {
+        printf("str1 is equal to str2");
+    }
+}
+
+void test_memmove()
+{
+    char str[] = "1234567890";
+    puts(str);
+    memmove(str + 4, str + 3, 3); // copy from [4,5,6] to [5,6,7]
+    puts(str);
+}
+
 int main(void)
 {
     test_strcmp();
@@ -138,6 +192,10 @@ int main(void)
     test_char();
     test_strn_funcs();
     test_alloc();
+    test_memset();
+    test_memcpy();
+    test_memcmp();
+    test_memmove();
 
     return 0;
 }

@@ -280,6 +280,38 @@ class CPredefinedFunction:
         elif self.name == 'emscripten_resize_heap':
             state.symbolic_stack.append(BitVecVal(0, 32))
             manually_constructed = True
+        elif self.name == 'puts':
+            mem_pointer = param_list[0].as_long()
+            the_string = str(C_extract_string_by_mem_pointer(
+                mem_pointer, data_section, state.symbolic_memory))
+            logging.warning("%s\n", the_string)
+        elif self.name == '__memcpy':
+            length, src, dest = param_list[0].as_long(
+            ), param_list[1].as_long(), param_list[2].as_long()
+
+            # lookup the raw data
+            raw_src_data = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, src, length)
+            # insert the raw data into the memory
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, dest, length, raw_src_data)
+
+            # indicating the memcpy is successful
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            manually_constructed = True
+        elif self.name == 'memcmp':
+            length, str2_p, str1_p = param_list[0].as_long(), param_list[1].as_long(), param_list[2].as_long()
+            str1 = C_extract_string_by_mem_pointer(
+                str1_p, data_section, state.symbolic_memory)
+            str2 = C_extract_string_by_mem_pointer(
+                str2_p, data_section, state.symbolic_memory)
+
+            # if both str1 and str2 are string literal
+            if isinstance(str1, str) and isinstance(str2, str):
+                str1, str2 = str1[:length], str2[:length]
+                ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
+                state.symbolic_stack.append(BitVecVal(ret, 32))
+                manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
