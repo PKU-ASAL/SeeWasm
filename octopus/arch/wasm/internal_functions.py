@@ -1,7 +1,7 @@
 # These functions are predefined and we will emulate their behaviors
 
 from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
-from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer, parse_printf_formatting
+from octopus.arch.wasm.helper_c import C_extract_string_by_mem_pointer, parse_printf_formatting
 from octopus.arch.wasm.utils import getConcreteBitVec, Enable_Lasers, bcolors, Configuration, bin_to_float, C_TYPE_TO_LENGTH
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
@@ -71,54 +71,49 @@ class CPredefinedFunction:
 
             logging.warning("%s\n", the_string)
         elif self.name == 'scanf':
-            mem_pointer = param_list[0].as_long() if is_bv_value(
-                param_list[0]) else param_list[0]
-            start_pointer = param_list[1].as_long() if is_bv_value(
-                param_list[1]) else param_list[1]
+            param_p, pattern_p = param_list[0].as_long(
+            ), param_list[1].as_long()
 
             # parse the scanf's argument's type
             # get addr of vararg 0.
-            addr = decode_vararg(state, mem_pointer, 0)
+            addr = decode_vararg(state, param_p, 0)
             var_type, var_size = decode_var_type(analyzer, state, addr)
 
-            pattern, loaded_data = C_extract_string_by_start_pointer(start_pointer, 0, data_section,
-                                                                     state.symbolic_memory)
+            pattern = C_extract_string_by_mem_pointer(
+                pattern_p, data_section, state.symbolic_memory)
 
             # in scanf, the loaded_data is the pattern string, like '%d %d'
-            pattern_list = loaded_data.split()
-            pattern_list = [i.strip() for i in pattern_list]
+            parsed_pattern = parse_printf_formatting(pattern)
 
-            for i, pattern_str in enumerate(pattern_list):
-                if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
-                    # as the basic unit in wasm is i32.load
-                    target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
-                                                                mem_pointer, 4)
-                    if is_bv_value(target_mem_pointer):
-                        target_mem_pointer = target_mem_pointer.as_long()
-                    # TODO recheck here
-                    # move to the next position where the new variable should be inserted
-                    mem_pointer += 4
+            i = 0
+            while i < len(parsed_pattern):
+                index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
 
-                    inserted_variable = BitVec(
-                        f"variable{str(i)}_{state.current_func_name}", 32)
-                    state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, target_mem_pointer, 4, inserted_variable)
-                    logging.warning(
-                        f"================Initiated an scanf integer: variable{str(i)}_{state.current_func_name}!=================\n")
-                elif pattern_str == '%s':
-                    # as the basic unit in wasm is i32.load
-                    target_mem_pointer = lookup_symbolic_memory(state.symbolic_memory, data_section,
-                                                                mem_pointer, 4).as_long()
-                    # mem_pointer += 4
-
-                    # insert an 'abc\x00', little endian: 6513249
-                    # big endian: 1633837824
-                    state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, target_mem_pointer, 4,
-                                                                   BitVecVal(6513249, 32))
-                    logging.warning(
-                        "================Initiated an scanf string: abc=================\n")
+                middle_p = lookup_symbolic_memory(
+                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
+                    tmp_data = str(middle_p)
                 else:
-                    exit("$scanf error")
+                    middle_p = middle_p.as_long()
+                    if cur_pattern[-1] == 's':
+                        # TODO we insert a `abc` here, maybe we should insert a symbol
+                        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, middle_p, 4,
+                                                                       BitVecVal(6513249, 32))
+                        logging.warning(
+                            "================Initiated an scanf string: abc=================\n")
+                    elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                        inserted_variable = BitVec(
+                            f"variable{str(i)}_{state.current_func_name}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                        state.symbolic_memory = insert_symbolic_memory(
+                            state.symbolic_memory, middle_p, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
+                        logging.warning(
+                            f"================Initiated an scanf integer: variable{str(i)}_{state.current_func_name}!=================\n")
+                    else:
+                        exit("$scanf error")
+
+                param_p += C_TYPE_TO_LENGTH[cur_pattern[-1]]
+
+                i += 1
         elif self.name == 'strlen':
             mem_pointer = param_list[0].as_long()
             the_string = C_extract_string_by_mem_pointer(
@@ -147,8 +142,8 @@ class CPredefinedFunction:
             src, dest = param_list[0].as_long(), param_list[1].as_long()
 
             # extract the string according to the src pointer
-            src_string, _ = C_extract_string_by_start_pointer(
-                src, _, data_section, state.symbolic_memory)
+            src_string = C_extract_string_by_mem_pointer(
+                src, data_section, state.symbolic_memory)
             src_string_len = len(src_string) + 1  # the tailing \x00
 
             # enable the buffer overflow check
@@ -168,8 +163,9 @@ class CPredefinedFunction:
             ), param_list[1].as_long(), param_list[2].as_long()
 
             # extract the string according to the src pointer
-            src_string, _ = C_extract_string_by_start_pointer(
-                src, _, data_section, state.symbolic_memory)
+            src_string = C_extract_string_by_mem_pointer(
+                src, data_section, state.symbolic_memory)
+
             # if the length of src_string exceeds the required length
             # trunc it, or padding by \x00
             if len(src_string) >= length:
