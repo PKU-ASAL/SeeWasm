@@ -169,12 +169,7 @@ def decode_var_type(ana, state, addr_stack):
     Using function address in state to find related function DIE.
     returns type_die, variable_size
     """
-    func_ind = -1
-    for i, item in enumerate(ana.func_prototypes):
-        if item[0] == state.current_func_name:
-            func_ind = i
-            break
-    assert func_ind != -1, f"Cannot find the func index of func: {state.current_func_name}"
+    func_ind = get_func_index_from_state(ana, state)
     func_offset = state.instr.offset
     func_DIE = get_func_DIE(ana, func_ind, func_offset)
     if func_DIE == None:
@@ -202,6 +197,16 @@ def decode_var_type(ana, state, addr_stack):
                 if start <= delta and delta < start+size:
                     return type_die, size
     return None, None
+
+
+def get_func_index_from_state(ana, state):
+    func_ind = -1
+    for i, item in enumerate(ana.func_prototypes):
+        if item[0] == state.current_func_name:
+            func_ind = i
+            break
+    assert func_ind != -1, f"Cannot find the func index of func: {state.current_func_name}"
+    return func_ind
 
 
 def lpe_filename(line_program, file_index):
