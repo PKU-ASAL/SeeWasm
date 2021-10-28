@@ -4,7 +4,7 @@ from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
 from octopus.arch.wasm.utils import Enable_Lasers, Configuration
 from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
-from octopus.arch.wasm.dawrf_parser import get_source_location
+from octopus.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location
 from octopus.arch.wasm.utils import bcolors
 
 from z3 import *
@@ -100,8 +100,7 @@ class ArithmeticInstructions:
                     overflowed = overflow_laser.fire(
                         result, state.constraints, state.sign_mapping)
                     if overflowed:
-                        func_ind = int(
-                            state.current_func_name[state.current_func_name.find('func')+4:])
+                        func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         original_file, line_no, col_no = get_source_location(
                             analyzer, func_ind, func_offset)
@@ -110,8 +109,7 @@ class ArithmeticInstructions:
                 if div_zero_flag:
                     divzeroed = div_zero_laser.fire(result, state.constraints)
                     if divzeroed:
-                        func_ind = int(
-                            state.current_func_name[state.current_func_name.find('func')+4:])
+                        func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         original_file, line_no, col_no = get_source_location(
                             analyzer, func_ind, func_offset)
