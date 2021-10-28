@@ -1,9 +1,8 @@
 # These functions are predefined and we will emulate their behaviors
 
 from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
-from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer
-from octopus.arch.wasm.utils import getConcreteBitVec
-from octopus.arch.wasm.utils import Enable_Lasers, bcolors, Configuration
+from octopus.arch.wasm.helper_c import C_extract_string_by_start_pointer, C_extract_string_by_mem_pointer, parse_printf_formatting
+from octopus.arch.wasm.utils import getConcreteBitVec, Enable_Lasers, bcolors, Configuration, bin_to_float, C_TYPE_TO_LENGTH
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
 from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory
@@ -30,32 +29,46 @@ class CPredefinedFunction:
 
         if self.name == 'printf' or self.name == 'iprintf':
             # has to use as_long()
-            mem_pointer = param_list[0].as_long() if is_bv_value(
-                param_list[0]) else param_list[0]
-            start_pointer = param_list[1].as_long() if is_bv_value(
-                param_list[1]) else param_list[1]
+            param_p, pattern_p = param_list[0].as_long(
+            ), param_list[1].as_long()
 
-            pattern, loaded_data = C_extract_string_by_start_pointer(
-                start_pointer, mem_pointer, data_section, state.symbolic_memory)
-
-            pattern_list = pattern.split()
-            pattern_list = [i.strip() for i in pattern_list]
+            pattern = C_extract_string_by_mem_pointer(
+                pattern_p, data_section, state.symbolic_memory)
 
             the_string = ""
-            for pattern_str in pattern_list:
-                if pattern_str == '%d' or pattern_str == '%x' or pattern_str == '%u':
-                    the_string += str(loaded_data)
-                elif pattern_str == '%c':
-                    the_string += chr(loaded_data.as_long())
-                elif pattern_str == '%s':
-                    the_string += str(C_extract_string_by_mem_pointer(
-                        loaded_data.as_long(), data_section, state.symbolic_memory))
-                elif pattern == 'string_literal':  # return "string literal"
-                    the_string += str(loaded_data)
+            parsed_pattern = parse_printf_formatting(pattern)
+
+            i = 0
+            while i < len(parsed_pattern):
+                index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
+
+                middle_p = lookup_symbolic_memory(
+                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
+                    tmp_data = str(middle_p)
                 else:
-                    the_string += (str(pattern_str) + " ")
-            # elif isinstance(the_string, str) and the_string.isspace():
-            #     the_string = f"'{ord(the_string)}'"
+                    middle_p = middle_p.as_long()
+                    if cur_pattern[-1] == 's':
+                        tmp_data = str(C_extract_string_by_mem_pointer(
+                            middle_p, data_section, state.symbolic_memory))
+                    elif cur_pattern[-1] == 'c':
+                        tmp_data = chr(middle_p)
+                    elif cur_pattern[-1] == 'f':
+                        tmp_data = str(bin_to_float(bin(middle_p)))
+                    elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                        tmp_data = str(middle_p)
+
+                param_p += C_TYPE_TO_LENGTH[cur_pattern[-1]]
+
+                pattern = pattern[:index] + tmp_data + \
+                    pattern[index+len(cur_pattern):]
+                # update the following index
+                parsed_pattern = [
+                    [x[0], x[1] + len(tmp_data) - len(cur_pattern), x[2]] for x in parsed_pattern]
+                i += 1
+
+            the_string = pattern
+
             logging.warning("%s\n", the_string)
         elif self.name == 'scanf':
             mem_pointer = param_list[0].as_long() if is_bv_value(
