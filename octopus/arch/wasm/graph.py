@@ -124,6 +124,17 @@ class Graph:
     def traverse(self):
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
+            # final states of all feasible paths for the given program
+            print(
+                f'There are total {len(self.final_states[entry_func])} state(s):')
+            for i, final_state in enumerate(self.final_states[entry_func]):
+                s = Solver()
+                s.add(final_state.constraints)
+                s.check()
+                print(f'For state{i}, a set of possible input: {s.model()}')
+                # print(final_state.constraints)
+                print()
+            # print(self.final_states[entry_func])
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):

@@ -1,6 +1,6 @@
 # These functions are predefined and we will emulate their behaviors
 
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location
+from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location, get_func_index_from_state
 from octopus.arch.wasm.helper_c import C_extract_string_by_mem_pointer, parse_printf_formatting
 from octopus.arch.wasm.utils import getConcreteBitVec, Enable_Lasers, bcolors, Configuration, bin_to_float, C_TYPE_TO_LENGTH
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
@@ -102,8 +102,12 @@ class CPredefinedFunction:
                         logging.warning(
                             "================Initiated an scanf string: abc=================\n")
                     elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                        func_ind = get_func_index_from_state(analyzer, state)
+                        func_offset = state.instr.offset
+                        original_file, line_no, col_no = get_source_location(
+                            analyzer, func_ind, func_offset)
                         inserted_variable = BitVec(
-                            f"variable{str(i)}_{state.current_func_name}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                            f"scanf_{original_file}_{line_no}_{col_no}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                         state.symbolic_memory = insert_symbolic_memory(
                             state.symbolic_memory, middle_p, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
                         logging.warning(
