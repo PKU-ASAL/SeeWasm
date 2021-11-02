@@ -40,7 +40,7 @@ class Graph:
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
-    _loop_maximum_rounds = 10
+    _loop_maximum_rounds = 20
     _wasmVM = None
     manual_guide = False
 

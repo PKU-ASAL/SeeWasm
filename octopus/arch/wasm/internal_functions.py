@@ -335,6 +335,7 @@ class GoPredefinedFunction:
                                                                simplify(Extract(63, 0, BitVecVal(0, 64))))
             headPtr = simplify(heapStart + BitVecVal(thisAlloc_v << 4, 32))
             state.symbolic_stack.append(headPtr)
+            print(headPtr, sz, heapStart, thisAlloc)
             manually_constructed = True
         elif self.name == 'memcpy':
             length, src, dest = param_list[0], param_list[1], param_list[2]
@@ -376,6 +377,17 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.putchar':
             ch = param_list[0]
             print(chr(ch.as_long()), end='')
+        elif self.name == 'fmt.Fscanf':
+            print(param_list)
+            print(state)
+            addr1, addr2 = param_list[0], param_list[1]
+            val1 = lookup_symbolic_memory(state.symbolic_memory, data_section, addr1.as_long(), 4)
+            val2 = lookup_symbolic_memory(state.symbolic_memory, data_section, addr2.as_long(), 4)
+            print(val1, val2)
+            raise ValueError
+
+        else:
+            print(param_list)
 
         if not manually_constructed and return_str:
             tmp_bitvec = getConcreteBitVec(return_str,

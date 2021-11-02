@@ -20,7 +20,7 @@ TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 NEED_STEP_IN = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
                 '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
                 '_*fmt.buffer_.writeString', '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
-                '_syscall/js.Value_.isNumber', 'syscall/js.makeValue',
+                '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', # 'fmt.Fscanf',
                 '_*sync.Pool_.Get', 'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
 
 
