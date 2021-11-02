@@ -10,21 +10,23 @@ from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefin
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
+# TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
-                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'malloc', 'calloc', 'free', 'realloc', 'abs', 'memset', 'memcpy', 'memcmp', 'memmove', 'strncpy', 'strncat', 'strtok'}
-# 'abs', 'calloc', 'ceil', 'exp', 'floor', 'free', 'getchar', 'iprintf', 'malloc', 'memcmp', 'memcpy', 'memmove', 'memset', 'printf', 'putchar', 'realloc', 'scanf', 'sqrt', 'strcat', 'strchr', 'strcmp', 'strcpy', 'strlen', 'strncat', 'strncpy', 'strstr', 'strtok', 'swap'
+                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'memcmp', 'strncpy', 'strncat', 'emscripten_resize_heap', 'puts', '__memcpy'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
                     'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', '_os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 # below functions are not regarded as library function, need step in
-NEED_STEP_IN = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
-                '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
-                '_*fmt.buffer_.writeString', '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
-                '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', # 'fmt.Fscanf',
-                '_*sync.Pool_.Get', 'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
-
+NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
+                   '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
+                   '_*fmt.buffer_.writeString', '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
+                   '_syscall/js.Value_.isNumber', 'syscall/js.makeValue',
+                   '_*sync.Pool_.Get', 'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
+NEED_STEP_IN_C = {}
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
+
+
 def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS))
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
 
@@ -161,13 +163,13 @@ class ControlInstructions:
 
             new_states = []
             # if the callee is a library function
-            if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN:
+            if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN_C:
                 logging.warning(
                     f"Invoked a C library function: {readable_name}")
                 func = CPredefinedFunction(
                     readable_name, state.current_func_name)
                 func.emul(state, param_str, return_str, data_section, analyzer)
-            elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN:
+            elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(readable_name) and readable_name not in NEED_STEP_IN_GO:
                 logging.warning(
                     f"Invoked a Go library function: {readable_name}")
                 func = GoPredefinedFunction(
@@ -182,6 +184,8 @@ class ControlInstructions:
                 # 1. the param_str is empty [Doing]
                 # 2. the params are all non-symbol [TODO]
                 # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
+                logging.warning(
+                    f"Invoked: {readable_name} ")
                 if param_str == "":
                     pass
 

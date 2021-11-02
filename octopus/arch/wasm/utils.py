@@ -1,5 +1,7 @@
 # This file gives some practical functions that will be adopted by other files
 
+from codecs import decode
+import struct
 from z3 import *
 import re
 from enum import Enum
@@ -184,3 +186,22 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
                 f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
 
     return concerned_variable
+
+
+def bin_to_float(b):
+    """ Convert binary string to a float. """
+    bf = int_to_bytes(int(b, 2), 8)  # 8 bytes needed for IEEE 754 binary64.
+    return struct.unpack('>d', bf)[0]
+
+
+def int_to_bytes(n, length):  # Helper function
+    """ Int/long to byte string.
+
+        Python 3.2+ has a built-in int.to_bytes() method that could be used
+        instead, but the following works in earlier versions including 2.x.
+    """
+    return decode('%%0%dx' % (length << 1) % n, 'hex')[-length:]
+
+
+# the patterns used in C printf, and their corresponding length of to be loaded memory
+C_TYPE_TO_LENGTH = {'s': 4, 'c': 4, 'd': 4, 'u': 4, 'x': 4, 'f': 8}

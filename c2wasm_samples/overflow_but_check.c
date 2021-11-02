@@ -5,7 +5,7 @@ int add_one(num)
 {
     // overflow here
     unsigned int num_one = num + 1;
-    printf("%x", num_one);
+    printf("%u", num_one);
 
     assert(num_one <= num);
 
@@ -15,7 +15,7 @@ int add_one(num)
 int add_two_variable(a, b)
 {
     unsigned int c = a + b;
-    printf("%x", c);
+    printf("%u", c);
 
     assert(c <= a && c <= b);
 
@@ -25,12 +25,12 @@ int add_two_variable(a, b)
 int main(void)
 {
     unsigned int num = 0xffffffff;
-    printf("%x", num);
+    printf("%u", num);
     add_one(num);
 
     unsigned int a = 0xfffffff0;
     unsigned int b;
-    scanf("%x", &b);
+    scanf("%u", &b);
     add_two_variable(a, b);
 
     return 0;

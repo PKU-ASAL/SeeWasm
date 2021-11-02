@@ -521,8 +521,7 @@ class WasmModuleAnalyzer(object):
                 # calculate first instruction offset of functions
                 vec_code_len_dict = cur_sec_data.payload.get_decoder_meta()[
                     'lengths']
-                func_offset = len_dict['id'] + \
-                    len_dict['payload_len'] + vec_code_len_dict['count']
+                func_offset = vec_code_len_dict['count']
                 functions = cur_sec_data.payload.bodies
                 for function in functions:
                     function_len_dict = function.get_decoder_meta()['lengths']
