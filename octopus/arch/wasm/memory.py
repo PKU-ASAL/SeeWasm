@@ -127,8 +127,8 @@ def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
     if not is_existed:
         # TODO uninitiated memory access?
         # Since Tinygo will memset all memory to zero at the initial, any address will be zero
-        return BitVecVal(0, 32)
-        return BitVec(f'load*({dest})', 8*length)
+        return BitVecVal(0, 8*length)
+        # return BitVec(f'load*({dest})', 8*length)
 
     overlapped_start, overlapped_end = calc_overlap(
         existed_start, existed_end, dest, length)

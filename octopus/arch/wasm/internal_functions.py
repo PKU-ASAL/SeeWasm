@@ -27,7 +27,7 @@ class CPredefinedFunction:
             for _ in range(num_arg):
                 param_list.append(state.symbolic_stack.pop())
 
-        if self.name == 'printf' or self.name == 'iprintf':
+        if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
             # has to use as_long()
             param_p, pattern_p = param_list[0].as_long(
             ), param_list[1].as_long()
@@ -77,7 +77,9 @@ class CPredefinedFunction:
             # parse the scanf's argument's type
             # get addr of vararg 0.
             addr = decode_vararg(state, param_p, 0)
-            var_type, var_size = decode_var_type(analyzer, state, addr)
+
+            # TODO disable dwarf temporarily
+            # var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state.symbolic_memory)
@@ -107,7 +109,7 @@ class CPredefinedFunction:
                         original_file, line_no, col_no = get_source_location(
                             analyzer, func_ind, func_offset)
                         inserted_variable = BitVec(
-                            f"scanf_{original_file}_{line_no}_{col_no}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                         state.symbolic_memory = insert_symbolic_memory(
                             state.symbolic_memory, middle_p, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
                         logging.warning(
@@ -162,6 +164,8 @@ class CPredefinedFunction:
 
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
+            state.symbolic_stack.append(param_list[1])
+            manually_constructed = True
         elif self.name == 'strncpy':
             length, src, dest = param_list[0].as_long(
             ), param_list[1].as_long(), param_list[2].as_long()
@@ -183,6 +187,8 @@ class CPredefinedFunction:
 
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, length, BitVecVal(little_endian_num, 8*length))
+            state.symbolic_stack.append(param_list[1])
+            manually_constructed = True
         elif self.name == 'strcat':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
 
@@ -205,6 +211,8 @@ class CPredefinedFunction:
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+            state.symbolic_stack.append(param_list[1])
+            manually_constructed = True
         elif self.name == 'strncat':
             length, src, dest = param_list[0].as_long(
             ), param_list[1].as_long(), param_list[2].as_long()
@@ -228,6 +236,8 @@ class CPredefinedFunction:
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+            state.symbolic_stack.append(param_list[1])
+            manually_constructed = True
         elif self.name == 'strcmp':
             str2_p, str1_p = param_list[0].as_long(), param_list[1].as_long()
             str1 = C_extract_string_by_mem_pointer(
@@ -282,8 +292,12 @@ class CPredefinedFunction:
             state.symbolic_stack.append(ret)
             manually_constructed = True
         elif self.name == 'putchar':
-            the_char = param_list[0]
-            logging.warning("%s\n", the_char)
+            if isinstance(param_list[0], BitVecNumRef):
+                the_char = param_list[0].as_long()
+                logging.warning("%s\n", chr(the_char))
+            else:
+                the_char = param_list[0]
+                logging.warning("%s\n", the_char)
         elif self.name == 'abs':
             candidate_num = param_list[0]
             abs_num = simplify(
