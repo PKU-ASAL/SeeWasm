@@ -1,0 +1,3 @@
+[submodule "Wasm-samples"]
+	path = Wasm-samples
+	url = https://github.com/HNYuuu/Wasm-samples.git
