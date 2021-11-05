@@ -7,7 +7,7 @@ import sh
 from collections import defaultdict
 
 
-testcase_dir = './c2wasm_samples/emcc-binaryen'
+testcase_dir = './Wasm-samples/c_samples.nosync/emcc-binaryen'
 cmd_lists = []
 
 candidates = []
