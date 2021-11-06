@@ -7,7 +7,7 @@ import sh
 from collections import defaultdict
 
 
-testcase_dir = './Wasm-samples/c_samples.nosync/emcc-binaryen'
+testcase_dir = '../Wasm-samples/c_samples.nosync/emcc-binaryen'
 cmd_lists = []
 
 candidates = []
@@ -28,7 +28,7 @@ for case in candidates:
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('python3.6')
+python_cmd = sh.Command('python3.7')
 for i, cmd in enumerate(cmd_lists):
     try:
         print('Case: ', candidates[i])

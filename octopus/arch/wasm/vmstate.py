@@ -3,14 +3,14 @@
 from octopus.engine.engine import VMstate
 
 from collections import defaultdict
-
+from z3 import *
 
 class WasmVMstate(VMstate):
     def __init__(self):
         # data structure:
         self.symbolic_stack = []
         self.symbolic_memory = {}
-        self.local_var = {}
+        self.local_var = defaultdict(lambda : BitVecVal(0, 32))
         self.globals = {}
         self.constraints = []
 

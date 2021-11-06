@@ -20,7 +20,8 @@ class VariableInstructions:
             if state.local_var.get(op, None) != None:
                 state.symbolic_stack.append(state.local_var[op])
             else:
-                raise UninitializedLocalVariableError
+                state.symbolic_stack.append(state.local_var[op])
+                # raise UninitializedLocalVariableError
         elif self.instr_name == 'set_local':
             var = state.symbolic_stack.pop()
             state.local_var[op] = var

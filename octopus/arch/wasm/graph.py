@@ -95,6 +95,7 @@ class Graph:
         edges = sorted(edges, key=lambda x: (
             x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
         type_ids = defaultdict(lambda: defaultdict(int))
+        type_rev_ids = defaultdict(lambda : defaultdict(int))
         for edge in edges:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
@@ -106,8 +107,10 @@ class Graph:
             else:
                 numbered_edge_type = edge_type
             cls.bbs_graph[node_from][numbered_edge_type] = node_to
-            cls.rev_bbs_graph[node_to][numbered_edge_type] = node_from
+            numbered_rev_edge_type = edge_type + '_' + str(type_rev_ids[node_to][edge_type])
+            cls.rev_bbs_graph[node_to][numbered_rev_edge_type] = node_from
             type_ids[node_from][edge_type] += 1
+            type_rev_ids[node_to][edge_type] += 1
 
         # goal 1: append those single node into the bbs_graph
         # goal 2: initialize bb_to_instructions
@@ -190,7 +193,6 @@ class Graph:
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         vis = defaultdict(int)
         heads = {v: head for head in intervals for v in intervals[head]}
-        # cls.extract_edges(entry)
         heads['return'] = 'return'
         _, final_states = cls.visit_interval(
             [state], has_ret, entry, heads, vis, cls.manual_guide, "return")
@@ -340,7 +342,7 @@ class Graph:
         return intervals
 
     @classmethod
-    def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None, lim=True):
+    def visit_interval(cls, states, has_ret, blk, heads, vis, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         vis[prev] = True
         # `cnt` is the traversed times
@@ -351,7 +353,7 @@ class Graph:
         while que:
             state, current_block = que.popleft()
             succs_list = cls.bbs_graph[current_block].items()
-            if len(succs_list) >= 2 and lim:  # this part should be encapsulated into a method
+            if len(succs_list) >= 2:  # this part should be encapsulated into a method
                 for br_dest_pair in succs_list:
                     if weights[br_dest_pair] == 0:
                         # put weights on edges, which could be move to preprocessing part
@@ -363,7 +365,7 @@ class Graph:
             # two intervals, use DFS to traverse between intervals
             if blk != heads[current_block]:
                 new_response_to, ret_states = cls.visit_interval(
-                    state, has_ret, current_block, heads, vis, guided, blk, lim)
+                    state, has_ret, current_block, heads, vis, guided, blk)
                 succs_list = set().union(*[new_response_to[v]
                                            for v in new_response_to if heads[v] == blk])
                 emul_states = defaultdict(list)
@@ -384,7 +386,7 @@ class Graph:
                 final_states["return"].extend(emul_states)
                 continue
             succs_list = set(filter(lambda p: (heads[p[1]] == blk or heads[current_block] == blk) and (
-                weights[p] == 0 or cnt[p] < weights[p] or not lim), succs_list))
+                weights[p] == 0 or cnt[p] < weights[p]), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
                 emul_states = emul_states[next_block] if isinstance(
