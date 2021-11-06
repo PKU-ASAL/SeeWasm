@@ -12,7 +12,7 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
-                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'memcmp', 'strncpy', 'strncat', 'emscripten_resize_heap', 'puts', '__memcpy'}
+                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'memcmp', 'strncpy', 'strncat', 'emscripten_resize_heap', 'puts', '__memcpy', '__small_printf'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
                     'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', '_os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}

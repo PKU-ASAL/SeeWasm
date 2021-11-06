@@ -18,7 +18,7 @@ class ParametricInstructions:
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
             assert is_bv(arg0) or is_bool(
                 arg0), f"in select, arg0 type is {type(arg0)} instead of bv or bool"
-            if is_bv(arg0):
+            if isinstance(arg0, BitVecNumRef):
                 arg0 = arg0.as_long()
                 state.symbolic_stack.append(arg1 if arg0 == 0 else arg2)
                 return False, [state]
