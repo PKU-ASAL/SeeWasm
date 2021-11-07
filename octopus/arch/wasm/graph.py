@@ -3,6 +3,8 @@ import logging
 
 from z3 import *
 from collections import defaultdict, deque
+from functools import partialmethod, partial
+from queue import SimpleQueue, PriorityQueue, LifoQueue
 from octopus.arch.wasm.utils import ask_user_input, bcolors, Configuration
 
 
@@ -134,10 +136,7 @@ class Graph:
                 s = Solver()
                 s.add(final_state.constraints)
                 s.check()
-                print(f'For state{i}, a set of possible input: {s.model()}')
-                # print(final_state.constraints)
-                print()
-            # print(self.final_states[entry_func])
+                print(f'For state{i}, a set of possible input: {s.model()}', end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
@@ -192,9 +191,12 @@ class Graph:
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
+        scores = defaultdict(int)
+        scores['block_1_5f'] = 1
+        score_func = partial(cls.priority_score, scores=scores)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
-            [state], has_ret, entry, heads, cls.manual_guide, "return")
+            [state], has_ret, entry, heads, score_func, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
@@ -341,16 +343,24 @@ class Graph:
         return intervals
 
     @classmethod
-    def visit_interval(cls, states, has_ret, blk, heads, guided=False, prev=None):
+    def priority_score(cls, data_item, scores):
+        states, blk, head = data_item
+        return scores[blk]
+
+    @classmethod
+    def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         # `cnt` is the traversed times
         # `weights` is the upper bound of how many times the edge can be traversed
         vis = deque([prev])
         cnt, weights = defaultdict(lambda : defaultdict(int)), defaultdict(lambda : defaultdict(int))
-        que = deque([(states, blk, blk, vis, cnt, weights)])
+        que = PriorityQueue()
+        que.put((score_func((states, blk, blk)), (states, blk, blk, vis, cnt, weights)))
+        # que = deque([(0, (states, blk, blk, vis, cnt, weights))])
         final_states = defaultdict(list)
-        while que:
-            state, current_block, cur_head, vis, cnt, weights = que.popleft()
+        while not que.empty():
+            # score, (state, current_block, cur_head, vis, cnt, weights) = que.popleft()
+            score, (state, current_block, cur_head, vis, cnt, weights) = que.get()
             succs_list = cls.bbs_graph[current_block].items()
             if len(succs_list) >= 2:  # this part should be encapsulated into a method
                 for br_dest_pair in succs_list:
@@ -364,7 +374,8 @@ class Graph:
             # two intervals, use DFS to traverse between intervals
             if cur_head != heads[current_block]:
                 vis.append(cur_head)
-                que.append((state, current_block, current_block, vis, cnt, weights))
+                # que.append((score, (state, current_block, current_block, vis, cnt, weights)))
+                que.put((score, (state, current_block, current_block, vis, cnt, weights)))
                 continue
             # current block is still in the same interval, emulate it directly
             else:
@@ -419,6 +430,7 @@ class Graph:
                 avail_br = {br_idx: [state_item]}
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
+                new_score = score_func((valid_state, next_block, heads[next_block]))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
                     while new_vis:
@@ -427,8 +439,10 @@ class Graph:
                             break
                         cnt.pop(h)
                         weights.pop(h)
-                    que.append((valid_state, next_block, heads[next_block], new_vis, cnt, weights))
+                    # que.append((new_score, (valid_state, next_block, heads[next_block], new_vis, cnt, weights)))
+                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, cnt, weights)))
                 else:
                     cnt[cur_head][br] += 1
-                    que.append((valid_state, next_block, cur_head, vis, cnt, weights))
+                    # que.append((new_score, (valid_state, next_block, cur_head, vis, cnt, weights)))
+                    que.put((new_score, (valid_state, next_block, cur_head, vis, cnt, weights)))
         return final_states

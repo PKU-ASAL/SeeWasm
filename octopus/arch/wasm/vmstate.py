@@ -31,3 +31,6 @@ Constraints:\t{self.constraints}\n'''
 
     def details(self):
         raise NotImplementedError
+
+    def __lt__(self, other):
+        return False
