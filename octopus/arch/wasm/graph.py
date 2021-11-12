@@ -42,7 +42,7 @@ class Graph:
     _bb_to_instructions = {}
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
-    _loop_maximum_rounds = 5
+    _loop_maximum_rounds = 25
     _wasmVM = None
     manual_guide = False
 
@@ -136,7 +136,7 @@ class Graph:
                 s = Solver()
                 s.add(final_state.constraints)
                 s.check()
-                print(f'For state{i}, a set of possible input: {s.model()}', end='\n', flush=True)
+                print(f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
@@ -192,7 +192,7 @@ class Graph:
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
         scores = defaultdict(int)
-        scores['block_1_5f'] = 1
+        cls.extract_edges(entry)
         score_func = partial(cls.priority_score, scores=scores)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
@@ -353,7 +353,7 @@ class Graph:
         # `cnt` is the traversed times
         # `weights` is the upper bound of how many times the edge can be traversed
         vis = deque([prev])
-        cnt, weights = defaultdict(lambda : defaultdict(int)), defaultdict(lambda : defaultdict(int))
+        cnt, weights = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
         que = PriorityQueue()
         que.put((score_func((states, blk, blk)), (states, blk, blk, vis, cnt, weights)))
         # que = deque([(0, (states, blk, blk, vis, cnt, weights))])
@@ -373,9 +373,10 @@ class Graph:
                             weights[cur_head][br_dest_pair] = cls.loop_maximum_rounds
             # two intervals, use DFS to traverse between intervals
             if cur_head != heads[current_block]:
-                vis.append(cur_head)
+                new_vis = copy.deepcopy(vis)
+                new_vis.append(cur_head)
                 # que.append((score, (state, current_block, current_block, vis, cnt, weights)))
-                que.put((score, (state, current_block, current_block, vis, cnt, weights)))
+                que.put((score, (state, current_block, current_block, new_vis, cnt, weights)))
                 continue
             # current block is still in the same interval, emulate it directly
             else:
@@ -428,21 +429,32 @@ class Graph:
                         emul_states, isbr=False)  # 0 for state, is a flag
                 state_item = emul_states[state_index]
                 avail_br = {br_idx: [state_item]}
+
+            """
+            for br in avail_br:
+                (edge_type, next_block), valid_state = br, avail_br[br]
+                if heads[next_block] not in vis:
+                    cnt[cur_head][br] += 1
+            """
+
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
                 new_score = score_func((valid_state, next_block, heads[next_block]))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
+                    new_cnt = copy.deepcopy(cnt)
+                    new_w = copy.deepcopy(weights)
                     while new_vis:
                         h = new_vis.pop()
                         if h == heads[next_block]:
                             break
-                        cnt.pop(h)
-                        weights.pop(h)
-                    # que.append((new_score, (valid_state, next_block, heads[next_block], new_vis, cnt, weights)))
-                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, cnt, weights)))
+                        new_cnt.pop(h)
+                        new_w.pop(h)
+                    # que.append((new_score, (valid_state, next_block, heads[next_block], new_vis, new_cnt, new_w)))
+                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_cnt, new_w)))
                 else:
-                    cnt[cur_head][br] += 1
+                    new_cnt = copy.deepcopy(cnt)
+                    new_cnt[cur_head][br] += 1
                     # que.append((new_score, (valid_state, next_block, cur_head, vis, cnt, weights)))
-                    que.put((new_score, (valid_state, next_block, cur_head, vis, cnt, weights)))
+                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_cnt, weights)))
         return final_states

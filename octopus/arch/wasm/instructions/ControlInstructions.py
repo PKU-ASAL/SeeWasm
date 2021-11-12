@@ -107,7 +107,6 @@ class ControlInstructions:
                 state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 cond = simplify(op != 0)
-
             states['conditional_true_0'].constraints.append(cond)
             states['conditional_false_0'].constraints.append(
                 simplify(Not(cond)))

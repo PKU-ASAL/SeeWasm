@@ -38,6 +38,10 @@ def load_instr(instr, state, data_section):
     val = lookup_symbolic_memory(
         state.symbolic_memory, data_section, addr, load_length)
 
+    if val is None:
+        val = BitVec(f'load{load_length}*({addr})', 8*load_length)
+
+
     # cast to other type of bit vector
     float_mapping = {
         'f32': Float32,
