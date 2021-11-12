@@ -1,13 +1,23 @@
 import os
 import time
-from os import walk, path
+import sys
+from collections import defaultdict
+from os import path, walk
 
 import pytest
 import sh
-from collections import defaultdict
 
+user_assigned_path = str(sys.argv[1])
+assert user_assigned_path in {'e', 'b', 'o'}, f"you must enter the valid path"
 
-testcase_dir = '../Wasm-samples/c_samples.nosync/emcc-binaryen'
+helper_mapping = {
+    "e": "emcc",
+    "b": "emcc-binaryen",
+    "o": "emcc-O3",
+}
+
+user_assigned_path = helper_mapping[user_assigned_path]
+testcase_dir = f'./Wasm-samples/c_samples.nosync/{user_assigned_path}'
 cmd_lists = []
 
 candidates = []
@@ -15,9 +25,10 @@ for _, _, files in walk(testcase_dir):
     for file in files:
         if file.endswith('.wasm'):
             candidates.append(file[: -5])
+# we remove this as it would consume lots time
 candidates.remove('print_rhombic')
+# we remove this as it would lead to unbounded function call
 candidates.remove('collatz_manticore')
-candidates.remove('simple_rotate_array')
 
 candidates.sort()
 
@@ -28,7 +39,7 @@ for case in candidates:
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('python3.7')
+python_cmd = sh.Command('python3')
 for i, cmd in enumerate(cmd_lists):
     try:
         print('Case: ', candidates[i])

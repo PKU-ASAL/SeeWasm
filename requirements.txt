@@ -17,3 +17,7 @@ wasm==1.2
 
 # DWARF debug info
 pyelftools==0.27
+
+# for test.py
+pytest
+sh

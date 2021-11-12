@@ -7,18 +7,17 @@ import re
 
 from z3 import *
 
-import gvar
 from octopus.arch.wasm.cfg import WasmCFG
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
 from octopus.arch.wasm.helper_c import *
 from .instructions import *
-from octopus.arch.wasm.utils import getConcreteBitVec
+from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 from octopus.arch.wasm.memory import insert_symbolic_memory
 
 sys.setrecursionlimit(4096)
 
-if gvar.logging_level_verbose:
+if Configuration.get_verbose_flag():
     logging.basicConfig(level=logging.DEBUG)
 else:
     logging.basicConfig(level=logging.INFO)
