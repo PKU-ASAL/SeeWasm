@@ -8,7 +8,6 @@ from octopus.arch.wasm.utils import Configuration
 
 import argparse
 import sys
-import gvar
 
 sys.setrecursionlimit(4096)
 
@@ -125,8 +124,7 @@ def main():
     func_index2func_name = None
 
     # the verbose
-    if args.verbose:
-        gvar.logging_level_verbose = True
+    Configuration.set_verbose_flag(args.verbose)
 
     # process input file
     if args.file:

@@ -17,6 +17,7 @@ class Configuration:
     _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
     _algo = 'dfs'       # the traverse algorithm, default is dfs, we also have 'interval'
     _concrete_globals = False   # init the global with the declaration in global sections
+    _verbose_flag = False    # if user set -v flag, the debugging info would be printed
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -54,6 +55,14 @@ class Configuration:
     @staticmethod
     def get_concrete_globals():
         return Configuration._concrete_globals
+
+    @staticmethod
+    def set_verbose_flag(verbose_flag):
+        Configuration._verbose_flag = verbose_flag
+
+    @staticmethod
+    def get_verbose_flag():
+        return Configuration._verbose_flag
 
 
 class Enable_Lasers(Enum):
