@@ -4,20 +4,25 @@ from octopus.engine.engine import VMstate
 
 from collections import defaultdict
 from z3 import *
+from loky import wrap_non_picklable_objects
+
+
 
 class WasmVMstate(VMstate):
     def __init__(self):
         # data structure:
+        @wrap_non_picklable_objects
+        def local_default():
+            return BitVecVal(0, 32)
         self.symbolic_stack = []
         self.symbolic_memory = {}
-        self.local_var = defaultdict(lambda : BitVecVal(0, 32))
+        self.local_var = defaultdict(local_default)
         self.globals = {}
         self.constraints = []
-
         # instruction
-        self.instr = None
+        self.instr = "end"
         # current function name
-        self.current_func_name = None
+        self.current_func_name = 'none'
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
 
@@ -34,3 +39,6 @@ Constraints:\t{self.constraints}\n'''
 
     def __lt__(self, other):
         return False
+
+    def __getstate__(self):
+        return self.__dict__.copy()

@@ -5,7 +5,9 @@ from z3 import *
 from collections import defaultdict, deque
 from functools import partialmethod, partial
 from queue import SimpleQueue, PriorityQueue, LifoQueue
+from loky import wrap_non_picklable_objects
 from octopus.arch.wasm.utils import ask_user_input, bcolors, Configuration
+from joblib import Parallel, delayed
 
 
 class ClassPropertyDescriptor:
@@ -36,6 +38,8 @@ def classproperty(func):
         func = classmethod(func)
     return ClassPropertyDescriptor(func)
 
+def default_cnt():
+    return defaultdict(int)
 
 class Graph:
     _func_to_bbs = {}
@@ -43,12 +47,17 @@ class Graph:
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
     _loop_maximum_rounds = 25
+    _workers = 2
     _wasmVM = None
     manual_guide = False
 
     def __init__(self, funcs):
         self.entries = funcs
         self.final_states = {func: None for func in funcs}
+
+    @classproperty
+    def workers(cls):
+        return cls._workers
 
     @classproperty
     def loop_maximum_rounds(cls):
@@ -183,8 +192,16 @@ class Graph:
                 if (u, v) not in edges:
                     edges.add((u, v))
                     que.append(v)
+        nds = set()
         for edge in edges:
             print(edge[0], edge[1])
+            nds.add(edge[0])
+            nds.add(edge[1])
+        for nd in nds:
+            print(nd+':', end='')
+            for inst in cls.bb_to_instructions[nd]:
+                print(inst, end=' ')
+            print()
 
     @classmethod
     def algo_interval(cls, entry, state, has_ret, blks):
@@ -192,7 +209,7 @@ class Graph:
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
         scores = defaultdict(int)
-        cls.extract_edges(entry)
+        # cls.extract_edges(entry)
         score_func = partial(cls.priority_score, scores=scores)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
@@ -344,8 +361,8 @@ class Graph:
 
     @classmethod
     def priority_score(cls, data_item, scores):
-        states, blk, head = data_item
-        return scores[blk]
+        states, blk, head, cnt, weight = data_item
+        return weight[head]['block_1_59'] - cnt[head]['block_1_59']
 
     @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):
@@ -353,11 +370,127 @@ class Graph:
         # `cnt` is the traversed times
         # `weights` is the upper bound of how many times the edge can be traversed
         vis = deque([prev])
-        cnt, weights = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
+        cnt, weights = defaultdict(default_cnt), defaultdict(default_cnt)
         que = PriorityQueue()
-        que.put((score_func((states, blk, blk)), (states, blk, blk, vis, cnt, weights)))
-        # que = deque([(0, (states, blk, blk, vis, cnt, weights))])
+        #TODO:parallel sync_que = Queue()
+        score = score_func((states, blk, blk, cnt, weights))
+        que.put((score, (states, blk, blk, vis, cnt, weights)))
         final_states = defaultdict(list)
+        def producer():
+            """
+            TODO:parallel
+            while not que.empty():
+                score, (state, current_block, cur_head, vis, cnt, weights) = que.get()
+                sync_que.put((score, (state, current_block, cur_head, vis, cnt, weights)))
+            """
+            while not que.empty():
+                yield que.get()
+
+        @wrap_non_picklable_objects
+        def consumer(item):
+            score, (state, current_block, cur_head, vis, cnt, weights) = item
+            succs_list = cls.bbs_graph[current_block].items()
+            if len(succs_list) >= 2:  # this part should be encapsulated into a method
+                for br_dest_pair in succs_list:
+                    if weights[cur_head][br_dest_pair] == 0:
+                        # put weights on edges, which could be move to preprocessing part
+                        # for true branch, one more execution, because the loop needs to jump out
+                        if br_dest_pair[0] == 'conditional_true_0':
+                            weights[cur_head][br_dest_pair] = cls.loop_maximum_rounds + 1
+                        else:  # for false branch, do maximum rounds' execution
+                            weights[cur_head][br_dest_pair] = cls.loop_maximum_rounds
+            # two intervals, use DFS to traverse between intervals
+            if cur_head != heads[current_block]:
+                new_vis = copy.deepcopy(vis)
+                new_vis.append(cur_head)
+                # que.append((score, (state, current_block, current_block, vis, cnt, weights)))
+                que.put((score, (state, current_block, current_block, new_vis, cnt, weights)))
+                return []
+            # current block is still in the same interval, emulate it directly
+            else:
+                _, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, cls.bb_to_instructions[current_block])
+            if len(succs_list) == 0:
+                emul_states = emul_states[cur_head] if isinstance(
+                    emul_states, dict) else emul_states
+                # logging.warning([s.symbolic_stack for s in emul_states])
+                return emul_states
+            succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head) and (
+                    weights[cur_head][p] == 0 or cnt[cur_head][p] < weights[cur_head][p]), succs_list))
+            avail_br = {}
+            for edge_type, next_block in succs_list:
+                emul_states = emul_states[next_block] if isinstance(
+                    emul_states, dict) else emul_states
+                # TODO give a description here
+                valid_state = list(map(lambda s: s[edge_type] if isinstance(
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
+                if len(valid_state) > 0:
+                    avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
+            if guided:
+                print(
+                    f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
+                if len(avail_br) == 1:
+                    print(
+                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                    br_idx = ask_user_input(
+                        emul_states, isbr=True, onlyone=True, branches=avail_br)
+                else:
+                    print(
+                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
+                    print(
+                        f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
+                    br_idx = ask_user_input(
+                        emul_states, isbr=True, branches=avail_br)
+                emul_states = avail_br[br_idx]
+                print(
+                    f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
+                if len(emul_states) == 1:
+                    print(
+                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
+                    state_index = ask_user_input(
+                        emul_states, isbr=False, onlyone=True)
+                else:
+                    print(
+                        f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
+                    print(
+                        f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
+                    state_index = ask_user_input(
+                        emul_states, isbr=False)  # 0 for state, is a flag
+                state_item = emul_states[state_index]
+                avail_br = {br_idx: [state_item]}
+
+            for br in avail_br:
+                (edge_type, next_block), valid_state = br, avail_br[br]
+                new_score = score_func((valid_state, next_block, heads[next_block], cnt, weights))
+                if heads[next_block] in vis:
+                    new_vis = copy.deepcopy(vis)
+                    new_cnt = copy.deepcopy(cnt)
+                    new_w = copy.deepcopy(weights)
+                    while new_vis:
+                        h = new_vis.pop()
+                        if h == heads[next_block]:
+                            break
+                        new_cnt.pop(h)
+                        new_w.pop(h)
+                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_cnt, new_w)))
+                else:
+                    new_cnt = copy.deepcopy(cnt)
+                    new_cnt[cur_head][br] += 1
+                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_cnt, weights)))
+            return []
+        for item in producer():
+            final_states['return'].extend(consumer(item))
+        """
+        TODO:parallel
+        with Parallel(n_jobs=cls.workers, verbose=100) as parallel:
+            finals = []
+            while not que.empty():
+                res = parallel(delayed(consumer)(item) for item in producer())
+                finals.extend([item for r in res for item in r])
+            final_states['return'].extend(finals)
+        """
+        return final_states
+
+        """
         while not que.empty():
             # score, (state, current_block, cur_head, vis, cnt, weights) = que.popleft()
             score, (state, current_block, cur_head, vis, cnt, weights) = que.get()
@@ -384,6 +517,7 @@ class Graph:
             if len(succs_list) == 0:
                 emul_states = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
+                logging.warning([s.symbolic_stack for s in emul_states])
                 final_states["return"].extend(emul_states)
                 continue
             succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head) and (
@@ -430,16 +564,9 @@ class Graph:
                 state_item = emul_states[state_index]
                 avail_br = {br_idx: [state_item]}
 
-            """
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                if heads[next_block] not in vis:
-                    cnt[cur_head][br] += 1
-            """
-
-            for br in avail_br:
-                (edge_type, next_block), valid_state = br, avail_br[br]
-                new_score = score_func((valid_state, next_block, heads[next_block]))
+                new_score = score_func((valid_state, next_block, heads[next_block], cnt, weights))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
                     new_cnt = copy.deepcopy(cnt)
@@ -458,3 +585,4 @@ class Graph:
                     # que.append((new_score, (valid_state, next_block, cur_head, vis, cnt, weights)))
                     que.put((new_score, (valid_state, next_block, cur_head, vis, new_cnt, weights)))
         return final_states
+        """

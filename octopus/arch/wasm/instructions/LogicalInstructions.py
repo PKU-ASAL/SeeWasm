@@ -102,7 +102,7 @@ class LogicalInstructions:
             assert arg1.ebits() == helper_map[instr_type][0] and arg1.sbits(
             ) == helper_map[instr_type][1], 'emul_logical_f_instr arg1 type mismatch'
             assert arg2.ebits() == helper_map[instr_type][0] and arg2.sbits(
-            ) == helper_map[instr_type][0], 'emul_logical_f_instr arg2 type mismatch'
+            ) == helper_map[instr_type][1], 'emul_logical_f_instr arg2 type mismatch'
 
             if 'eq' in self.instr_name:
                 result = simplify(fpEQ(arg1, arg2))
