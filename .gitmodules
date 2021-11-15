@@ -1,3 +1,6 @@
 [submodule "Wasm-samples"]
 	path = Wasm-samples
 	url = https://github.com/HNYuuu/Wasm-samples.git
+[submodule "DSL"]
+	path = DSL
+	url = https://github.com/HNYuuu/DSL.git
