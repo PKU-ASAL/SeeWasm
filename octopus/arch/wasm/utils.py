@@ -1,12 +1,13 @@
 # This file gives some practical functions that will be adopted by other files
 
-from codecs import decode
-import struct
-from z3 import *
 import re
+import struct
+from codecs import decode
 from enum import Enum
 
-from . exceptions import *
+from z3 import *
+
+from .exceptions import *
 
 
 class Configuration:

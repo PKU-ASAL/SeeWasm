@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sh
-from os import path
 import json
+from os import path
+
+import sh
 
 from octopus.arch.wasm.graph import *
 from octopus.arch.wasm.utils import Configuration, extract_mapping
@@ -179,6 +180,7 @@ def main():
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
         Graph.extract_basic_blocks()
+        Graph.parse_dsl(user_dsl)
         if args.onlyfunc:
             graph = Graph(args.onlyfunc)
             graph.traverse()

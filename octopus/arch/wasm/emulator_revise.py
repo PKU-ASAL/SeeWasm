@@ -5,15 +5,13 @@ import copy
 import logging
 import re
 
-from z3 import *
-
 from octopus.arch.wasm.cfg import WasmCFG
+from octopus.arch.wasm.helper_c import *
+from octopus.arch.wasm.instructions import *
+from octopus.arch.wasm.utils import Configuration, getConcreteBitVec
 from octopus.arch.wasm.vmstate import WasmVMstate
 from octopus.engine.emulator import EmulatorEngine
-from octopus.arch.wasm.helper_c import *
-from .instructions import *
-from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
-from octopus.arch.wasm.memory import insert_symbolic_memory
+from z3 import *
 
 sys.setrecursionlimit(4096)
 
@@ -34,6 +32,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = self.cfg.analyzer
 
+        # be inited in `graph.py`
+        self.user_dsl = None
+
         # all the exports function's name
         self.exported_func_names = [i["field_str"]
                                     for i in self.ana.exports if i["kind"] == 0]
@@ -44,15 +45,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             data = data_section_value['data']
             offset = data_section_value['offset']
             size = data_section_value['size']
-            # print(offset, size, data)
-            if offset == '4':
-                exit("The offset of data section is 4, please check")
-                self.data_section[(offset, offset + size)] = BitVecVal(
-                    int.from_bytes(data, byteorder='little'), size * 8)
-            else:
-                # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
-                # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
-                self.data_section[(offset, offset + size)] = data
+
+            # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
+            # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
+            self.data_section[(offset, offset + size)] = data
+
         # func index to func real name
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name

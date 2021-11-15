@@ -1,13 +1,14 @@
 import copy
 import logging
-
-from z3 import *
+import re
 from collections import defaultdict, deque
-from functools import partialmethod, partial
-from queue import SimpleQueue, PriorityQueue, LifoQueue
-from loky import wrap_non_picklable_objects
-from octopus.arch.wasm.utils import ask_user_input, bcolors, Configuration
+from functools import partial, partialmethod
+from queue import LifoQueue, PriorityQueue, SimpleQueue
+
 from joblib import Parallel, delayed
+from loky import wrap_non_picklable_objects
+from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
+from z3 import *
 
 
 class ClassPropertyDescriptor:
@@ -38,8 +39,10 @@ def classproperty(func):
         func = classmethod(func)
     return ClassPropertyDescriptor(func)
 
+
 def default_cnt():
     return defaultdict(int)
+
 
 class Graph:
     _func_to_bbs = {}
@@ -50,6 +53,7 @@ class Graph:
     _workers = 2
     _wasmVM = None
     manual_guide = False
+    _user_dsl = None
 
     def __init__(self, funcs):
         self.entries = funcs
@@ -106,7 +110,7 @@ class Graph:
         edges = sorted(edges, key=lambda x: (
             x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
         type_ids = defaultdict(lambda: defaultdict(int))
-        type_rev_ids = defaultdict(lambda : defaultdict(int))
+        type_rev_ids = defaultdict(lambda: defaultdict(int))
         for edge in edges:
             # there are four types of edges:
             # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
@@ -118,7 +122,8 @@ class Graph:
             else:
                 numbered_edge_type = edge_type
             cls.bbs_graph[node_from][numbered_edge_type] = node_to
-            numbered_rev_edge_type = edge_type + '_' + str(type_rev_ids[node_to][edge_type])
+            numbered_rev_edge_type = edge_type + '_' + \
+                str(type_rev_ids[node_to][edge_type])
             cls.rev_bbs_graph[node_to][numbered_rev_edge_type] = node_from
             type_ids[node_from][edge_type] += 1
             type_rev_ids[node_to][edge_type] += 1
@@ -135,6 +140,51 @@ class Graph:
             cls.bb_to_instructions[bb_name] = bb.instructions
     # entry to analyze a file
 
+    @classmethod
+    def parse_dsl(cls, user_dsl):
+        """
+        This function is used to parse user-given dsl, i.e.,
+        extract relevant blocks and insert into the parsed json.
+        Specifically, we will add "blocks" key into each item,
+        it is a 2d array, as regex would match multiple funcs.
+        """
+
+        def _extract_blocks_by_funcname(target_func_name):
+            # TODO deal with nesting
+            target_blocks = cls.func_to_bbs.get(target_func_name, None)
+            if not target_blocks:
+                # if it cannot be accessed by name directly
+                for func_offset, func_name in cls.wasmVM.func_index2func_name.items():
+                    if target_func_name == func_name:
+                        # if func_name is target_func_name, extract the blocks
+                        target_blocks = cls.func_to_bbs["$func" +
+                                                        str(func_offset)]
+                        break
+            return target_blocks
+
+        for dsl_item in user_dsl:
+            dsl_item["blocks"] = list()
+            # if user use regex
+            scope_is_regex = dsl_item.get('regex', False)
+            if scope_is_regex:
+                target_func_name_re = dsl_item["scope"]
+                r = re.compile(target_func_name_re)
+                target_func_names = list(
+                    filter(r.match, cls.wasmVM.func_index2func_name.values()))
+                for target_func_name in target_func_names:
+                    target_blocks = _extract_blocks_by_funcname(
+                        target_func_name)
+                    if target_blocks:
+                        dsl_item["blocks"].append(target_blocks)
+            else:
+                target_func_name = dsl_item["scope"]
+                target_blocks = _extract_blocks_by_funcname(target_func_name)
+                if target_blocks:
+                    dsl_item["blocks"].append(target_blocks)
+
+        # store into wasmVM
+        cls.wasmVM.user_dsl = user_dsl
+
     def traverse(self):
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
@@ -145,7 +195,8 @@ class Graph:
                 s = Solver()
                 s.add(final_state.constraints)
                 s.check()
-                print(f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
+                print(
+                    f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
@@ -372,10 +423,11 @@ class Graph:
         vis = deque([prev])
         cnt, weights = defaultdict(default_cnt), defaultdict(default_cnt)
         que = PriorityQueue()
-        #TODO:parallel sync_que = Queue()
+        # TODO:parallel sync_que = Queue()
         score = score_func((states, blk, blk, cnt, weights))
         que.put((score, (states, blk, blk, vis, cnt, weights)))
         final_states = defaultdict(list)
+
         def producer():
             """
             TODO:parallel
@@ -404,18 +456,20 @@ class Graph:
                 new_vis = copy.deepcopy(vis)
                 new_vis.append(cur_head)
                 # que.append((score, (state, current_block, current_block, vis, cnt, weights)))
-                que.put((score, (state, current_block, current_block, new_vis, cnt, weights)))
+                que.put(
+                    (score, (state, current_block, current_block, new_vis, cnt, weights)))
                 return []
             # current block is still in the same interval, emulate it directly
             else:
-                _, emul_states = cls.wasmVM.emulate_basic_block(state, has_ret, cls.bb_to_instructions[current_block])
+                _, emul_states = cls.wasmVM.emulate_basic_block(
+                    state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
                 emul_states = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
                 # logging.warning([s.symbolic_stack for s in emul_states])
                 return emul_states
             succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head) and (
-                    weights[cur_head][p] == 0 or cnt[cur_head][p] < weights[cur_head][p]), succs_list))
+                weights[cur_head][p] == 0 or cnt[cur_head][p] < weights[cur_head][p]), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
                 emul_states = emul_states[next_block] if isinstance(
@@ -424,7 +478,8 @@ class Graph:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
                     s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
                 if len(valid_state) > 0:
-                    avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
+                    avail_br[(edge_type, next_block)
+                             ] = copy.deepcopy(valid_state)
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
@@ -460,7 +515,8 @@ class Graph:
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                new_score = score_func((valid_state, next_block, heads[next_block], cnt, weights))
+                new_score = score_func(
+                    (valid_state, next_block, heads[next_block], cnt, weights))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
                     new_cnt = copy.deepcopy(cnt)
@@ -471,11 +527,13 @@ class Graph:
                             break
                         new_cnt.pop(h)
                         new_w.pop(h)
-                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_cnt, new_w)))
+                    que.put((new_score, (valid_state, next_block,
+                            heads[next_block], new_vis, new_cnt, new_w)))
                 else:
                     new_cnt = copy.deepcopy(cnt)
                     new_cnt[cur_head][br] += 1
-                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_cnt, weights)))
+                    que.put((new_score, (valid_state, next_block,
+                            cur_head, vis, new_cnt, weights)))
             return []
         for item in producer():
             final_states['return'].extend(consumer(item))
