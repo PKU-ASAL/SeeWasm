@@ -1,8 +1,8 @@
 import os
-import time
 import sys
+import time
 from collections import defaultdict
-from os import path, walk
+from os import walk
 
 import pytest
 import sh
