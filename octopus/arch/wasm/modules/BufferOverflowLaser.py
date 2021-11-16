@@ -15,7 +15,12 @@ class BufferOverflowLaser:
         buffer_overflowed = False
 
         # the destination's type (should be array) and its corresponding size
-        _, var_size = decode_var_type(analyzer, state, dest)
+        # TODO better approach than using global stack pointer
+        _, var_size = decode_var_type(analyzer, state, dest, use_global_sp=True)
+        if var_size is None:
+            logging.warning(
+                f"{bcolors.WARNING}unable to decode variable type for address {hex(dest)}{bcolors.ENDC}")
+            return
 
         if the_string_len > var_size:
             logging.warning(
