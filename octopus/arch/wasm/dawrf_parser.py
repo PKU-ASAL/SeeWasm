@@ -5,12 +5,14 @@ import re
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser
 
+from octopus.arch.wasm.utils import bcolors
 from octopus.arch.wasm.memory import lookup_symbolic_memory
 
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
                        '.debug_str', '.debug_line', '.debug_frame',
                        '.debug_loc', '.debug_ranges', '.debug_pubtypes',
                        '.debug_pubnames', '.debug_addr', '.debug_str_offsets')
+EMSCRIPTEN_SP_GLOBAL_INDEX = 0
 
 
 def get_real_addr(ana, func_ind, func_offset):
@@ -163,27 +165,39 @@ def get_size_by_type(die):
         return 4
 
 
-def decode_var_type(ana, state, addr_stack):
+def decode_var_type(ana, state, addr_stack, use_global_sp=False):
     """
     Get variable die by stack address.
     Using function address in state to find related function DIE.
     returns type_die, variable_size
+
+    when use_global_sp=True, it implies that the module keeps a global stack pointer
+    in global 0 (__stack_pointer), and now it is executing this function's body (after
+    prologue which sets setting stack pointer).
+    TODO recursive search in caller frame and more robust decode algorithm
+    .. seealso:: https://github.com/emscripten-core/emscripten/blob/4d864df0a57024d667e8db171aab2c3385d04c30/system/lib/compiler-rt/stack_limits.S#L17
     """
     func_ind = get_func_index_from_state(ana, state)
     func_offset = state.instr.offset
     func_DIE = get_func_DIE(ana, func_ind, func_offset)
-    if func_DIE == None:
+    if func_DIE is None:
+        logging.warning(
+            f"{bcolors.WARNING}unable to get function DIE! index: {func_ind}, instruction offset in function: {func_offset}{bcolors.ENDC}")
         return None, None
-    fb_expr = func_DIE.attributes['DW_AT_frame_base'].value
-    fb_loc = parse_expr(ana.dwarf_info, fb_expr)
-    assert fb_loc[1].op_name == 'DW_OP_stack_value'
-    fb_loc = fb_loc[0]  # type: DWARFExprOp
-    if fb_loc.op_name == 'wasm-local':
-        fb_value = state.local_var[fb_loc.args[0]].as_long()
-    elif fb_loc.op_name == 'wasm-global':
-        fb_value = state.globals[fb_loc.args[0]].as_long()
-    else:  # operand stack
-        raise Exception("Unimplemented")
+    func_name = func_DIE.attributes['DW_AT_name'].value.decode()
+    if not use_global_sp:
+        fb_expr = func_DIE.attributes['DW_AT_frame_base'].value
+        fb_loc = parse_expr(ana.dwarf_info, fb_expr)
+        assert fb_loc[1].op_name == 'DW_OP_stack_value'
+        fb_loc = fb_loc[0]  # type: DWARFExprOp
+        if fb_loc.op_name == 'wasm-local':
+            fb_value = state.local_var[fb_loc.args[0]].as_long()
+        elif fb_loc.op_name == 'wasm-global':
+            fb_value = state.globals[fb_loc.args[0]].as_long()
+        else:  # operand stack
+            raise Exception("Unimplemented")
+    else:
+        fb_value = state.globals[EMSCRIPTEN_SP_GLOBAL_INDEX].as_long()
     delta = addr_stack - fb_value
     for die in func_DIE.iter_children():
         if die.tag == 'DW_TAG_variable':
@@ -196,6 +210,8 @@ def decode_var_type(ana, state, addr_stack):
                 size = get_size_by_type(type_die)
                 if start <= delta and delta < start+size:
                     return type_die, size
+    logging.warning(
+        f"{bcolors.WARNING}unable to decode variable type: function: {func_name}, offset: {delta}{bcolors.ENDC}")
     return None, None
 
 
