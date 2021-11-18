@@ -1,14 +1,21 @@
 # These functions are predefined and we will emulate their behaviors
 
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_source_location, get_func_index_from_state
-from octopus.arch.wasm.helper_c import C_extract_string_by_mem_pointer, parse_printf_formatting
-from octopus.arch.wasm.utils import getConcreteBitVec, Enable_Lasers, bcolors, Configuration, bin_to_float, C_TYPE_TO_LENGTH
-from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
-from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
-from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory, lookup_overlapped_symbolic_memory, calc_overlap
-from z3 import *
 import logging
 import math
+
+from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
+                                            get_func_index_from_state,
+                                            get_source_location)
+from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
+from octopus.arch.wasm.helper_c import (C_extract_string_by_mem_pointer,
+                                        parse_printf_formatting)
+from octopus.arch.wasm.memory import (insert_symbolic_memory,
+                                      lookup_symbolic_memory)
+from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
+from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
+                                     Enable_Lasers, bin_to_float,
+                                     calc_memory_align, getConcreteBitVec)
+from z3 import *
 
 
 class CPredefinedFunction:
@@ -38,20 +45,14 @@ class CPredefinedFunction:
             the_string = ""
             parsed_pattern = parse_printf_formatting(pattern)
 
+            # For memory align, e.g.,
+            # %s %f %c would be 4 bytes (%s), None (4 bytes), 8 bytes (%f), 4 bytes (%c)
+            # the memory align would occur at most once
+            align_offset = calc_memory_align(parsed_pattern)
+
             i = 0
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
-
-                # For memory align, e.g.,
-                # %s %f %c would be 4 bytes (%s), None (4 bytes), 8 bytes (%f), 4 bytes (%c)
-                overlapped_result = lookup_overlapped_symbolic_memory(
-                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                existed_start, existed_end = overlapped_result[0][2], overlapped_result[0][3]
-                overlapped_start, _ = calc_overlap(
-                    existed_start, existed_end, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if overlapped_start != param_p:
-                    param_p += 4
-                # the memory align would occur at most once
 
                 middle_p = lookup_symbolic_memory(
                     state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
@@ -69,7 +70,7 @@ class CPredefinedFunction:
                     elif cur_pattern[-1] in {'d', 'u', 'x'}:
                         tmp_data = str(middle_p)
 
-                param_p += C_TYPE_TO_LENGTH[cur_pattern[-1]]
+                param_p += align_offset[i]
 
                 pattern = pattern[:index] + tmp_data + \
                     pattern[index+len(cur_pattern):]

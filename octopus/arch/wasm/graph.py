@@ -441,6 +441,7 @@ class Graph:
         @wrap_non_picklable_objects
         def consumer(item):
             score, (state, current_block, cur_head, vis, cnt, weights) = item
+            print(score)
             succs_list = cls.bbs_graph[current_block].items()
             if len(succs_list) >= 2:  # this part should be encapsulated into a method
                 for br_dest_pair in succs_list:

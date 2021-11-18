@@ -6,9 +6,6 @@ import re
 
 from octopus.arch.wasm.utils import getConcreteBitVec
 
-# deal with load instruction
-
-
 def load_instr(instr, state, data_section):
     base = state.symbolic_stack.pop()
     assert is_bv(base), f"in load_instr `base` type is {type(base)}"
