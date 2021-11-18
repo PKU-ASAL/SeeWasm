@@ -5,9 +5,8 @@ import struct
 from codecs import decode
 from enum import Enum
 
+from octopus.arch.wasm.exceptions import *
 from z3 import *
-
-from .exceptions import *
 
 
 class Configuration:
@@ -215,3 +214,21 @@ def int_to_bytes(n, length):  # Helper function
 
 # the patterns used in C printf, and their corresponding length of to be loaded memory
 C_TYPE_TO_LENGTH = {'s': 4, 'c': 4, 'd': 4, 'u': 4, 'x': 4, 'f': 8}
+
+
+def calc_memory_align(parsed_pattern):
+    """
+    Used for calculate memory align in printf
+    """
+    offset = []
+    for i, item in enumerate(parsed_pattern):
+        cur_type = item[-1][-1]
+        offset.append(C_TYPE_TO_LENGTH[cur_type])
+
+        # decide if we should align the memory
+        if cur_type == 'f':
+            previous_sum = sum(offset[:i])
+            if previous_sum % 8 != 0:
+                offset[i-1] += 4
+
+    return offset

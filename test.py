@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 from collections import defaultdict
 from os import walk
