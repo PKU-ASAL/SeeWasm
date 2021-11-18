@@ -1,6 +1,6 @@
 # emulate the conversion related instructions
 
-from .. exceptions import *
+from octopus.arch.wasm.exceptions import *
 from z3 import *
 
 
@@ -9,7 +9,6 @@ class ConversionInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    # TODO overflow check in this function?
     def emulate(self, state):
         arg0 = state.symbolic_stack.pop()
 

@@ -121,6 +121,7 @@ def main():
         octo_bytecode = bytearray.fromhex(octo_bytecode)
 
     # if user pass the dsl file path
+    user_dsl = []
     if args.dsl:
         assert path.exists(args.dsl), f"DSL file ({args.dsl}) does not exist"
         python_cmd = sh.Command('python3')

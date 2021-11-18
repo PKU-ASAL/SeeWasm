@@ -5,7 +5,7 @@ from octopus.arch.wasm.helper_c import C_extract_string_by_mem_pointer, parse_pr
 from octopus.arch.wasm.utils import getConcreteBitVec, Enable_Lasers, bcolors, Configuration, bin_to_float, C_TYPE_TO_LENGTH
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
-from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory
+from octopus.arch.wasm.memory import insert_symbolic_memory, lookup_symbolic_memory, lookup_overlapped_symbolic_memory, calc_overlap
 from z3 import *
 import logging
 import math
@@ -41,6 +41,17 @@ class CPredefinedFunction:
             i = 0
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
+
+                # For memory align, e.g.,
+                # %s %f %c would be 4 bytes (%s), None (4 bytes), 8 bytes (%f), 4 bytes (%c)
+                overlapped_result = lookup_overlapped_symbolic_memory(
+                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                existed_start, existed_end = overlapped_result[0][2], overlapped_result[0][3]
+                overlapped_start, _ = calc_overlap(
+                    existed_start, existed_end, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                if overlapped_start != param_p:
+                    param_p += 4
+                # the memory align would occur at most once
 
                 middle_p = lookup_symbolic_memory(
                     state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
@@ -347,6 +358,22 @@ class CPredefinedFunction:
                 ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
                 state.symbolic_stack.append(BitVecVal(ret, 32))
                 manually_constructed = True
+        elif self.name == 'atof':
+            str_p = param_list[0].as_long()
+            float_string = C_extract_string_by_mem_pointer(
+                str_p, data_section, state.symbolic_memory)
+            # try to convert such a string to float
+            try:
+                the_float = float(float_string)
+            except ValueError:
+                # if it cannot be converted into float
+                # default is 0.0
+                the_float = 0.0
+            # wrap it into a float64
+            the_float = FPVal(the_float, Float64())
+            # append into stack
+            state.symbolic_stack.append(the_float)
+            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
@@ -476,8 +503,10 @@ class GoPredefinedFunction:
             print(param_list)
             print(state)
             addr1, addr2 = param_list[0], param_list[1]
-            val1 = lookup_symbolic_memory(state.symbolic_memory, data_section, addr1.as_long(), 4)
-            val2 = lookup_symbolic_memory(state.symbolic_memory, data_section, addr2.as_long(), 4)
+            val1 = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, addr1.as_long(), 4)
+            val2 = lookup_symbolic_memory(
+                state.symbolic_memory, data_section, addr2.as_long(), 4)
             print(val1, val2)
             raise ValueError
 
