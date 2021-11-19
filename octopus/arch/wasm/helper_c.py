@@ -17,6 +17,9 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory):
         mem_data = lookup_symbolic_memory(
             symbolic_memory, data_section, mem_pointer, i)
 
+        if mem_data is None:
+            return BitVec('string*'+str(mem_pointer), 8*8)
+
         mem_data = mem_data.as_long()
         mem_data_string = mem_data.to_bytes(
             (mem_data.bit_length() + 7) // 8, 'little').decode("utf-8")

@@ -194,9 +194,12 @@ class Graph:
             for i, final_state in enumerate(self.final_states[entry_func]):
                 s = Solver()
                 s.add(final_state.constraints)
-                s.check()
-                print(
-                    f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
+                if sat == s.check():
+                    print(
+                        f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
+                else:
+                    print(
+                        f'For state{i}, return with {final_state.symbolic_stack}, which is unsat', end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
