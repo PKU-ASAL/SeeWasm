@@ -400,12 +400,13 @@ class CPredefinedFunction:
                     # if it cannot be converted into int
                     # default is 0
                     the_number = 0
-
             # append into stack
             state.symbolic_stack.append(the_number)
             manually_constructed = True
         elif self.name == 'srand' or self.name == 'rand':
             # we have not emulated the seed generating algorithm for C
+            pass
+        elif self.name == 'log':
             pass
         elif self.name == 'pow':
             """

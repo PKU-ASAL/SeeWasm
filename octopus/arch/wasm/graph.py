@@ -275,7 +275,7 @@ class Graph:
         state.constraints = list(set(state.constraints))
         solver = Solver()
         solver.add(*state.constraints)
-        return sat != solver.check()
+        return unsat == solver.check()
 
     @classmethod
     def can_cut(cls, type, state):
