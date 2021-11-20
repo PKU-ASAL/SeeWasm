@@ -114,7 +114,24 @@ class ControlInstructions:
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
             # this instruction will pop an element out of the stack, and use this as an index in the table, i.e., elem section in Wasm module, to dynamically determine which fucntion will be invoked
-            raise UnsupportInstructionError
+
+            # target function index
+            op = state.symbolic_stack.pop()
+
+            # intended callee type
+            func_type = int(self.instr_string.split(' ')[1][:-1])
+
+            import_funcs_num = len(analyzer.imports_func)
+            # traverse the elem section
+            possible_callee = list()
+            for func_offset in analyzer.elements[0]['elems']:
+                if analyzer.func_types[func_offset - import_funcs_num] == func_type:
+                    possible_callee.append(func_offset)
+
+            print(possible_callee)
+            for possible_func_offset in possible_callee:
+                # try each of them, like what you do after line 167
+                pass
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
@@ -212,9 +229,8 @@ class ControlInstructions:
 
                 for i, return_constraint_tuple in enumerate(possible_call_results):
                     new_state = copy.deepcopy(state)
-                    return_value, constraint, state_symbolic_memory, current_globals = \
-                        return_constraint_tuple[0], return_constraint_tuple[1].constraints, return_constraint_tuple[
-                            1].symbolic_memory, return_constraint_tuple[1].globals
+                    return_value, constraint, state_symbolic_memory, current_globals = return_constraint_tuple[0], return_constraint_tuple[1].constraints, return_constraint_tuple[
+                        1].symbolic_memory, return_constraint_tuple[1].globals
 
                     # if have outer_need_ret but no return_value, means the callee's this branch is failed
                     if outer_need_ret and return_value is None:
