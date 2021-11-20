@@ -407,6 +407,20 @@ class CPredefinedFunction:
         elif self.name == 'srand' or self.name == 'rand':
             # we have not emulated the seed generating algorithm for C
             pass
+        elif self.name == 'log':
+            arg = param_list[0]
+            if isinstance(arg, FPNumRef):
+                arg = eval(str(arg))
+            else:
+                arg = fpToReal(arg)
+
+            e = Real('e')
+            x = FP('x', Float64())
+            state.symbolic_stack.append(x)
+
+            x = fpToReal(x)
+            state.constraints += [e ** x == arg, e == 2.718281828459045]
+            manually_constructed = True
         elif self.name == 'pow':
             """
             Note: we can step in library pow function
