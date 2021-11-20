@@ -81,6 +81,99 @@ class ControlInstructions:
 
         return new_state, new_has_ret
 
+    def deal_with_call(self, state, f_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer):
+        # get the callee's function signature
+        target_func = func_prototypes[f_offset]
+        internal_function_name, param_str, return_str, _ = target_func
+
+        # find a more readable name, need -g3 compiling and --need-mapper
+        if func_index2func_name is not None:
+            try:
+                readable_name = func_index2func_name[int(
+                    re.search('(\d+)', internal_function_name).group())]
+            except AttributeError:
+                # if the internal_function_name is the readable name already
+                readable_name = internal_function_name
+
+        new_states = []
+        # if the callee is a library function
+        if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
+                readable_name) and readable_name not in NEED_STEP_IN_C:
+            logging.warning(
+                f"Invoked a C library function: {readable_name}")
+            func = CPredefinedFunction(
+                readable_name, state.current_func_name)
+            func.emul(state, param_str, return_str, data_section, analyzer)
+        elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
+                readable_name) and readable_name not in NEED_STEP_IN_GO:
+            logging.warning(
+                f"Invoked a Go library function: {readable_name}")
+            func = GoPredefinedFunction(
+                readable_name, state.current_func_name)
+            func.emul(state, param_str, return_str, data_section, analyzer)
+        elif readable_name in TERMINATED_FUNCS:
+            logging.warning(
+                f"Terminated function invoked: {readable_name} ")
+            return False, None
+        else:
+            # if the callee takes NO symbols as input:
+            # 1. the param_str is empty [Doing]
+            # 2. the params are all non-symbol [TODO]
+            # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
+            logging.warning(
+                f"Invoked: {readable_name} ")
+            if param_str == "":
+                pass
+
+            new_state, new_has_ret = self.init_state_before_call(
+                param_str, return_str, has_ret, state)
+            possible_states = Graph.traverse_one(
+                internal_function_name, new_state, new_has_ret)
+            possible_call_results = []
+            for pstate in possible_states:
+                to_be_returned = None
+                if has_ret and has_ret[-1]:
+                    to_be_returned = pstate.symbolic_stack.pop()
+                    if is_bool(to_be_returned):
+                        if is_false(to_be_returned):
+                            to_be_returned = BitVecVal(0, 32)
+                        elif is_true(to_be_returned):
+                            to_be_returned = BitVecVal(1, 32)
+                        else:
+                            raise NotDeterminedRetValError
+                possible_call_results.append(
+                    (to_be_returned, copy.deepcopy(pstate)))
+
+            # for stack balance
+            outer_need_ret = has_ret.pop()
+
+            for i, return_constraint_tuple in enumerate(possible_call_results):
+                new_state = copy.deepcopy(state)
+                return_value, constraint, state_symbolic_memory, current_globals = return_constraint_tuple[0], \
+                                                                                   return_constraint_tuple[
+                                                                                       1].constraints, \
+                                                                                   return_constraint_tuple[
+                                                                                       1].symbolic_memory, \
+                                                                                   return_constraint_tuple[1].globals
+
+                # if have outer_need_ret but no return_value, means the callee's this branch is failed
+                if outer_need_ret and return_value is None:
+                    continue
+                elif outer_need_ret and return_value is not None:
+                    new_state.symbolic_stack.append(return_value)
+                    new_state.constraints = constraint
+                    new_state.symbolic_memory = state_symbolic_memory
+                    new_state.globals = current_globals
+                else:
+                    new_state.constraints = constraint
+                    new_state.symbolic_memory = state_symbolic_memory
+                    new_state.globals = current_globals
+
+                new_states.append(new_state)
+        if len(new_states) == 0:
+            new_states.append(state)
+        return new_states
+
     def emulate(self, state, has_ret, func_prototypes, func_index2func_name, data_section, analyzer):
         if self.instr_name in self.skip_command:
             return False, None
@@ -129,9 +222,14 @@ class ControlInstructions:
                     possible_callee.append(func_offset)
 
             print(possible_callee)
-            for possible_func_offset in possible_callee:
+            states = []
+            for i, possible_func_offset in enumerate(possible_callee):
+                new_state = copy.deepcopy(state)
+                new_state.constraints.append(simplify(op == i))
+                after_calls = self.deal_with_call(new_state, possible_func_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
+                states.extend(after_calls)
                 # try each of them, like what you do after line 167
-                pass
+            return False, states
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
@@ -158,13 +256,14 @@ class ControlInstructions:
             return False, [states]
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
-
             # get the callee's function signature
             try:
                 f_offset = int(self.instr_operand)
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
+            return False, self.deal_with_call(state, f_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
+            """
             target_func = func_prototypes[f_offset]
             internal_function_name, param_str, return_str, _ = target_func
 
@@ -249,6 +348,7 @@ class ControlInstructions:
             if len(new_states) == 0:
                 new_states.append(state)
             return False, new_states
+            """
         else:
             print(self.instr_name)
             raise UnsupportInstructionError
