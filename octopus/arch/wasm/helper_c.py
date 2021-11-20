@@ -6,7 +6,7 @@ from z3 import *
 from octopus.arch.wasm.memory import lookup_symbolic_memory
 
 
-def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory):
+def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, default_len=None):
     # TODO the string may not be 4 bytes in length
     # for example, the RorateArray, the scanf takes a string,
     # the strlen will measure the length of the string,
@@ -18,7 +18,7 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory):
             symbolic_memory, data_section, mem_pointer, i)
 
         if mem_data is None:
-            return BitVec('string*'+str(mem_pointer), 8*8)
+            return BitVec('string*'+str(mem_pointer), default_len*8)
 
         mem_data = mem_data.as_long()
         mem_data_string = mem_data.to_bytes(
