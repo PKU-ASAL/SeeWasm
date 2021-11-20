@@ -360,18 +360,25 @@ class CPredefinedFunction:
                 state.symbolic_stack.append(BitVecVal(ret, 32))
                 manually_constructed = True
         elif self.name == 'atof':
-            str_p = param_list[0].as_long()
+            str_p = param_list[0]
+            if isinstance(str_p, BitVecNumRef):
+                str_p = str_p.as_long()
             float_string = C_extract_string_by_mem_pointer(
                 str_p, data_section, state.symbolic_memory)
+
             # try to convert such a string to float
-            try:
-                the_float = float(float_string)
-            except ValueError:
-                # if it cannot be converted into float
-                # default is 0.0
-                the_float = 0.0
-            # wrap it into a float64
-            the_float = FPVal(the_float, Float64())
+            if isinstance(float_string, BitVecRef):
+                the_float = simplify(fpBVToFP(float_string, Float64()))
+            else:
+                try:
+                    the_float = float(float_string)
+                except ValueError:
+                    # if it cannot be converted into float
+                    # default is 0.0
+                    the_float = 0.0
+                # wrap it into a float64
+                the_float = FPVal(the_float, Float64())
+
             # append into stack
             state.symbolic_stack.append(the_float)
             manually_constructed = True
