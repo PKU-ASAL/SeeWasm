@@ -2,6 +2,7 @@
 
 import logging
 import math
+from sys import base_exec_prefix
 
 from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_func_index_from_state,
@@ -363,24 +364,74 @@ class CPredefinedFunction:
             str_p = param_list[0]
             if isinstance(str_p, BitVecNumRef):
                 str_p = str_p.as_long()
-            float_string = C_extract_string_by_mem_pointer(
-                str_p, data_section, state.symbolic_memory)
+            number_string = C_extract_string_by_mem_pointer(
+                str_p, data_section, state.symbolic_memory, 8)
 
             # try to convert such a string to float
-            if isinstance(float_string, BitVecRef):
-                the_float = simplify(fpBVToFP(float_string, Float64()))
+            if isinstance(number_string, BitVecRef):
+                the_number = simplify(fpBVToFP(number_string, Float64()))
             else:
                 try:
-                    the_float = float(float_string)
+                    the_number = float(number_string)
                 except ValueError:
                     # if it cannot be converted into float
                     # default is 0.0
-                    the_float = 0.0
+                    the_number = 0.0
                 # wrap it into a float64
-                the_float = FPVal(the_float, Float64())
+                the_number = FPVal(the_number, Float64())
 
             # append into stack
-            state.symbolic_stack.append(the_float)
+            state.symbolic_stack.append(the_number)
+            manually_constructed = True
+        elif self.name == 'atoi':
+            str_p = param_list[0]
+            if isinstance(str_p, BitVecNumRef):
+                str_p = str_p.as_long()
+            number_string = C_extract_string_by_mem_pointer(
+                str_p, data_section, state.symbolic_memory, 4)
+
+            # try to convert such a string to float
+            if isinstance(number_string, BitVecRef):
+                the_number = number_string
+            else:
+                try:
+                    the_number = int(number_string)
+                except ValueError:
+                    # if it cannot be converted into int
+                    # default is 0
+                    the_number = 0
+
+            # append into stack
+            state.symbolic_stack.append(the_number)
+            manually_constructed = True
+        elif self.name == 'srand' or self.name == 'rand':
+            # we have not emulated the seed generating algorithm for C
+            pass
+        elif self.name == 'pow':
+            """
+            Note: we can step in library pow function
+            Do not need this part emulation
+            """
+            exp, base = param_list[0], param_list[1]
+
+            if isinstance(base, FPNumRef):
+                base = eval(str(base))
+            else:
+                base = fpToReal(base)
+
+            if isinstance(exp, FPNumRef):
+                exp = eval(str(exp))
+            else:
+                exp = fpToReal(exp)
+
+            result = simplify(base ** exp)
+
+            if isinstance(result, ArithRef):
+                result = simplify(fpRealToFP(RNE(), result, Float64()))
+            else:
+                result = simplify(FPVal(result, Float64()))
+
+            state.symbolic_stack.append(result)
             manually_constructed = True
         else:
             raise UnsupportExternalFuncError
