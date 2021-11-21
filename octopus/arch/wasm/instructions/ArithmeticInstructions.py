@@ -4,7 +4,7 @@ from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
 from octopus.arch.wasm.utils import Enable_Lasers, Configuration
 from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
-from octopus.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location
+from octopus.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location_string
 from octopus.arch.wasm.utils import bcolors
 
 from z3 import *
@@ -102,19 +102,15 @@ class ArithmeticInstructions:
                     if overflowed:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
-                        original_file, line_no, col_no = get_source_location(
-                            analyzer, func_ind, func_offset)
                         logging.warning(
-                            f'{bcolors.WARNING}Overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
+                            f'{bcolors.WARNING}Overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
                 if div_zero_flag:
                     divzeroed = div_zero_laser.fire(result, state.constraints)
                     if divzeroed:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
-                        original_file, line_no, col_no = get_source_location(
-                            analyzer, func_ind, func_offset)
                         logging.warning(
-                            f'{bcolors.WARNING}Div-zero! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
+                            f'{bcolors.WARNING}Div-zero! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 

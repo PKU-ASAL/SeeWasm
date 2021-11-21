@@ -4,7 +4,7 @@ from z3 import *
 import logging
 
 from octopus.arch.wasm.utils import bcolors
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_func_index_from_state, get_source_location
+from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_func_index_from_state, get_source_location_string
 
 
 class BufferOverflowLaser:
@@ -30,7 +30,5 @@ class BufferOverflowLaser:
         if buffer_overflowed:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
-            original_file, line_no, col_no = get_source_location(
-                analyzer, func_ind, func_offset)
             logging.warning(
-                f'{bcolors.WARNING}Buffer overflowed! In file {original_file}, line no: {line_no}, col no: {col_no}{bcolors.ENDC}')
+                f'{bcolors.WARNING}Buffer overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')

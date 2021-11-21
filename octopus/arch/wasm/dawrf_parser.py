@@ -22,28 +22,63 @@ def get_real_addr(ana, func_ind, func_offset):
     return ana.func_offsets[func_ind - len(ana.imports_func)] + func_offset
 
 
-def get_source_location(ana, func_ind, func_offset, full_path=True):
+def get_source_location(ana, func_ind, func_offset, is_full_path=True):
     """get source location by function id and instruction offset within function"""
-    return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), full_path)
+    return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path)
 
+def get_source_location_range(ana, func_ind, func_offset, is_full_path=True):
+    """
+    get source location range by function id and instruction offset within function
+    returns ((start_file, line_no, col_no), (next_file, next_line_no, next_col_no))
+    """
+    return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path, is_range=True)
+
+def get_source_location_string(ana, func_ind, func_offset, is_full_path=True):
+    """
+    get source location string to be printed, according to debug info precision
+    returns 'In file xxx, line no: xxx, col no: xxx'
+    or 'In file xxx, line no: xxx to xxx'
+    """
+    loc_start, loc_end = get_source_location_range(ana, func_ind, func_offset, is_full_path)
+    start_file, line_no, col_no = loc_start
+    end_file, end_line_no, end_col_no = loc_end
+    if start_file != end_file:
+        # due to function inlining, this case should be rare
+        # TODO probably should find next entry until meet same file?
+        return f'From file {start_file}, line no: {line_no}, To file {end_file}, line no: {end_line_no}'
+    elif line_no == end_line_no:
+        # same line, locations is exact
+        # possibly end_col_no < col_no
+        return f'In file {start_file}, line no: {line_no}, col no: {col_no}'
+    else: # same file, but not same line
+        return f'In file {start_file}, line no: {line_no} to {end_line_no}'
 
 def get_func_DIE(ana, func_ind, func_offset):
     """get source function name by function id and instruction offset within function"""
     return get_func_DIE_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset))
 
 
-def get_source_location_by_addr(dwarf_info, addr, full_path=True):
+def get_source_location_by_addr(dwarf_info, addr, is_full_path=True, is_range=False):
     """
     get source location by instruction offset within Code Section
-    if absolute directory infomation is recorded, set full_path to True, returns absolute path in filename.
+    if absolute directory infomation is recorded, set is_full_path to True, returns absolute path in filename.
     it's possible that column is 0. which means not recorded.
+    if is_range is True, then returns ((filename, line, column), (filename, line, column))
     """
     # from https://github.com/eliben/pyelftools/blob/master/examples/dwarf_decode_address.py
     # Go over all the line programs in the DWARF information, looking for
     # one that describes the given address.
+
+    def get_filename(lineprog, state, is_full_path=True):
+        if is_full_path:
+            filename = lpe_filename(lineprog, state.file)
+        else:
+            filename = lineprog['file_entry'][state.file - 1].name
+        return filename
+    
     for CU in dwarf_info.iter_CUs():
         # First, look at line programs to find the file/line for the address
-        lineprog = dwarf_info.line_program_for_CU(CU)
+        lineprog = dwarf_info.line_program_for_CU(CU)        
         prevstate = None
         for entry in lineprog.get_entries():
             # We're interested in those entries where a new state is assigned
@@ -52,10 +87,15 @@ def get_source_location_by_addr(dwarf_info, addr, full_path=True):
             # Looking for a range of addresses in two consecutive states that
             # contain the required address.
             if prevstate and prevstate.address <= addr < entry.state.address:
-                if full_path:
-                    filename = lpe_filename(lineprog, prevstate.file)
-                else:
-                    filename = lineprog['file_entry'][prevstate.file - 1].name
+                filename = get_filename(lineprog, prevstate, is_full_path)
+                if is_range:
+                    prev_loc = (filename, prevstate.line, prevstate.column)
+                    next_filename = get_filename(lineprog, entry.state, is_full_path)
+                    next_loc = (next_filename, entry.state.line, entry.state.column)
+                    if filename != next_filename:
+                        logging.warning(
+                            f"{bcolors.WARNING}Source location range filename mismatch! probably due to aggressive optimization (function inlining){bcolors.ENDC}")
+                    return (prev_loc, next_loc)
                 line = prevstate.line
                 column = prevstate.column
                 return filename, line, column
