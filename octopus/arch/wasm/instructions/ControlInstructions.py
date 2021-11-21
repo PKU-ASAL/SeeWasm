@@ -150,11 +150,11 @@ class ControlInstructions:
             for i, return_constraint_tuple in enumerate(possible_call_results):
                 new_state = copy.deepcopy(state)
                 return_value, constraint, state_symbolic_memory, current_globals = return_constraint_tuple[0], \
-                                                                                   return_constraint_tuple[
-                                                                                       1].constraints, \
-                                                                                   return_constraint_tuple[
-                                                                                       1].symbolic_memory, \
-                                                                                   return_constraint_tuple[1].globals
+                    return_constraint_tuple[
+                    1].constraints, \
+                    return_constraint_tuple[
+                    1].symbolic_memory, \
+                    return_constraint_tuple[1].globals
 
                 # if have outer_need_ret but no return_value, means the callee's this branch is failed
                 if outer_need_ret and return_value is None:
@@ -221,12 +221,12 @@ class ControlInstructions:
                 if analyzer.func_types[func_offset - import_funcs_num] == func_type:
                     possible_callee.append(func_offset)
 
-            print(possible_callee)
             states = []
             for i, possible_func_offset in enumerate(possible_callee):
                 new_state = copy.deepcopy(state)
                 new_state.constraints.append(simplify(op == i))
-                after_calls = self.deal_with_call(new_state, possible_func_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
+                after_calls = self.deal_with_call(
+                    new_state, possible_func_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             return False, states
