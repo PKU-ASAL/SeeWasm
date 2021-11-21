@@ -408,6 +408,8 @@ class CPredefinedFunction:
             pass
         elif self.name == 'log':
             pass
+        elif self.name == 'system':
+            pass
         elif self.name == 'pow':
             """
             Note: we can step in library pow function
@@ -574,6 +576,26 @@ class GoPredefinedFunction:
             print(param_list)
 
         if not manually_constructed and return_str:
+            tmp_bitvec = getConcreteBitVec(return_str,
+                                           self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
+                                               state.instr.offset))
+            state.symbolic_stack.append(tmp_bitvec)
+
+
+class ImportFunction:
+    """
+    Balance stack for all imported functions as we do not know its behavior
+    """
+
+    def __init__(self, name, cur_func_name):
+        self.name = name
+        self.cur_func = cur_func_name
+
+    def emul(self, state, param_str, return_str, data_section, analyzer):
+        # if the return value is dependent on the library function, we will manually contruct it
+        # and jump over the process in which it append a symbol according to the signature of the function
+
+        if return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.instr.offset))

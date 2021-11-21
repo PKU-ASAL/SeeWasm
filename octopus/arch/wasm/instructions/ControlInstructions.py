@@ -6,13 +6,13 @@ import logging
 from collections import defaultdict
 
 from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction
+from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strlen',
-                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'memcmp', 'strncpy', 'strncat', 'emscripten_resize_heap', 'puts', '__memcpy', '__small_printf', 'atof', 'atoi', 'srand', 'rand', 'log'}
+                   'swap', 'iprintf', 'strcpy', 'strcat', 'strcmp', 'strstr', 'strchr', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'memcmp', 'strncpy', 'strncat', 'emscripten_resize_heap', 'puts', '__memcpy', '__small_printf', 'atof', 'atoi', 'srand', 'rand', 'log', 'system'}
 GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
                     'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', '_os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
@@ -86,18 +86,28 @@ class ControlInstructions:
         target_func = func_prototypes[f_offset]
         internal_function_name, param_str, return_str, _ = target_func
 
-        # find a more readable name, need -g3 compiling and --need-mapper
+        # find a more readable name, need `--need-mapper` flag
         if func_index2func_name is not None:
-            try:
-                readable_name = func_index2func_name[int(
-                    re.search('(\d+)', internal_function_name).group())]
-            except AttributeError:
-                # if the internal_function_name is the readable name already
+            if internal_function_name.startswith('$'):
+                try:
+                    readable_name = func_index2func_name[int(
+                        re.search('(\d+)', internal_function_name).group())]
+                except AttributeError:
+                    # if the internal_function_name is the readable name already
+                    readable_name = internal_function_name
+            else:
+                # meaning imported function
                 readable_name = internal_function_name
 
         new_states = []
+        # if the callee is imported by env
+        if readable_name in [i[1] for i in analyzer.imports_func]:
+            func = ImportFunction(readable_name, state.current_func_name)
+            logging.warning(
+                f"Invoked a import function: {readable_name}")
+            func.emul(state, param_str, return_str, data_section, analyzer)
         # if the callee is a library function
-        if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
+        elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
             logging.warning(
                 f"Invoked a C library function: {readable_name}")
