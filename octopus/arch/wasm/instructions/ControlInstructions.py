@@ -101,7 +101,8 @@ class ControlInstructions:
 
         new_states = []
         # if the callee is imported by env
-        if readable_name in [i[1] for i in analyzer.imports_func]:
+        # only concerned C file
+        if Configuration.get_source_type() == 'c' and readable_name in [i[1] for i in analyzer.imports_func]:
             func = ImportFunction(readable_name, state.current_func_name)
             logging.warning(
                 f"Invoked a import function: {readable_name}")
