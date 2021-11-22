@@ -34,11 +34,12 @@ class OverflowLaser:
         if expr.decl().name() not in overflow_group:
             return
 
+        free_variable = True
+
         # step 1:
-        # if two BitVecNumRef, return directly
-        # as only the symbol can be manipulated
+        # if two BitVecNumRef, means no free variables
         if isinstance(op1, BitVecNumRef) and isinstance(op2, BitVecNumRef):
-            return
+            free_variable = False
 
         def contain_op(cons, op):
             for sub_cons in cons.children():
@@ -48,13 +49,12 @@ class OverflowLaser:
 
         # step 2:
         # if both of op1 and op2 are free, overflow may happen
-        free_variable = True
-        op2con = defaultdict(list)
+        # op2con = defaultdict(list)
         for op in [op1, op2]:
             for constraint in new_cond:
                 if contain_op(constraint, op):
                     free_variable = False
-                    op2con[(op, op.get_id())].append(constraint)
+                    # op2con[(op, op.get_id())].append(constraint)
             if not free_variable:
                 break
         if free_variable:
