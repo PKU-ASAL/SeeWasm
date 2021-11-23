@@ -33,6 +33,12 @@ candidates.remove('collatz_manticore')
 candidates.remove('file_cp_l1')
 # we remove this as there is a small bug in graph.py
 candidates.remove('ln_ef_l2')
+# Timeout
+candidates.remove('5n+1_lo_l1')
+candidates.remove('7n+1_lo_l1')
+candidates.remove('collaz_lo_l1')
+# do not support currently
+candidates.remove('aes_cf')
 
 candidates.sort()
 
@@ -43,7 +49,7 @@ for case in candidates:
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('python3')
+python_cmd = sh.Command('/usr/bin/python3')
 for i, cmd in enumerate(cmd_lists):
     try:
         print('Case: ', candidates[i])

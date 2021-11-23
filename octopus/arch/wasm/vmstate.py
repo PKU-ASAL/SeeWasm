@@ -1,11 +1,10 @@
 # This file defines the `state` that will be passed within Wasm-SE
 
-from octopus.engine.engine import VMstate
-
 from collections import defaultdict
-from z3 import *
-from loky import wrap_non_picklable_objects
 
+from loky import wrap_non_picklable_objects
+from octopus.engine.engine import VMstate
+from z3 import *
 
 
 class WasmVMstate(VMstate):

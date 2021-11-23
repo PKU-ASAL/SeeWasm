@@ -187,6 +187,8 @@ class Graph:
 
     def traverse(self):
         for entry_func in self.entries:
+            if entry_func not in self.wasmVM.func_index2func_name.values():
+                exit(f"Func: '{entry_func}' does not exist!")
             self.final_states[entry_func] = self.traverse_one(entry_func)
             # final states of all feasible paths for the given program
             print(
