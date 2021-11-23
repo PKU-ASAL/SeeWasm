@@ -1,96 +1,8 @@
 # This file is the memory emulation
 # Can refer the corresponding description in EOSAFE
+# only export lookup_symbolic_memory_data_section and insert_symbolic_memory
 
 from z3 import *
-import re
-
-from octopus.arch.wasm.utils import getConcreteBitVec
-
-def load_instr(instr, state, data_section):
-    base = state.symbolic_stack.pop()
-    assert is_bv(base), f"in load_instr `base` type is {type(base)}"
-
-    # offset maybe int or hex
-    try:
-        offset = int(instr.split(' ')[2])
-    except ValueError:
-        offset = int(instr.split(' ')[2], 16)
-
-    addr = simplify(base + offset)
-    assert is_bv(addr), f"addr in load_instr is {type(addr)} instead of bv"
-
-    if type(addr) == BitVecNumRef:
-        addr = addr.as_long()
-
-    # determine how many bytes should be loaded
-    # the dict is like {'8': 1}
-    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
-    instr_name = instr.split(' ')[0]
-    if len(instr_name) == 8:
-        load_length = bytes_length_mapping[instr_name[1:3]]
-    else:
-        load_length = bytes_length_mapping[re.search(
-            r"load([0-9]+)\_", instr_name).group(1)]
-
-    val = lookup_symbolic_memory(
-        state.symbolic_memory, data_section, addr, load_length)
-
-    if val is None:
-        val = BitVec(f'load{load_length}*({addr})', 8*load_length)
-
-
-    # cast to other type of bit vector
-    float_mapping = {
-        'f32': Float32,
-        'f64': Float64,
-    }
-    if len(instr_name) == 8 and instr_name[0] == "f":
-        val = simplify(fpBVToFP(val, float_mapping[instr_name[:3]]()))
-    elif instr_name[-2] == "_":
-        if instr_name[-1] == "s":  # sign extend
-            val = simplify(SignExt(int(instr_name[1:3]) - load_length*8, val))
-        else:
-            val = simplify(ZeroExt(int(instr_name[1:3]) - load_length*8, val))
-
-    # if can not load from the memory area
-    if val is not None:
-        state.symbolic_stack.append(val)
-    else:
-        state.symbolic_stack.append(getConcreteBitVec(
-            instr_name[:3], f'load_{instr_name[:3]}*({str(addr)})'))
-
-
-# deal with store instruction
-def store_instr(instr, state):
-    # offset may be int or hex
-    try:
-        offset = int(instr.split(' ')[2])
-    except ValueError:
-        offset = int(instr.split(' ')[2], 16)
-
-    val, base = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-    addr = simplify(base + offset)
-
-    # change addr's type to int if possible
-    # or it will be the BitVecRef
-    if is_bv_value(addr):
-        addr = addr.as_long()
-
-    # determine how many bytes should be stored
-    # the dict is like {'8': 1}
-    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
-    instr_name = instr.split(' ')[0]
-    if len(instr_name) == 9:
-        if instr_name[0] == 'f':
-            val = fpToIEEEBV(val)
-        state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, bytes_length_mapping[instr_name[1:3]], val)
-    else:
-        stored_length = bytes_length_mapping[re.search(
-            r"store([0-9]+)", instr_name).group(1)]
-        val = simplify(Extract(stored_length*8-1, 0, val))
-        state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, stored_length, val)
 
 
 # GUIDANCE:
@@ -110,44 +22,60 @@ def store_instr(instr, state):
 # case 13:          |             |        [______]         False
 
 
-# dest type can only be bitvecref or int
-def lookup_symbolic_memory(symbolic_memory, data_section, dest, length):
-    # if dest type is `BitVecRef`
-    # try to directly load from symbolic memory
-    if type(dest) == BitVecRef:
-        return symbolic_memory.get((dest, simplify(dest + length)), None)
-        # other cases, lookup the interval in data section and memory
-    tmp_result = lookup_overlapped_symbolic_memory(
-        symbolic_memory, data_section, dest, length)
-# we assert the loaded interval can only cover at most one intervals
-    assert len(
-        tmp_result) == 1, f"the loaded data covers two and more intervals, please check"
-    in_symbolic_memory, is_existed, existed_start, existed_end = tmp_result[0]
+def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, length):
+    """
+    This funciton is used to determine if the dest existed in data section
+    or symbolic memory, and retrieve it from corresponding area
+    """
+    # if dest is bitvecref, return the corresponding value directly
+    if is_bv(dest) and not is_bv_value(dest):
+        return symbolic_memory.get((dest, simplify(dest+length)), None)
 
-    # if it cannot be found in either data section nor memory
-    if not is_existed:
-        # TODO uninitiated memory access?
-        # Since Tinygo will memset all memory to zero at the initial, any address will be zero
+    # in data section?
+    in_symbolic_memory, is_overlapped, _, _ = _lookup_overlapped_interval(
+        symbolic_memory, data_section, dest, length)[0]
+
+    # if there is no overlapped exiting interval
+    if not is_overlapped:
         return BitVecVal(0, 8*length)
-        # return BitVec(f'load*({dest})', 8*length)
 
-    overlapped_start, overlapped_end = calc_overlap(
+    if not in_symbolic_memory:
+        return _lookup_data_section(data_section, dest, length)
+    else:
+        return _lookup_symbolic_memory(symbolic_memory, dest, length)
+
+
+def _lookup_data_section(data_section, dest, length):
+    """
+    Retrieve data from data section according to dest and length
+    """
+    # calculate the existing interval that overlapped
+    # with the dest from data section
+    _, _, existed_start, existed_end = _lookup_overlapped_interval(
+        dict(), data_section, dest, length)[0]
+    overlapped_start, overlapped_end = _calc_overlap(
         existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
-    # in data section
-    if not in_symbolic_memory:
-        # convert data section piece into BitVecVal
-        data_section_bitvec = BitVecVal(int.from_bytes(data_section[(
-            existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
-        data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
-    else:
-        data = simplify(Extract(high * 8 - 1, low * 8,
-                        symbolic_memory[(existed_start, existed_end)]))
-    if data.size() < length * 8:
-        data = simplify(Concat(BitVecVal(0, length * 8 - data.size()), data))
+
+    data_section_bitvec = BitVecVal(int.from_bytes(data_section[(
+        existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
+    data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
     return data
 
-# dest type can only be bitvecref or int
+
+def _lookup_symbolic_memory(symbolic_memory, dest, length):
+    """
+    Retrieve data from symbolic memory according to dest and length
+    """
+    _, _, existed_start, existed_end = _lookup_overlapped_interval(
+        symbolic_memory, dict(), dest, length)[0]
+    overlapped_start, overlapped_end = _calc_overlap(
+        existed_start, existed_end, dest, length)
+    high, low = overlapped_end - existed_start, overlapped_start - existed_start
+
+    data = simplify(Extract(high * 8 - 1, low * 8,
+                    symbolic_memory[(existed_start, existed_end)]))
+    return data
 
 
 def insert_symbolic_memory(symbolic_memory, dest, length, data):
@@ -157,7 +85,7 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
     # if dest type is `int`
     else:
         # the existed_start and existed_end are all int
-        tmp_result = lookup_overlapped_symbolic_memory(
+        tmp_result = _lookup_overlapped_interval(
             symbolic_memory, dict(), dest, length)
 
         # step 1:
@@ -169,7 +97,7 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 continue
 
             to_concat = []
-            overlapped_start, overlapped_end = calc_overlap(
+            overlapped_start, overlapped_end = _calc_overlap(
                 existed_start, existed_end, dest, length)
             # step 1.1: pop the original
             original = symbolic_memory.pop((existed_start, existed_end))
@@ -221,10 +149,10 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
 
     # step 3:
     # merge and return
-    return merge_symbolic_memory(symbolic_memory)
+    return _merge_symbolic_memory(symbolic_memory)
 
 
-def merge_symbolic_memory(symbolic_memory):
+def _merge_symbolic_memory(symbolic_memory):
     symbolic_memory_dup = symbolic_memory.copy()
 
     int_keys = []
@@ -259,7 +187,7 @@ def merge_symbolic_memory(symbolic_memory):
     return symbolic_memory_dup
 
 
-def calc_overlap(existed_start, existed_end, dest, length):
+def _calc_overlap(existed_start, existed_end, dest, length):
     if dest <= existed_start:
         overlapped_start = existed_start
     else:
@@ -272,7 +200,7 @@ def calc_overlap(existed_start, existed_end, dest, length):
     return overlapped_start, overlapped_end
 
 
-def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, length):
+def _lookup_overlapped_interval(symbolic_memory, data_section, dest, length):
     '''
     return four elements:
     1. whether it is in the symbolic memory
@@ -280,7 +208,7 @@ def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, lengt
     3&4. the start and end indexes of the overlapped interval
     '''
     # iterate to find
-    def iterate_find_overlap(target_dict):
+    def _iterate_find_overlap(target_dict):
         overlapped_intervals = []
         existed_start, existed_end = None, None
 
@@ -292,13 +220,13 @@ def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, lengt
                 continue
 
             # found a overlap
-            if is_overlapped(existed_start, existed_end, dest, length):
+            if _is_overlapped(existed_start, existed_end, dest, length):
                 overlapped_intervals.append(
                     [existed_start, existed_end])
         return overlapped_intervals
 
     # in data section
-    tmp_result = iterate_find_overlap(data_section)
+    tmp_result = _iterate_find_overlap(data_section)
     assert len(
         tmp_result) <= 1, f"the data section can only have 0 or 1 overlapped interval"
     if tmp_result:
@@ -306,14 +234,14 @@ def lookup_overlapped_symbolic_memory(symbolic_memory, data_section, dest, lengt
         return [[False, True, existed_start, existed_end]]
 
     # if it is not in data section, find it in the memory
-    tmp_result = iterate_find_overlap(symbolic_memory)
+    tmp_result = _iterate_find_overlap(symbolic_memory)
     if tmp_result:  # found at least one overlapped interval
         return [[True, True] + i for i in tmp_result]
     else:  # found no overlapped interval in memory
         return [[True, False, None, None]]
 
 
-def is_overlapped(existed_start, existed_end, dest, length):
+def _is_overlapped(existed_start, existed_end, dest, length):
     if dest + length <= existed_start:
         # case 1, 2
         return False

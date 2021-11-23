@@ -1,12 +1,12 @@
 import logging
-from math import exp
 import os
 import re
+from math import exp
+
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser
-
+from octopus.arch.wasm.memory import lookup_symbolic_memory_data_section
 from octopus.arch.wasm.utils import bcolors
-from octopus.arch.wasm.memory import lookup_symbolic_memory
 
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
                        '.debug_str', '.debug_line', '.debug_frame',
@@ -26,6 +26,7 @@ def get_source_location(ana, func_ind, func_offset, is_full_path=True):
     """get source location by function id and instruction offset within function"""
     return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path)
 
+
 def get_source_location_range(ana, func_ind, func_offset, is_full_path=True):
     """
     get source location range by function id and instruction offset within function
@@ -33,13 +34,15 @@ def get_source_location_range(ana, func_ind, func_offset, is_full_path=True):
     """
     return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path, is_range=True)
 
+
 def get_source_location_string(ana, func_ind, func_offset, is_full_path=True):
     """
     get source location string to be printed, according to debug info precision
     returns 'In file xxx, line no: xxx, col no: xxx'
     or 'In file xxx, line no: xxx to xxx'
     """
-    loc_start, loc_end = get_source_location_range(ana, func_ind, func_offset, is_full_path)
+    loc_start, loc_end = get_source_location_range(
+        ana, func_ind, func_offset, is_full_path)
     start_file, line_no, col_no = loc_start
     end_file, end_line_no, end_col_no = loc_end
     if start_file != end_file:
@@ -50,8 +53,9 @@ def get_source_location_string(ana, func_ind, func_offset, is_full_path=True):
         # same line, locations is exact
         # possibly end_col_no < col_no
         return f'In file {start_file}, line no: {line_no}, col no: {col_no}'
-    else: # same file, but not same line
+    else:  # same file, but not same line
         return f'In file {start_file}, line no: {line_no} to {end_line_no}'
+
 
 def get_func_DIE(ana, func_ind, func_offset):
     """get source function name by function id and instruction offset within function"""
@@ -75,10 +79,10 @@ def get_source_location_by_addr(dwarf_info, addr, is_full_path=True, is_range=Fa
         else:
             filename = lineprog['file_entry'][state.file - 1].name
         return filename
-    
+
     for CU in dwarf_info.iter_CUs():
         # First, look at line programs to find the file/line for the address
-        lineprog = dwarf_info.line_program_for_CU(CU)        
+        lineprog = dwarf_info.line_program_for_CU(CU)
         prevstate = None
         for entry in lineprog.get_entries():
             # We're interested in those entries where a new state is assigned
@@ -90,8 +94,10 @@ def get_source_location_by_addr(dwarf_info, addr, is_full_path=True, is_range=Fa
                 filename = get_filename(lineprog, prevstate, is_full_path)
                 if is_range:
                     prev_loc = (filename, prevstate.line, prevstate.column)
-                    next_filename = get_filename(lineprog, entry.state, is_full_path)
-                    next_loc = (next_filename, entry.state.line, entry.state.column)
+                    next_filename = get_filename(
+                        lineprog, entry.state, is_full_path)
+                    next_loc = (next_filename, entry.state.line,
+                                entry.state.column)
                     if filename != next_filename:
                         logging.warning(
                             f"{bcolors.WARNING}Source location range filename mismatch! probably due to aggressive optimization (function inlining){bcolors.ENDC}")
@@ -178,7 +184,7 @@ def decode_vararg(state, addr_stack, index):
     to access memory for real vararg argument.
     """
     addr = addr_stack + index * 4
-    addr = lookup_symbolic_memory(
+    addr = lookup_symbolic_memory_data_section(
         state.symbolic_memory, dict(), addr, 4).as_long()
     return addr
 
@@ -261,7 +267,8 @@ def get_func_index_from_state(ana, state):
         if item[0] == state.current_func_name:
             func_ind = i
             break
-    assert func_ind != -1, f"Cannot find the func index of func: {state.current_func_name}"
+    assert func_ind != - \
+        1, f"Cannot find the func index of func: {state.current_func_name}"
     return func_ind
 
 

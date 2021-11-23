@@ -232,3 +232,25 @@ def calc_memory_align(parsed_pattern):
                 offset[i-1] += 4
 
     return offset
+
+
+def parse_printf_formatting(lines):
+    cfmt = '''\
+(                                  # start of capture group 1
+%                                  # literal "%"
+(?:                                # first option
+(?:[-+0 #]{0,5})                   # optional flags
+(?:\d+|\*)?                        # width
+(?:\.(?:\d+|\*))?                  # precision
+(?:h|l|ll|w|I|I32|I64)?            # size
+[cCdiouxXeEfgGaAnpsSZ]             # type
+) |                                # OR
+%%)                                # literal "%%"
+'''
+
+    # tuple list, in which each element consisting of line number, begin position and pattern
+    result = []
+    for line_num, line in enumerate(lines.splitlines()):
+        for m in re.finditer(cfmt, line, flags=re.X):
+            result.append([line_num, m.start(1), m.group(1)])
+    return result

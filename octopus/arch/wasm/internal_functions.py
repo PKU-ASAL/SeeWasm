@@ -2,20 +2,19 @@
 
 import logging
 import math
-from sys import base_exec_prefix
 
 from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_func_index_from_state,
                                             get_source_location)
 from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
-from octopus.arch.wasm.helper_c import (C_extract_string_by_mem_pointer,
-                                        parse_printf_formatting)
 from octopus.arch.wasm.memory import (insert_symbolic_memory,
-                                      lookup_symbolic_memory)
+                                      lookup_symbolic_memory_data_section)
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
-from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
-                                     Enable_Lasers, bin_to_float,
-                                     calc_memory_align, getConcreteBitVec)
+from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH,
+                                     Configuration, Enable_Lasers,
+                                     bin_to_float, calc_memory_align,
+                                     getConcreteBitVec,
+                                     parse_printf_formatting)
 from z3 import *
 
 
@@ -55,7 +54,7 @@ class CPredefinedFunction:
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
 
-                middle_p = lookup_symbolic_memory(
+                middle_p = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
                 if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
                     tmp_data = str(middle_p)
@@ -104,7 +103,7 @@ class CPredefinedFunction:
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
 
-                middle_p = lookup_symbolic_memory(
+                middle_p = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
                 if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
                     tmp_data = str(middle_p)
@@ -147,9 +146,9 @@ class CPredefinedFunction:
         elif self.name == 'swap':
             the_one, the_other = param_list[0].as_long(
             ), param_list[1].as_long()
-            the_one_mem = lookup_symbolic_memory(
+            the_one_mem = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, {}, the_one, 1)
-            the_other_mem = lookup_symbolic_memory(
+            the_other_mem = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, {}, the_other, 1)
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, the_one, 1, the_other_mem)
@@ -337,7 +336,7 @@ class CPredefinedFunction:
             ), param_list[1].as_long(), param_list[2].as_long()
 
             # lookup the raw data
-            raw_src_data = lookup_symbolic_memory(
+            raw_src_data = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, src, length)
             # insert the raw data into the memory
             state.symbolic_memory = insert_symbolic_memory(
@@ -451,12 +450,12 @@ _values = {0: BitVec("NaN", 32), 1: BitVecVal(0, 32), 2: BitVec("null", 32), 3: 
 
 
 def calculateHeapAddresses(state, data_section):
-    val_81328 = simplify(lookup_symbolic_memory(
+    val_81328 = simplify(lookup_symbolic_memory_data_section(
         state.symbolic_memory, data_section, 81328, 4) + 15) & 4294967280  # calculate heap start
     val_81328 = simplify(val_81328)
     state.symbolic_memory = insert_symbolic_memory(
         state.symbolic_memory, 81328, 4, val_81328)  # save the heap start
-    val_85336 = lookup_symbolic_memory(
+    val_85336 = lookup_symbolic_memory_data_section(
         state.symbolic_memory, data_section, 85336, 4)  # heap end address
     val_diff = simplify((val_85336 - val_81328) >> 6)  # meta_data_size
     # heap end - meta_data_size (meta_data_start)
@@ -496,12 +495,12 @@ class GoPredefinedFunction:
             manually_constructed = True
         elif self.name == 'runtime.alloc':  # Assume the memory is enough, and never need to grow
             sz = param_list[0]
-            heapStart = lookup_symbolic_memory(
+            heapStart = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, 81328, 4)
             # bytes per block == 16
             neededBlocks = simplify(
                 (BitVecVal(15, 32) + sz) >> BitVecVal(4, 32))
-            nextAlloc = lookup_symbolic_memory(
+            nextAlloc = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, 85468, 4)  # next alloc block index
             index = simplify(nextAlloc + neededBlocks)
             nextAlloc = index
@@ -526,7 +525,7 @@ class GoPredefinedFunction:
             src_addr = src.as_long()
             dest_addr = dest.as_long()
             len_v = length.as_long()
-            vlis = [lookup_symbolic_memory(
+            vlis = [lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, src_addr + i, 1) for i in range(len_v)]
             for i, v in enumerate(vlis):
                 state.symbolic_memory = insert_symbolic_memory(
@@ -535,9 +534,9 @@ class GoPredefinedFunction:
             manually_constructed = True
         elif self.name == 'syscall/js.valueGet':
             p_len, p_str, v_addr, retval = param_list[2], param_list[3], param_list[4], param_list[5]
-            prop = lookup_symbolic_memory(
+            prop = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, p_str.as_long(), p_len.as_long())
-            value = lookup_symbolic_memory(
+            value = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, v_addr.as_long(), 4)
             value = _values[value.as_long()]
             _bs = prop.as_binary_string()
@@ -565,9 +564,9 @@ class GoPredefinedFunction:
             print(param_list)
             print(state)
             addr1, addr2 = param_list[0], param_list[1]
-            val1 = lookup_symbolic_memory(
+            val1 = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, addr1.as_long(), 4)
-            val2 = lookup_symbolic_memory(
+            val2 = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, data_section, addr2.as_long(), 4)
             print(val1, val2)
             raise ValueError
@@ -600,3 +599,35 @@ class ImportFunction:
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
+
+
+def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, default_len=None):
+    """
+    Extract string by the memory pointer from data section
+    or symbolic memory
+    """
+    # TODO the string may not be 4 bytes in length
+    # for example, the RorateArray, the scanf takes a string,
+    # the strlen will measure the length of the string,
+    # so we can not assume that the length would be 4
+    i = 1
+    previous_string = ""
+    while True:
+        loaded_data = lookup_symbolic_memory_data_section(
+            symbolic_memory, data_section, mem_pointer, i)
+
+        if loaded_data is None:
+            return BitVec('string*'+str(mem_pointer), default_len*8)
+
+        loaded_data = loaded_data.as_long()
+        loaded_string = loaded_data.to_bytes(
+            (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
+        # as the b"\x00" cannot be loaded from the memory
+        # thus we have to compare the current string with the previous round's
+        if loaded_string == previous_string:
+            break
+
+        i += 1
+        previous_string = loaded_string
+
+    return loaded_string

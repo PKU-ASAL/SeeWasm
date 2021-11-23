@@ -7,7 +7,7 @@ from os import path
 
 import sh
 
-from octopus.arch.wasm.graph import *
+from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import Configuration, extract_mapping
 
 

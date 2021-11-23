@@ -1,8 +1,12 @@
 # emulate the memory related instructions
 
-from .. exceptions import *
+import re
+
+from octopus.arch.wasm.exceptions import *
+from octopus.arch.wasm.memory import (insert_symbolic_memory,
+                                      lookup_symbolic_memory_data_section)
+from octopus.arch.wasm.utils import getConcreteBitVec
 from z3 import *
-from .. memory import load_instr, store_instr
 
 
 class MemoryInstructions:
@@ -13,7 +17,6 @@ class MemoryInstructions:
         self.mem_cnt = 2
         self.mem_step = 2
 
-    # TODO overflow check in this function?
     def emulate(self, state, data_section):
         if self.instr_name == 'current_memory':
             state.symbolic_stack.append(BitVecVal(self.mem_cnt, 32))
@@ -28,3 +31,89 @@ class MemoryInstructions:
             raise UnsupportInstructionError
 
         return False
+
+
+def load_instr(instr, state, data_section):
+    base = state.symbolic_stack.pop()
+    assert is_bv(base), f"in load_instr `base` type is {type(base)}"
+
+    # offset maybe int or hex
+    try:
+        offset = int(instr.split(' ')[2])
+    except ValueError:
+        offset = int(instr.split(' ')[2], 16)
+
+    addr = simplify(base + offset)
+    assert is_bv(addr), f"addr in load_instr is {type(addr)} instead of bv"
+
+    if type(addr) == BitVecNumRef:
+        addr = addr.as_long()
+
+    # determine how many bytes should be loaded
+    # the dict is like {'8': 1}
+    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
+    instr_name = instr.split(' ')[0]
+    if len(instr_name) == 8:
+        load_length = bytes_length_mapping[instr_name[1:3]]
+    else:
+        load_length = bytes_length_mapping[re.search(
+            r"load([0-9]+)\_", instr_name).group(1)]
+
+    val = lookup_symbolic_memory_data_section(
+        state.symbolic_memory, data_section, addr, load_length)
+
+    if val is None:
+        val = BitVec(f'load{load_length}*({addr})', 8*load_length)
+
+    # cast to other type of bit vector
+    float_mapping = {
+        'f32': Float32,
+        'f64': Float64,
+    }
+    if len(instr_name) == 8 and instr_name[0] == "f":
+        val = simplify(fpBVToFP(val, float_mapping[instr_name[:3]]()))
+    elif instr_name[-2] == "_":
+        if instr_name[-1] == "s":  # sign extend
+            val = simplify(SignExt(int(instr_name[1:3]) - load_length*8, val))
+        else:
+            val = simplify(ZeroExt(int(instr_name[1:3]) - load_length*8, val))
+
+    # if can not load from the memory area
+    if val is not None:
+        state.symbolic_stack.append(val)
+    else:
+        state.symbolic_stack.append(getConcreteBitVec(
+            instr_name[:3], f'load_{instr_name[:3]}*({str(addr)})'))
+
+
+# deal with store instruction
+def store_instr(instr, state):
+    # offset may be int or hex
+    try:
+        offset = int(instr.split(' ')[2])
+    except ValueError:
+        offset = int(instr.split(' ')[2], 16)
+
+    val, base = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+    addr = simplify(base + offset)
+
+    # change addr's type to int if possible
+    # or it will be the BitVecRef
+    if is_bv_value(addr):
+        addr = addr.as_long()
+
+    # determine how many bytes should be stored
+    # the dict is like {'8': 1}
+    bytes_length_mapping = {str(k): k//8 for k in range(8, 65, 8)}
+    instr_name = instr.split(' ')[0]
+    if len(instr_name) == 9:
+        if instr_name[0] == 'f':
+            val = fpToIEEEBV(val)
+        state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, bytes_length_mapping[instr_name[1:3]], val)
+    else:
+        stored_length = bytes_length_mapping[re.search(
+            r"store([0-9]+)", instr_name).group(1)]
+        val = simplify(Extract(stored_length*8-1, 0, val))
+        state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, stored_length, val)

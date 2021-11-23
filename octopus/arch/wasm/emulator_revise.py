@@ -6,7 +6,6 @@ import logging
 import re
 
 from octopus.arch.wasm.cfg import WasmCFG
-from octopus.arch.wasm.helper_c import *
 from octopus.arch.wasm.instructions import *
 from octopus.arch.wasm.utils import Configuration, getConcreteBitVec
 from octopus.arch.wasm.vmstate import WasmVMstate
