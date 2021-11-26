@@ -115,7 +115,7 @@ class CPredefinedFunction:
                                                                        BitVecVal(6513249, 32))
                         logging.warning(
                             "================Initiated an scanf string: abc=================\n")
-                    elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                    elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         original_file, line_no, col_no = get_source_location(

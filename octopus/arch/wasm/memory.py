@@ -27,9 +27,11 @@ def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, len
     This funciton is used to determine if the dest existed in data section
     or symbolic memory, and retrieve it from corresponding area
     """
-    # if dest is bitvecref, return the corresponding value directly
+    # if dest is bitvecref:
+    # 1. assume the loaded value is in memory instead of data section
+    # 2. the returned value is packed by `ite` from z3
     if is_bv(dest) and not is_bv_value(dest):
-        return symbolic_memory.get((dest, simplify(dest+length)), None)
+        return _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length)
 
     # in data section?
     in_symbolic_memory, is_overlapped, _, _ = _lookup_overlapped_interval(
@@ -43,6 +45,48 @@ def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, len
         return _lookup_data_section(data_section, dest, length)
     else:
         return _lookup_symbolic_memory(symbolic_memory, dest, length)
+
+
+def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
+    """
+    return an `ite` value that enumerate all possible value from memory
+
+    Args:
+        symbolic_memory (dict): symbolic memory
+        dest (BitVecRef): from where the data would be loaded
+        length (int): length of bytes that would be loaded
+    """
+    # Heuristic: if dest contains a number, just enumerate that interval
+    for i in range(dest.num_args()):
+        if is_bv_value(dest.arg(i)):
+            chosen_num = dest.arg(i).as_long()
+            break
+
+    # look for the interval
+    for k in symbolic_memory.keys():
+        lower_bound, higher_bound = k[0], k[1]
+        if lower_bound <= chosen_num < higher_bound:
+            # start to construct ite
+            return _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length)
+
+    print('here')
+    exit()
+
+
+def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
+    """
+    Recursively construct ite expression
+
+    Args:
+        symbolic_memory (dict): symbolic memory
+        lower_bound (int): lower bound of interval
+        higher_bound (int): higher bound of interval
+        dest (BitVecRef): from where the data would be loaded
+        length (int): length of bytes that would be loaded
+    """
+    if lower_bound + length > higher_bound:
+        return BitVec('no_such_memory', 8*length)
+    return If(dest == lower_bound, _lookup_symbolic_memory(symbolic_memory, lower_bound, length), _construct_ite(symbolic_memory, lower_bound+length, higher_bound, dest, length))
 
 
 def _lookup_data_section(data_section, dest, length):

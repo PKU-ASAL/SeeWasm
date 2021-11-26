@@ -35,18 +35,14 @@ class MemoryInstructions:
 
 def load_instr(instr, state, data_section):
     base = state.symbolic_stack.pop()
-    assert is_bv(base), f"in load_instr `base` type is {type(base)}"
-
     # offset maybe int or hex
     try:
         offset = int(instr.split(' ')[2])
     except ValueError:
         offset = int(instr.split(' ')[2], 16)
-
     addr = simplify(base + offset)
-    assert is_bv(addr), f"addr in load_instr is {type(addr)} instead of bv"
 
-    if type(addr) == BitVecNumRef:
+    if is_bv_value(addr):
         addr = addr.as_long()
 
     # determine how many bytes should be loaded
@@ -63,6 +59,7 @@ def load_instr(instr, state, data_section):
         state.symbolic_memory, data_section, addr, load_length)
 
     if val is None:
+        exit(f"the loaded value should not be None")
         val = BitVec(f'load{load_length}*({addr})', 8*load_length)
 
     # cast to other type of bit vector
