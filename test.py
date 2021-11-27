@@ -39,6 +39,7 @@ candidates.remove('7n+1_lo_l1')
 candidates.remove('collaz_lo_l1')
 # do not support currently
 candidates.remove('aes_cf')
+candidates.remove('cpu_svd')
 
 candidates.sort()
 

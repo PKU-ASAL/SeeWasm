@@ -4,6 +4,7 @@
 import argparse
 import json
 from os import path
+from datetime import datetime
 
 import sh
 
@@ -193,4 +194,12 @@ def main():
 
 
 if __name__ == '__main__':
+    job_start_time = datetime.now()
+    current_time = job_start_time.strftime("%m-%d %H:%M:%S")
+    print(f"Start to analyze: {current_time}")
+
     main()
+
+    job_end_time = datetime.now()
+    current_time = job_end_time.strftime("%m-%d %H:%M:%S")
+    print(f"End of analyze: {current_time}")
