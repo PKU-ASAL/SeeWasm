@@ -49,7 +49,7 @@ def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, len
 
 def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
     """
-    return an `ite` value that enumerate all possible value from memory
+    return an `ite` value that enumerate all possible value of size length from memory
 
     Args:
         symbolic_memory (dict): symbolic memory

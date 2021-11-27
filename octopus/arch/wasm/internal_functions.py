@@ -114,18 +114,18 @@ class CPredefinedFunction:
                         state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, middle_p, 4,
                                                                        BitVecVal(6513249, 32))
                         logging.warning(
-                            "================Initiated an scanf string: abc=================\n")
+                            "================Initiated an scanf string: abc=================")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         original_file, line_no, col_no = get_source_location(
                             analyzer, func_ind, func_offset)
                         inserted_variable = BitVec(
-                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                         state.symbolic_memory = insert_symbolic_memory(
                             state.symbolic_memory, middle_p, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
                         logging.warning(
-                            f"================Initiated an scanf integer: variable{str(i)}_{state.current_func_name}!=================\n")
+                            f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}============")
                     else:
                         exit("$scanf error")
 
@@ -133,16 +133,28 @@ class CPredefinedFunction:
 
                 i += 1
         elif self.name == 'strlen':
-            mem_pointer = param_list[0].as_long()
-            the_string = C_extract_string_by_mem_pointer(
-                mem_pointer, data_section, state.symbolic_memory)
+            mem_pointer = param_list[0]
+            if is_bv_value(mem_pointer):
+                mem_pointer = mem_pointer.as_long()
 
-            string_length = len(the_string)
-            state.symbolic_stack.append(BitVecVal(string_length, 32))
+                the_string = C_extract_string_by_mem_pointer(
+                    mem_pointer, data_section, state.symbolic_memory, 1)
 
-            manually_constructed = True
-            logging.warning(
-                "================$strlen! The length is: %s=================\n", string_length)
+                if is_bv_value(the_string):
+                    string_length = len(the_string)
+                    state.symbolic_stack.append(BitVecVal(string_length, 32))
+                elif is_bv(the_string):
+                    # if the loaded string is a bv, we assign a symbol here
+                    string_length = BitVec("string_length", 32)
+                    state.symbolic_stack.append(string_length)
+                else:
+                    raise UnexpectedDataType
+
+                manually_constructed = True
+            elif is_bv(mem_pointer):
+                raise UnsupportExternalFuncError
+            else:
+                raise UnexpectedDataType
         elif self.name == 'swap':
             the_one, the_other = param_list[0].as_long(
             ), param_list[1].as_long()
@@ -636,3 +648,30 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, 
         previous_string = loaded_string
 
     return loaded_string
+
+
+def C_extract_possible_strings_by_mem_pointer(mem_pointer, symbolic_memory, string_length):
+    """
+    Extract all possible strings by ite statements
+
+    Args:
+        mem_pointer (int): from where the string start
+        symbolic_memory (dict): the symbolic memory
+        string_length (BitVecRef): the length of each string
+    """
+    maximum_length = -1
+    # find the maximum length of the possible string
+    for k in symbolic_memory:
+        lower_bound, upper_bound = k[0], k[1]
+        if lower_bound <= mem_pointer < upper_bound:
+            maximum_length = upper_bound - mem_pointer
+            break
+    assert maximum_length != -1, f"no string exists from {mem_pointer}"
+
+    def construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length):
+        if current_length == maximum_length:
+            return C_extract_string_by_mem_pointer(mem_pointer, dict(), symbolic_memory, current_length)
+        return If(string_length == current_length, C_extract_string_by_mem_pointer(mem_pointer, dict(), symbolic_memory, current_length), construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length+1))
+
+    current_length = 1
+    return construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length)

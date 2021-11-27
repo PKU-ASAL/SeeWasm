@@ -58,9 +58,13 @@ def load_instr(instr, state, data_section):
     val = lookup_symbolic_memory_data_section(
         state.symbolic_memory, data_section, addr, load_length)
 
+    if val.size() != 8*load_length:
+        # we assume the memory are filled by 0 initially
+        val = ZeroExt(8*load_length-val.size(), val)
+
     if val is None:
         exit(f"the loaded value should not be None")
-        val = BitVec(f'load{load_length}*({addr})', 8*load_length)
+        # val = BitVec(f'load{load_length}*({addr})', 8*load_length)
 
     # cast to other type of bit vector
     float_mapping = {
