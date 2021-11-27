@@ -6,14 +6,14 @@ import math
 from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_func_index_from_state,
                                             get_source_location)
-from octopus.arch.wasm.exceptions import UnsupportExternalFuncError
+from octopus.arch.wasm.exceptions import (UnexpectedDataType,
+                                          UnsupportExternalFuncError)
 from octopus.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
-from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH,
-                                     Configuration, Enable_Lasers,
-                                     bin_to_float, calc_memory_align,
-                                     getConcreteBitVec,
+from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
+                                     Enable_Lasers, bin_to_float,
+                                     calc_memory_align, getConcreteBitVec,
                                      parse_printf_formatting)
 from z3 import *
 
@@ -402,13 +402,11 @@ class CPredefinedFunction:
             # append into stack
             state.symbolic_stack.append(the_number)
             manually_constructed = True
-        elif self.name == 'srand' or self.name == 'rand':
-            # we have not emulated the seed generating algorithm for C
-            pass
         elif self.name == 'log':
             pass
         elif self.name == 'system':
-            pass
+            state.symbolic_stack.append(BitVec("cmd_system", 32))
+            manually_constructed = True
         elif self.name == 'pow':
             """
             Note: we can step in library pow function
@@ -616,12 +614,19 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, 
         loaded_data = lookup_symbolic_memory_data_section(
             symbolic_memory, data_section, mem_pointer, i)
 
-        if loaded_data is None:
-            return BitVec('string*'+str(mem_pointer), default_len*8)
+        # if loaded_data is None:
+        #     return BitVec('string*'+str(mem_pointer), default_len*8)
+        if is_bv_value(loaded_data):
+            loaded_data = loaded_data.as_long()
+            loaded_string = loaded_data.to_bytes(
+                (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
+        elif is_bv(loaded_data):
+            assert not default_len is None, f"extract {mem_pointer} from memory, however, the loaded part is a symbol, the default len should not be None"
+            return BitVec('string_of_'+str(lookup_symbolic_memory_data_section(
+                symbolic_memory, data_section, mem_pointer, 4)), default_len*8)
+        else:
+            raise UnexpectedDataType
 
-        loaded_data = loaded_data.as_long()
-        loaded_string = loaded_data.to_bytes(
-            (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
         # as the b"\x00" cannot be loaded from the memory
         # thus we have to compare the current string with the previous round's
         if loaded_string == previous_string:

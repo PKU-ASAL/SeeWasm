@@ -195,11 +195,13 @@ def main():
 
 if __name__ == '__main__':
     job_start_time = datetime.now()
-    current_time = job_start_time.strftime("%m-%d %H:%M:%S")
-    print(f"Start to analyze: {current_time}")
+    current_time_start = job_start_time.strftime("%m-%d %H:%M:%S")
+    print(f"Start to analyze: {current_time_start}")
 
     main()
 
     job_end_time = datetime.now()
-    current_time = job_end_time.strftime("%m-%d %H:%M:%S")
-    print(f"End of analyze: {current_time}")
+    current_time_end = job_end_time.strftime("%m-%d %H:%M:%S")
+    print(f"End of analyze: {current_time_end}")
+    elapsed_time = job_end_time - job_start_time
+    print(f"Time elapsed: {elapsed_time}")

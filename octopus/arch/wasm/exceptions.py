@@ -1,44 +1,69 @@
 # This file defines our own exceptions
 
-# used in `utils.py`
-# indicating that the variable type is not in ['i32', 'i64', 'f32', 'f64']
+
 class UnsupportZ3TypeError(Exception):
+    """
+    used in `utils.py`
+    indicating that the variable type is not in ['i32', 'i64', 'f32', 'f64']
+    """
     pass
 
 
-# used in `emulator.py`
-# indicating the local variable is not initialized before retriving
 class UninitializedLocalVariableError(Exception):
+    """
+    used in `emulator.py`
+    indicating the local variable is not initialized before retriving
+    """
     pass
 
 
-# used in `emulator.py`
-# indicating the unsupport global type encoutering global.get
 class UnsupportGlobalTypeError(Exception):
+    """
+    used in `emulator.py`
+    indicating the unsupport global type encoutering global.get
+    """
     pass
 
 
-# used in `emulator.py`
-# indicating the unsupport instructions
 class UnsupportInstructionError(Exception):
+    """
+    used in `emulator.py`
+    indicating the unsupport instructions
+    """
     pass
 
 
-# indicateing the return value is bool but cannot be determined as True or False
 class NotDeterminedRetValError(Exception):
+    """
+    indicateing the return value is bool but cannot be determined as True or False
+    """
     pass
 
 
-# indicateing the state is not initialized before emulate_one_function
 class UninitializedStateError(Exception):
+    """
+    indicateing the state is not initialized before emulate_one_function
+    """
     pass
 
 
-# indicating the memory load error
 class MemoryLoadError(Exception):
+    """
+    indicating the memory load error
+    """
     pass
 
 
-# indicating the library function is not emulated by us
 class UnsupportExternalFuncError(Exception):
+    """
+    indicating the library function is not emulated by us
+    """
+    pass
+
+
+class UnexpectedDataType(Exception):
+    """
+    Typically raised if there is a `if-elif-else` statement
+    depending on the data type
+    """
     pass
