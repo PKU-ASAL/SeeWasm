@@ -18,7 +18,6 @@ if Configuration.get_verbose_flag():
     logging.basicConfig(level=logging.DEBUG)
 else:
     logging.basicConfig(level=logging.INFO)
-MAX = 42
 
 
 # =======================================

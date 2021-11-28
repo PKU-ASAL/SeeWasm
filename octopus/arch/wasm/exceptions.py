@@ -67,3 +67,10 @@ class UnexpectedDataType(Exception):
     depending on the data type
     """
     pass
+
+
+class DSLParseError(Exception):
+    """
+    Raising an error when parsing DSL
+    """
+    pass

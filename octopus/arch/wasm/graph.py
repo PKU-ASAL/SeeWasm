@@ -7,6 +7,7 @@ from queue import LifoQueue, PriorityQueue, SimpleQueue
 
 from joblib import Parallel, delayed
 from loky import wrap_non_picklable_objects
+from octopus.arch.wasm.exceptions import DSLParseError
 from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
 from z3 import *
 
@@ -143,14 +144,12 @@ class Graph:
     @classmethod
     def parse_dsl(cls, user_dsl):
         """
-        This function is used to parse user-given dsl, i.e.,
-        extract relevant blocks and insert into the parsed json.
-        Specifically, we will add "blocks" key into each item,
-        it is a 2d array, as regex would match multiple funcs.
+        This function is used to parse user-given dsl:
+        step 1: extract relevant blocks and insert into a json file;
+        step 2: insert the DSL into corresponding block
         """
 
         def _extract_blocks_by_funcname(target_func_name):
-            # TODO deal with nesting
             target_blocks = cls.func_to_bbs.get(target_func_name, None)
             if not target_blocks:
                 # if it cannot be accessed by name directly
@@ -162,6 +161,76 @@ class Graph:
                         break
             return target_blocks
 
+        def all_descendant(node):
+            visited = set()
+            q = deque()
+            q.append(node)
+            while q:
+                tmp = q.popleft()
+                if tmp not in visited:
+                    visited.add(tmp)
+                else:
+                    continue
+                for edge_type, direct_descendant in cls.bbs_graph[tmp].items():
+                    if edge_type == "unconditional_0" and direct_descendant not in visited:
+                        visited.add(direct_descendant)
+                        continue
+                    q.append(direct_descendant)
+            return visited
+
+        def nearest_common(node1, node2):
+            node1_descendant = all_descendant(node1)
+            node2_descendant = all_descendant(node2)
+            intersected = node1_descendant.intersection(node2_descendant)
+            if not intersected:
+                return None
+            else:
+                # sort
+                intersected = list(intersected)
+                intersected = [int(i[i.rfind('_')+1:], 16)
+                               for i in intersected]
+                intersected.sort()
+                intersected = [hex(i)[2:] for i in intersected]
+                return intersected[0]
+
+        def _analyze_nesting(head, depth):
+            if len(counter) < depth:
+                counter.append(0)
+            q = deque()
+            q.append(head)
+            while q:
+                tmp = q.popleft()
+                if tmp in main_branch:
+                    return
+                main_branch.add(tmp)
+                if len(cls.bbs_graph[tmp]) == 0:
+                    return
+                elif len(cls.bbs_graph[tmp]) == 1:
+                    q.append(list(cls.bbs_graph[tmp].values())[0])
+                elif len(cls.bbs_graph[tmp]) == 2:
+                    false_node, true_node = cls.bbs_graph[tmp][
+                        'conditional_false_0'], cls.bbs_graph[tmp]['conditional_true_0']
+                    nc = nearest_common(false_node, true_node)
+                    if nc:  # if then structure
+                        nc = head[:head.rfind('_')] + '_' + nc
+                        result[false_node] = '_'.join(
+                            [str(i) for i in counter])
+                        counter[depth-1] += 1
+                        result[true_node] = '_'.join([str(i) for i in counter])
+                        counter[depth-1] += 1
+                        q.append(nc)
+                        need_run.append(false_node)
+                        need_run.append(true_node)
+                    else:  # loop structure
+                        result[false_node] = '_'.join(
+                            [str(i) for i in counter])
+                        counter[depth-1] += 1
+                        q.append(true_node)
+                        need_run.append(false_node)
+                else:
+                    raise DSLParseError
+
+        # step 1
         for dsl_item in user_dsl:
             dsl_item["blocks"] = list()
             # if user use regex
@@ -171,19 +240,56 @@ class Graph:
                 r = re.compile(target_func_name_re)
                 target_func_names = list(
                     filter(r.match, cls.wasmVM.func_index2func_name.values()))
-                for target_func_name in target_func_names:
-                    target_blocks = _extract_blocks_by_funcname(
-                        target_func_name)
-                    if target_blocks:
-                        dsl_item["blocks"].append(target_blocks)
             else:
-                target_func_name = dsl_item["scope"]
-                target_blocks = _extract_blocks_by_funcname(target_func_name)
-                if target_blocks:
-                    dsl_item["blocks"].append(target_blocks)
+                target_func_names = [dsl_item["scope"]]
 
-        # store into wasmVM
+            for target_func_name in target_func_names:
+                target_blocks = _extract_blocks_by_funcname(
+                    target_func_name)
+                if target_blocks:
+                    if "nesting" in dsl_item.keys():
+                        # initialize for each function
+                        counter = []  # depth indicator
+                        result = dict()
+                        main_branch = set()  # used to terminate recursive _analyze_nesting
+                        need_run = deque()
+
+                        # we need run the current func's first block
+                        need_run.append(target_blocks[0])
+                        while need_run:
+                            tmp = need_run.popleft()
+                            if tmp in result:
+                                counter = [int(i)
+                                           for i in result[tmp].split('_')]
+                            _analyze_nesting(tmp, len(counter)+1)
+
+                        # parse the result
+                        concerned_dsl = '_'.join(
+                            [str(i) for i in dsl_item["nesting"]])
+                        for tmp_block, extracted_dsl in result.items():
+                            if extracted_dsl == concerned_dsl:
+                                dsl_item["blocks"].append([tmp_block])
+                                break
+                    else:
+                        dsl_item["blocks"].append(target_blocks)
+
         cls.wasmVM.user_dsl = user_dsl
+
+        # step 2
+        for dsl_item in user_dsl:
+            # if there is regex, there may be more than one matched funcs
+            # i.e., more than one set of blocks
+            for func_blocks in dsl_item['blocks']:
+                # we insert the dsl to the first block
+                target_block = func_blocks[0]
+                # iterate the cfg to find the target block and insert the dsl
+                for cfg_block in cls.wasmVM.cfg.basicblocks:
+                    if cfg_block.name == target_block:
+                        tmp_dsl_item = copy.deepcopy(dsl_item)
+                        # remove 'blocks' field
+                        tmp_dsl_item.pop('blocks')
+                        cfg_block.dsl.append(tmp_dsl_item)
+                        break
 
     def traverse(self):
         for entry_func in self.entries:

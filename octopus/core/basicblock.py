@@ -1,6 +1,7 @@
 class BasicBlock(object):
     """
     """
+
     def __init__(self, start_offset=0x00, start_instr=None,
                  name='block_default_name'):
         self.start_offset = start_offset
@@ -12,6 +13,9 @@ class BasicBlock(object):
 
         self.states = []
         self.function_name = "unknown"
+
+        # user dsl
+        self.dsl = []
 
     @property
     def size(self):
@@ -26,6 +30,7 @@ class BasicBlock(object):
         line += 'end_offset = ' + str(self.end_offset) + '\n'
         line += 'end_instr = ' + str(self.end_instr.name) + '\n'
         line += 'function_name = ' + str(self.function_name) + '\n'
+        line += 'dsl = ' + str(self.dsl) + '\n'
         out += line + '\n\n'
         return out
 
