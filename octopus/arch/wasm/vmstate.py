@@ -1,4 +1,5 @@
 # This file defines the `state` that will be passed within Wasm-SE
+import copy
 
 from collections import defaultdict
 
@@ -24,6 +25,19 @@ class WasmVMstate(VMstate):
         self.current_func_name = 'none'
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
+
+    def translate(self, ctx):
+        state = WasmVMstate()
+        for v in self.symbolic_stack:
+            state.symbolic_stack.append(copy.deepcopy(v).translate(ctx))
+        for k, v in self.symbolic_memory.items():
+            state.symbolic_memory[k] = copy.deepcopy(v).translate(ctx)
+        for k, v in self.local_var.items():
+            state.local_var[k] = copy.deepcopy(v).translate(ctx)
+        for k, v in self.globals.items():
+            state.globals[k] = copy.deepcopy(v).translate(ctx)
+        for c in self.constraints:
+            state.constraints.append(copy.deepcopy(c).translate(ctx))
 
     def __str__(self):
         return f'''Current Func:\t{self.current_func_name}
