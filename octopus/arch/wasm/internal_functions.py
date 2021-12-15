@@ -494,9 +494,102 @@ class GoPredefinedFunction:
             for _ in range(num_arg):
                 param_list.append(state.symbolic_stack.pop())
 
+        # helper function to convert from z3 value to python integer
+        def concrete_value(x):
+            return x.as_long() if is_bv_value(x) else x
+        # helper functions to access memory
+        def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
+            state.symbolic_memory, data_section, x, 4))
+        def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, 4, BitVecVal(val, 32))
+        def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, 1, BitVecVal(val, 8))
+
         # ------------------------ TinyGO Library -------------------------------
         # could be step in, remain for understanding the memory structure.
-        if self.name == 'runtime.calculateHeapAddresses':
+        if self.name == 'fd_write':
+            # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
+            # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js
+            # u32 _fd_write(u32 fd, u32 iov, u32 iovcnt, u32 pnum)
+            # due to previous pop operation, arguments are reversed
+            params = [concrete_value(i) for i in param_list]
+            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
+            logging.warning(f"fd_write to fd: {fd}")
+            # currently only support stdout (also in wasm_exec.js)
+            assert fd == 1, 'invalid file descriptor:'
+
+            num = 0
+            for i in range(iovcnt):
+                ptr = load32(iov + 8 * i)
+                length = load32(iov + (8 * i + 4))
+                # print from ptr, length is len
+                out_str = []
+                for j in range(length):
+                    c = lookup_symbolic_memory_data_section(
+                        state.symbolic_memory, data_section, ptr + j, 1)
+                    c = concrete_value(c)
+                    out_str.append(c)
+                # without assuming encoding
+                sys.stdout.buffer.write(bytes(out_str))
+                sys.stdout.flush()
+                num += length
+            # set pnum to num
+            store32(pnum, num)
+            # return 0
+            manually_constructed = True
+            state.symbolic_stack.append(BitVecVal(0, 32))
+        elif self.name == 'fd_read':
+            # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
+            # sematic based on https://man7.org/linux/man-pages/man2/writev.2.html
+            # __wasi_errno_t __wasi_fd_read( __wasi_fd_t fd, const __wasi_iovec_t *iovs, size_t iovs_len, __wasi_size_t *retptr0 )
+            # (func (param i32 i32 i32 i32) (result i32))
+            # due to previous pop operation, arguments are reversed
+            params = [concrete_value(i) for i in param_list]
+            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
+            logging.warning(f"fd_read to fd: {fd}")
+            # currently only support stdin
+            assert fd == 0, 'invalid file descriptor:'
+            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
+            num = 0 # bytes written
+            out_bytes = []
+            for i in range(iovcnt):
+                ptr = load32(iov + 8 * i)
+                length = load32(iov + (8 * i + 4))
+                written_num = min(len(state.stdin_buffer), length)
+                for j in range(written_num):
+                    out_bytes.append(state.stdin_buffer[0])
+                    store8(ptr + j, state.stdin_buffer.pop(0))
+                    num += 1
+                if len(state.stdin_buffer) == 0: break
+            logging.warning(
+                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
+            # set pnum to num
+            store32(pnum, num)
+            # return 0
+            manually_constructed = True
+            state.symbolic_stack.append(BitVecVal(0, 32))
+        # work in progress, currently not enabled
+        elif self.name == 'fmt.Scanf':
+            # func Scanf(format string, a ...interface{}) (n int, err error)
+            # define internal { i32, %runtime.funcValueWithSignature } @fmt.Scanf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
+            print(param_list)
+            param_list[:] = map(concrete_value, param_list)
+            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            format_str = C_extract_string_by_mem_pointer(
+                format_data, data_section, state.symbolic_memory, format_len)
+            for j in range(interface_slice_len):
+                typecode = load32(interface_slice_data + 8 * j)
+                interface_ptr = load32(interface_slice_data + 8 * j + 4)
+                string_ptr = load32(interface_ptr)
+                string_len = load32(interface_ptr + 4)
+                store32(interface_ptr, format_data)
+                store32(interface_ptr + 4, format_len)
+            # return 1, nil
+            store32(pret, 1)
+            store32(pret + 4, 0)
+            manually_constructed = True
+        elif self.name == 'runtime.calculateHeapAddresses':
             calculateHeapAddresses(state, data_section)
             manually_constructed = True
         elif self.name == 'memset':
@@ -570,16 +663,6 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.putchar':
             ch = param_list[0]
             print(chr(ch.as_long()), end='')
-        elif self.name == 'fmt.Fscanf':
-            print(param_list)
-            print(state)
-            addr1, addr2 = param_list[0], param_list[1]
-            val1 = lookup_symbolic_memory_data_section(
-                state.symbolic_memory, data_section, addr1.as_long(), 4)
-            val2 = lookup_symbolic_memory_data_section(
-                state.symbolic_memory, data_section, addr2.as_long(), 4)
-            print(val1, val2)
-            raise ValueError
 
         else:
             print(param_list)
