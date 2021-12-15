@@ -89,15 +89,17 @@ The `main` function in Go file is named as `main.main` in the Wat file.
 tinygo
 ```
 
-If it is successfully installed on your computer, you can use command below to generate the corresponding Wasm and Wat files.
+If it is successfully installed on your computer, you can modify go source files and run `make` command in Wasm-samples folder to generate corresponding files.
+
+For manual generation, you can use command below to generate Wasm and Wat files.
 ```shell
-tinygo build -o tinygo_main.wasm -target wasm ./main.go
-wasm2wat tinygo_main.wasm -o tinygo_main.wat
+tinygo build -wasm-abi=generic -target=wasi -opt=0 -scheduler=none -o main.wasm ./main.go
+wasm2wat main.wasm -o main.wat
 ```
 
-Note that, the entry of compiled Wasm is `_start`, thus the command to run the symbolic execution engine is (maybe you should change the python version on your demand):
+We provided several examples in the repo Wasm-samples. The command to run the symbolic execution engine is: (You can change the path of wasm file to other examples to run it)
 ```shell
-python3.6 octopus_wasm -f './go_samples.nosync/hello_world/tinygo_main.wasm' -s --onlyfunc _start --need_mapper --concrete_globals --source_type go
+python3 octopus_wasm -f './Wasm-samples/go_samples.nosync/hello_world/main.wasm' -s --onlyfunc main.main --need_mapper --concrete_globals --source_type go
 ```
 
 ## Analyze
