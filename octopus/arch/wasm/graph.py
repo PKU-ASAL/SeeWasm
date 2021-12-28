@@ -9,6 +9,8 @@ from joblib import Parallel, delayed
 from loky import wrap_non_picklable_objects
 from octopus.arch.wasm.exceptions import DSLParseError
 from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
+from octopus.arch.wasm.memory import lookup_symbolic_memory_data_section
+import octopus.arch.wasm.dawrf_parser as debuginfo
 from z3 import *
 
 
@@ -48,6 +50,7 @@ def default_cnt():
 class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
+    _bb_to_dsl = defaultdict(list)
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
     _loop_maximum_rounds = 50
@@ -83,6 +86,10 @@ class Graph:
     @classproperty
     def bb_to_instructions(cls):
         return cls._bb_to_instructions
+
+    @classproperty
+    def bb_to_dsl(cls):
+        return cls._bb_to_dsl
 
     @classproperty
     def wasmVM(cls):
@@ -287,6 +294,7 @@ class Graph:
                         # remove 'blocks' field
                         tmp_dsl_item.pop('blocks')
                         cfg_block.dsl.append(tmp_dsl_item)
+                        cls.bb_to_dsl[cfg_block.name].append(tmp_dsl_item)
                         break
 
     def traverse(self):
@@ -369,28 +377,49 @@ class Graph:
         scores = defaultdict(int)
         score_func = partial(cls.priority_score, scores=scores)
         heads['return'] = 'return'
+        cls.extract_edges(entry)
         final_states = cls.visit_interval(
             [state], has_ret, entry, heads, score_func, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
-    def sat_cut(cls, state):
-        state.constraints = list(set(state.constraints))
+    def sat_cut(cls, constraints):
         solver = Solver()
-        solver.add(*state.constraints)
+        solver.add(*constraints)
         return unsat == solver.check()
 
     @classmethod
-    def can_cut(cls, type, state):
+    def dsl_cons(cls, state, blk):
+        func_ind = debuginfo.get_func_index_from_state(cls.wasmVM.ana, state)
+        func_DIE = debuginfo.get_func_DIE(cls.wasmVM.ana, func_ind, state.instr.offset)
+        func_name = func_DIE.attributes['DW_AT_name'].value.decode()
+        constraints = []
+        for cdic in cls.bb_to_dsl[blk]:
+            scope = cdic['scope']
+            match = scope == func_name or(cdic['regex'] and re.compile(scope).search(func_name) is not None)
+            if match:
+                for die in func_DIE.iter_children():
+                    if die.tag == 'DW_TAG_variable':
+                        variable_name = die.attributes['DW_AT_name'].value.decode()
+                        if variable_name in cdic['watch']:
+                            variable_loc = debuginfo.parse_expr(cls.wasmVM.ana.dwarf_info, die.attributes['DW_AT_location'].value)[0]
+                            if variable_loc.op_name == 'DW_OP_fbreg':
+                                start = variable_loc.args[0]
+                                size = debuginfo.get_size_by_type(die.get_DIE_from_attribute('DW_AT_type'))
+                                value = lookup_symbolic_memory_data_section(state.symbolic_memory, cls.wasmVM.data_section, start, size)
+                                var_identifier = BitVec(variable_name, bv=size * 8)
+                                locals()[variable_name] = var_identifier
+                                constraints.append(value == var_identifier)
+                for e in cdic['ensure']:
+                    eval(f'constraints.append({e})')
+        logging.warning(constraints)
+        return constraints
+
+    @classmethod
+    def can_cut(cls, type, state, cur_blk=None):
         if isinstance(state, dict):
-            if type not in state:
-                return True
-            if type.startswith('conditional_'):
-                if type in state:
-                    return cls.sat_cut(state[type])
-        elif cls.sat_cut(state):
-            return True
-        return False
+            state = None if type not in state else state[type] if type.startswith('conditional_') else state
+        return state is None or cls.sat_cut(state.constraints + list(set(cls.dsl_cons(state, cur_blk))))
 
     @classmethod
     def calc_circle(cls, blk, vis, circles):
@@ -519,10 +548,7 @@ class Graph:
     @classmethod
     def priority_score(cls, data_item, scores):
         states, blk, heads, cnt, weight = data_item
-#        br = ('conditional_false_0', 'block_1_7b')
-#        head = heads['block_1_7b']
         return 0
-#        return weight[head][br] - cnt[head][br]
 
     @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):
@@ -585,7 +611,7 @@ class Graph:
                     emul_states, dict) else emul_states
                 # TODO give a description here
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_states)))
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, current_block), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
             if guided:

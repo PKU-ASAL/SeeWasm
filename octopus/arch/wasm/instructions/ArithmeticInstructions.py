@@ -9,6 +9,7 @@ from octopus.arch.wasm.utils import bcolors
 
 from z3 import *
 import logging
+from octopus.arch.wasm.graph import Graph
 
 helper_map = {
     'i32': 32,

@@ -210,6 +210,18 @@ def get_size_by_type(die):
         logging.error("Unknown type tag: ", die.tag)
         return 4
 
+def get_value(func_DIE, ana, state):
+    fb_expr = func_DIE.attributes['DW_AT_frame_base'].value
+    fb_loc = parse_expr(ana.dwarf_info, fb_expr)
+    assert fb_loc[1].op_name == 'DW_OP_stack_value'
+    fb_loc = fb_loc[0]  # type: DWARFExprOp
+    print(fb_loc)
+    if fb_loc.op_name == 'wasm-local':
+        fb_value = state.local_var[fb_loc.args[0]].as_long()
+    elif fb_loc.op_name == 'wasm-global':
+        fb_value = state.globals[fb_loc.args[0]].as_long()
+    else:  # operand stack
+        raise Exception("Unimplemented")
 
 def decode_var_type(ana, state, addr_stack, use_global_sp=False):
     """
