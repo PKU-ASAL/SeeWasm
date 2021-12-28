@@ -14,7 +14,7 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 C_LIBRARY_FUNCS = {'printf', 'scanf',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
 GO_WASI_FUNCS = {'fd_write', 'fd_read'}
-GO_LIBRARY_FUNCS = {'runtime.alloc'} # 'fmt.Scanf'
+GO_LIBRARY_FUNCS = {'runtime.alloc', 'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
