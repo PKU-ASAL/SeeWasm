@@ -163,14 +163,12 @@ class Graph:
 
         def all_descendant(node):
             visited = set()
-            q = deque()
-            q.append(node)
+            q = deque([node])
             while q:
                 tmp = q.popleft()
-                if tmp not in visited:
-                    visited.add(tmp)
-                else:
+                if tmp in visited:
                     continue
+                visited.add(tmp)
                 for edge_type, direct_descendant in cls.bbs_graph[tmp].items():
                     if edge_type == "unconditional_0" and direct_descendant not in visited:
                         visited.add(direct_descendant)
@@ -521,9 +519,10 @@ class Graph:
     @classmethod
     def priority_score(cls, data_item, scores):
         states, blk, heads, cnt, weight = data_item
-        br = ('conditional_false_0', 'block_1_7b')
-        head = heads['block_1_7b']
-        return weight[head][br] - cnt[head][br]
+#        br = ('conditional_false_0', 'block_1_7b')
+#        head = heads['block_1_7b']
+        return 0
+#        return weight[head][br] - cnt[head][br]
 
     @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):

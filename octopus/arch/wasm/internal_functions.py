@@ -621,7 +621,6 @@ class GoPredefinedFunction:
                                                                simplify(Extract(63, 0, BitVecVal(0, 64))))
             headPtr = simplify(heapStart + BitVecVal(thisAlloc_v << 4, 32))
             state.symbolic_stack.append(headPtr)
-            print(headPtr, sz, heapStart, thisAlloc)
             manually_constructed = True
         elif self.name == 'memcpy':
             length, src, dest = param_list[0], param_list[1], param_list[2]
