@@ -8,6 +8,7 @@ from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_source_location)
 from octopus.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
+from octopus.arch.wasm.instruction import WasmInstruction
 from octopus.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
@@ -500,10 +501,24 @@ class GoPredefinedFunction:
         # helper functions to access memory
         def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
             state.symbolic_memory, data_section, x, 4))
+        def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
+            state.symbolic_memory, data_section, x, 1))
         def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 4, BitVecVal(val, 32))
         def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 1, BitVecVal(val, 8))
+        
+        def GO_extract_string_by_mem_pointer(addr, len):
+            ret = []
+            for i in range(len):
+                ret.append(load8(addr+i))
+            return bytes(ret)
+
+        def decode_golang_string(addr):
+            # type _string struct { ptr *byte, length uintptr }
+            string_ptr = load32(addr)
+            string_len = load32(addr + 4)
+            return GO_extract_string_by_mem_pointer(string_ptr, string_len)
 
         # ------------------------ TinyGO Library -------------------------------
         # could be step in, remain for understanding the memory structure.
@@ -529,9 +544,10 @@ class GoPredefinedFunction:
                         state.symbolic_memory, data_section, ptr + j, 1)
                     c = concrete_value(c)
                     out_str.append(c)
-                # without assuming encoding
-                sys.stdout.buffer.write(bytes(out_str))
-                sys.stdout.flush()
+                # without assuming encoding ?
+                # sys.stdout.buffer.write(bytes(out_str))
+                # sys.stdout.flush()
+                logging.warning(bytes(out_str))
                 num += length
             # set pnum to num
             store32(pnum, num)
@@ -572,21 +588,109 @@ class GoPredefinedFunction:
         elif self.name == 'fmt.Scanf':
             # func Scanf(format string, a ...interface{}) (n int, err error)
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Scanf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
-            print(param_list)
             param_list[:] = map(concrete_value, param_list)
             pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
             interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
-            format_str = C_extract_string_by_mem_pointer(
-                format_data, data_section, state.symbolic_memory, format_len)
-            for j in range(interface_slice_len):
-                typecode = load32(interface_slice_data + 8 * j)
-                interface_ptr = load32(interface_slice_data + 8 * j + 4)
-                string_ptr = load32(interface_ptr)
-                string_len = load32(interface_ptr + 4)
-                store32(interface_ptr, format_data)
-                store32(interface_ptr + 4, format_len)
-            # return 1, nil
-            store32(pret, 1)
+            num_scanned = 0
+            format_str = GO_extract_string_by_mem_pointer(
+                format_data, format_len).decode()
+
+            parsed_patterns = parse_printf_formatting(format_str)
+
+            for i, parsed_pattern in enumerate(parsed_patterns):
+                line_num, str_ind, cur_pattern = parsed_pattern[0], parsed_pattern[1], parsed_pattern[2]
+                # decode interface slice 
+                assert i < interface_slice_len
+                param_interface_ptr = load32(interface_slice_data + 8 * i + 4)
+                if cur_pattern[-1] == 's':
+                    # we need to alloc memory to store string(call runtime.alloc),
+                    # then store the pointer and size to the string struct in vargs.
+
+                    # find the index of runtime.alloc
+                    from octopus.arch.wasm.graph import Graph
+                    func_index2func_name = Graph.wasmVM.func_index2func_name
+                    runtime_alloc_ind = -1
+                    for ind, name in func_index2func_name.items():
+                        if name == 'runtime.alloc':
+                            runtime_alloc_ind = ind
+                    assert runtime_alloc_ind != -1
+                    # TODO we insert a `abcd` here, maybe we should insert a symbol
+                    write_bytes = b'abcd'
+                    # runtime.alloc (param i32 i32 i32 i32) (result i32)
+                    # i8* @runtime.alloc(i32 %size, i8* %layout, i8* %context, i8* %parentHandle)
+                    alloc_size = len(write_bytes)
+                    inst_call = WasmInstruction(0x10, 'call', None, None, b'\x10', 0, 0, 'call a function', 'call '+str(runtime_alloc_ind), -1)
+                    arguments = [BitVecVal(0, 32) for i in range(3)]
+                    arguments.insert(0, BitVecVal(alloc_size, 32))
+                    for a in arguments:
+                        state.symbolic_stack.append(a)
+                    halt, new_states = Graph.wasmVM.emulate_one_instruction(inst_call, state, 0, [True], 0)
+                    assert len(new_states) == 1
+                    # assign state to new state? TODO
+                    state.symbolic_memory = new_states[0].symbolic_memory
+                    state.symbolic_stack = new_states[0].symbolic_stack
+                    heap_ptr = concrete_value(state.symbolic_stack.pop())
+                    for j in range(alloc_size):
+                        store8(heap_ptr + j, write_bytes[j])
+
+                    # set string struct
+                    store32(param_interface_ptr, heap_ptr)
+                    store32(param_interface_ptr + 4, alloc_size)
+                    num_scanned += 1
+                elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
+                    # current = load32(param_interface_ptr)
+                    func_ind = get_func_index_from_state(analyzer, state)
+                    func_offset = state.instr.offset
+                    original_file, line_no, col_no = get_source_location(
+                        analyzer, func_ind, func_offset)
+                    inserted_variable = BitVec(
+                        f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                    # store symblic integer to memory address
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, param_interface_ptr, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
+                    logging.warning(
+                        f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}============")
+                    num_scanned += 1
+            store32(pret, num_scanned)
+            store32(pret + 4, 0)
+            manually_constructed = True
+        elif self.name == 'fmt.Printf':
+            # currently only support %[scfdux]
+            # func Printf(format string, a ...any) (n int, err error) {
+            # define internal { i32, %runtime.funcValueWithSignature } @fmt.Printf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
+            # n is the number of bytes written.
+            param_list[:] = map(concrete_value, param_list)
+            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            format_str = GO_extract_string_by_mem_pointer(
+                format_data, format_len).decode()
+
+            parsed_patterns = parse_printf_formatting(format_str)
+            out_bytes = b''
+            parsed_ind = 0
+
+            for i, parsed_pattern in enumerate(parsed_patterns):
+                line_num, str_ind, cur_pattern = parsed_pattern[0], parsed_pattern[1], parsed_pattern[2]
+                # decode interface slice
+                assert i < interface_slice_len
+                param_interface_ptr = load32(interface_slice_data + 8 * i + 4)
+                out_bytes += format_str[parsed_ind:str_ind].encode()
+                parsed_ind = str_ind + len(cur_pattern)
+                if cur_pattern[-1] == 's':
+                    out_bytes += decode_golang_string(param_interface_ptr)
+                elif cur_pattern[-1] == 'c':
+                    data = param_interface_ptr
+                    out_bytes += chr(data).encode()
+                elif cur_pattern[-1] == 'x':
+                    data = param_interface_ptr
+                    out_bytes += hex(data).encode()
+                elif cur_pattern[-1] in {'d', 'u'}:
+                    data = param_interface_ptr
+                    out_bytes += str(data).encode()
+            out_bytes += format_str[parsed_ind:].encode()
+            logging.warning("fmt.printf:" + repr(format_str))
+            logging.warning(out_bytes)
+            store32(pret, len(out_bytes))
             store32(pret + 4, 0)
             manually_constructed = True
         elif self.name == 'runtime.calculateHeapAddresses':
