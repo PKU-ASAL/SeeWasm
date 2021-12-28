@@ -24,6 +24,10 @@ class WasmVMstate(VMstate):
         self.current_func_name = 'none'
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
+        # TODO adapt C code
+        # TODO we insert a `123` here, maybe we should insert a symbol
+        # stdin buffer used by _fd_read, but scanf(modeled seperately) does not read from it
+        self.stdin_buffer = [c for c in b'123\n'] # int array, use pop(0)
 
     def __str__(self):
         return f'''Current Func:\t{self.current_func_name}

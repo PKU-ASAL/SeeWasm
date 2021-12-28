@@ -13,8 +13,8 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
-GO_LIBRARY_FUNCS = {'runtime', 'reflect', 'type..', 'sync_atomic', 'fmt', 'strconv', 'sync', 'syscall_js',
-                    'internal_poll', 'syscall', '_syscall', 'unicode_utf8', 'os', '_os', 'sort', 'errors', 'internal_cpu', 'wasm_', 'time', 'io', 'unicode', 'mem', 'math_bits', 'internal_bytealg', 'go', 'debug', 'cmpbody', 'callRet', '_rt0_wasm_js', '_*sync', '_*fmt', '_*os'}
+GO_WASI_FUNCS = {'fd_write', 'fd_read'}
+GO_LIBRARY_FUNCS = {} # 'fmt.Scanf'
 TERMINATED_FUNCS = {'__assert_fail', 'exit'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
@@ -28,6 +28,7 @@ NEED_STEP_IN_C = {}
 
 
 def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS))
+def IS_GO_WASI_FUNCS(x): return x in GO_WASI_FUNCS
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
 
 
@@ -115,6 +116,14 @@ class ControlInstructions:
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
+        # is import function and name is wasi function
+        elif Configuration.get_source_type() == 'go' and IS_GO_WASI_FUNCS(
+            readable_name) and readable_name in [i[1] for i in analyzer.imports_func]:
+            logging.warning(
+                f"Invoked a wasi syscall function: {readable_name}")
+            func = GoPredefinedFunction(
+                readable_name, state.current_func_name)
+            func.emul(state, param_str, return_str, data_section, analyzer)
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
             logging.warning(
@@ -175,10 +184,12 @@ class ControlInstructions:
                     new_state.constraints = constraint
                     new_state.symbolic_memory = state_symbolic_memory
                     new_state.globals = current_globals
+                    new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
                 else:
                     new_state.constraints = constraint
                     new_state.symbolic_memory = state_symbolic_memory
                     new_state.globals = current_globals
+                    new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
 
                 new_states.append(new_state)
         if len(new_states) == 0:

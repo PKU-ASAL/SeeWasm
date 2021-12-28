@@ -78,7 +78,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     func_index = index
                     break
 
-        assert func_index, f"[!] Cannot find your entry function: {func_name}"
+        assert func_index != None, f"[!] Cannot find your entry function: {func_name}"
         func_info = self.ana.func_prototypes[func_index]
         param_str, return_str = func_info[1], func_info[2]
 

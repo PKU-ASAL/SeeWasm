@@ -108,8 +108,13 @@ def extract_mapping(file_path):
 
     # index to func name
     mapper = {}
-    matches = re.findall(r' \(func (.*) \(type', text)
-    for i, func_name in enumerate(matches):
+    # match both import function and function declaration
+    matches = re.findall(r'(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
+    for i, matched_groups in enumerate(matches):
+        func_name = matched_groups[-1]
+        # if import function, using import name instead of wat generated name 
+        if len(matched_groups[2]) != 0:
+            func_name = matched_groups[2]
         mapper[i] = func_name if func_name[0] != '$' else func_name[1:]
 
     return mapper
