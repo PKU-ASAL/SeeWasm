@@ -5,7 +5,8 @@ import math
 
 from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_func_index_from_state,
-                                            get_source_location)
+                                            get_source_location,
+                                            get_source_location_string)
 from octopus.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from octopus.arch.wasm.instruction import WasmInstruction
@@ -15,7 +16,7 @@ from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
                                      Enable_Lasers, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting)
+                                     parse_printf_formatting, bcolors)
 from z3 import *
 
 
@@ -692,6 +693,35 @@ class GoPredefinedFunction:
             logging.warning(out_bytes)
             store32(pret, len(out_bytes))
             store32(pret + 4, 0)
+            manually_constructed = True
+        elif self.name == 'runtime.divideByZeroPanic':
+            # Not(If(scanf_symbol == 0, 1, 0) == 0)
+            divisor = None
+            constraint = simplify(state.constraints[-1])
+            # match the condition
+            # Not -> == -> If --arg0--> condition
+            if is_not(constraint) and \
+                is_eq(constraint.arg(0)) and \
+                is_const(constraint.arg(0).arg(1)) and \
+                constraint.arg(0).arg(1).as_long() == 0 and \
+                constraint.arg(0).arg(0).decl().kind() == Z3_OP_ITE and \
+                is_const(constraint.arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(1).as_long() == 1 and \
+                is_const(constraint.arg(0).arg(0).arg(2)) and constraint.arg(0).arg(0).arg(2).as_long() == 0 and \
+                is_eq(constraint.arg(0).arg(0).arg(0)) and \
+                is_const(constraint.arg(0).arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(0).arg(1).as_long() == 0:
+                # get divisor
+                divisor = constraint.arg(0).arg(0).arg(0).arg(0)
+            # scanf_symbol == 0
+            elif is_eq(constraint) and \
+                is_const(constraint.arg(1)) and constraint.arg(1).as_long() == 0:
+                divisor = constraint.arg(0)
+            func_ind = get_func_index_from_state(analyzer, state)
+            func_offset = state.instr.offset
+            logging.warning(
+                f'{bcolors.WARNING}Div-zero! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+            if divisor is not None:
+                logging.warning(
+                    f'{bcolors.WARNING}The op2 ({divisor}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}')
             manually_constructed = True
         elif self.name == 'runtime.calculateHeapAddresses':
             calculateHeapAddresses(state, data_section)

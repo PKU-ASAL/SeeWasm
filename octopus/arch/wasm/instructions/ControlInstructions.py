@@ -14,8 +14,8 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 C_LIBRARY_FUNCS = {'printf', 'scanf',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
 GO_WASI_FUNCS = {'fd_write', 'fd_read'}
-GO_LIBRARY_FUNCS = {'runtime.alloc', 'fmt.Scanf', 'fmt.Printf'}
-TERMINATED_FUNCS = {'__assert_fail', 'exit'}
+GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf', 'runtime.divideByZeroPanic'} # 'runtime.alloc' temporary disabled for some bug
+TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
                    '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
@@ -131,6 +131,11 @@ class ControlInstructions:
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
+            # terminate panic related functions. eg: runtime.divideByZeroPanic
+            if readable_name in TERMINATED_FUNCS:
+                logging.warning(
+                    f"Terminated function invoked (Golang): {readable_name} ")
+                # TODO terminate state, but normally there will be `unreachable` instruction after the call
         elif readable_name in TERMINATED_FUNCS:
             logging.warning(
                 f"Terminated function invoked: {readable_name} ")
