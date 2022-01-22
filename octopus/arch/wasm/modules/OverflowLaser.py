@@ -45,7 +45,8 @@ class OverflowLaser:
             for sub_cons in cons.children():
                 if sub_cons.get_id() == op.get_id():
                     return True
-                return contain_op(sub_cons, op)
+                if contain_op(sub_cons, op):
+                    return True
 
         # step 2:
         # if both of op1 and op2 are free, overflow may happen

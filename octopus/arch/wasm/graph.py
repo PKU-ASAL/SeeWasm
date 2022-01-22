@@ -599,8 +599,8 @@ class Graph:
             if len(succs_list) == 0:
                 emul_states = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
-                rets = [s.symbolic_stack[0].as_long() for s in emul_states]
-                flag = rets[0] == 3
+                # rets = [s.symbolic_stack[0].as_long() for s in emul_states]
+                # flag = rets[0] == 3
                 return flag, emul_states
             succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head) and
                                               (cnt[cur_head][p] < weights[cur_head][p]), succs_list))
