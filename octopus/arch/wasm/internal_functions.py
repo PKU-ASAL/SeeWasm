@@ -819,7 +819,6 @@ class ImportFunction:
     def emul(self, state, param_str, return_str, data_section, analyzer):
         # if the return value is dependent on the library function, we will manually contruct it
         # and jump over the process in which it append a symbol according to the signature of the function
-
         if return_str:
             tmp_bitvec = getConcreteBitVec(return_str,
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(

@@ -145,11 +145,7 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning(
-                f"Invoked: {readable_name} ")
-            if param_str == "":
-                pass
-
+            logging.warning( f"SInvoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(

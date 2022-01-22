@@ -50,6 +50,7 @@ class Graph:
     _func_to_bbs = {}
     _bb_to_instructions = {}
     _bb_to_dsl = defaultdict(list)
+    _aes_func = defaultdict(set)
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
     _loop_maximum_rounds = 50
@@ -98,6 +99,10 @@ class Graph:
     def wasmVM(cls, val):
         cls.wasmVM = val
 
+    @classproperty
+    def aes_func(cls):
+        return cls._aes_func
+
     @classmethod
     def extract_basic_blocks(cls):
         cfg = cls.wasmVM.cfg
@@ -145,6 +150,31 @@ class Graph:
                 cls.bbs_graph[bb_name] = defaultdict(str)
             # goal 2
             cls.bb_to_instructions[bb_name] = bb.instructions
+            for inst in bb.instructions:
+                if inst.name == 'call':
+                    instr_operand = inst.operand_interpretation.split(' ')[1]
+                    try:
+                        f_offset = int(instr_operand)
+                    except ValueError:
+                        f_offset = int(instr_operand, 16)
+                    target_func = cls.wasmVM.ana.func_prototypes[f_offset]
+                    internal_function_name, param_str, return_str, _ = target_func
+                    if cls.wasmVM.func_index2func_name is not None:
+                        if internal_function_name.startswith('$'):
+                            try:
+                                readable_name = cls.wasmVM.func_index2func_name[int(
+                                    re.search('(\d+)', internal_function_name).group())]
+                            except AttributeError:
+                                # if the internal_function_name is the readable name already
+                                readable_name = internal_function_name
+                        else:
+                            # meaning imported function
+                            readable_name = internal_function_name
+                    if len(readable_name.split('$')) == 3:
+                        cls.aes_func[bb_name].add(readable_name)
+                        print(bb_name, readable_name)
+
+
     # entry to analyze a file
 
     @classmethod
@@ -373,10 +403,9 @@ class Graph:
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
-        scores = defaultdict(int)
-        score_func = partial(cls.priority_score, scores=scores)
+        score_func = cls.priority_score
+        # cls.extract_edges(entry)
         heads['return'] = 'return'
-        cls.extract_edges(entry)
         final_states = cls.visit_interval(
             [state], has_ret, entry, heads, score_func, cls.manual_guide, "return")
         return final_states["return"]
@@ -387,38 +416,12 @@ class Graph:
         solver.add(*constraints)
         return unsat == solver.check()
 
-    @classmethod
-    def dsl_cons(cls, state, blk):
-        func_ind = debuginfo.get_func_index_from_state(cls.wasmVM.ana, state)
-        func_DIE = debuginfo.get_func_DIE(cls.wasmVM.ana, func_ind, state.instr.offset)
-        func_name = func_DIE.attributes['DW_AT_name'].value.decode()
-        constraints = []
-        for cdic in cls.bb_to_dsl[blk]:
-            scope = cdic['scope']
-            match = scope == func_name or(cdic['regex'] and re.compile(scope).search(func_name) is not None)
-            if match:
-                for die in func_DIE.iter_children():
-                    if die.tag == 'DW_TAG_variable':
-                        variable_name = die.attributes['DW_AT_name'].value.decode()
-                        if variable_name in cdic['watch']:
-                            variable_loc = debuginfo.parse_expr(cls.wasmVM.ana.dwarf_info, die.attributes['DW_AT_location'].value)[0]
-                            if variable_loc.op_name == 'DW_OP_fbreg':
-                                start = variable_loc.args[0]
-                                size = debuginfo.get_size_by_type(die.get_DIE_from_attribute('DW_AT_type'))
-                                value = lookup_symbolic_memory_data_section(state.symbolic_memory, cls.wasmVM.data_section, start, size)
-                                var_identifier = BitVec(variable_name, bv=size * 8)
-                                locals()[variable_name] = var_identifier
-                                constraints.append(value == var_identifier)
-                for e in cdic['ensure']:
-                    eval(f'constraints.append({e})')
-        logging.warning(constraints)
-        return constraints
 
     @classmethod
     def can_cut(cls, type, state, cur_blk=None):
         if isinstance(state, dict):
             state = None if type not in state else state[type] if type.startswith('conditional_') else state
-        return state is None or cls.sat_cut(state.constraints + list(set(cls.dsl_cons(state, cur_blk))))
+        return state is None or cls.sat_cut(state.constraints)
 
     @classmethod
     def calc_circle(cls, blk, vis, circles):
@@ -545,9 +548,26 @@ class Graph:
         return intervals
 
     @classmethod
-    def priority_score(cls, data_item, scores):
-        states, blk, heads, cnt, weight = data_item
-        return 0
+    def priority_score(cls, data_item):
+        states, blk, heads, lvar, gvar = data_item
+        return lvar[heads[blk]]['guider_prior']
+
+    @classmethod
+    def aes_run(cls, cur_h, lvar, gvar, blk):
+        new_lvar = copy.deepcopy(lvar)
+        new_gvar = copy.deepcopy(gvar)
+        for name in cls.aes_func[blk]:
+            ty, name, id = name.split('$')
+            if ty == 'checker' and name == 'find_one':
+                new_gvar['checker_halt'] = True
+            if ty == 'guider' and name == 'loop_counts':
+                if new_gvar['checker_halt']:
+                    new_lvar[cur_h]['guider_prior'] = 0
+                else:
+                    new_lvar[cur_h]['guider_prior'] = 25 - new_lvar[cur_h]['cnt']
+            if ty == 'action' and name == 'update_cnt':
+                new_lvar[cur_h]['cnt'] += 1
+        return new_lvar, new_gvar
 
     @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):
@@ -555,42 +575,28 @@ class Graph:
         # `cnt` is the traversed times
         # `weights` is the upper bound of how many times the edge can be traversed
         vis = deque([prev])
-        cnt, weights = defaultdict(lambda :defaultdict(int)), defaultdict(default_cnt)
-        que = PriorityQueue()
+        que = PriorityQueue() # takes minimum value at first
         # que = SimpleQueue()
-        # TODO:parallel sync_que = Queue()
-        score = score_func((states, blk, heads, cnt, weights))
-        que.put((score, (states, blk, blk, vis, cnt, weights)))
+        lvars = defaultdict(lambda : defaultdict(int, {'guider_prior': 65536}))
+        gvar = defaultdict(int)
+        que.put((65536, (states, blk, blk, vis, lvars, gvar)))
         final_states = defaultdict(list)
-
         def producer():
-            """
-            TODO:parallel
-            while not que.empty():
-                score, (state, current_block, cur_head, vis, cnt, weights) = que.get()
-                sync_que.put((score, (state, current_block, cur_head, vis, cnt, weights)))
-            """
             while not que.empty():
                 yield que.get()
 
         @wrap_non_picklable_objects
         def consumer(item):
-            score, (state, current_block, cur_head, vis, cnt, weights) = item
+            score, (state, current_block, cur_head, vis, lvars, gvar) = item
+            logging.warning(score)
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
-            if len(succs_list) >= 2:  # this part should be encapsulated into a method
-                for br_dest_pair in succs_list:
-                    if weights[cur_head][br_dest_pair] == 65536 and br_dest_pair[0] == 'conditional_false_0':
-                        # put weights on edges, which could be move to preprocessing part
-                        # for true branch, one more execution, because the loop needs to jump out
-                        weights[cur_head][br_dest_pair] = cls.loop_maximum_rounds
             # two intervals, use DFS to traverse between intervals
             if cur_head != heads[current_block]:
                 new_vis = copy.deepcopy(vis)
                 new_vis.append(cur_head)
-                # que.append((score, (state, current_block, current_block, vis, cnt, weights)))
                 que.put(
-                    (score, (state, current_block, current_block, new_vis, cnt, weights)))
+                    (score, (state, current_block, current_block, new_vis, lvars, gvar)))
                 return flag, []
             # current block is still in the same interval, emulate it directly
             else:
@@ -599,16 +605,13 @@ class Graph:
             if len(succs_list) == 0:
                 emul_states = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
-                # rets = [s.symbolic_stack[0].as_long() for s in emul_states]
-                # flag = rets[0] == 3
+                flag = gvar['checker_halt']
                 return flag, emul_states
-            succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head) and
-                                              (cnt[cur_head][p] < weights[cur_head][p]), succs_list))
+            succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
                 emul_states = emul_states[next_block] if isinstance(
                     emul_states, dict) else emul_states
-                # TODO give a description here
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
                     s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, current_block), emul_states)))
                 if len(valid_state) > 0:
@@ -648,35 +651,22 @@ class Graph:
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                new_w = copy.deepcopy(weights)
-                new_cnt = copy.deepcopy(cnt)
-                new_cnt[cur_head][br] += 1
-                new_score = score_func((valid_state, next_block, heads, new_cnt, new_w))
+                new_lvars, gvar = cls.aes_run(cur_head, lvars, gvar, current_block)
+                new_score = score_func((valid_state, next_block, heads, new_lvars, gvar))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
                     while new_vis:
                         h = new_vis.pop()
                         if h == heads[next_block]:
                             break
-                        new_cnt.pop(h)
-                        new_w.pop(h)
-                    que.put((new_score, (valid_state, next_block,
-                            heads[next_block], new_vis, new_cnt, new_w)))
+                        new_lvars.pop(h)
+                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_lvars, gvar)))
                 else:
-                    que.put((new_score, (valid_state, next_block,
-                            cur_head, vis, new_cnt, new_w)))
+                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_lvars, gvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)
             final_states['return'].extend(l)
             if f:
                 break
-        """TODO: parallel
-        with Parallel(n_jobs=cls.workers, verbose=100) as parallel:
-            finals = []
-            while not que.empty():
-                res = parallel(delayed(consumer)(item) for item in producer())
-                finals.extend([item for r in res for item in r])
-            final_states['return'].extend(finals)
-        """
         return final_states

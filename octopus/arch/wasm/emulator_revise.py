@@ -163,8 +163,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         for c in state.constraints:
             if type(c) != BoolRef:
                 state.constraints.remove(c)
-                # logging.warning(state.constraints)
-                # exit()
 
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
