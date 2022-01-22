@@ -5,7 +5,6 @@ from collections import defaultdict, deque
 from functools import partial, partialmethod
 from queue import LifoQueue, PriorityQueue, SimpleQueue
 
-from joblib import Parallel, delayed
 from loky import wrap_non_picklable_objects
 from octopus.arch.wasm.exceptions import DSLParseError
 from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
