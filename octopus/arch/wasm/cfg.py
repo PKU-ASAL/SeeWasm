@@ -82,7 +82,7 @@ def enum_func_call_edges(functions, len_imports):
         for inst in func.instructions:
             # detect if inst is a call instructions
             if inst.name == "call":  # is_call:
-                logging.debug('%s', inst.operand_interpretation)
+                #logging.debug('%s', inst.operand_interpretation)
                 # if inst.name == "call":
                 # only get the import_id
                 import_id = inst.operand_interpretation.split(' ')[1]
@@ -352,7 +352,7 @@ class WasmCFG(CFG):
             else:
                 nodes.append(name)
 
-        logging.debug('nodes: %s', nodes)
+        #logging.debug('nodes: %s', nodes)
 
         # create edges
         tmp_edges = enum_func_call_edges(self.functions,
@@ -374,7 +374,7 @@ class WasmCFG(CFG):
             else:
                 to_final = name
             edges.append(Edge(from_final, to_final, EDGE_CALL))
-        logging.debug('edges: %s', edges)
+        #logging.debug('edges: %s', edges)
 
         return (nodes, edges)
 
@@ -435,14 +435,14 @@ class WasmCFG(CFG):
                 style = "filled"
 
                 if node in import_list:
-                    logging.debug('import ' + node)
+                    #logging.debug('import ' + node)
                     fillcolor = DESIGN_IMPORT.get('fillcolor')
                     shape = DESIGN_IMPORT.get('shape')
                     style = DESIGN_IMPORT.get('style')
                     c.node(node_name, fillcolor=fillcolor,
                            shape=shape, style=style)
                 elif node in export_list:
-                    logging.debug('export ' + node)
+                    #logging.debug('export ' + node)
                     fillcolor = DESIGN_EXPORT.get('fillcolor')
                     shape = DESIGN_EXPORT.get('shape')
                     style = DESIGN_EXPORT.get('style')
@@ -450,11 +450,11 @@ class WasmCFG(CFG):
                            shape=shape, style=style)
 
                 if node in indirect_target:
-                    logging.debug('indirect_target ' + node)
+                    #logging.debug('indirect_target ' + node)
                     shape = "hexagon"
 
                 if node in call_indirect_list:
-                    logging.debug('contain call_indirect ' + node)
+                    #logging.debug('contain call_indirect ' + node)
                     style = "dashed"
                 c.node(node_name, fillcolor=fillcolor,
                        shape=shape, style=style)
