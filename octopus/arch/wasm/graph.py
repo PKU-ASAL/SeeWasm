@@ -559,12 +559,11 @@ class Graph:
         for name in cls.aes_func[blk]:
             ty, name, id = name.split('$')
             if ty == 'checker' and name == 'find_one':
+                print('Hit')
                 new_gvar['checker_halt'] = True
+                new_lvar[cur_h]['guider_prior'] = -1
             if ty == 'guider' and name == 'loop_counts':
-                if new_gvar['checker_halt']:
-                    new_lvar[cur_h]['guider_prior'] = 0
-                else:
-                    new_lvar[cur_h]['guider_prior'] = 25 - new_lvar[cur_h]['cnt']
+                new_lvar[cur_h]['guider_prior'] = abs(24 - new_lvar[cur_h]['cnt'])
             if ty == 'action' and name == 'update_cnt':
                 new_lvar[cur_h]['cnt'] += 1
         return new_lvar, new_gvar
@@ -577,6 +576,7 @@ class Graph:
         vis = deque([prev])
         que = PriorityQueue() # takes minimum value at first
         # que = SimpleQueue()
+        name = ''
         lvars = defaultdict(lambda : defaultdict(int, {'guider_prior': 65536}))
         gvar = defaultdict(int)
         que.put((65536, (states, blk, blk, vis, lvars, gvar)))
@@ -585,37 +585,40 @@ class Graph:
             while not que.empty():
                 yield que.get()
 
-        @wrap_non_picklable_objects
+        # @wrap_non_picklable_objects
         def consumer(item):
+            nonlocal name
             score, (state, current_block, cur_head, vis, lvars, gvar) = item
-            logging.warning(score)
+            if score != 65536 and name == '':
+                name = state[0].current_func_name
+            if state[0].current_func_name == name:
+                logging.warning(score)
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
             if cur_head != heads[current_block]:
                 new_vis = copy.deepcopy(vis)
                 new_vis.append(cur_head)
-                que.put(
-                    (score, (state, current_block, current_block, new_vis, lvars, gvar)))
+                que.put((score, (state, current_block, current_block, new_vis, lvars, gvar)))
                 return flag, []
             # current block is still in the same interval, emulate it directly
             else:
                 _, emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
-                emul_states = emul_states[cur_head] if isinstance(
+                emul_state = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
                 flag = gvar['checker_halt']
-                return flag, emul_states
+                return flag, emul_state
             succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
-                emul_states = emul_states[next_block] if isinstance(
+                emul_state = emul_states[next_block] if isinstance(
                     emul_states, dict) else emul_states
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, current_block), emul_states)))
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, current_block), emul_state)))
                 if len(valid_state) > 0:
-                    avail_br[(edge_type, next_block)] = copy.deepcopy(valid_state)
+                    avail_br[(edge_type, next_block)] = valid_state
             if guided:
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
@@ -651,8 +654,8 @@ class Graph:
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                new_lvars, gvar = cls.aes_run(cur_head, lvars, gvar, current_block)
-                new_score = score_func((valid_state, next_block, heads, new_lvars, gvar))
+                new_lvars, new_gvar = cls.aes_run(heads[next_block], lvars, gvar, next_block)
+                new_score = score_func((valid_state, next_block, heads, new_lvars, new_gvar))
                 if heads[next_block] in vis:
                     new_vis = copy.deepcopy(vis)
                     while new_vis:
@@ -660,9 +663,9 @@ class Graph:
                         if h == heads[next_block]:
                             break
                         new_lvars.pop(h)
-                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_lvars, gvar)))
+                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_lvars, new_gvar)))
                 else:
-                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_lvars, gvar)))
+                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_lvars, new_gvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)

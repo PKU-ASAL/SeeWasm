@@ -105,8 +105,10 @@ class ControlInstructions:
         # only concerned C file
         if Configuration.get_source_type() == 'c' and readable_name in [i[1] for i in analyzer.imports_func]:
             func = ImportFunction(readable_name, state.current_func_name)
+            """
             logging.warning(
                 f"Invoked a import function: {readable_name}")
+            """
             func.emul(state, param_str, return_str, data_section, analyzer)
         # if the callee is a library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
@@ -139,13 +141,13 @@ class ControlInstructions:
         elif readable_name in TERMINATED_FUNCS:
             logging.warning(
                 f"Terminated function invoked: {readable_name} ")
-            return False, None
+            return [state]
         else:
             # if the callee takes NO symbols as input:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning( f"SInvoked: {readable_name}")
+            # logging.warning( f"SInvoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
