@@ -40,7 +40,7 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 ; Function Attrs: mustprogress noinline nounwind optnone
 define noundef i32 @_Z10logic_bombPc(i8* noundef %0) #0 !dbg !27 {
   %2 = alloca i32, align 4
-  call void @"guider$loop_counts$0"()
+  call void @"cnt_loop_onj$2"()
   %3 = alloca i8*, align 4
   %4 = alloca i32, align 4
   %5 = alloca i32, align 4
@@ -67,14 +67,14 @@ define noundef i32 @_Z10logic_bombPc(i8* noundef %0) #0 !dbg !27 {
 
 16:                                               ; preds = %19, %1
   %17 = load i32, i32* %5, align 4, !dbg !48
-  call void @"guider$loop_counts$0"()
+  call void @"cnt_loop_onj$2"()
   %18 = icmp ne i32 %17, 1, !dbg !49
   br i1 %18, label %19, label %24, !dbg !47
 
 19:                                               ; preds = %16
   %20 = load i32, i32* %5, align 4, !dbg !50
-  call void @"guider$loop_counts$0"()
-  call void @"action$update_cnt$0"()
+  call void @"cnt_loop_onj$2"()
+  call void @"cnt_loop_onj$0"()
   %21 = call noundef i32 @_Z1fi(i32 noundef %20), !dbg !52
   store i32 %21, i32* %5, align 4, !dbg !53
   %22 = load i32, i32* %6, align 4, !dbg !54
@@ -89,7 +89,7 @@ define noundef i32 @_Z10logic_bombPc(i8* noundef %0) #0 !dbg !27 {
 
 27:                                               ; preds = %24
   store i32 3, i32* %2, align 4, !dbg !62
-  call void @"checker$find_one$0"()
+  call void @"cnt_loop_onj$1"()
   br label %29, !dbg !62
 
 28:                                               ; preds = %24
@@ -118,11 +118,11 @@ define noundef i32 @main() #2 !dbg !65 {
 
 declare i32 @scanf(i8* noundef, ...) #3
 
-declare void @"guider$loop_counts$0"()
+declare void @"cnt_loop_onj$2"()
 
-declare void @"action$update_cnt$0"()
+declare void @"cnt_loop_onj$0"()
 
-declare void @"checker$find_one$0"()
+declare void @"cnt_loop_onj$1"()
 
 attributes #0 = { mustprogress noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="generic" }
 attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
