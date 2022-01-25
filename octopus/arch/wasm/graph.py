@@ -418,7 +418,7 @@ class Graph:
 
 
     @classmethod
-    def can_cut(cls, type, state, cur_blk=None):
+    def can_cut(cls, type, state):
         if isinstance(state, dict):
             state = None if type not in state else state[type] if type.startswith('conditional_') else state
         return state is None or cls.sat_cut(state.constraints)
@@ -562,9 +562,9 @@ class Graph:
                 print('Hit')
                 new_gvar['checker_halt'] = True
                 new_lvar[cur_h]['guider_prior'] = -1
-            if ty == 'guider' and name == 'loop_counts':
+            if ty == 'guider' and name == 'loop_counts' :
                 new_lvar[cur_h]['guider_prior'] = abs(24 - new_lvar[cur_h]['cnt'])
-            if ty == 'action' and name == 'update_cnt':
+            if ty == 'action' and (name == 'update_cnt'or name == 'cnt_loop_onj'):
                 new_lvar[cur_h]['cnt'] += 1
         return new_lvar, new_gvar
 
@@ -591,8 +591,6 @@ class Graph:
             score, (state, current_block, cur_head, vis, lvars, gvar) = item
             if score != 65536 and name == '':
                 name = state[0].current_func_name
-            if state[0].current_func_name == name:
-                logging.warning(score)
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
@@ -605,18 +603,18 @@ class Graph:
             else:
                 _, emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])
+            if state[0].current_func_name == name:
+                logging.warning(f'{score} {len(state)} {len(emul_states)}')
             if len(succs_list) == 0:
-                emul_state = emul_states[cur_head] if isinstance(
-                    emul_states, dict) else emul_states
+                emul_state = emul_states
                 flag = gvar['checker_halt']
                 return flag, emul_state
             succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head), succs_list))
             avail_br = {}
             for edge_type, next_block in succs_list:
-                emul_state = emul_states[next_block] if isinstance(
-                    emul_states, dict) else emul_states
+                emul_state = emul_states
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, current_block), emul_state)))
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s), emul_state)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
