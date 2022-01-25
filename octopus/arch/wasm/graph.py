@@ -403,11 +403,10 @@ class Graph:
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
-        score_func = cls.priority_score
         # cls.extract_edges(entry)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
-            [state], has_ret, entry, heads, score_func, cls.manual_guide, "return")
+            [state], has_ret, entry, heads, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
@@ -415,7 +414,6 @@ class Graph:
         solver = Solver()
         solver.add(*constraints)
         return unsat == solver.check()
-
 
     @classmethod
     def can_cut(cls, type, state, gvar):
@@ -548,12 +546,7 @@ class Graph:
         return intervals
 
     @classmethod
-    def priority_score(cls, data_item):
-        states, blk, heads, gvar = data_item
-        return gvar['guider_prior']
-
-    @classmethod
-    def aes_run(cls, cur_h, gvar, blk):
+    def aes_run(cls, gvar, blk):
         new_gvar = copy.deepcopy(gvar)
         new_gvar['cons'] = True
         for name in cls.aes_func[blk]:
@@ -578,7 +571,7 @@ class Graph:
         return new_gvar
 
     @classmethod
-    def visit_interval(cls, states, has_ret, blk, heads, score_func, guided=False, prev=None):
+    def visit_interval(cls, states, has_ret, blk, heads, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         # `cnt` is the traversed times
         # `weights` is the upper bound of how many times the edge can be traversed
@@ -587,7 +580,7 @@ class Graph:
         # que = SimpleQueue()
         name = ''
         gvar = defaultdict(int, {'cons': True, 'guider_prior': 65536})
-        que.put((65536, (states, blk, blk, vis, gvar)))
+        que.put((gvar['guider_prior'], (states, blk, blk, vis, gvar)))
         final_states = defaultdict(list)
 
         def producer():
@@ -605,15 +598,8 @@ class Graph:
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
-            if cur_head != heads[current_block]:
-                new_vis = copy.deepcopy(vis)
-                new_vis.append(cur_head)
-                que.put((score, (state, current_block, current_block, new_vis, gvar)))
-                return flag, []
-            # current block is still in the same interval, emulate it directly
-            else:
-                _, emul_states = cls.wasmVM.emulate_basic_block(
-                    state, has_ret, cls.bb_to_instructions[current_block])
+            _, emul_states = cls.wasmVM.emulate_basic_block(
+                state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
                 emul_state = emul_states[cur_head] if isinstance(
                     emul_states, dict) else emul_states
@@ -663,15 +649,19 @@ class Graph:
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                new_gvar = cls.aes_run(heads[next_block], gvar, next_block)
-                new_score = score_func((valid_state, next_block, heads, new_gvar))
-                if heads[next_block] in vis:
+                new_gvar = cls.aes_run(gvar, next_block)
+                new_score = new_gvar['guider_prior']
+                new_head = heads[next_block]
+                if new_head != cur_head:
                     new_vis = copy.deepcopy(vis)
-                    while new_vis:
-                        h = new_vis.pop()
-                        if h == heads[next_block]:
-                            break
-                    que.put((new_score, (valid_state, next_block, heads[next_block], new_vis, new_gvar)))
+                    if new_head in vis:
+                        while new_vis:
+                            h = new_vis.pop()
+                            if h == new_head:
+                                break
+                    else:
+                        new_vis.append(cur_head)
+                    que.put((new_score, (valid_state, next_block, new_head, new_vis, new_gvar)))
                 else:
                     que.put((new_score, (valid_state, next_block, cur_head, vis, new_gvar)))
             return flag, []
