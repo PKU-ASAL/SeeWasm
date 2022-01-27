@@ -2,14 +2,11 @@ import copy
 import logging
 import re
 from collections import defaultdict, deque
-from functools import partial, partialmethod
 from queue import LifoQueue, PriorityQueue, SimpleQueue
 
-from loky import wrap_non_picklable_objects
+
 from octopus.arch.wasm.exceptions import DSLParseError
 from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
-from octopus.arch.wasm.memory import lookup_symbolic_memory_data_section
-import octopus.arch.wasm.dawrf_parser as debuginfo
 from z3 import *
 
 
@@ -416,10 +413,10 @@ class Graph:
         return unsat == solver.check()
 
     @classmethod
-    def can_cut(cls, type, state, gvar):
+    def can_cut(cls, type, state, lvar, gvar):
         if isinstance(state, dict):
             state = None if type not in state else state[type] if type.startswith('conditional_') else state
-        return state is None or cls.sat_cut(state.constraints + [gvar['cons']])
+        return state is None or cls.sat_cut(state.constraints + [gvar['cons'], lvar['cons']])
 
     @classmethod
     def calc_circle(cls, blk, vis, circles):
@@ -554,9 +551,9 @@ class Graph:
             if id == '1':
                 print('Hit')
                 new_gvar['checker_halt'] = True
-                new_gvar['guider_prior'] = -1
+                new_gvar['prior'] = -1
             if id == '2':
-                new_gvar['guider_prior'] = abs(24 - new_gvar['cnt'])
+                new_gvar['prior'] = abs(24 - new_gvar['cnt'])
             if id == '0':
                 new_gvar['cnt'] += 1
             """
@@ -571,16 +568,32 @@ class Graph:
         return new_gvar
 
     @classmethod
+    def aes_run_local(cls, lvar, blk):
+        new_lvar = copy.deepcopy(lvar)
+        new_lvar['cons'] = True
+        for name in cls.aes_func[blk]:
+            _name, id = name.split('$')
+            if id == '1':
+                print('Hit')
+                new_lvar['checker_halt'] = True
+                new_lvar['prior'] = -1
+            if id == '2':
+                new_lvar['prior'] = abs(24 - new_lvar['cnt'])
+            if id == '0':
+                new_lvar['cnt'] += 1
+                # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
+                # lvar['has_one'] = True
+        return new_lvar
+
+
+    @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, guided=False, prev=None):
         '''`blk` is the head of an interval'''
-        # `cnt` is the traversed times
-        # `weights` is the upper bound of how many times the edge can be traversed
         vis = deque([prev])
         que = PriorityQueue() # takes minimum value at first
-        # que = SimpleQueue()
         name = ''
-        gvar = defaultdict(int, {'cons': True, 'guider_prior': 65536})
-        que.put((gvar['guider_prior'], (states, blk, blk, vis, gvar)))
+        lvar = defaultdict(lambda : defaultdict(int, {'cons': True, 'prior': 65536}))
+        que._put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
         def producer():
@@ -590,28 +603,23 @@ class Graph:
         # @wrap_non_picklable_objects
         def consumer(item):
             nonlocal name
-            score, (state, current_block, cur_head, vis, gvar) = item
+            score, (state, current_block, cur_head, vis, lvar, gvar) = item
             if score != 65536 and name == '':
                 name = state[0].current_func_name
-            if state[0].current_func_name == name:
-                logging.warning(score)
+            if name == state[0].current_func_name:
+                logging.warning(f'{score} {len(state)}')
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
             _, emul_states = cls.wasmVM.emulate_basic_block(
                 state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
-                emul_state = emul_states[cur_head] if isinstance(
-                    emul_states, dict) else emul_states
-                flag = gvar['checker_halt']
-                return flag, emul_state
-            succs_list = set(filter(lambda p: (heads[p[1]] == cur_head or heads[current_block] == cur_head), succs_list))
+                flag = lvar[cur_head]['checker_halt']
+                return flag, emul_states
             avail_br = {}
             for edge_type, next_block in succs_list:
-                emul_state = emul_states[next_block] if isinstance(
-                    emul_states, dict) else emul_states
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, gvar), emul_state)))
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, lvar[cur_head], gvar), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
@@ -649,21 +657,24 @@ class Graph:
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
-                new_gvar = cls.aes_run(gvar, next_block)
-                new_score = new_gvar['guider_prior']
                 new_head = heads[next_block]
-                if new_head != cur_head:
-                    new_vis = copy.deepcopy(vis)
-                    if new_head in vis:
-                        while new_vis:
-                            h = new_vis.pop()
-                            if h == new_head:
-                                break
+                for stat in valid_state:
+                    local_new_lvar = copy.deepcopy(lvar)
+                    local_new_lvar[cur_head] = cls.aes_run_local(local_new_lvar[cur_head], next_block)
+                    new_score = local_new_lvar[cur_head]['prior']
+                    if new_head != cur_head:
+                        new_vis = copy.deepcopy(vis)
+                        if new_head in vis:
+                            while new_vis:
+                                h = new_vis.pop()
+                                if h == new_head:
+                                    break
+                                local_new_lvar.pop(h)
+                        else:
+                            new_vis.append(cur_head)
+                        que.put((new_score, ([stat], next_block, new_head, new_vis, local_new_lvar, gvar)))
                     else:
-                        new_vis.append(cur_head)
-                    que.put((new_score, (valid_state, next_block, new_head, new_vis, new_gvar)))
-                else:
-                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_gvar)))
+                        que.put((new_score, ([stat], next_block, cur_head, vis, local_new_lvar, gvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)

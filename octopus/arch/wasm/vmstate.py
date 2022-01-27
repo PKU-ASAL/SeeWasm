@@ -3,7 +3,6 @@ import copy
 
 from collections import defaultdict
 
-from loky import wrap_non_picklable_objects
 from octopus.engine.engine import VMstate
 from z3 import *
 
@@ -11,7 +10,6 @@ from z3 import *
 class WasmVMstate(VMstate):
     def __init__(self):
         # data structure:
-        @wrap_non_picklable_objects
         def local_default():
             return BitVecVal(0, 32)
         self.symbolic_stack = []
