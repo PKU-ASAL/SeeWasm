@@ -11,3 +11,5 @@ go_samples.nosync/div_zero/tinygo_main.h
 *.ll
 *.wasm
 *.wat
+profile
+profile_fo

@@ -580,12 +580,12 @@ class Graph:
         # que = SimpleQueue()
         name = ''
         gvar = defaultdict(int, {'cons': True, 'guider_prior': 65536})
-        que.put((gvar['guider_prior'], (states, blk, blk, vis, gvar)))
+        que._put((gvar['guider_prior'], (states, blk, blk, vis, gvar)))
         final_states = defaultdict(list)
 
         def producer():
             while not que.empty():
-                yield que.get()
+                yield que._get()
 
         # @wrap_non_picklable_objects
         def consumer(item):
@@ -657,9 +657,9 @@ class Graph:
                                 break
                     else:
                         new_vis.append(cur_head)
-                    que.put((new_score, (valid_state, next_block, new_head, new_vis, new_gvar)))
+                    que._put((new_score, (valid_state, next_block, new_head, new_vis, new_gvar)))
                 else:
-                    que.put((new_score, (valid_state, next_block, cur_head, vis, new_gvar)))
+                    que._put((new_score, (valid_state, next_block, cur_head, vis, new_gvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)
