@@ -8,21 +8,24 @@ from octopus.arch.wasm.memory import (insert_symbolic_memory,
 from octopus.arch.wasm.utils import getConcreteBitVec
 from z3 import *
 
+memory_count = 2
+memory_step = 2
+
 
 class MemoryInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
         self.instr_name = instr_name
         self.instr_operand = instr_operand
         self.instr_str = instr_string
-        self.mem_cnt = 2
-        self.mem_step = 2
 
     def emulate(self, state, data_section):
+        global memory_count, memory_step
         if self.instr_name == 'current_memory':
-            state.symbolic_stack.append(BitVecVal(self.mem_cnt, 32))
+            state.symbolic_stack.append(BitVecVal(memory_count, 32))
         elif self.instr_name == 'grow_memory':
-            self.mem_cnt += self.mem_step
-            state.symbolic_stack.append(BitVecVal(1, 32))
+            prev_size = memory_count
+            memory_count += memory_step
+            state.symbolic_stack.append(BitVecVal(prev_size, 32))
         elif 'load' in self.instr_name:
             load_instr(self.instr_str, state, data_section)
         elif 'store' in self.instr_name:
