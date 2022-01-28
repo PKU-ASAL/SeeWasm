@@ -65,6 +65,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             if wat_func_name == func_name:
                 func_index = index
                 break
+        # sometimes cannot find name specified by `--onlyfunc`
+        assert func_index is not None, "Unable to find function " + func_name
         return '$func' + str(func_index)
 
     def get_signature(self, func_name):
