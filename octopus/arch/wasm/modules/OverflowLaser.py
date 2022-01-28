@@ -100,4 +100,7 @@ class OverflowLaser:
                     logging.warning(
                         f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
                 overflowed = True
+        if overflowed:
+            import datetime
+            logging.warning(f'Current Time: {datetime.datetime.now()}')
         return overflowed
