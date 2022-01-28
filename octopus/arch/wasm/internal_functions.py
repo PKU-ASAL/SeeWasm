@@ -20,6 +20,17 @@ from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
 from z3 import *
 
 
+PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
+                   'runtime.lookupPanic': 'index out of range',
+                   'runtime.slicePanic': 'slice out of range',
+                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
+                   'runtime.divideByZeroPanic': 'divide by zero',
+                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
+                   'runtime.chanMakePanic': 'new channel is too big',
+                   'runtime.negativeShiftPanic': 'negative shift',
+                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
+
+
 class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
         self.name = name
@@ -681,10 +692,16 @@ class GoPredefinedFunction:
                     out_bytes += decode_golang_string(param_interface_ptr)
                 elif cur_pattern[-1] == 'c':
                     data = param_interface_ptr
-                    out_bytes += chr(data).encode()
+                    if is_expr(data):
+                        out_bytes += str(data).encode()
+                    else:
+                        out_bytes += chr(data).encode()
                 elif cur_pattern[-1] == 'x':
                     data = param_interface_ptr
-                    out_bytes += hex(data).encode()
+                    if is_expr(data):
+                        out_bytes += str(data).encode()
+                    else:
+                        out_bytes += hex(data).encode()
                 elif cur_pattern[-1] in {'d', 'u'}:
                     data = param_interface_ptr
                     out_bytes += str(data).encode()
@@ -722,6 +739,18 @@ class GoPredefinedFunction:
             if divisor is not None:
                 logging.warning(
                     f'{bcolors.WARNING}The op2 ({divisor}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}')
+            manually_constructed = True
+        elif self.name == 'runtime.lookupPanic':
+            func_ind = get_func_index_from_state(analyzer, state)
+            func_offset = state.instr.offset
+            logging.warning(
+                f'{bcolors.WARNING}{self.name} is possible! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+            manually_constructed = True
+        elif self.name in PANIC_FUNCTIONS:
+            func_ind = get_func_index_from_state(analyzer, state)
+            func_offset = state.instr.offset
+            logging.warning(
+                f'{bcolors.WARNING}{PANIC_FUNCTIONS[self.name]}! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             manually_constructed = True
         elif self.name == 'runtime.calculateHeapAddresses':
             calculateHeapAddresses(state, data_section)

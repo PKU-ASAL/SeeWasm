@@ -6,7 +6,7 @@ import logging
 from collections import defaultdict
 
 from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction
+from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, PANIC_FUNCTIONS
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
@@ -14,7 +14,7 @@ from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 C_LIBRARY_FUNCS = {'printf', 'scanf',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
 GO_WASI_FUNCS = {'fd_write', 'fd_read'}
-GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf', 'runtime.divideByZeroPanic'} # 'runtime.alloc' temporary disabled for some bug
+GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'} # 'runtime.alloc' temporary disabled for some bug
 TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
@@ -27,7 +27,7 @@ NEED_STEP_IN_C = {}
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
 
 
-def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS))
+def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
 def IS_GO_WASI_FUNCS(x): return x in GO_WASI_FUNCS
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
 
