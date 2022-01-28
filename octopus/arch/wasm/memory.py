@@ -65,7 +65,10 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
     # look for the interval
     for k in symbolic_memory.keys():
         lower_bound, higher_bound = k[0], k[1]
-        if lower_bound <= chosen_num < higher_bound:
+        s1, s2 = Solver(), Solver()
+        s1.add(lower_bound <= chosen_num)
+        s2.add(chosen_num < higher_bound)
+        if sat == s1.check() and sat == s2.check():
             # start to construct ite
             return _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length)
 
@@ -84,7 +87,9 @@ def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
         dest (BitVecRef): from where the data would be loaded
         length (int): length of bytes that would be loaded
     """
-    if lower_bound + length > higher_bound:
+    s = Solver()
+    s.add(lower_bound + length > higher_bound)
+    if sat == s.check():
         return BitVec('no_such_memory', 8*length)
     return If(dest == lower_bound, _lookup_symbolic_memory(symbolic_memory, lower_bound, length), _construct_ite(symbolic_memory, lower_bound+length, higher_bound, dest, length))
 
