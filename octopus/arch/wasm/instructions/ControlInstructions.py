@@ -145,7 +145,7 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning( f"SInvoked: {readable_name}")
+            logging.warning( f"From {state.current_func_name} SInvoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -239,18 +239,19 @@ class ControlInstructions:
 
             import_funcs_num = len(analyzer.imports_func)
             # traverse the elem section
-            possible_callee = [off for off in analyzer.elements[0]['elems']]
+            possible_callee = analyzer.elements[0]['elems']
             """
-            print(possible_callee)
             possible_callee = []
             for func_offset in analyzer.elements[0]['elems']:
+                print(analyzer.func_types[func_offset - import_funcs_num], end = ' ')
                 if analyzer.func_types[func_offset - import_funcs_num] == func_type:
                     possible_callee.append(func_offset)
             """
             states = []
             solver = Solver()
-            print(op, len(possible_callee))
+            print(func_type, op)
             for i, possible_func_offset in enumerate(possible_callee):
+                i = i + 1
                 new_state = copy.deepcopy(state)
                 solver.reset()
                 solver.add(simplify(op == i))
