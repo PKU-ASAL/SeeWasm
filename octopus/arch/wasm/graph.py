@@ -50,7 +50,6 @@ class Graph:
     _aes_func = defaultdict(set)
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
-    _loop_maximum_rounds = 50
     _workers = 2
     _wasmVM = None
     manual_guide = False
@@ -64,9 +63,6 @@ class Graph:
     def workers(cls):
         return cls._workers
 
-    @classproperty
-    def loop_maximum_rounds(cls):
-        return cls._loop_maximum_rounds
 
     @classproperty
     def func_to_bbs(cls):
@@ -400,7 +396,7 @@ class Graph:
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
-        # cls.extract_edges(entry)
+        #cls.extract_edges(entry)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
             [state], has_ret, entry, heads, cls.manual_guide, "return")
@@ -413,10 +409,10 @@ class Graph:
         return unsat == solver.check()
 
     @classmethod
-    def can_cut(cls, type, state, lvar, gvar):
+    def can_cut(cls, type, state, lvar):
         if isinstance(state, dict):
             state = None if type not in state else state[type] if type.startswith('conditional_') else state
-        return state is None or cls.sat_cut(state.constraints + [gvar['cons'], lvar['cons']])
+        return cls.sat_cut(state.constraints)
 
     @classmethod
     def calc_circle(cls, blk, vis, circles):
@@ -543,31 +539,6 @@ class Graph:
         return intervals
 
     @classmethod
-    def aes_run(cls, gvar, blk):
-        new_gvar = copy.deepcopy(gvar)
-        new_gvar['cons'] = True
-        for name in cls.aes_func[blk]:
-            _name, id = name.split('$')
-            if id == '1':
-                print('Hit')
-                new_gvar['checker_halt'] = True
-                new_gvar['prior'] = -1
-            if id == '2':
-                new_gvar['prior'] = abs(24 - new_gvar['cnt'])
-            if id == '0':
-                new_gvar['cnt'] += 1
-            """
-            if id == '0':
-                new_gvar['cnt_oni'] += 1
-                new_gvar['cnt_onj'] = 0
-            if id == '1':
-                new_gvar['cnt_onj'] += 1
-            if id == '2':
-                new_gvar['cons'] = new_gvar['cnt_onj'] < 5
-            """
-        return new_gvar
-
-    @classmethod
     def aes_run_local(cls, lvar, blk):
         new_lvar = copy.deepcopy(lvar)
         new_lvar['cons'] = True
@@ -578,7 +549,7 @@ class Graph:
                 new_lvar['checker_halt'] = True
                 new_lvar['prior'] = -1
             if id == '2':
-                new_lvar['prior'] = abs(24 - new_lvar['cnt'])
+                new_lvar['prior'] = abs(49 - new_lvar['cnt'])
             if id == '0':
                 new_lvar['cnt'] += 1
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
@@ -591,7 +562,6 @@ class Graph:
         '''`blk` is the head of an interval'''
         vis = deque([prev])
         que = PriorityQueue() # takes minimum value at first
-        name = ''
         lvar = defaultdict(lambda : defaultdict(int, {'cons': True, 'prior': 65536}))
         que._put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
@@ -602,15 +572,11 @@ class Graph:
 
         # @wrap_non_picklable_objects
         def consumer(item):
-            nonlocal name
-            score, (state, current_block, cur_head, vis, lvar, gvar) = item
-            if score != 65536 and name == '':
-                name = state[0].current_func_name
-            if name == state[0].current_func_name:
-                logging.warning(f'{score}')
+            score, (state, current_block, cur_head, vis, lvar) = item
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
+            #logging.warning(f'into {current_block}')
             _, emul_states = cls.wasmVM.emulate_basic_block(
                 state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
@@ -619,7 +585,7 @@ class Graph:
             avail_br = {}
             for edge_type, next_block in succs_list:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, lvar[cur_head], gvar), emul_states)))
+                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, lvar[cur_head]), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
@@ -672,9 +638,9 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score, ([stat], next_block, new_head, new_vis, local_new_lvar, gvar)))
+                        que.put((new_score, ([stat], next_block, new_head, new_vis, local_new_lvar)))
                     else:
-                        que.put((new_score, ([stat], next_block, cur_head, vis, local_new_lvar, gvar)))
+                        que.put((new_score, ([stat], next_block, cur_head, vis, local_new_lvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)

@@ -105,10 +105,8 @@ class ControlInstructions:
         # only concerned C file
         if Configuration.get_source_type() == 'c' and readable_name in [i[1] for i in analyzer.imports_func]:
             func = ImportFunction(readable_name, state.current_func_name)
-            """
             logging.warning(
                 f"Invoked a import function: {readable_name}")
-            """
             func.emul(state, param_str, return_str, data_section, analyzer)
         # if the callee is a library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
@@ -147,7 +145,7 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            # logging.warning( f"SInvoked: {readable_name}")
+            logging.warning( f"SInvoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -195,6 +193,7 @@ class ControlInstructions:
                     new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
 
                 new_states.append(new_state)
+            logging.warning(f'End {readable_name}')
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
@@ -235,25 +234,35 @@ class ControlInstructions:
 
             # target function index
             op = state.symbolic_stack.pop()
-
             # intended callee type
             func_type = int(self.instr_string.split(' ')[1][:-1])
 
             import_funcs_num = len(analyzer.imports_func)
             # traverse the elem section
-            possible_callee = list()
+            possible_callee = [off for off in analyzer.elements[0]['elems']]
+            """
+            print(possible_callee)
+            possible_callee = []
             for func_offset in analyzer.elements[0]['elems']:
                 if analyzer.func_types[func_offset - import_funcs_num] == func_type:
                     possible_callee.append(func_offset)
-
+            """
             states = []
+            solver = Solver()
+            print(op, len(possible_callee))
             for i, possible_func_offset in enumerate(possible_callee):
                 new_state = copy.deepcopy(state)
+                solver.reset()
+                solver.add(simplify(op == i))
+                if unsat == solver.check():
+                    continue
                 new_state.constraints.append(simplify(op == i))
                 after_calls = self.deal_with_call(
                     new_state, possible_func_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
+            if len(states) == 0:
+                print('abc')
             return False, states
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
