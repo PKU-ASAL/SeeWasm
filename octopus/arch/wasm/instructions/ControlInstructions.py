@@ -6,14 +6,13 @@ import logging
 from collections import defaultdict
 
 from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, PANIC_FUNCTIONS
+from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, WASIFunction, PANIC_FUNCTIONS, WASI_FUNCTIONS
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
 
 # TODO ensure the correctness of malloc, realloc, and free
-C_LIBRARY_FUNCS = {'printf', 'scanf',
+C_LIBRARY_FUNCS = {'printf', 'scanf', 'strcpy',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
-GO_WASI_FUNCS = {'fd_write', 'fd_read'}
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'} # 'runtime.alloc' temporary disabled for some bug
 TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
@@ -28,8 +27,8 @@ NEED_STEP_IN_C = {}
 
 
 def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
-def IS_GO_WASI_FUNCS(x): return x in GO_WASI_FUNCS
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
+def IS_WASI_FUNCS(x): return x in WASI_FUNCTIONS
 
 
 class ControlInstructions:
@@ -103,10 +102,14 @@ class ControlInstructions:
         new_states = []
         # if the callee is imported by env
         # only concerned C file
-        if Configuration.get_source_type() == 'c' and readable_name in [i[1] for i in analyzer.imports_func]:
-            func = ImportFunction(readable_name, state.current_func_name)
-            logging.warning(
-                f"Invoked a import function: {readable_name}")
+        if readable_name in [i[1] for i in analyzer.imports_func]:
+            if IS_WASI_FUNCS(readable_name):
+                logging.warning(f"Invoked a WASI import function: {readable_name}")
+                func = WASIFunction(readable_name, state.current_func_name)
+            else:
+                func = ImportFunction(readable_name, state.current_func_name)
+                logging.warning(
+                    f"Invoked a import function: {readable_name}")
             func.emul(state, param_str, return_str, data_section, analyzer)
         # if the callee is a library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
@@ -114,14 +117,6 @@ class ControlInstructions:
             logging.warning(
                 f"Invoked a C library function: {readable_name}")
             func = CPredefinedFunction(
-                readable_name, state.current_func_name)
-            func.emul(state, param_str, return_str, data_section, analyzer)
-        # is import function and name is wasi function
-        elif Configuration.get_source_type() == 'go' and IS_GO_WASI_FUNCS(
-            readable_name) and readable_name in [i[1] for i in analyzer.imports_func]:
-            logging.warning(
-                f"Invoked a wasi syscall function: {readable_name}")
-            func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(

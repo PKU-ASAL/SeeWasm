@@ -72,6 +72,10 @@ def main():
                           nargs='?',
                           choices=['dfs', 'interval'],
                           help='choose an algorithm to traverse, default is dfs')
+    features.add_argument('--stdin_file',
+                        type=argparse.FileType('rb'),
+                        help='file to be read by program as stdin (using fd_read wasi syscall)',
+                        metavar='STDIN_FILE')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
@@ -132,6 +136,10 @@ def main():
         # after parse, load the json
         with open(args.dsl+".json") as fp:
             user_dsl = json.load(fp)
+    
+    if args.stdin_file:
+        import octopus.arch.wasm.vmstate
+        octopus.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
 
     # Disassembly
     if args.disassemble:

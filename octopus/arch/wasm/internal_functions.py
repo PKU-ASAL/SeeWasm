@@ -30,6 +30,9 @@ PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.negativeShiftPanic': 'negative shift',
                    'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
+# supported functions in WASIFunction class
+WASI_FUNCTIONS = {'fd_read', 'fd_write'}
+
 
 class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -536,70 +539,7 @@ class GoPredefinedFunction:
 
         # ------------------------ TinyGO Library -------------------------------
         # could be step in, remain for understanding the memory structure.
-        if self.name == 'fd_write':
-            # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
-            # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js
-            # u32 _fd_write(u32 fd, u32 iov, u32 iovcnt, u32 pnum)
-            # due to previous pop operation, arguments are reversed
-            params = [concrete_value(i) for i in param_list]
-            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
-            logging.warning(f"fd_write to fd: {fd}")
-            # currently only support stdout (also in wasm_exec.js)
-            assert fd == 1, 'invalid file descriptor:'
-
-            num = 0
-            for i in range(iovcnt):
-                ptr = load32(iov + 8 * i)
-                length = load32(iov + (8 * i + 4))
-                # print from ptr, length is len
-                out_str = []
-                for j in range(length):
-                    c = lookup_symbolic_memory_data_section(
-                        state.symbolic_memory, data_section, ptr + j, 1)
-                    c = concrete_value(c)
-                    out_str.append(c)
-                # without assuming encoding ?
-                # sys.stdout.buffer.write(bytes(out_str))
-                # sys.stdout.flush()
-                logging.warning(bytes(out_str))
-                num += length
-            # set pnum to num
-            store32(pnum, num)
-            # return 0
-            manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))
-        elif self.name == 'fd_read':
-            # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
-            # sematic based on https://man7.org/linux/man-pages/man2/writev.2.html
-            # __wasi_errno_t __wasi_fd_read( __wasi_fd_t fd, const __wasi_iovec_t *iovs, size_t iovs_len, __wasi_size_t *retptr0 )
-            # (func (param i32 i32 i32 i32) (result i32))
-            # due to previous pop operation, arguments are reversed
-            params = [concrete_value(i) for i in param_list]
-            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
-            logging.warning(f"fd_read to fd: {fd}")
-            # currently only support stdin
-            assert fd == 0, 'invalid file descriptor:'
-            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
-            num = 0 # bytes written
-            out_bytes = []
-            for i in range(iovcnt):
-                ptr = load32(iov + 8 * i)
-                length = load32(iov + (8 * i + 4))
-                written_num = min(len(state.stdin_buffer), length)
-                for j in range(written_num):
-                    out_bytes.append(state.stdin_buffer[0])
-                    store8(ptr + j, state.stdin_buffer.pop(0))
-                    num += 1
-                if len(state.stdin_buffer) == 0: break
-            logging.warning(
-                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
-            # set pnum to num
-            store32(pnum, num)
-            # return 0
-            manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))
-        # work in progress, currently not enabled
-        elif self.name == 'fmt.Scanf':
+        if self.name == 'fmt.Scanf':
             # func Scanf(format string, a ...interface{}) (n int, err error)
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Scanf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
             param_list[:] = map(concrete_value, param_list)
@@ -861,6 +801,103 @@ class ImportFunction:
                                            self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
                                                state.instr.offset))
             state.symbolic_stack.append(tmp_bitvec)
+
+
+class WASIFunction:
+    """
+    Model WASI system call related functions. Usually as import function.
+    """
+
+    def __init__(self, name, cur_func_name):
+        self.name = name
+        self.cur_func = cur_func_name
+
+    def emul(self, state, param_str, return_str, data_section, analyzer):
+        param_list = []
+        if param_str:
+            num_arg = len(param_str.split(' '))
+            for _ in range(num_arg):
+                param_list.append(state.symbolic_stack.pop())
+
+        # helper function to convert from z3 value to python integer
+        def concrete_value(x):
+            return x.as_long() if is_bv_value(x) else x
+        # helper functions to access memory
+        def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
+            state.symbolic_memory, data_section, x, 4))
+        def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
+            state.symbolic_memory, data_section, x, 1))
+        def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, 4, BitVecVal(val, 32))
+        def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
+            state.symbolic_memory, addr, 1, BitVecVal(val, 8))
+
+
+        if self.name == 'fd_read':
+            # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
+            # sematic based on https://man7.org/linux/man-pages/man2/writev.2.html
+            # __wasi_errno_t __wasi_fd_read( __wasi_fd_t fd, const __wasi_iovec_t *iovs, size_t iovs_len, __wasi_size_t *retptr0 )
+            # (func (param i32 i32 i32 i32) (result i32))
+            # due to previous pop operation, arguments are reversed
+            params = [concrete_value(i) for i in param_list]
+            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
+            logging.warning(f"fd_read to fd: {fd}")
+            # currently only support stdin
+            assert fd == 0, 'invalid file descriptor:'
+            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
+            num = 0 # bytes written
+            out_bytes = []
+            for i in range(iovcnt):
+                ptr = load32(iov + 8 * i)
+                length = load32(iov + (8 * i + 4))
+                written_num = min(len(state.stdin_buffer), length)
+                for j in range(written_num):
+                    out_bytes.append(state.stdin_buffer[0])
+                    store8(ptr + j, state.stdin_buffer.pop(0))
+                    num += 1
+                if len(state.stdin_buffer) == 0: break
+            logging.warning(
+                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
+            # set pnum to num
+            logging.warning(f'{num} bytes read.')
+            store32(pnum, num)
+            # return 0
+            # manually_constructed = True
+            state.symbolic_stack.append(BitVecVal(0, 32))            
+        elif self.name == 'fd_write':
+            # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
+            # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js
+            # u32 _fd_write(u32 fd, u32 iov, u32 iovcnt, u32 pnum)
+            # due to previous pop operation, arguments are reversed
+            params = [concrete_value(i) for i in param_list]
+            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
+            logging.warning(f"fd_write to fd: {fd}")
+            # currently only support stdout (also in wasm_exec.js)
+            assert fd == 1, 'invalid file descriptor:'
+
+            num = 0
+            for i in range(iovcnt):
+                ptr = load32(iov + 8 * i)
+                length = load32(iov + (8 * i + 4))
+                # print from ptr, length is len
+                out_str = []
+                for j in range(length):
+                    c = lookup_symbolic_memory_data_section(
+                        state.symbolic_memory, data_section, ptr + j, 1)
+                    c = concrete_value(c)
+                    out_str.append(c)
+                # without assuming encoding ?
+                # sys.stdout.buffer.write(bytes(out_str))
+                # sys.stdout.flush()
+                logging.warning(bytes(out_str))
+                num += length
+            # set pnum to num
+            store32(pnum, num)
+            # return 0
+            # manually_constructed = True
+            state.symbolic_stack.append(BitVecVal(0, 32))
+        else:
+            raise UnsupportExternalFuncError
 
 
 def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, default_len=None):
