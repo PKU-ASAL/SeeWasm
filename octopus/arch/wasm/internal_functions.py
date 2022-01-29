@@ -48,6 +48,8 @@ class CPredefinedFunction:
                 param_list.append(state.symbolic_stack.pop())
 
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
+            import datetime
+            logging.warning(f'Current Time: {datetime.datetime.now()}')
             # has to use as_long()
             param_p, pattern_p = param_list[0].as_long(
             ), param_list[1].as_long()
@@ -734,6 +736,8 @@ class GoPredefinedFunction:
                 divisor = constraint.arg(0)
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
+            import datetime
+            logging.warning(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}Div-zero! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             if divisor is not None:
@@ -743,12 +747,16 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.lookupPanic':
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
+            import datetime
+            logging.warning(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}{self.name} is possible! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             manually_constructed = True
         elif self.name in PANIC_FUNCTIONS:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
+            import datetime
+            logging.warning(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}{PANIC_FUNCTIONS[self.name]}! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             manually_constructed = True
