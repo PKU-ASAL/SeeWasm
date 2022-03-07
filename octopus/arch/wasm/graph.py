@@ -2,12 +2,13 @@ import copy
 import logging
 import re
 from collections import defaultdict, deque
-from queue import LifoQueue, PriorityQueue, SimpleQueue
+from queue import PriorityQueue
+from z3 import sat, unsat
 
 
 from octopus.arch.wasm.exceptions import DSLParseError
 from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
-from z3 import *
+from octopus.arch.wasm.solver import SMTSolver
 
 
 class ClassPropertyDescriptor:
@@ -40,7 +41,7 @@ def classproperty(func):
 
 
 def default_cnt():
-    return defaultdict(lambda :65536)
+    return defaultdict(lambda: 65536)
 
 
 class Graph:
@@ -62,7 +63,6 @@ class Graph:
     @classproperty
     def workers(cls):
         return cls._workers
-
 
     @classproperty
     def func_to_bbs(cls):
@@ -166,7 +166,6 @@ class Graph:
                     if len(readable_name.split('$')) == 2:
                         cls.aes_func[bb_name].add(readable_name)
                         print(bb_name, readable_name)
-
 
     # entry to analyze a file
 
@@ -326,7 +325,7 @@ class Graph:
             print(
                 f'There are total {len(self.final_states[entry_func])} state(s):')
             for i, final_state in enumerate(self.final_states[entry_func]):
-                s = Solver()
+                s = SMTSolver(Configuration.get_solver())
                 s.add(final_state.constraints)
                 if sat == s.check():
                     print(
@@ -396,7 +395,7 @@ class Graph:
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
-        #cls.extract_edges(entry)
+        # cls.extract_edges(entry)
         heads['return'] = 'return'
         final_states = cls.visit_interval(
             [state], has_ret, entry, heads, cls.manual_guide, "return")
@@ -404,14 +403,15 @@ class Graph:
 
     @classmethod
     def sat_cut(cls, constraints):
-        solver = Solver()
+        solver = SMTSolver(Configuration.get_solver())
         solver.add(*constraints)
         return unsat == solver.check()
 
     @classmethod
     def can_cut(cls, type, state, lvar):
         if isinstance(state, dict):
-            state = None if type not in state else state[type] if type.startswith('conditional_') else state
+            state = None if type not in state else state[type] if type.startswith(
+                'conditional_') else state
         return cls.sat_cut(state.constraints)
 
     @classmethod
@@ -556,13 +556,13 @@ class Graph:
                 # lvar['has_one'] = True
         return new_lvar
 
-
     @classmethod
     def visit_interval(cls, states, has_ret, blk, heads, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         vis = deque([prev])
-        que = PriorityQueue() # takes minimum value at first
-        lvar = defaultdict(lambda : defaultdict(int, {'cons': True, 'prior': 65536}))
+        que = PriorityQueue()  # takes minimum value at first
+        lvar = defaultdict(lambda: defaultdict(
+            int, {'cons': True, 'prior': 65536}))
         que._put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
@@ -626,7 +626,8 @@ class Graph:
                 new_head = heads[next_block]
                 for stat in valid_state:
                     local_new_lvar = copy.deepcopy(lvar)
-                    local_new_lvar[cur_head] = cls.aes_run_local(local_new_lvar[cur_head], next_block)
+                    local_new_lvar[cur_head] = cls.aes_run_local(
+                        local_new_lvar[cur_head], next_block)
                     new_score = local_new_lvar[cur_head]['prior']
                     if new_head != cur_head:
                         new_vis = copy.deepcopy(vis)
@@ -638,9 +639,11 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score, ([stat], next_block, new_head, new_vis, local_new_lvar)))
+                        que.put(
+                            (new_score, ([stat], next_block, new_head, new_vis, local_new_lvar)))
                     else:
-                        que.put((new_score, ([stat], next_block, cur_head, vis, local_new_lvar)))
+                        que.put(
+                            (new_score, ([stat], next_block, cur_head, vis, local_new_lvar)))
             return flag, []
         for item in producer():
             f, l = consumer(item)

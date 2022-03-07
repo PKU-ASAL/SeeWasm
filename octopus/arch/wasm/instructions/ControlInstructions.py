@@ -9,11 +9,13 @@ from octopus.arch.wasm.exceptions import *
 from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, WASIFunction, PANIC_FUNCTIONS, WASI_FUNCTIONS
 from octopus.arch.wasm.graph import Graph
 from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
+from octopus.arch.wasm.solver import SMTSolver
 
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strcpy',
                    'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
-GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'} # 'runtime.alloc' temporary disabled for some bug
+# 'runtime.alloc' temporary disabled for some bug
+GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
@@ -26,7 +28,10 @@ NEED_STEP_IN_C = {}
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
 
 
-def IS_GO_LIBRARY_FUNCS(x): return x.startswith(tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
+def IS_GO_LIBRARY_FUNCS(x): return x.startswith(
+    tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
+
+
 def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
 def IS_WASI_FUNCS(x): return x in WASI_FUNCTIONS
 
@@ -104,7 +109,8 @@ class ControlInstructions:
         # only concerned C file
         if readable_name in [i[1] for i in analyzer.imports_func]:
             if IS_WASI_FUNCS(readable_name):
-                logging.warning(f"Invoked a WASI import function: {readable_name}")
+                logging.warning(
+                    f"Invoked a WASI import function: {readable_name}")
                 func = WASIFunction(readable_name, state.current_func_name)
             else:
                 func = ImportFunction(readable_name, state.current_func_name)
@@ -140,7 +146,8 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning( f"From {state.current_func_name} SInvoked: {readable_name}")
+            logging.warning(
+                f"From {state.current_func_name} SInvoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -243,7 +250,7 @@ class ControlInstructions:
                     possible_callee.append(func_offset)
             """
             states = []
-            solver = Solver()
+            solver = SMTSolver(Configuration.get_solver())
             print(func_type, op)
             for i, possible_func_offset in enumerate(possible_callee):
                 i = i + 1

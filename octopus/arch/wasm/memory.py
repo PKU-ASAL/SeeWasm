@@ -4,6 +4,9 @@
 
 from z3 import *
 
+from octopus.arch.wasm.utils import Configuration
+from octopus.arch.wasm.solver import SMTSolver
+
 
 # GUIDANCE:
 # existed:          [____fixed____]                     is_overlapped
@@ -65,7 +68,8 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
     # look for the interval
     for k in symbolic_memory.keys():
         lower_bound, higher_bound = k[0], k[1]
-        s1, s2 = Solver(), Solver()
+        s1, s2 = SMTSolver(Configuration.get_solver()), SMTSolver(
+            Configuration.get_solver())
         s1.add(lower_bound <= chosen_num)
         s2.add(chosen_num < higher_bound)
         if sat == s1.check() and sat == s2.check():
@@ -87,7 +91,7 @@ def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
         dest (BitVecRef): from where the data would be loaded
         length (int): length of bytes that would be loaded
     """
-    s = Solver()
+    s = SMTSolver(Configuration.get_solver())
     s.add(lower_bound + length > higher_bound)
     if sat == s.check():
         return BitVec('no_such_memory', 8*length)

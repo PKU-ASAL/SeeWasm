@@ -5,6 +5,8 @@ import logging
 from copy import deepcopy
 
 from octopus.arch.wasm.utils import bcolors
+from octopus.arch.wasm.utils import Configuration
+from octopus.arch.wasm.solver import SMTSolver
 
 div_operations = {'bvsdiv', 'bvudic', 'bvsrem', 'bvurem', 'fp.div'}
 
@@ -14,7 +16,7 @@ class DivZeroLaser:
         pass
 
     def _check(self, condition):
-        s = Solver()
+        s = SMTSolver(Configuration.get_solver())
         s.add(condition)
         if sat == s.check():
             return True

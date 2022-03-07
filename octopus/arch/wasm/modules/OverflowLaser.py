@@ -3,9 +3,10 @@
 from z3 import *
 import logging
 from copy import deepcopy
-from collections import defaultdict
 
 from octopus.arch.wasm.utils import bcolors
+from octopus.arch.wasm.utils import Configuration
+from octopus.arch.wasm.solver import SMTSolver
 
 overflow_group = {'bvadd', 'bvmul', 'bvsub'}
 
@@ -15,7 +16,7 @@ class OverflowLaser:
         pass
 
     def _check(self, constraint):
-        s = Solver()
+        s = SMTSolver(Configuration.get_solver())
         s.add(constraint)
         if sat == s.check():
             # print(s.model())

@@ -14,7 +14,7 @@ from octopus.arch.wasm.utils import Configuration, extract_mapping
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Security Analysis tool for WebAssembly module and Blockchain Smart Contracts')
+        description='Eunomia, a symbolic execution engine for WebAssembly module')
 
     inputs = parser.add_argument_group('Input arguments')
     inputs.add_argument('-r', '--raw',
@@ -37,6 +37,12 @@ def main():
                         action='store',
                         type=str,
                         help='The path of your DSL file')
+    inputs.add_argument('--solver',
+                        default='z3',
+                        const='z3',
+                        nargs='?',
+                        choices=['z3', 'lab'],
+                        help='the adopted backend SMT-solver, z3 is default')
 
     features = parser.add_argument_group('Features')
     features.add_argument('-d', '--disassemble',
@@ -73,9 +79,9 @@ def main():
                           choices=['dfs', 'interval'],
                           help='choose an algorithm to traverse, default is dfs')
     features.add_argument('--stdin_file',
-                        type=argparse.FileType('rb'),
-                        help='file to be read by program as stdin (using fd_read wasi syscall)',
-                        metavar='STDIN_FILE')
+                          type=argparse.FileType('rb'),
+                          help='file to be read by program as stdin (using fd_read wasi syscall)',
+                          metavar='STDIN_FILE')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
@@ -136,7 +142,7 @@ def main():
         # after parse, load the json
         with open(args.dsl+".json") as fp:
             user_dsl = json.load(fp)
-    
+
     if args.stdin_file:
         import octopus.arch.wasm.vmstate
         octopus.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
@@ -183,6 +189,7 @@ def main():
         Configuration.set_source_type(args.source_type)
         Configuration.set_algo(args.algo)
         Configuration.set_concrete_globals(args.concrete_globals)
+        Configuration.set_solver(args.solver)
 
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, func_index2func_name=func_index2func_name)

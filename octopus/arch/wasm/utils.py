@@ -18,6 +18,8 @@ class Configuration:
     _algo = 'dfs'       # the traverse algorithm, default is dfs, we also have 'interval'
     _concrete_globals = False   # init the global with the declaration in global sections
     _verbose_flag = False    # if user set -v flag, the debugging info would be printed
+    # the backend SMT solver, may integrate our lab's own backend in the future
+    _solver = 'z3'
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -64,6 +66,14 @@ class Configuration:
     def get_verbose_flag():
         return Configuration._verbose_flag
 
+    @staticmethod
+    def get_solver():
+        return Configuration._solver
+
+    @staticmethod
+    def set_solver(solver):
+        Configuration._solver = solver
+
 
 class Enable_Lasers(Enum):
     OVERFLOW = 1
@@ -109,10 +119,11 @@ def extract_mapping(file_path):
     # index to func name
     mapper = {}
     # match both import function and function declaration
-    matches = re.findall(r'(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
+    matches = re.findall(
+        r'(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
     for i, matched_groups in enumerate(matches):
         func_name = matched_groups[-1]
-        # if import function, using import name instead of wat generated name 
+        # if import function, using import name instead of wat generated name
         if len(matched_groups[2]) != 0:
             func_name = matched_groups[2]
         mapper[i] = func_name if func_name[0] != '$' else func_name[1:]
