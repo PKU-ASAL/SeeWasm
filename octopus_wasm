@@ -17,16 +17,10 @@ def main():
         description='Eunomia, a symbolic execution engine for WebAssembly module')
 
     inputs = parser.add_argument_group('Input arguments')
-    inputs.add_argument('-r', '--raw',
-                        help='hex-encoded bytecode string ("ABcdeF09..." or "0xABcdeF09...")',
-                        metavar='BYTECODE')
     inputs.add_argument('-f', '--file',
                         type=argparse.FileType('rb'),
                         help='binary file (.wasm)',
                         metavar='WASMMODULE')
-    inputs.add_argument('-rf', '--rawfile',
-                        type=argparse.FileType('r'),
-                        metavar='BYTECODE')
     inputs.add_argument('--source_type',
                         default='c',
                         const='c',
@@ -45,15 +39,9 @@ def main():
                         help='the adopted backend SMT-solver, z3 is default')
 
     features = parser.add_argument_group('Features')
-    features.add_argument('-d', '--disassemble',
-                          action='store_true',
-                          help='print text disassembly')
     features.add_argument('-v', '--verbose',
                           action='store_true',
                           help='switch the logging to debug level')
-    features.add_argument('-z', '--analyzer',
-                          action='store_true',
-                          help='print module information')
     features.add_argument('-y', '--analytic',
                           action='store_true',
                           help='print Functions instructions analytics')
@@ -110,8 +98,6 @@ def main():
     args = parser.parse_args()
 
     octo_bytecode = None
-    octo_analyzer = None
-    octo_disasm = None
     octo_cfg = None
     func_index2func_name = None
 
@@ -127,9 +113,6 @@ def main():
             func_index2func_name = extract_mapping(wat_file_path)
 
         octo_bytecode = args.file.read()
-    elif args.rawfile:
-        octo_bytecode = args.rawfile.read()
-        octo_bytecode = bytearray.fromhex(octo_bytecode)
 
     # if user pass the dsl file path
     user_dsl = []
@@ -146,20 +129,6 @@ def main():
     if args.stdin_file:
         import octopus.arch.wasm.vmstate
         octopus.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
-
-    # Disassembly
-    if args.disassemble:
-        from octopus.arch.wasm.disassembler import WasmDisassembler
-
-        # TODO [official] add other r_format support
-        octo_disasm = WasmDisassembler()
-        print(octo_disasm.disassemble_module(octo_bytecode, r_format='text'))
-
-    if args.analyzer:
-        from octopus.arch.wasm.analyzer import WasmModuleAnalyzer
-
-        octo_analyzer = WasmModuleAnalyzer(octo_bytecode)
-        print(octo_analyzer)
 
     # Control Flow Analysis & Call flow Analysis
     if args.cfg or args.call or args.analytic:
@@ -183,7 +152,7 @@ def main():
                 octo_graph.view(simplify=args.simplify)
 
     # import necessary library
-    from octopus.arch.wasm.emulator_revise import WasmSSAEmulatorEngine
+    from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
@@ -204,7 +173,7 @@ def main():
         else:
             raise Exception("Please specify at least one entry function")
 
-    if not args.disassemble and not args.symbolic and not args.cfg and not args.call and not args.analyzer and not args.analytic:
+    if not args.symbolic and not args.cfg and not args.call and not args.analytic:
         parser.print_help()
 
 
