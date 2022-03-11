@@ -99,7 +99,7 @@ wasm2wat main.wasm -o main.wat
 
 We provided several examples in the repo Wasm-samples. The command to run the symbolic execution engine is: (You can change the path of wasm file to other examples to run it)
 ```shell
-python3 octopus_wasm -f './Wasm-samples/go_samples.nosync/hello_world/main.wasm' -s --onlyfunc main.main --need_mapper --concrete_globals --source_type go
+python3 eunomia_entry -f './Wasm-samples/go_samples.nosync/hello_world/main.wasm' -s --onlyfunc main.main --need_mapper --concrete_globals --source_type go
 ```
 
 ## Analyze
@@ -111,7 +111,7 @@ In this section, we would show how to use Wasm-SE to analyze the generated Wasm 
 To specify which functions would be analyzed, i.e., as the entry point during the symbolic execution, we should use the following command:
 
 ```shell
-python3 octopus_wasm -f [path_to_file].wasm -s --onlyfunc [entry_func] --need_mapper -v
+python3 eunomia_entry -f [path_to_file].wasm -s --onlyfunc [entry_func] --need_mapper -v
 ```
 
 Here, in the `[entry_func]`, users are allowed to specify the entry functions. For Wasm file compiled from C, we typically set this field as `main`.
@@ -146,13 +146,13 @@ Users can input `--overflow`, `--divzero` or `--buffer` to enable the correspond
 # Generate CFG
 
 ```bash
-python3.6 octopus_wasm -g -f /path/to/xx.wasm --onlyfunc main
+python3.6 eunomia_entry -g -f /path/to/xx.wasm --onlyfunc main
 ```
 
 Example:
 
 ```
-python3.6 octopus_wasm -g -f c2wasm_samples/simple_condition_g3.wasm --onlyfunc main
+python3.6 eunomia_entry -g -f c2wasm_samples/simple_condition_g3.wasm --onlyfunc main
 ```
 
 Results:
