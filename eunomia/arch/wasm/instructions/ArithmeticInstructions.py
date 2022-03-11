@@ -1,15 +1,15 @@
 # emulate the arithmetic related instructions
 
-from octopus.arch.wasm.modules.DivZeroLaser import DivZeroLaser
+from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from .. exceptions import *
-from octopus.arch.wasm.utils import Enable_Lasers, Configuration
-from octopus.arch.wasm.modules.OverflowLaser import OverflowLaser
-from octopus.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location_string
-from octopus.arch.wasm.utils import bcolors
+from eunomia.arch.wasm.utils import Enable_Lasers, Configuration
+from eunomia.arch.wasm.modules.OverflowLaser import OverflowLaser
+from eunomia.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location_string
+from eunomia.arch.wasm.utils import bcolors
 
 from z3 import *
 import logging
-from octopus.arch.wasm.graph import Graph
+from eunomia.arch.wasm.graph import Graph
 
 helper_map = {
     'i32': 32,

@@ -1,5 +1,5 @@
 import copy
-from octopus.arch.wasm.exceptions import UnsupportInstructionError
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
 from z3 import *
 
 

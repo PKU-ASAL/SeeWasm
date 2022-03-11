@@ -5,20 +5,20 @@ from logging import getLogger
 
 from graphviz import Digraph
 
-from octopus.analysis.cfg import CFG
-from octopus.analysis.graph import CFGGraph
-from octopus.arch.wasm.analyzer import WasmModuleAnalyzer
-from octopus.arch.wasm.disassembler import WasmDisassembler
-from octopus.arch.wasm.format import (format_bb_name,
+from eunomia.analysis.cfg import CFG
+from eunomia.analysis.graph import CFGGraph
+from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
+from eunomia.arch.wasm.disassembler import WasmDisassembler
+from eunomia.arch.wasm.format import (format_bb_name,
                                       format_func_name)
-from octopus.arch.wasm.wasm import _groups
-from octopus.core.basicblock import BasicBlock
-from octopus.core.edge import (Edge,
+from eunomia.arch.wasm.wasm import _groups
+from eunomia.core.basicblock import BasicBlock
+from eunomia.core.edge import (Edge,
                                EDGE_UNCONDITIONAL,
                                EDGE_CONDITIONAL_TRUE, EDGE_CONDITIONAL_FALSE,
                                EDGE_FALLTHROUGH, EDGE_CALL)
-from octopus.core.function import Function
-from octopus.core.utils import bytecode_to_bytes
+from eunomia.core.function import Function
+from eunomia.core.utils import bytecode_to_bytes
 
 logging = getLogger(__name__)
 
@@ -33,7 +33,7 @@ DESIGN_EXPORT = {'fillcolor': 'grey',
 
 def enum_func(module_bytecode):
     ''' return a list of Function
-        see:: octopus.core.function
+        see:: eunomia.core.function
     '''
     functions = list()
     analyzer = WasmModuleAnalyzer(module_bytecode)
@@ -314,7 +314,6 @@ class WasmCFG(CFG):
         self.basicblocks = list()
         self.edges = list()
 
-        self.analyzer = WasmModuleAnalyzer(self.module_bytecode)
         self.run_static_analysis()
 
     def run_static_analysis(self):

@@ -22,14 +22,14 @@ from wasm.modtypes import (TypeSection,
                            DataSection)
 from elftools.dwarf.dwarfinfo import DWARFInfo, DwarfConfig, DebugSectionDescriptor
 
-from octopus.arch.wasm.constant import LANG_TYPE, KIND_TYPE
-from octopus.arch.wasm.decode import decode_module
-from octopus.arch.wasm.format import (format_kind_function,
+from eunomia.arch.wasm.constant import LANG_TYPE, KIND_TYPE
+from eunomia.arch.wasm.decode import decode_module
+from eunomia.arch.wasm.format import (format_kind_function,
                                       format_kind_table,
                                       format_kind_memory,
                                       format_kind_global)
-from octopus.core.utils import bytecode_to_bytes
-from octopus.arch.wasm.dawrf_parser import dwarf_section_names
+from eunomia.core.utils import bytecode_to_bytes
+from eunomia.arch.wasm.dawrf_parser import dwarf_section_names
 
 logging = getLogger(__name__)
 

@@ -2,10 +2,10 @@
 
 import re
 
-from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.memory import (insert_symbolic_memory,
+from eunomia.arch.wasm.exceptions import *
+from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from octopus.arch.wasm.utils import getConcreteBitVec
+from eunomia.arch.wasm.utils import getConcreteBitVec
 from z3 import *
 
 memory_count = 2

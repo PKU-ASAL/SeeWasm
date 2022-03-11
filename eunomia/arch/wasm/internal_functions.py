@@ -3,17 +3,17 @@
 import logging
 import math
 
-from octopus.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
+from eunomia.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
                                             get_func_index_from_state,
                                             get_source_location,
                                             get_source_location_string)
-from octopus.arch.wasm.exceptions import (UnexpectedDataType,
+from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
-from octopus.arch.wasm.instruction import WasmInstruction
-from octopus.arch.wasm.memory import (insert_symbolic_memory,
+from eunomia.arch.wasm.instruction import WasmInstruction
+from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from octopus.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
-from octopus.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
+from eunomia.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
                                      Enable_Lasers, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
                                      parse_printf_formatting, bcolors)
@@ -561,7 +561,7 @@ class GoPredefinedFunction:
                     # then store the pointer and size to the string struct in vargs.
 
                     # find the index of runtime.alloc
-                    from octopus.arch.wasm.graph import Graph
+                    from eunomia.arch.wasm.graph import Graph
                     func_index2func_name = Graph.wasmVM.func_index2func_name
                     runtime_alloc_ind = -1
                     for ind, name in func_index2func_name.items():

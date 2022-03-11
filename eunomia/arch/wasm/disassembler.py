@@ -6,12 +6,12 @@ from wasm.formatter import format_instruction
 from wasm.modtypes import CodeSection
 from wasm.opcodes import OPCODE_MAP
 
-from octopus.arch.wasm.decode import decode_module
-from octopus.arch.wasm.instruction import WasmInstruction
-from octopus.arch.wasm.wasm import Wasm
-from octopus.core.function import Function
-from octopus.core.utils import bytecode_to_bytes
-from octopus.engine.disassembler import Disassembler
+from eunomia.arch.wasm.decode import decode_module
+from eunomia.arch.wasm.instruction import WasmInstruction
+from eunomia.arch.wasm.wasm import Wasm
+from eunomia.core.function import Function
+from eunomia.core.utils import bytecode_to_bytes
+from eunomia.engine.disassembler import Disassembler
 
 inst_namedtuple = namedtuple('Instruction', 'op imm len')
 
@@ -75,16 +75,16 @@ class WasmDisassembler(Disassembler):
         >>> 'block -1\ni32.const 24\ncall 28\ni32.const 0\nreturn\nend'
         >>>
         >>> disasm.disassemble(r_format='text')
-        >>> [<octopus.arch.wasm.instruction.WasmInstruction at 0x7f80243120b8>,
+        >>> [<eunomia.arch.wasm.instruction.WasmInstruction at 0x7f80243120b8>,
              ...
-             <octopus.arch.wasm.instruction.WasmInstruction at 0x7f8024312588>,
-             <octopus.arch.wasm.instruction.WasmInstruction at 0x7f80243121d0>]
+             <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f8024312588>,
+             <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f80243121d0>]
         >>>
         >>> disasm.disassemble(r_format='reverse')
-        >>> {0: <octopus.arch.wasm.instruction.WasmInstruction at 0x7f8024319d68>,
+        >>> {0: <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f8024319d68>,
              ...
-             4: <octopus.arch.wasm.instruction.WasmInstruction at 0x7f802431fa58>,
-             5: <octopus.arch.wasm.instruction.WasmInstruction at 0x7f802431fc18>}
+             4: <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f802431fa58>,
+             5: <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f802431fc18>}
         """
 
         return super().disassemble(bytecode, offset, r_format)

@@ -3,8 +3,8 @@
 from z3 import *
 import logging
 
-from octopus.arch.wasm.utils import bcolors
-from octopus.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_func_index_from_state, get_source_location_string
+from eunomia.arch.wasm.utils import bcolors
+from eunomia.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_func_index_from_state, get_source_location_string
 
 
 class BufferOverflowLaser:

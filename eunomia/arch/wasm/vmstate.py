@@ -3,7 +3,7 @@ import copy
 
 from collections import defaultdict
 
-from octopus.engine.engine import VMstate
+from eunomia.engine.engine import VMstate
 from z3 import *
 
 STDIN_BYTES = b'123\n'

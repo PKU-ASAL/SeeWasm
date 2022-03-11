@@ -1,7 +1,7 @@
 # emulate the logical related instructions
 
-from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.utils import Enable_Lasers, Configuration
+from eunomia.arch.wasm.exceptions import *
+from eunomia.arch.wasm.utils import Enable_Lasers, Configuration
 
 from z3 import *
 from collections import defaultdict

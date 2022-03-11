@@ -4,8 +4,8 @@
 
 from z3 import *
 
-from octopus.arch.wasm.utils import Configuration
-from octopus.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import Configuration
+from eunomia.arch.wasm.solver import SMTSolver
 
 
 # GUIDANCE:

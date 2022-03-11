@@ -6,9 +6,9 @@ from queue import PriorityQueue
 from z3 import sat, unsat
 
 
-from octopus.arch.wasm.exceptions import DSLParseError
-from octopus.arch.wasm.utils import Configuration, ask_user_input, bcolors
-from octopus.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.exceptions import DSLParseError
+from eunomia.arch.wasm.utils import Configuration, ask_user_input, bcolors
+from eunomia.arch.wasm.solver import SMTSolver
 
 
 class ClassPropertyDescriptor:

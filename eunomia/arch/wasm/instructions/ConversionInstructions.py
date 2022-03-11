@@ -1,6 +1,6 @@
 # emulate the conversion related instructions
 
-from octopus.arch.wasm.exceptions import *
+from eunomia.arch.wasm.exceptions import *
 from z3 import *
 
 

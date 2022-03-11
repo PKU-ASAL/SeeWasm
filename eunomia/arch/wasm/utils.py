@@ -5,7 +5,7 @@ import struct
 from codecs import decode
 from enum import Enum
 
-from octopus.arch.wasm.exceptions import *
+from eunomia.arch.wasm.exceptions import *
 from z3 import *
 
 

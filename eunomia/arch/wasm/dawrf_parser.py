@@ -5,8 +5,8 @@ from math import exp
 
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser
-from octopus.arch.wasm.memory import lookup_symbolic_memory_data_section
-from octopus.arch.wasm.utils import bcolors
+from eunomia.arch.wasm.memory import lookup_symbolic_memory_data_section
+from eunomia.arch.wasm.utils import bcolors
 
 dwarf_section_names = ('.debug_info', '.debug_aranges', '.debug_abbrev',
                        '.debug_str', '.debug_line', '.debug_frame',

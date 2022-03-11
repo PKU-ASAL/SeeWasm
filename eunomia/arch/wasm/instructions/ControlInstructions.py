@@ -5,11 +5,11 @@ import re
 import logging
 from collections import defaultdict
 
-from octopus.arch.wasm.exceptions import *
-from octopus.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, WASIFunction, PANIC_FUNCTIONS, WASI_FUNCTIONS
-from octopus.arch.wasm.graph import Graph
-from octopus.arch.wasm.utils import getConcreteBitVec, Configuration
-from octopus.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.exceptions import *
+from eunomia.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, WASIFunction, PANIC_FUNCTIONS, WASI_FUNCTIONS
+from eunomia.arch.wasm.graph import Graph
+from eunomia.arch.wasm.utils import getConcreteBitVec, Configuration
+from eunomia.arch.wasm.solver import SMTSolver
 
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strcpy',

@@ -8,8 +8,8 @@ from datetime import datetime
 
 import sh
 
-from octopus.arch.wasm.graph import Graph
-from octopus.arch.wasm.utils import Configuration, extract_mapping
+from eunomia.arch.wasm.graph import Graph
+from eunomia.arch.wasm.utils import Configuration, extract_mapping
 
 
 def main():
@@ -127,13 +127,13 @@ def main():
             user_dsl = json.load(fp)
 
     if args.stdin_file:
-        import octopus.arch.wasm.vmstate
-        octopus.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
+        import eunomia.arch.wasm.vmstate
+        eunomia.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
 
     # Control Flow Analysis & Call flow Analysis
     if args.cfg or args.call or args.analytic:
-        from octopus.analysis.graph import CFGGraph
-        from octopus.arch.wasm.cfg import WasmCFG
+        from eunomia.analysis.graph import CFGGraph
+        from eunomia.arch.wasm.cfg import WasmCFG
 
         octo_cfg = WasmCFG(octo_bytecode)
 
@@ -152,7 +152,7 @@ def main():
                 octo_graph.view(simplify=args.simplify)
 
     # import necessary library
-    from octopus.arch.wasm.emulator import WasmSSAEmulatorEngine
+    from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)

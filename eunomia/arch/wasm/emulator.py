@@ -5,11 +5,12 @@ import copy
 import logging
 import re
 
-from octopus.arch.wasm.cfg import WasmCFG
-from octopus.arch.wasm.instructions import *
-from octopus.arch.wasm.utils import Configuration, getConcreteBitVec
-from octopus.arch.wasm.vmstate import WasmVMstate
-from octopus.engine.emulator import EmulatorEngine
+from eunomia.arch.wasm.cfg import WasmCFG
+from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
+from eunomia.arch.wasm.instructions import *
+from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
+from eunomia.arch.wasm.vmstate import WasmVMstate
+from eunomia.engine.emulator import EmulatorEngine
 from z3 import *
 
 sys.setrecursionlimit(4096)
@@ -28,7 +29,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def __init__(self, bytecode, func_index2func_name=None):
         self.cfg = WasmCFG(bytecode)
-        self.ana = self.cfg.analyzer
+        self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
         # be inited in `graph.py`
         self.user_dsl = None

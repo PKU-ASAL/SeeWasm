@@ -1,6 +1,6 @@
 from graphviz import Digraph
 
-from octopus.core.edge \
+from eunomia.core.edge \
     import (EDGE_UNCONDITIONAL,
             EDGE_CONDITIONAL_TRUE, EDGE_CONDITIONAL_FALSE,
             EDGE_FALLTHROUGH, EDGE_CALL)
