@@ -4,3 +4,6 @@
 [submodule "DSL"]
 	path = DSL
 	url = https://github.com/HNYuuu/DSL.git
+[submodule "nufsolver"]
+	path = nufsolver
+	url = https://github.com/AlfredThiel/NUFSolver

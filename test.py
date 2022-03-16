@@ -46,7 +46,7 @@ candidates.sort()
 for case in candidates:
     case += '.wasm'
     file_path = os.path.join(testcase_dir, case)
-    cmd_lists.append(['octopus_wasm', '-f', file_path, '-s',
+    cmd_lists.append(['eunomia_entry', '-f', file_path, '-s',
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
