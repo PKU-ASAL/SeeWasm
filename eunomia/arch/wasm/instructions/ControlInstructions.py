@@ -6,11 +6,11 @@ from collections import defaultdict
 from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.internal_functions import (PANIC_FUNCTIONS,
-                                                  WASI_FUNCTIONS,
-                                                  CPredefinedFunction,
-                                                  GoPredefinedFunction,
-                                                  ImportFunction, WASIFunction)
+from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
+                                                 WASI_FUNCTIONS,
+                                                 CPredefinedFunction,
+                                                 GoPredefinedFunction,
+                                                 ImportFunction, WASIFunction)
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,

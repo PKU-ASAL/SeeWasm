@@ -42,6 +42,7 @@ candidates.remove('aes_cf')
 candidates.remove('cpu_svd')
 
 candidates.remove('df2cf_cp_l1')
+candidates.remove('pointers_sj_l1')
 
 candidates.sort()
 

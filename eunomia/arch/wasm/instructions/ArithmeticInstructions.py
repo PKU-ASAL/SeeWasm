@@ -2,7 +2,7 @@
 
 import logging
 
-from eunomia.arch.wasm.dawrf_parser import (get_func_index_from_state,
+from eunomia.arch.wasm.dwarfParser import (get_func_index_from_state,
                                             get_source_location_string)
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
 from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser

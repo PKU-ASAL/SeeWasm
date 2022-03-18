@@ -10,7 +10,7 @@ from logging import getLogger
 from elftools.dwarf.dwarfinfo import (DebugSectionDescriptor, DwarfConfig,
                                       DWARFInfo)
 from eunomia.arch.wasm.constant import KIND_TYPE, LANG_TYPE
-from eunomia.arch.wasm.dawrf_parser import dwarf_section_names
+from eunomia.arch.wasm.dwarfParser import dwarf_section_names
 from eunomia.arch.wasm.decode import decode_module
 from eunomia.arch.wasm.format import (format_kind_function, format_kind_global,
                                       format_kind_memory, format_kind_table)
