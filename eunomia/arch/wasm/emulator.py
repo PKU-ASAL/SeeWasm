@@ -91,7 +91,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     func_index = index
                     break
 
-        assert func_index != None, f"[!] Cannot find your entry function: {func_name}"
+        assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
         func_info = self.ana.func_prototypes[func_index]
         param_str, return_str = func_info[1], func_info[2]
 
@@ -148,7 +148,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return halt, states
 
-    def emulate_one_instruction(self, instr, state, depth, has_ret, call_depth):
+    def emulate_one_instruction(
+            self, instr, state, depth, has_ret, call_depth):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -170,8 +171,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
-#        logging.debug(
-#            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
+        logging.debug(
+            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
 
         for c in state.constraints:
             if not isinstance(c, BoolRef):
@@ -182,7 +183,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.group == 'Memory':
             return instr_obj.emulate(state, self.data_section), None
         elif instr.group == 'Control':
-            return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.data_section, self.ana)
+            return instr_obj.emulate(
+                state, has_ret, self.ana.func_prototypes, self.
+                func_index2func_name, self.data_section, self.ana)
         elif instr.group == 'Parametric':
             return instr_obj.emulate(state, depth, has_ret, call_depth)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':

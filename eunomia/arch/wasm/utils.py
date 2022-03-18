@@ -162,7 +162,8 @@ def show_branch_info(branch, branches, state):
     #     print(f'\t{instr.operand_interpretation}')
 
 
-def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=None):
+def ask_user_input(
+        emul_states, isbr, onlyone=False, branches=None, state_item=None):
     # the flag can be 0 or 1,
     # 0 means state, 1 means branch
     # `concerned_variable` is state_index or branch, depends on the flag value
@@ -206,7 +207,7 @@ def ask_user_input(emul_states, isbr, onlyone=False, branches=None, state_item=N
             else:
                 show_state_info(concerned_variable, emul_states)
             print('')
-        except:
+        except Exception:
             print(
                 f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
 
@@ -245,13 +246,13 @@ def calc_memory_align(parsed_pattern):
         if cur_type == 'f':
             previous_sum = sum(offset[:i])
             if previous_sum % 8 != 0:
-                offset[i-1] += 4
+                offset[i - 1] += 4
 
     return offset
 
 
 def parse_printf_formatting(lines):
-    cfmt = '''\
+    cfmt = r'''\
 (                                  # start of capture group 1
 %                                  # literal "%"
 (?:                                # first option

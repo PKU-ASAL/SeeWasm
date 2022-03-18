@@ -93,13 +93,15 @@ class CallGraph(object):
 
             # check if multiple same edges
             # in that case, put the number into label
-            edges_counter = dict((x,self.edges.count(x)) for x in set(self.edges))
+            edges_counter = dict((x, self.edges.count(x))
+                                 for x in set(self.edges))
             # insert edges on the graph
             for edge, count in edges_counter.items():
                 label = None
                 if count > 1:
                     label = str(count)
-                c.edge(edge.node_from, edge.node_to, label=label, color='black')
+                c.edge(edge.node_from, edge.node_to,
+                       label=label, color='black')
 
         g.render(self.filename, view=view)
 
@@ -117,7 +119,9 @@ class CFGGraph(Graph):
     def view_functions_simplify(self, call=False, view=True):
         self.view_functions(view=view, call=call, simplify=True)
 
-    def view_functions(self, only_func_name=None, view=True, simplify=False, call=False, ssa=False, color='grey'):
+    def view_functions(
+            self, only_func_name=None, view=True, simplify=False, call=False,
+            ssa=False, color='grey'):
         g = Digraph('G', filename=self.filename)
         g.attr(rankdir='TB')
         g.attr(overlap='scale')
@@ -127,7 +131,9 @@ class CFGGraph(Graph):
         functions = self.cfg.functions
         # only show functions listed
         if only_func_name:
-            functions = [func for func in self.cfg.functions if func.name in only_func_name]
+            functions = [
+                func for func in self.cfg.functions
+                if func.name in only_func_name]
 
         for idx, func in enumerate(functions):
             with g.subgraph(name='cluster_%d' % idx, node_attr=self.design) as c:
@@ -146,7 +152,9 @@ class CFGGraph(Graph):
                 for basicblock in func.basicblocks:
                     if simplify:
                         # create node
-                        c.node(basicblock.name, label=basicblock.name, splines='true')
+                        c.node(
+                            basicblock.name, label=basicblock.name,
+                            splines='true')
                     else:
                         if ssa:
                             label = basicblock.instructions_ssa()
@@ -163,8 +171,10 @@ class CFGGraph(Graph):
         # only get corresponding edges
         if only_func_name:
             functions_block = [func.basicblocks for func in functions]
-            block_name = [b.name for block_l in functions_block for b in block_l]
-            edges = [edge for edge in edges if (edge.node_from in block_name or edge.node_to in block_name)]
+            block_name = [
+                b.name for block_l in functions_block for b in block_l]
+            edges = [edge for edge in edges if (
+                edge.node_from in block_name or edge.node_to in block_name)]
         # insert edges on the graph
         insert_edges_to_graph(g, edges, call)
 

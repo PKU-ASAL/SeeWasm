@@ -17,28 +17,37 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
 # TODO ensure the correctness of malloc, realloc, and free
-C_LIBRARY_FUNCS = {'printf', 'scanf', 'strcpy',
-                   'swap', 'iprintf', 'floor', 'ceil', 'exp', 'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof', 'atoi', 'log', 'system'}
+C_LIBRARY_FUNCS = {
+    'printf', 'scanf', 'strcpy', 'swap', 'iprintf', 'floor', 'ceil', 'exp',
+    'sqrt', 'getchar', 'putchar', 'abs', 'puts', '__small_printf', 'atof',
+    'atoi', 'log', 'system'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
-NEED_STEP_IN_GO = {'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte', '_*fmt.pp_.fmtInteger', '_*os.File_.Write',
-                   '_*fmt.fmt_.fmtInteger', 'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString', '_*fmt.fmt_.padString',
-                   '_*fmt.buffer_.writeString', '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
-                   '_syscall/js.Value_.isNumber', 'syscall/js.makeValue',
-                   '_*sync.Pool_.Get', 'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
+NEED_STEP_IN_GO = {
+    'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte',
+    '_*fmt.pp_.fmtInteger', '_*os.File_.Write', '_*fmt.fmt_.fmtInteger',
+    'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString',
+    '_*fmt.fmt_.padString', '_*fmt.buffer_.writeString',
+    '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
+    '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', '_*sync.Pool_.Get',
+    'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
 NEED_STEP_IN_C = {}
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
 
 
-def IS_GO_LIBRARY_FUNCS(x): return x.startswith(
-    tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
+def IS_GO_LIBRARY_FUNCS(x):
+    return x.startswith(tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
 
 
-def IS_C_LIBRARY_FUNCS(x): return x in C_LIBRARY_FUNCS
-def IS_WASI_FUNCS(x): return x in WASI_FUNCTIONS
+def IS_C_LIBRARY_FUNCS(x):
+    return x in C_LIBRARY_FUNCS
+
+
+def IS_WASI_FUNCS(x):
+    return x in WASI_FUNCTIONS
 
 
 class ControlInstructions:
@@ -91,7 +100,9 @@ class ControlInstructions:
 
         return new_state, new_has_ret
 
-    def deal_with_call(self, state, f_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer):
+    def deal_with_call(
+            self, state, f_offset, has_ret, func_prototypes,
+            func_index2func_name, data_section, analyzer):
         # get the callee's function signature
         target_func = func_prototypes[f_offset]
         internal_function_name, param_str, return_str, _ = target_func
@@ -101,7 +112,7 @@ class ControlInstructions:
             if internal_function_name.startswith('$'):
                 try:
                     readable_name = func_index2func_name[int(
-                        re.search('(\d+)', internal_function_name).group())]
+                        re.search(r'(\d+)', internal_function_name).group())]
                 except AttributeError:
                     # if the internal_function_name is the readable name already
                     readable_name = internal_function_name
@@ -152,7 +163,7 @@ class ControlInstructions:
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.warning(
-                f"From {state.current_func_name} SInvoked: {readable_name}")
+                f"From {state.current_func_name} Invoked: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -205,7 +216,9 @@ class ControlInstructions:
             new_states.append(state)
         return new_states
 
-    def emulate(self, state, has_ret, func_prototypes, func_index2func_name, data_section, analyzer):
+    def emulate(
+            self, state, has_ret, func_prototypes, func_index2func_name,
+            data_section, analyzer):
         if self.instr_name in self.skip_command:
             return False, None
         if self.instr_name in self.term_command:
@@ -266,7 +279,8 @@ class ControlInstructions:
                     continue
                 new_state.constraints.append(simplify(op == i))
                 after_calls = self.deal_with_call(
-                    new_state, possible_func_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
+                    new_state, possible_func_offset, has_ret, func_prototypes,
+                    func_index2func_name, data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
@@ -304,7 +318,9 @@ class ControlInstructions:
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
-            return False, self.deal_with_call(state, f_offset, has_ret, func_prototypes, func_index2func_name, data_section, analyzer)
+            return False, self.deal_with_call(
+                state, f_offset, has_ret, func_prototypes,
+                func_index2func_name, data_section, analyzer)
         else:
             print(self.instr_name)
             raise UnsupportInstructionError

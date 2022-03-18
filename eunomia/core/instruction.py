@@ -1,5 +1,6 @@
 class Instruction(object):
     """Instruction """
+
     def __init__(self, opcode, name,
                  operand_size, pops, pushes, fee,
                  description, operand=None,
@@ -43,7 +44,7 @@ class Instruction(object):
         else:
             return "%s" % output
 
-    #def __repr__(self):
+    # def __repr__(self):
     #    """ Entire representation of the instruction
     #    output = 'Instruction(0x%x, %r, %d, %d, %d, %d, %r, %r, %r)' \
     #        % (self._opcode, self._name, self._operand_size,

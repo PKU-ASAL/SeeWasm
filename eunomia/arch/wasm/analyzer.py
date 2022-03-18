@@ -506,7 +506,7 @@ class WasmModuleAnalyzer(object):
                     data[name] = DebugSectionDescriptor(
                         stream=stream,
                         name=name,
-                        global_offset=offset+payload_header_size,
+                        global_offset=offset + payload_header_size,
                         size=len(payload_data),
                         address=0)  # not within address space
             elif cur_sec_data.id == SEC_CODE:

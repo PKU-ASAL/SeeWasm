@@ -17,7 +17,7 @@ class VariableInstructions:
         op = int.from_bytes(self.instr_operand, byteorder='big')
 
         if self.instr_name == 'get_local':
-            if state.local_var.get(op, None) != None:
+            if state.local_var.get(op, None) is not None:
                 state.symbolic_stack.append(state.local_var[op])
             else:
                 state.symbolic_stack.append(state.local_var[op])
@@ -29,14 +29,16 @@ class VariableInstructions:
             global_index = op
             global_operand = state.globals[global_index]
 
-            if isinstance(global_operand, str) or isinstance(global_operand, int):
+            if isinstance(
+                    global_operand, str) or isinstance(
+                    global_operand, int):
                 state.symbolic_stack.append(BitVecVal(global_operand, 32))
             elif is_bv(global_operand) or is_bv_value(global_operand):
                 # the operand is a BitVecRef or BitVecNumRef
                 state.symbolic_stack.append(global_operand)
             else:
                 raise UnsupportGlobalTypeError
-        elif self.instr_name is 'set_global':
+        elif self.instr_name == 'set_global':
             global_operand = state.symbolic_stack.pop()
             global_index = op
 

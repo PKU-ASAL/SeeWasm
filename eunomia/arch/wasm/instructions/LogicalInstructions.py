@@ -81,7 +81,8 @@ class LogicalInstructions:
                         sign_mapping[op.hash()] = sign_mapping.get(
                             op.hash(), 0) | 1
 
-                if overflow_check_flag and ('_u' in self.instr_name or '_s' in self.instr_name):
+                if overflow_check_flag and (
+                        '_u' in self.instr_name or '_s' in self.instr_name):
                     speculate_sign(arg1, self.instr_name, state.sign_mapping)
                     speculate_sign(arg2, self.instr_name, state.sign_mapping)
 

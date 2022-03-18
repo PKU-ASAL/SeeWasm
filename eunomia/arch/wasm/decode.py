@@ -73,15 +73,11 @@ def decode_module(module, decode_name_subsections=False):
         # bypass the error caused by -g1 to -g3 compiled C code
         try:
             sec_len, sec_data, _ = sec.from_raw(None, module_wnd)
-        except:
+        except Exception:
             break
 
         # If requested, decode name subsections when encountered.
-        if (
-                decode_name_subsections and
-                sec_data.id == SEC_UNK and
-                sec_data.name == SEC_NAME
-        ):
+        if (decode_name_subsections and sec_data.id == SEC_UNK and sec_data.name == SEC_NAME):
             sec_wnd = sec_data.payload
             while sec_wnd:
                 subsec = NameSubSection()

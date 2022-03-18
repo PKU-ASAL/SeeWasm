@@ -14,19 +14,17 @@ from eunomia.arch.wasm.utils import Configuration, extract_mapping
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Eunomia, a symbolic execution engine for WebAssembly module')
+        description='Eunomia, a symbolic execution engine for Wasm module')
 
     inputs = parser.add_argument_group('Input arguments')
     inputs.add_argument('-f', '--file',
                         type=argparse.FileType('rb'),
                         help='binary file (.wasm)',
                         metavar='WASMMODULE')
-    inputs.add_argument('--source_type',
-                        default='c',
-                        const='c',
-                        nargs='?',
-                        choices=['c', 'go'],
-                        help='type of source file, used by library function emulator')
+    inputs.add_argument(
+        '--source_type', default='c', const='c', nargs='?', choices=['c',
+                                                                     'go'],
+        help='type of source file, used by library function emulator')
     inputs.add_argument('--dsl',
                         action='store',
                         type=str,
@@ -45,55 +43,53 @@ def main():
     features.add_argument('-y', '--analytic',
                           action='store_true',
                           help='print Functions instructions analytics')
-    features.add_argument('-g', '--cfg',
-                          action='store_true',
-                          help='generate the control flow graph (CFG) (instruction level)')
+    features.add_argument(
+        '-g', '--cfg', action='store_true',
+        help='generate the control flow graph (CFG) (instruction level)')
     features.add_argument('-c', '--call',
                           action='store_true',
                           help='generate the call flow graph (function level)')
-    features.add_argument('--need_mapper',
-                          action='store_true',
-                          help='give a mapping structure: func index to func name, e.g., {4: "$main"}')
-    features.add_argument('--manual_guide',
-                          action='store_true',
-                          help='allow users to manually guide the control flow')
-    features.add_argument('--concrete_globals',
-                          action='store_true',
-                          help='use the value in global section despite the function is exported')
-    features.add_argument('--algo',
-                          default='interval',
-                          const='interval',
-                          nargs='?',
-                          choices=['dfs', 'interval'],
-                          help='choose an algorithm to traverse, default is dfs')
-    features.add_argument('--stdin_file',
-                          type=argparse.FileType('rb'),
-                          help='file to be read by program as stdin (using fd_read wasi syscall)',
-                          metavar='STDIN_FILE')
+    features.add_argument(
+        '--need_mapper', action='store_true',
+        help='generate a mapping from func index to func name')
+    features.add_argument(
+        '--manual_guide', action='store_true',
+        help='allow users to manually guide the control flow')
+    features.add_argument(
+        '--concrete_globals', action='store_true',
+        help='concretize values for globals despite the function is exported')
+    features.add_argument(
+        '--algo', default='interval', const='interval', nargs='?',
+        choices=['dfs', 'interval'],
+        help='choose an algorithm to traverse, default is dfs')
+    features.add_argument(
+        '--stdin_file', type=argparse.FileType('rb'),
+        help='file to be read adopts fd_read wasi syscall',
+        metavar='STDIN_FILE')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
-    lasers.add_argument('--overflow', action='store_true',
-                        help="fire the integer overflow vulnerability detector")
+    lasers.add_argument(
+        '--overflow', action='store_true',
+        help="fire the integer overflow vulnerability detector")
     lasers.add_argument('--divzero', action='store_true',
                         help="fire the div-zero vulnerability detector")
     lasers.add_argument('--buffer', action='store_true',
                         help="fire the buffer overflow vulnerability detector")
 
     analyze = parser.add_mutually_exclusive_group(required=False)
-    analyze.add_argument('-s', '--symbolic',
-                         action='store_true',
-                         help='perform the symbolic execution for EOS contract')
+    analyze.add_argument(
+        '-s', '--symbolic', action='store_true',
+        help='perform the symbolic execution for EOS contract')
 
     graph = parser.add_argument_group('Graph options')
     graph.add_argument('--simplify', action='store_true',
                        help='generate a simplify CFG')
     graph.add_argument('--functions', action='store_true',
                        help='create subgraph for each function')
-    graph.add_argument('--onlyfunc', type=str,
-                       nargs="*",
-                       default=[],
-                       help='only generate the CFG for this list of function name')
+    graph.add_argument(
+        '--onlyfunc', type=str, nargs="*", default=[],
+        help='only generate the CFG for this list of function name')
 
     args = parser.parse_args()
 
@@ -173,7 +169,7 @@ def main():
         else:
             raise Exception("Please specify at least one entry function")
 
-    if not args.symbolic and not args.cfg and not args.call and not args.analytic:
+    if not (args.symbolic or args.cfg or args.call or args.analytic):
         parser.print_help()
 
 
