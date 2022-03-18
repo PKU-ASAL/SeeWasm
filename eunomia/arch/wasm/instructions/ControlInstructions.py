@@ -1,15 +1,20 @@
 import copy
-
-from z3 import *
-import re
 import logging
+import re
 from collections import defaultdict
 
-from eunomia.arch.wasm.exceptions import *
-from eunomia.arch.wasm.internal_functions import CPredefinedFunction, GoPredefinedFunction, ImportFunction, WASIFunction, PANIC_FUNCTIONS, WASI_FUNCTIONS
+from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
+                                          UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.utils import getConcreteBitVec, Configuration
+from eunomia.arch.wasm.internal_functions import (PANIC_FUNCTIONS,
+                                                  WASI_FUNCTIONS,
+                                                  CPredefinedFunction,
+                                                  GoPredefinedFunction,
+                                                  ImportFunction, WASIFunction)
 from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
+from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
+                simplify, unsat)
 
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {'printf', 'scanf', 'strcpy',

@@ -2,11 +2,10 @@
 # Can refer the corresponding description in EOSAFE
 # only export lookup_symbolic_memory_data_section and insert_symbolic_memory
 
-from z3 import *
-
-from eunomia.arch.wasm.utils import Configuration
 from eunomia.arch.wasm.solver import SMTSolver
-
+from eunomia.arch.wasm.utils import Configuration
+from z3 import (BitVec, BitVecRef, BitVecVal, Concat, Extract, If, is_bv,
+                is_bv_value, sat, simplify)
 
 # GUIDANCE:
 # existed:          [____fixed____]                     is_overlapped

@@ -1,11 +1,11 @@
 import os
+import sys
 import time
 from collections import defaultdict
 from os import walk
 
 import pytest
 import sh
-import sys
 
 user_assigned_path = str(sys.argv[1])
 assert user_assigned_path in {'e', 'b', 'o'}, f"you must enter the valid path"
@@ -46,7 +46,7 @@ candidates.sort()
 for case in candidates:
     case += '.wasm'
     file_path = os.path.join(testcase_dir, case)
-    cmd_lists.append(['octopus_wasm', '-f', file_path, '-s',
+    cmd_lists.append(['eunomia_entry', '-f', file_path, '-s',
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)

@@ -2,8 +2,9 @@
 
 import logging
 import math
+from ast import If
 
-from eunomia.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
+from eunomia.arch.wasm.dawrf_parser import (decode_vararg,
                                             get_func_index_from_state,
                                             get_source_location,
                                             get_source_location_string)
@@ -14,11 +15,13 @@ from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
-                                     Enable_Lasers, bin_to_float,
+                                     Enable_Lasers, bcolors, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting, bcolors)
-from z3 import *
-
+                                     parse_printf_formatting)
+from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
+                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If,
+                fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
+                is_eq, is_expr, is_not, simplify)
 
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
@@ -516,15 +519,19 @@ class GoPredefinedFunction:
         def concrete_value(x):
             return x.as_long() if is_bv_value(x) else x
         # helper functions to access memory
+
         def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
             state.symbolic_memory, data_section, x, 4))
+
         def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
             state.symbolic_memory, data_section, x, 1))
+
         def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 4, BitVecVal(val, 32))
+
         def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 1, BitVecVal(val, 8))
-        
+
         def GO_extract_string_by_mem_pointer(addr, len):
             ret = []
             for i in range(len):
@@ -543,8 +550,10 @@ class GoPredefinedFunction:
             # func Scanf(format string, a ...interface{}) (n int, err error)
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Scanf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
             param_list[:] = map(concrete_value, param_list)
-            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
-            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            pret, format_data, format_len, interface_slice_data = param_list[
+                -1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[
+                -5], param_list[-6], param_list[-7], param_list[-8]
             num_scanned = 0
             format_str = GO_extract_string_by_mem_pointer(
                 format_data, format_len).decode()
@@ -553,7 +562,7 @@ class GoPredefinedFunction:
 
             for i, parsed_pattern in enumerate(parsed_patterns):
                 line_num, str_ind, cur_pattern = parsed_pattern[0], parsed_pattern[1], parsed_pattern[2]
-                # decode interface slice 
+                # decode interface slice
                 assert i < interface_slice_len
                 param_interface_ptr = load32(interface_slice_data + 8 * i + 4)
                 if cur_pattern[-1] == 's':
@@ -573,12 +582,14 @@ class GoPredefinedFunction:
                     # runtime.alloc (param i32 i32 i32 i32) (result i32)
                     # i8* @runtime.alloc(i32 %size, i8* %layout, i8* %context, i8* %parentHandle)
                     alloc_size = len(write_bytes)
-                    inst_call = WasmInstruction(0x10, 'call', None, None, b'\x10', 0, 0, 'call a function', 'call '+str(runtime_alloc_ind), -1)
+                    inst_call = WasmInstruction(
+                        0x10, 'call', None, None, b'\x10', 0, 0, 'call a function', 'call '+str(runtime_alloc_ind), -1)
                     arguments = [BitVecVal(0, 32) for i in range(3)]
                     arguments.insert(0, BitVecVal(alloc_size, 32))
                     for a in arguments:
                         state.symbolic_stack.append(a)
-                    halt, new_states = Graph.wasmVM.emulate_one_instruction(inst_call, state, 0, [True], 0)
+                    halt, new_states = Graph.wasmVM.emulate_one_instruction(
+                        inst_call, state, 0, [True], 0)
                     assert len(new_states) == 1
                     # assign state to new state? TODO
                     state.symbolic_memory = new_states[0].symbolic_memory
@@ -614,8 +625,10 @@ class GoPredefinedFunction:
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Printf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
             # n is the number of bytes written.
             param_list[:] = map(concrete_value, param_list)
-            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
-            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            pret, format_data, format_len, interface_slice_data = param_list[
+                -1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[
+                -5], param_list[-6], param_list[-7], param_list[-8]
             format_str = GO_extract_string_by_mem_pointer(
                 format_data, format_len).decode()
 
@@ -660,19 +673,19 @@ class GoPredefinedFunction:
             # match the condition
             # Not -> == -> If --arg0--> condition
             if is_not(constraint) and \
-                is_eq(constraint.arg(0)) and \
-                is_const(constraint.arg(0).arg(1)) and \
-                constraint.arg(0).arg(1).as_long() == 0 and \
-                constraint.arg(0).arg(0).decl().kind() == Z3_OP_ITE and \
-                is_const(constraint.arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(1).as_long() == 1 and \
-                is_const(constraint.arg(0).arg(0).arg(2)) and constraint.arg(0).arg(0).arg(2).as_long() == 0 and \
-                is_eq(constraint.arg(0).arg(0).arg(0)) and \
-                is_const(constraint.arg(0).arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(0).arg(1).as_long() == 0:
+                    is_eq(constraint.arg(0)) and \
+                    is_const(constraint.arg(0).arg(1)) and \
+                    constraint.arg(0).arg(1).as_long() == 0 and \
+                    constraint.arg(0).arg(0).decl().kind() == Z3_OP_ITE and \
+                    is_const(constraint.arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(1).as_long() == 1 and \
+                    is_const(constraint.arg(0).arg(0).arg(2)) and constraint.arg(0).arg(0).arg(2).as_long() == 0 and \
+                    is_eq(constraint.arg(0).arg(0).arg(0)) and \
+                    is_const(constraint.arg(0).arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(0).arg(1).as_long() == 0:
                 # get divisor
                 divisor = constraint.arg(0).arg(0).arg(0).arg(0)
             # scanf_symbol == 0
             elif is_eq(constraint) and \
-                is_const(constraint.arg(1)) and constraint.arg(1).as_long() == 0:
+                    is_const(constraint.arg(1)) and constraint.arg(1).as_long() == 0:
                 divisor = constraint.arg(0)
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
@@ -823,15 +836,17 @@ class WASIFunction:
         def concrete_value(x):
             return x.as_long() if is_bv_value(x) else x
         # helper functions to access memory
+
         def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
             state.symbolic_memory, data_section, x, 4))
+
         def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
             state.symbolic_memory, data_section, x, 1))
+
         def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 4, BitVecVal(val, 32))
         def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
             state.symbolic_memory, addr, 1, BitVecVal(val, 8))
-
 
         if self.name == 'fd_read':
             # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
@@ -845,7 +860,7 @@ class WASIFunction:
             # currently only support stdin
             assert fd == 0, 'invalid file descriptor:'
             # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
-            num = 0 # bytes written
+            num = 0  # bytes written
             out_bytes = []
             for i in range(iovcnt):
                 ptr = load32(iov + 8 * i)
@@ -855,7 +870,8 @@ class WASIFunction:
                     out_bytes.append(state.stdin_buffer[0])
                     store8(ptr + j, state.stdin_buffer.pop(0))
                     num += 1
-                if len(state.stdin_buffer) == 0: break
+                if len(state.stdin_buffer) == 0:
+                    break
             logging.warning(
                 f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
             # set pnum to num
@@ -863,7 +879,7 @@ class WASIFunction:
             store32(pnum, num)
             # return 0
             # manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))            
+            state.symbolic_stack.append(BitVecVal(0, 32))
         elif self.name == 'fd_write':
             # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
             # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js

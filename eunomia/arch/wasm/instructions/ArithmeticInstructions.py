@@ -1,15 +1,16 @@
 # emulate the arithmetic related instructions
 
-from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser
-from .. exceptions import *
-from eunomia.arch.wasm.utils import Enable_Lasers, Configuration
-from eunomia.arch.wasm.modules.OverflowLaser import OverflowLaser
-from eunomia.arch.wasm.dawrf_parser import get_func_index_from_state, get_source_location_string
-from eunomia.arch.wasm.utils import bcolors
-
-from z3 import *
 import logging
-from eunomia.arch.wasm.graph import Graph
+
+from eunomia.arch.wasm.dawrf_parser import (get_func_index_from_state,
+                                            get_source_location_string)
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser
+from eunomia.arch.wasm.modules.OverflowLaser import OverflowLaser
+from eunomia.arch.wasm.utils import Configuration, Enable_Lasers, bcolors
+from z3 import (RNE, RTN, RTP, RTZ, BitVec, BitVecVal, Float32, Float64, SRem,
+                UDiv, URem, fpAbs, fpAdd, fpDiv, fpMax, fpMin, fpMul, fpNeg,
+                fpRoundToIntegral, fpSqrt, fpSub, is_bool, simplify)
 
 helper_map = {
     'i32': 32,

@@ -5,8 +5,8 @@ import struct
 from codecs import decode
 from enum import Enum
 
-from eunomia.arch.wasm.exceptions import *
-from z3 import *
+from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
+from z3 import FP, BitVec, Float32, Float64
 
 
 class Configuration:

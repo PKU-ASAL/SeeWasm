@@ -4,14 +4,24 @@
 import copy
 import logging
 import re
+import sys
 
-from eunomia.arch.wasm.cfg import WasmCFG
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
-from eunomia.arch.wasm.instructions import *
+from eunomia.arch.wasm.cfg import WasmCFG
+from eunomia.arch.wasm.exceptions import UnsupportGlobalTypeError
+from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
+                                            BitwiseInstructions,
+                                            ConstantInstructions,
+                                            ControlInstructions,
+                                            ConversionInstructions,
+                                            LogicalInstructions,
+                                            MemoryInstructions,
+                                            ParametricInstructions,
+                                            VariableInstructions)
 from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
 from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.engine.emulator import EmulatorEngine
-from z3 import *
+from z3 import BitVec, BitVecVal, BoolRef
 
 sys.setrecursionlimit(4096)
 
@@ -164,7 +174,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 #            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
 
         for c in state.constraints:
-            if type(c) != BoolRef:
+            if not isinstance(c, BoolRef):
                 state.constraints.remove(c)
 
         instr_obj = instruction_map[instr.group](

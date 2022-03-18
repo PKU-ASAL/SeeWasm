@@ -1,10 +1,9 @@
 # emulate the logical related instructions
 
-from eunomia.arch.wasm.exceptions import *
-from eunomia.arch.wasm.utils import Enable_Lasers, Configuration
-
-from z3 import *
-from collections import defaultdict
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from eunomia.arch.wasm.utils import Configuration, Enable_Lasers
+from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
+                fpLT, fpNEQ, is_bool, is_bv, is_bv_value, simplify)
 
 helper_map = {
     'i32': 32,

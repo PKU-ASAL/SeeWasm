@@ -1,7 +1,7 @@
 # emulate the variable related instructions
 
-from .. exceptions import *
-from z3 import *
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError, UnsupportGlobalTypeError
+from z3 import BitVecVal, is_bv, is_bv_value
 
 
 class VariableInstructions:

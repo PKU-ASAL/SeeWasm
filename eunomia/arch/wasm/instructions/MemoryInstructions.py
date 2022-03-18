@@ -2,11 +2,12 @@
 
 import re
 
-from eunomia.arch.wasm.exceptions import *
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.utils import getConcreteBitVec
-from z3 import *
+from z3 import (BitVecVal, Extract, Float32, Float64, SignExt, ZeroExt,
+                fpBVToFP, fpToIEEEBV, is_bv_value, simplify)
 
 memory_count = 2
 memory_step = 2
