@@ -1,17 +1,16 @@
 from collections import namedtuple
 
-from wasm.compat import byte2int
-from wasm.formatter import format_instruction
-# from wasm.decode import decode_module
-from wasm.modtypes import CodeSection
-from wasm.opcodes import OPCODE_MAP
-
 from eunomia.arch.wasm.decode import decode_module
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.wasm import Wasm
 from eunomia.core.function import Function
 from eunomia.core.utils import bytecode_to_bytes
 from eunomia.engine.disassembler import Disassembler
+
+from wasm.compat import byte2int
+from wasm.formatter import format_instruction
+from wasm.modtypes import CodeSection
+from wasm.opcodes import OPCODE_MAP
 
 inst_namedtuple = namedtuple('Instruction', 'op imm len')
 

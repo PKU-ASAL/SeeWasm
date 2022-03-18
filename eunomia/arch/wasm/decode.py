@@ -25,12 +25,14 @@
 
 
 """Provides functions for decoding WASM modules and bytecode."""
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
 
 from wasm.compat import byte2int
-from wasm.modtypes import ModuleHeader, Section, SEC_UNK, SEC_NAME, NameSubSection
+from wasm.modtypes import (SEC_NAME, SEC_UNK, ModuleHeader, NameSubSection,
+                           Section)
 from wasm.opcodes import OPCODE_MAP
 
 Instruction = namedtuple('Instruction', 'op imm len')

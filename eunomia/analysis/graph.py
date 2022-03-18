@@ -1,9 +1,7 @@
+from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
+                               EDGE_CONDITIONAL_TRUE, EDGE_FALLTHROUGH,
+                               EDGE_UNCONDITIONAL)
 from graphviz import Digraph
-
-from eunomia.core.edge \
-    import (EDGE_UNCONDITIONAL,
-            EDGE_CONDITIONAL_TRUE, EDGE_CONDITIONAL_FALSE,
-            EDGE_FALLTHROUGH, EDGE_CALL)
 
 
 def insert_edges_to_graph(graph, edges, call=False):

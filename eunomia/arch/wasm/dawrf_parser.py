@@ -1,7 +1,5 @@
 import logging
 import os
-import re
-from math import exp
 
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser

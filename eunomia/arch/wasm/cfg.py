@@ -3,22 +3,19 @@
 
 from logging import getLogger
 
-from graphviz import Digraph
-
 from eunomia.analysis.cfg import CFG
 from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.disassembler import WasmDisassembler
-from eunomia.arch.wasm.format import (format_bb_name,
-                                      format_func_name)
+from eunomia.arch.wasm.format import format_bb_name, format_func_name
 from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
-from eunomia.core.edge import (Edge,
-                               EDGE_UNCONDITIONAL,
-                               EDGE_CONDITIONAL_TRUE, EDGE_CONDITIONAL_FALSE,
-                               EDGE_FALLTHROUGH, EDGE_CALL)
+from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
+                               EDGE_CONDITIONAL_TRUE, EDGE_FALLTHROUGH,
+                               EDGE_UNCONDITIONAL, Edge)
 from eunomia.core.function import Function
 from eunomia.core.utils import bytecode_to_bytes
+from graphviz import Digraph
 
 logging = getLogger(__name__)
 
@@ -476,8 +473,8 @@ class WasmCFG(CFG):
         """Visualize the instructions repartitions per functions
         """
 
-        import numpy as np
         import matplotlib.pyplot as plt
+        import numpy as np
 
         final = list()
         datas = list()
