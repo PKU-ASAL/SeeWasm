@@ -1,8 +1,24 @@
 class Function(object):
+    """
+    The function object of the given Wasm module
+    """
 
     def __init__(self, start_offset, start_instr=None,
                  name='func_default_name', prefered_name=None):
-        # parameters
+        """
+        The properties of the functions of the given Wasm module
+
+        Properties:
+            start_offset: the start offset of the first instruction
+            start_instr: the first instruction of the function
+            name: the function's name, represented in '$funcX' or readable name (TODO will make them all to readable name in the future)
+            prefered_name: the signature of the function, including type of arguments and return value
+            size: the size of the function, the sum of all its composed basic blocks
+            end_offset: the end_offset of its last basic block
+            end_instr: the last instruction of the function
+            basicblocks: the list of all composed basic blocks
+            instructions: the list of all composed instructions
+        """
         self.start_offset = start_offset
         self.start_instr = start_instr
         self.name = name

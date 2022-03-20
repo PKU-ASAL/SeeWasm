@@ -5,9 +5,9 @@ import math
 from ast import If
 
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
-                                            get_func_index_from_state,
-                                            get_source_location,
-                                            get_source_location_string)
+                                           get_func_index_from_state,
+                                           get_source_location,
+                                           get_source_location_string)
 from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.instruction import WasmInstruction

@@ -80,7 +80,7 @@ def main():
     analyze = parser.add_mutually_exclusive_group(required=False)
     analyze.add_argument(
         '-s', '--symbolic', action='store_true',
-        help='perform the symbolic execution for EOS contract')
+        help='perform the symbolic execution')
 
     graph = parser.add_argument_group('Graph options')
     graph.add_argument('--simplify', action='store_true',
@@ -119,7 +119,7 @@ def main():
         python_cmd(cmd)
 
         # after parse, load the json
-        with open(args.dsl+".json") as fp:
+        with open(args.dsl + ".json") as fp:
             user_dsl = json.load(fp)
 
     if args.stdin_file:

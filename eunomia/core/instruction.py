@@ -1,19 +1,36 @@
 class Instruction(object):
-    """Instruction """
+    """
+    The instruction object
+    """
 
     def __init__(self, opcode, name,
                  operand_size, pops, pushes, fee,
                  description, operand=None,
                  operand_interpretation=None, offset=0, xref=None):
+        """
+        The properties of instruction object
+
+        Properties:
+            opcode: the int value of the instruction
+            offset: the offset of the instruction on function level
+            name: the readable name of the instruction
+            description: a brief description of the instruction
+            operand_size: the size of its corresponding operand
+            operand: Immediate operand if any specific interpretation of operand value, in bytes. The operand value for JUMP is xref
+            operand_interpretation: the instruction and its operand in a readable way, same as the string in the wat file
+            pops: how many elements will be popped from the stack
+            pushes: how many elements will be pushed into the stack
+            fee: not clear
+            xref: the jump target of the current instruction
+            ssa: not clear
+        """
 
         self.opcode = opcode
         self.offset = offset
         self.name = name
         self.description = description
         self.operand_size = operand_size
-        self.operand = operand  # Immediate operand if any
-        # specific interpretation of operand value
-        # ex: operand value for JUMP = xref
+        self.operand = operand
         self.operand_interpretation = operand_interpretation
         self.pops = pops
         self.pushes = pushes
