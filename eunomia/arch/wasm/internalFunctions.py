@@ -126,9 +126,9 @@ class CPredefinedFunction:
             parsed_pattern = parse_printf_formatting(pattern)
 
             i = 0
+            print('pattern: ', parsed_pattern)
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
-
                 middle_p = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, data_section, param_p,
                     C_TYPE_TO_LENGTH[cur_pattern[-1]])
@@ -203,7 +203,6 @@ class CPredefinedFunction:
                 the_one_mem, the_other_mem)
         elif self.name == 'strcpy':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
-
             # extract the string according to the src pointer
             src_string = C_extract_string_by_mem_pointer(
                 src, data_section, state.symbolic_memory)

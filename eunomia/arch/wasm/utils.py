@@ -120,7 +120,7 @@ def extract_mapping(file_path):
     mapper = {}
     # match both import function and function declaration
     matches = re.findall(
-        r'(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
+        '(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
     for i, matched_groups in enumerate(matches):
         func_name = matched_groups[-1]
         # if import function, using import name instead of wat generated name
@@ -252,7 +252,7 @@ def calc_memory_align(parsed_pattern):
 
 
 def parse_printf_formatting(lines):
-    cfmt = r'''\
+    cfmt = '''\
 (                                  # start of capture group 1
 %                                  # literal "%"
 (?:                                # first option

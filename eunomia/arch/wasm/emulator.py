@@ -84,7 +84,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # extract param and return str
         func_index = None
         if func_name[0] == '$':
-            func_index = int(re.match(r'\$func(.*)', func_name).group(1))
+            func_index = int(re.match('\$func(.*)', func_name).group(1))
         else:
             for index, wat_func_name in self.func_index2func_name.items():
                 if wat_func_name == func_name:

@@ -53,7 +53,7 @@ for case in candidates:
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('/usr/bin/python3')
+python_cmd = sh.Command('/usr/bin/python3.7')
 for i, cmd in enumerate(cmd_lists):
     try:
         print('Case: ', candidates[i])
