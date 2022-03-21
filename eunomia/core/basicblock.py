@@ -12,7 +12,7 @@ class BasicBlock(object):
             start_offset: the offset of the first instruction on function level
             start_instr: the first instruction of the current basic block
             name: the name of the basic block, whose naming style is "block_[func_index]_[start_offset]"
-            end_offset: the offset of the last instruction on function level, plus the size of the instruction
+            end_offset: the offset_ned of the last instruction
             end_instr: the last instruction
 
         Below are properties may be deprecated in the future
@@ -23,8 +23,8 @@ class BasicBlock(object):
         self.start_offset = start_offset
         self.start_instr = start_instr
         self.name = name
-        self.end_offset = start_offset
-        self.end_instr = start_instr
+        self.end_offset = None
+        self.end_instr = None
         self.instructions = list()
 
         # may be deprecated in the future

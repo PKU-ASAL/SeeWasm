@@ -29,9 +29,11 @@ DESIGN_EXPORT = {'fillcolor': 'grey',
 
 
 def enum_func(module_bytecode):
-    ''' return a list of Function
-        see:: eunomia.core.function
-    '''
+    """
+    return a list of Function
+    see:: eunomia.core.function
+    """
+
     functions = list()
     analyzer = WasmModuleAnalyzer(module_bytecode)
 
@@ -47,6 +49,10 @@ def enum_func(module_bytecode):
         cur_function = Function(0, instructions[0], name=name,
                                 prefered_name=prefered_name)
         cur_function.instructions = instructions
+
+        cur_function.end_offset = instructions[-1].offset_end
+        cur_function.end_instr = instructions[-1]
+        cur_function.size = sum([i.size for i in instructions])
 
         functions.append(cur_function)
     return functions
