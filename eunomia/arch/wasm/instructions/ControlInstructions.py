@@ -260,6 +260,7 @@ class ControlInstructions:
             import_funcs_num = len(analyzer.imports_func)
             # traverse the elem section
             possible_callee = analyzer.elements[0]['elems']
+            offset = analyzer.elements[0]['offset']
             """
             possible_callee = []
             for func_offset in analyzer.elements[0]['elems']:
@@ -269,7 +270,6 @@ class ControlInstructions:
             """
             states = []
             solver = SMTSolver(Configuration.get_solver())
-            print(func_type, op)
             for i, possible_func_offset in enumerate(possible_callee):
                 i = i + 1
                 new_state = copy.deepcopy(state)
@@ -277,7 +277,6 @@ class ControlInstructions:
                 solver.add(simplify(op == i))
                 if unsat == solver.check():
                     continue
-                new_state.constraints.append(simplify(op == i))
                 after_calls = self.deal_with_call(
                     new_state, possible_func_offset, has_ret, func_prototypes,
                     func_index2func_name, data_section, analyzer)

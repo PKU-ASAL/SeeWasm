@@ -154,7 +154,7 @@ class Graph:
                         if internal_function_name.startswith('$'):
                             try:
                                 readable_name = cls.wasmVM.func_index2func_name[int(
-                                    re.search(r'(\d+)', internal_function_name).group())]
+                                    re.search('(\d+)', internal_function_name).group())]
                             except AttributeError:
                                 # if the internal_function_name is the readable name already
                                 readable_name = internal_function_name
