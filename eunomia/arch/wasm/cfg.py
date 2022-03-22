@@ -314,6 +314,7 @@ def enum_blocks_edges(function_id, instructions):
 
 class WasmCFG(CFG):
     """
+    Return a CFG of a given Wasm module's bytecode
     """
 
     def __init__(self, module_bytecode):
@@ -326,6 +327,9 @@ class WasmCFG(CFG):
         self.run_static_analysis()
 
     def run_static_analysis(self):
+        """
+        Initialize three propoerties for this class, i.e., function, basic block and edge
+        """
         self.functions = enum_func(self.module_bytecode)
 
         for idx, func in enumerate(self.functions):

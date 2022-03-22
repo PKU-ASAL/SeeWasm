@@ -43,12 +43,28 @@ def default_cnt():
 
 
 class Graph:
-    _func_to_bbs = {}
-    _bb_to_instructions = {}
-    _bb_to_dsl = defaultdict(list)
+    """
+    A Graph class, include several vital properties.
+    Also, it is used to traverse the CFG according to the algorithm.
+
+    Properties:
+        _func_to_bbs: a mapping, from function's name to its included basic blocks (wrapped in a list);
+        _bb_to_instructions: a mappming, from basic block's name to its included instruction objects (wrapped in a list);
+        _bb_to_dsl: a mapping, from basic block's name to its corresponding DSL constraints (wrapped in a list);
+        _aes_func: a mapping, not clear;
+        _bbs_graph: a mapping, from basic block's name to a mapping, from edge type to its corresponding pointed to basic block's name;
+        _rev_bbs_graph: same as above, but its reversed;
+        _workers: reserved, for multi-processing;
+        manual_guide: indicate if the path finding is guided by user manually;
+        _user_dsl: not clear;
+    """
+    _func_to_bbs = defaultdict(list)
+    _bb_to_instructions = defaultdict(list)
     _aes_func = defaultdict(set)
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
+
+    _bb_to_dsl = defaultdict(list)
     _workers = 2
     _wasmVM = None
     manual_guide = False
@@ -95,77 +111,100 @@ class Graph:
         return cls._aes_func
 
     @classmethod
-    def extract_basic_blocks(cls):
+    def initialize(cls):
+        """
+        initialize these class properties
+        """
+        def init_func_to_bbs(cfg):
+            """
+            initialize the func_to_bbs structure
+            """
+            for func in cfg.functions:
+                func_name, func_bbs = func.name, func.basicblocks
+                cls.func_to_bbs[func_name] = [bb.name for bb in func_bbs]
+
+        def init_bbs_graph(cfg):
+            """
+            initialize the bbs_graph and rev_bbs_graph structure
+            """
+            edges = cfg.edges
+            # sort the edges, according to the edge.from and edge.to,
+            # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
+            # TODO quite a huge overhead, try another way
+            edges = sorted(edges, key=lambda x: (
+                x.node_from, int(x.node_to[x.node_to.rfind('_') + 1:], 16)))
+
+            type_ids = defaultdict(lambda: defaultdict(int))
+            type_rev_ids = defaultdict(lambda: defaultdict(int))
+            for edge in edges:
+                node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
+                # we append a number after the edge type, because the br_table may have multiple conditional_true branches. See eunomia/arch/wasm/cfg.py
+                if not edge_type[-1].isdigit():
+                    # non-br_table case
+                    numbered_edge_type = edge_type + '_' + \
+                        str(type_ids[node_from][edge_type])
+                    numbered_rev_edge_type = edge_type + '_' + \
+                        str(type_rev_ids[node_to][edge_type])
+                else:
+                    # br_table case
+                    numbered_edge_type = edge_type
+                    numbered_rev_edge_type = edge_type
+                cls.bbs_graph[node_from][numbered_edge_type] = node_to
+                cls.rev_bbs_graph[node_to][numbered_rev_edge_type] = node_from
+                type_ids[node_from][edge_type] += 1
+                type_rev_ids[node_to][edge_type] += 1
+
+            # append single nodes into the bbs_graph and rev_bbs_graph
+            for bb in cfg.basicblocks:
+                bb_name = bb.name
+                if bb_name not in cls.bbs_graph:
+                    cls.bbs_graph[bb_name] = defaultdict(str)
+                if bb_name not in cls.rev_bbs_graph:
+                    cls.rev_bbs_graph[bb_name] = defaultdict(str)
+
+        def init_bb_to_instr(cfg):
+            """
+            initialize the bb_to_instructions
+            """
+            bbs = cfg.basicblocks
+            for bb in bbs:
+                cls.bb_to_instructions[bb.name] = bb.instructions
+
+        def init_aes_func(cfg):
+            """
+            initialize the aes_func
+            """
+            bbs = cfg.basicblocks
+            for bb in bbs:
+                for instr in bb.instructions:
+                    if instr.name == 'call':
+                        instr_operand = instr.operand_interpretation.split(' ')[
+                            1]
+                        try:
+                            func_offset = int(instr_operand)
+                        except ValueError:
+                            func_offset = int(instr_operand, 16)
+                        target_func = cls.wasmVM.ana.func_prototypes[func_offset]
+                        func_name, _, _, _ = target_func
+                        if cls.wasmVM.func_index2func_name is not None:
+                            if func_name.startswith('$'):
+                                try:
+                                    readable_name = cls.wasmVM.func_index2func_name[int(
+                                        re.search('(\d+)', func_name).group())]
+                                except AttributeError:
+                                    # the func_name is the readable name already
+                                    readable_name = func_name
+                            else:
+                                # meaning imported function
+                                readable_name = func_name
+                        if len(readable_name.split('$')) == 2:
+                            cls.aes_func[bb.name].add(readable_name)
+
         cfg = cls.wasmVM.cfg
-        funcs = cfg.functions
-        cls.func_to_bbs = dict()
-        for func in funcs:
-            func_name, func_bbs = func.name, func.basicblocks
-            # get the name of bb in func_bbs
-            cls.func_to_bbs[func_name] = [bb.name for bb in func_bbs]
-
-        # adjacent graph for basic blocks, like:
-        # {'block_3_0': ['block_3_6', 'block_3_9']}
-        edges = cfg.edges
-        # sort the edges, according to the edge.from and edge.to
-        # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
-        # TODO quite a huge overhead, try another way
-        edges = sorted(edges, key=lambda x: (
-            x.node_from, int(x.node_to[x.node_to.rfind('_') + 1:], 16)))
-        type_ids = defaultdict(lambda: defaultdict(int))
-        type_rev_ids = defaultdict(lambda: defaultdict(int))
-        for edge in edges:
-            # there are four types of edges:
-            # ['unconditional', 'fallthrough', 'conditional_true', 'conditional_false']
-            node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
-            # we append a number after the edge type as the br_table may have multiple conditional_true branches
-            if not edge_type[-1].isdigit():
-                numbered_edge_type = edge_type + '_' + \
-                    str(type_ids[node_from][edge_type])
-            else:
-                numbered_edge_type = edge_type
-            cls.bbs_graph[node_from][numbered_edge_type] = node_to
-            numbered_rev_edge_type = edge_type + '_' + \
-                str(type_rev_ids[node_to][edge_type])
-            cls.rev_bbs_graph[node_to][numbered_rev_edge_type] = node_from
-            type_ids[node_from][edge_type] += 1
-            type_rev_ids[node_to][edge_type] += 1
-
-        # goal 1: append those single node into the bbs_graph
-        # goal 2: initialize bb_to_instructions
-        bbs = cfg.basicblocks
-        for bb in bbs:
-            # goal 1
-            bb_name = bb.name
-            if bb_name not in cls.bbs_graph:
-                cls.bbs_graph[bb_name] = defaultdict(str)
-            # goal 2
-            cls.bb_to_instructions[bb_name] = bb.instructions
-            for inst in bb.instructions:
-                if inst.name == 'call':
-                    instr_operand = inst.operand_interpretation.split(' ')[1]
-                    try:
-                        f_offset = int(instr_operand)
-                    except ValueError:
-                        f_offset = int(instr_operand, 16)
-                    target_func = cls.wasmVM.ana.func_prototypes[f_offset]
-                    internal_function_name, param_str, return_str, _ = target_func
-                    if cls.wasmVM.func_index2func_name is not None:
-                        if internal_function_name.startswith('$'):
-                            try:
-                                readable_name = cls.wasmVM.func_index2func_name[int(
-                                    re.search('(\d+)', internal_function_name).group())]
-                            except AttributeError:
-                                # if the internal_function_name is the readable name already
-                                readable_name = internal_function_name
-                        else:
-                            # meaning imported function
-                            readable_name = internal_function_name
-                    if len(readable_name.split('$')) == 2:
-                        cls.aes_func[bb_name].add(readable_name)
-                        # print(bb_name, readable_name)
-
-    # entry to analyze a file
+        init_func_to_bbs(cfg)
+        init_bbs_graph(cfg)
+        init_bb_to_instr(cfg)
+        init_aes_func(cfg)
 
     @classmethod
     def parse_dsl(cls, user_dsl):
