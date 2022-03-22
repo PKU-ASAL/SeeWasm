@@ -134,6 +134,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         return state, has_ret
 
     def emulate_basic_block(self, states, has_ret, instructions):
+        """
+        Symbolically execute the instructions from each of state in states
+
+        Args:
+            states (list(VMstate)): From which the symbolic execution begin;
+            has_ret (list(bool)): Whether the functions in calling stack returns;
+            instructions (list(Instruction)): A list of instruction objects
+        """
         halt = False
         for instruction in instructions:
             next_states = []
@@ -146,6 +154,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 else:
                     next_states.append(copy.deepcopy(state))
             states = next_states
+        # TODO I think the halt can be removed.
+        # Because I found all of them are False through our program @zzhzz
         return halt, states
 
     def emulate_one_instruction(

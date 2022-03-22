@@ -5,7 +5,8 @@ from queue import PriorityQueue
 
 from eunomia.arch.wasm.exceptions import DSLParseError
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import Configuration, ask_user_input, bcolors
+from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
+                                     branch_choose_info, state_choose_info)
 from z3 import sat, unsat
 
 
@@ -356,9 +357,14 @@ class Graph:
                         break
 
     def traverse(self):
+        """
+        This object can be initialized by a list of functions, each of them
+        will be regarded as an entry function to perform symbolic execution
+        """
         for entry_func in self.entries:
             self.final_states[entry_func] = self.traverse_one(entry_func)
-            # final states of all feasible paths for the given program
+
+            # final states of all feasible paths for the given function
             print(
                 f'There are total {len(self.final_states[entry_func])} state(s):')
             for i, final_state in enumerate(self.final_states[entry_func]):
@@ -374,7 +380,18 @@ class Graph:
                         end='\n', flush=True)
 
     @classmethod
-    def traverse_one(cls, func, state=None, has_ret=None):
+    def traverse_one(cls, func, state=None, has_ret=list()):
+        """
+        Symbolically executing the given function
+
+        Args:
+            func (str): The to be analyzed function's name
+            state (VMstate, optional): From which the execution will begin. Defaults to None.
+            has_ret (list(bool), optional): Indicate if the function in the calling stack has return. Defaults to None.
+
+        Returns:
+            list(VMstate): A list of states
+        """
         func = cls.wasmVM.get_wasm_func_name(func)
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
@@ -393,69 +410,31 @@ class Graph:
             final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
         elif Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
+        else:
+            raise Exception("There is no traversing algorithm you required.")
         # restore the caller func
         state.current_func_name = caller_func_name
         return final_states
 
     @classmethod
     def algo_dfs(cls, entry, state, has_ret, blks=None):
+        """
+        Traverse the CFG according to DFS order
+        """
         vis = defaultdict(int)
         circles = set()
         cls.calc_circle(entry, vis, circles)
+        # TODO recheck if this re-initialize of vis is correct, @zzhzz
         vis = defaultdict(int)
         final_states = cls.visit(
             [state], has_ret, entry, vis, circles, cls.manual_guide)
         return final_states
 
     @classmethod
-    def extract_edges(cls, entry):
-        edges = set()
-        que = deque([entry])
-        while que:
-            u = que.popleft()
-            for br in cls.bbs_graph[u]:
-                v = cls.bbs_graph[u][br]
-                if (u, v) not in edges:
-                    edges.add((u, v))
-                    que.append(v)
-        nds = set()
-        for edge in edges:
-            print(edge[0], edge[1])
-            nds.add(edge[0])
-            nds.add(edge[1])
-        for nd in nds:
-            print(nd + ':', end='')
-            for inst in cls.bb_to_instructions[nd]:
-                print(inst, end=' ')
-            print()
-
-    @classmethod
-    def algo_interval(cls, entry, state, has_ret, blks):
-        intervals = cls.intervals_gen(
-            entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
-        heads = {v: head for head in intervals for v in intervals[head]}
-        # cls.extract_edges(entry)
-        heads['return'] = 'return'
-        final_states = cls.visit_interval(
-            [state], has_ret, entry, heads, cls.manual_guide, "return")
-        return final_states["return"]
-
-    @classmethod
-    def sat_cut(cls, constraints):
-        solver = SMTSolver(Configuration.get_solver())
-        solver.add(*constraints)
-        return unsat == solver.check()
-
-    @classmethod
-    def can_cut(cls, type, state, lvar):
-        if isinstance(state, dict):
-            state = None if type not in state else state[type] if type.startswith(
-                'conditional_') else state
-        return cls.sat_cut(state.constraints)
-
-    @classmethod
     def calc_circle(cls, blk, vis, circles):
-        '''determine if there is a circle in CFG, add the circle's entry block into the `circles`'''
+        """
+        determine if there is a circle in CFG, add the circle's entry block into the `circles`
+        """
         if vis[blk] == 1 and len(
                 cls.bbs_graph[blk]) >= 2:  # br_if and has visited
             circles.add(blk)
@@ -469,97 +448,89 @@ class Graph:
     def visit(
             cls, states, has_ret, blk, vis, circles, guided, prev=None,
             branches=None):
-        vis[prev] += 1
-        instructions = cls.bb_to_instructions[blk]
-        _, emul_states = cls.wasmVM.emulate_basic_block(
-            states, has_ret, instructions)
-        final_states = []
-        if guided:
-            # show how many possible states here, and ask the user to choose one
-            print(
-                f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-            if len(emul_states) == 1:
-                print(
-                    f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                state_index = ask_user_input(
-                    emul_states, isbr=False, onlyone=True)
-            else:
-                print(
-                    f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-                print(
-                    f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-                state_index = ask_user_input(
-                    emul_states, isbr=False)  # 0 for state, is a flag
-            state_item = emul_states[state_index]
-            emul_states = [state_item]
+        """
+        visit the CFG according to DFS order
+        """
+        if prev is not None:
+            vis[prev] += 1
 
-        specify = branches is not None
-        adj_bb = cls.bbs_graph[blk]
+        # filter out a mapping, branch type to its targeting block
+        specify_branch = (branches is not None)
+        succ_branches_to_bb = cls.bbs_graph[blk]
         if branches:
-            branches = [br for br in adj_bb if br.startswith(branches[0])]
+            # TODO, updated the `branches` behavior, please recheck it @zzhzz
+            # original:
+            # branches = [br for br in succ_branches_to_bb
+            #             if br.startswith(branches[0])]
+            # updated:
+            branches = {br: target_bb for br,
+                        target_bb in succ_branches_to_bb.items()
+                        if br.startswith(branches[0])}
         if not branches:
             branches = cls.bbs_graph[blk]
-        for state_item in emul_states:
-            avail_br = []
-            for type in branches:
-                if not cls.can_cut(type, state_item):
-                    avail_br.append(type)
-            if guided:
-                print(
-                    f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
-                if len(avail_br) == 1:
-                    print(
-                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    avail_br = [
-                        ask_user_input(
-                            emul_states, isbr=True, onlyone=True,
-                            branches=branches, state_item=state_item)]
-                else:
-                    print(
-                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-                    print(
-                        f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    avail_br = [
-                        ask_user_input(
-                            emul_states, isbr=True, branches=branches,
-                            state_item=state_item)]
 
-            for type in avail_br:
-                nxt_blk = cls.bbs_graph[blk][type]
-                state = state_item[type] if isinstance(
-                    state_item, dict) else state_item
-                if not guided:
+        # emulate the given block, and obtain the final states
+        _, emul_states = cls.wasmVM.emulate_basic_block(
+            states, has_ret, cls.bb_to_instructions[blk])
+        if guided:
+            emul_states = state_choose_info(emul_states)
+
+        final_states = []
+        for emul_state_item in emul_states:
+            avail_br = []
+            # filter out the satisfied branches
+            for edge_type in branches.keys():
+                if not cls.can_cut(edge_type, emul_state_item):
+                    avail_br.append(edge_type)
+            if guided:
+                avail_br = branch_choose_info(
+                    avail_br, branches, emul_state_item, emul_states)
+
+            for edge_type in avail_br:
+                nxt_blk = branches[edge_type]
+                state = emul_state_item[edge_type] if isinstance(
+                    emul_state_item, dict) else emul_state_item
+                if guided:
+                    final_states.extend(
+                        cls.visit(
+                            [copy.deepcopy(state)],
+                            has_ret, nxt_blk, vis, circles, guided, blk))
+                else:
                     if vis[nxt_blk] > 0:
                         final_states.append(state)
                         continue
                     if nxt_blk in circles:
                         enter_states = [copy.deepcopy(state)]
-                        for i in range(cls.loop_maximum_rounds):
-                            exit_states = cls.visit(
+                        for _ in range(cls.loop_maximum_rounds):
+                            final_states.extend(cls.visit(
                                 enter_states, has_ret, nxt_blk, vis, circles,
-                                guided, blk, ['conditional_true'])
-                            print(exit_states[0])
-                            final_states.extend(exit_states)
+                                guided, blk, ['conditional_true']))
                             enter_states = cls.visit(
                                 enter_states, has_ret, nxt_blk, vis, circles,
                                 guided, blk, ['conditional_false'])
-                        exit_states = cls.visit(
+                        final_states.extend(cls.visit(
                             enter_states, has_ret, nxt_blk, vis, circles,
-                            guided, blk, ['conditional_true'])
-                        final_states.extend(exit_states)
+                            guided, blk, ['conditional_true']))
                     else:
-                        exit_states = cls.visit(
-                            [copy.deepcopy(state)],
-                            has_ret, nxt_blk, vis, circles, guided, blk)
-                        final_states.extend(exit_states)
-                else:
-                    final_states.extend(
-                        cls.visit(
+                        final_states.extend(cls.visit(
                             [copy.deepcopy(state)],
                             has_ret, nxt_blk, vis, circles, guided, blk))
         vis[prev] -= 1
         # TODO: Fix the Bug : may return a dict state, which is illegal.
-        return final_states if specify else emul_states
+        # TODO Is this return statement problematic? @zzhzz
+        return final_states if specify_branch else emul_states
+
+    @classmethod
+    def algo_interval(cls, entry, state, has_ret, blks):
+        intervals = cls.intervals_gen(
+            entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        heads = {v: head for head in intervals for v in intervals[head]}
+        # TODO do we need to keep function `extract_edges`? @zzhzz
+        # cls.extract_edges(entry)
+        heads['return'] = 'return'
+        final_states = cls.visit_interval(
+            [state], has_ret, entry, heads, cls.manual_guide, "return")
+        return final_states["return"]
 
     @classmethod
     def intervals_gen(cls, blk, blk_lis, revg, g):
@@ -589,24 +560,6 @@ class Graph:
             que.extend(list(new_header))
             intervals[current_block] = new_interval
         return intervals
-
-    @classmethod
-    def aes_run_local(cls, lvar, blk):
-        new_lvar = copy.deepcopy(lvar)
-        new_lvar['cons'] = True
-        for name in cls.aes_func[blk]:
-            _name, id = name.split('$')
-            if id == '1':
-                print('Hit')
-                new_lvar['checker_halt'] = True
-                new_lvar['prior'] = -1
-            if id == '2':
-                new_lvar['prior'] = abs(49 - new_lvar['cnt'])
-            if id == '0':
-                new_lvar['cnt'] += 1
-                # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
-                # lvar['has_one'] = True
-        return new_lvar
 
     @classmethod
     def visit_interval(
@@ -672,8 +625,8 @@ class Graph:
                         f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
                     state_index = ask_user_input(
                         emul_states, isbr=False)  # 0 for state, is a flag
-                state_item = emul_states[state_index]
-                avail_br = {br_idx: [state_item]}
+                emul_state_item = emul_states[state_index]
+                avail_br = {br_idx: [emul_state_item]}
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
@@ -705,3 +658,56 @@ class Graph:
             if f:
                 break
         return final_states
+
+    @classmethod
+    def sat_cut(cls, constraints):
+        solver = SMTSolver(Configuration.get_solver())
+        solver.add(*constraints)
+        return unsat == solver.check()
+
+    @classmethod
+    def can_cut(cls, edge_type, state, lvar):
+        if isinstance(state, dict):
+            state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
+                'conditional_') else state
+        return cls.sat_cut(state.constraints)
+
+    @classmethod
+    def aes_run_local(cls, lvar, blk):
+        new_lvar = copy.deepcopy(lvar)
+        new_lvar['cons'] = True
+        for name in cls.aes_func[blk]:
+            _name, id = name.split('$')
+            if id == '1':
+                print('Hit')
+                new_lvar['checker_halt'] = True
+                new_lvar['prior'] = -1
+            if id == '2':
+                new_lvar['prior'] = abs(49 - new_lvar['cnt'])
+            if id == '0':
+                new_lvar['cnt'] += 1
+                # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
+                # lvar['has_one'] = True
+        return new_lvar
+
+    @classmethod
+    def extract_edges(cls, entry):
+        edges = set()
+        que = deque([entry])
+        while que:
+            u = que.popleft()
+            for br in cls.bbs_graph[u]:
+                v = cls.bbs_graph[u][br]
+                if (u, v) not in edges:
+                    edges.add((u, v))
+                    que.append(v)
+        nds = set()
+        for edge in edges:
+            print(edge[0], edge[1])
+            nds.add(edge[0])
+            nds.add(edge[1])
+        for nd in nds:
+            print(nd + ':', end='')
+            for inst in cls.bb_to_instructions[nd]:
+                print(inst, end=' ')
+            print()
