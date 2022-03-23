@@ -461,11 +461,6 @@ class Graph:
         specify_branch = (branches is not None)
         succ_branches_to_bb = cls.bbs_graph[blk]
         if branches:
-            # TODO, updated the `branches` behavior, please recheck it @zzhzz
-            # original:
-            # branches = [br for br in succ_branches_to_bb
-            #             if br.startswith(branches[0])]
-            # updated:
             branches = {br: target_bb for br,
                         target_bb in succ_branches_to_bb.items()
                         if br.startswith(branches[0])}
