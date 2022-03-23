@@ -178,7 +178,7 @@ class Graph:
             bbs = cfg.basicblocks
             for bb in bbs:
                 for instr in bb.instructions:
-                    if instr.name == 'call':
+                    if instr.name == 'call': # aes rules will be regarded as instrumented function calls
                         instr_operand = instr.operand_interpretation.split(' ')[
                             1]
                         try:
@@ -198,7 +198,7 @@ class Graph:
                             else:
                                 # meaning imported function
                                 readable_name = func_name
-                        if len(readable_name.split('$')) == 2:
+                        if len(readable_name.split('$')) == 2: # aes function's name is generated in "name$index" format.
                             cls.aes_func[bb.name].add(readable_name)
 
         cfg = cls.wasmVM.cfg
