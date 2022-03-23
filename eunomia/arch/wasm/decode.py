@@ -25,12 +25,14 @@
 
 
 """Provides functions for decoding WASM modules and bytecode."""
-from __future__ import print_function, absolute_import, division, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
 
 from wasm.compat import byte2int
-from wasm.modtypes import ModuleHeader, Section, SEC_UNK, SEC_NAME, NameSubSection
+from wasm.modtypes import (SEC_NAME, SEC_UNK, ModuleHeader, NameSubSection,
+                           Section)
 from wasm.opcodes import OPCODE_MAP
 
 Instruction = namedtuple('Instruction', 'op imm len')
@@ -71,15 +73,11 @@ def decode_module(module, decode_name_subsections=False):
         # bypass the error caused by -g1 to -g3 compiled C code
         try:
             sec_len, sec_data, _ = sec.from_raw(None, module_wnd)
-        except:
+        except Exception:
             break
 
         # If requested, decode name subsections when encountered.
-        if (
-                decode_name_subsections and
-                sec_data.id == SEC_UNK and
-                sec_data.name == SEC_NAME
-        ):
+        if (decode_name_subsections and sec_data.id == SEC_UNK and sec_data.name == SEC_NAME):
             sec_wnd = sec_data.payload
             while sec_wnd:
                 subsec = NameSubSection()

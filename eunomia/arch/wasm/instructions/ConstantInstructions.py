@@ -1,9 +1,10 @@
 # emulate the constant related instructions
 
-from .. exceptions import *
-from z3 import *
-from struct import unpack
 import re
+from struct import unpack
+
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from z3 import BitVecVal, Float32, Float64, FPVal
 
 
 class ConstantInstructions:

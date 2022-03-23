@@ -66,17 +66,3 @@ def format_scan_result(result):
         new_result.append([new_key_functions.copy(), new_constraints.copy()])
 
     return new_result
-
-
-def format_sym_exe(sym_exe):
-    key_and_constraints = []
-
-    for _, tmp_tuple in enumerate(sym_exe):
-        path_state = tmp_tuple[1]
-        constraints = path_state.constraints
-        key_and_constraints.append([key_import_funcs, constraints])
-
-    # substitute long number to human readable name
-    key_and_constraints = format_scan_result(key_and_constraints)
-
-    return key_and_constraints

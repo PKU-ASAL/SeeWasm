@@ -1,12 +1,12 @@
 # This file defines the `state` that will be passed within Wasm-SE
 import copy
-
 from collections import defaultdict
 
 from eunomia.engine.engine import VMstate
-from z3 import *
+from z3 import BitVecVal
 
 STDIN_BYTES = b'123\n'
+
 
 class WasmVMstate(VMstate):
     def __init__(self):
@@ -27,7 +27,7 @@ class WasmVMstate(VMstate):
         # TODO adapt C code
         # TODO we insert a `123` here, maybe we should insert a symbol
         # stdin buffer used by _fd_read, but scanf(modeled seperately) does not read from it
-        self.stdin_buffer = [c for c in STDIN_BYTES] # int array, use pop(0)
+        self.stdin_buffer = [c for c in STDIN_BYTES]  # int array, use pop(0)
 
     def translate(self, ctx):
         state = WasmVMstate()

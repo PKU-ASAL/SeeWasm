@@ -1,4 +1,5 @@
-from z3 import *
+from z3 import Solver
+
 # from lab_solver import *
 
 class SMTSolver:

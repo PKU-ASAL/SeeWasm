@@ -1,14 +1,12 @@
 import copy
-import logging
 import re
 from collections import defaultdict, deque
 from queue import PriorityQueue
-from z3 import sat, unsat
-
 
 from eunomia.arch.wasm.exceptions import DSLParseError
-from eunomia.arch.wasm.utils import Configuration, ask_user_input, bcolors
 from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import Configuration, ask_user_input, bcolors
+from z3 import sat, unsat
 
 
 class ClassPropertyDescriptor:
@@ -113,7 +111,7 @@ class Graph:
         # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
         # TODO quite a huge overhead, try another way
         edges = sorted(edges, key=lambda x: (
-            x.node_from, int(x.node_to[x.node_to.rfind('_')+1:], 16)))
+            x.node_from, int(x.node_to[x.node_to.rfind('_') + 1:], 16)))
         type_ids = defaultdict(lambda: defaultdict(int))
         type_rev_ids = defaultdict(lambda: defaultdict(int))
         for edge in edges:
@@ -165,7 +163,7 @@ class Graph:
                             readable_name = internal_function_name
                     if len(readable_name.split('$')) == 2:
                         cls.aes_func[bb_name].add(readable_name)
-                        print(bb_name, readable_name)
+                        # print(bb_name, readable_name)
 
     # entry to analyze a file
 
@@ -184,8 +182,7 @@ class Graph:
                 for func_offset, func_name in cls.wasmVM.func_index2func_name.items():
                     if target_func_name == func_name:
                         # if func_name is target_func_name, extract the blocks
-                        target_blocks = cls.func_to_bbs["$func" +
-                                                        str(func_offset)]
+                        target_blocks = cls.func_to_bbs[f"$func{str(func_offset)}"]
                         break
             return target_blocks
 
@@ -213,7 +210,7 @@ class Graph:
             else:
                 # sort
                 intersected = list(intersected)
-                intersected = [int(i[i.rfind('_')+1:], 16)
+                intersected = [int(i[i.rfind('_') + 1:], 16)
                                for i in intersected]
                 intersected.sort()
                 intersected = [hex(i)[2:] for i in intersected]
@@ -235,22 +232,23 @@ class Graph:
                     q.append(list(cls.bbs_graph[tmp].values())[0])
                 elif len(cls.bbs_graph[tmp]) == 2:
                     false_node, true_node = cls.bbs_graph[tmp][
-                        'conditional_false_0'], cls.bbs_graph[tmp]['conditional_true_0']
+                        'conditional_false_0'], cls.bbs_graph[tmp][
+                        'conditional_true_0']
                     nc = nearest_common(false_node, true_node)
                     if nc:  # if then structure
                         nc = head[:head.rfind('_')] + '_' + nc
                         result[false_node] = '_'.join(
                             [str(i) for i in counter])
-                        counter[depth-1] += 1
+                        counter[depth - 1] += 1
                         result[true_node] = '_'.join([str(i) for i in counter])
-                        counter[depth-1] += 1
+                        counter[depth - 1] += 1
                         q.append(nc)
                         need_run.append(false_node)
                         need_run.append(true_node)
                     else:  # loop structure
                         result[false_node] = '_'.join(
                             [str(i) for i in counter])
-                        counter[depth-1] += 1
+                        counter[depth - 1] += 1
                         q.append(true_node)
                         need_run.append(false_node)
                 else:
@@ -287,7 +285,7 @@ class Graph:
                             if tmp in result:
                                 counter = [int(i)
                                            for i in result[tmp].split('_')]
-                            _analyze_nesting(tmp, len(counter)+1)
+                            _analyze_nesting(tmp, len(counter) + 1)
 
                         # parse the result
                         concerned_dsl = '_'.join(
@@ -329,10 +327,12 @@ class Graph:
                 s.add(final_state.constraints)
                 if sat == s.check():
                     print(
-                        f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}', end='\n', flush=True)
+                        f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}',
+                        end='\n', flush=True)
                 else:
                     print(
-                        f'For state{i}, return with {final_state.symbolic_stack}, which is unsat', end='\n', flush=True)
+                        f'For state{i}, return with {final_state.symbolic_stack}, which is unsat',
+                        end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=None):
@@ -385,7 +385,7 @@ class Graph:
             nds.add(edge[0])
             nds.add(edge[1])
         for nd in nds:
-            print(nd+':', end='')
+            print(nd + ':', end='')
             for inst in cls.bb_to_instructions[nd]:
                 print(inst, end=' ')
             print()
@@ -417,7 +417,8 @@ class Graph:
     @classmethod
     def calc_circle(cls, blk, vis, circles):
         '''determine if there is a circle in CFG, add the circle's entry block into the `circles`'''
-        if vis[blk] == 1 and len(cls.bbs_graph[blk]) >= 2:  # br_if and has visited
+        if vis[blk] == 1 and len(
+                cls.bbs_graph[blk]) >= 2:  # br_if and has visited
             circles.add(blk)
             return
         vis[blk] = 1
@@ -426,7 +427,9 @@ class Graph:
         vis[blk] = 0
 
     @classmethod
-    def visit(cls, states, has_ret, blk, vis, circles, guided, prev=None, branches=None):
+    def visit(
+            cls, states, has_ret, blk, vis, circles, guided, prev=None,
+            branches=None):
         vis[prev] += 1
         instructions = cls.bb_to_instructions[blk]
         _, emul_states = cls.wasmVM.emulate_basic_block(
@@ -468,15 +471,19 @@ class Graph:
                 if len(avail_br) == 1:
                     print(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    avail_br = [ask_user_input(
-                        emul_states, isbr=True, onlyone=True, branches=branches, state_item=state_item)]
+                    avail_br = [
+                        ask_user_input(
+                            emul_states, isbr=True, onlyone=True,
+                            branches=branches, state_item=state_item)]
                 else:
                     print(
                         f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
                     print(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    avail_br = [ask_user_input(
-                        emul_states, isbr=True, branches=branches, state_item=state_item)]
+                    avail_br = [
+                        ask_user_input(
+                            emul_states, isbr=True, branches=branches,
+                            state_item=state_item)]
 
             for type in avail_br:
                 nxt_blk = cls.bbs_graph[blk][type]
@@ -489,22 +496,28 @@ class Graph:
                     if nxt_blk in circles:
                         enter_states = [copy.deepcopy(state)]
                         for i in range(cls.loop_maximum_rounds):
-                            exit_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
-                                                    ['conditional_true'])
+                            exit_states = cls.visit(
+                                enter_states, has_ret, nxt_blk, vis, circles,
+                                guided, blk, ['conditional_true'])
                             print(exit_states[0])
                             final_states.extend(exit_states)
-                            enter_states = cls.visit(enter_states, has_ret, nxt_blk, vis, circles, guided, blk,
-                                                     ['conditional_false'])
+                            enter_states = cls.visit(
+                                enter_states, has_ret, nxt_blk, vis, circles,
+                                guided, blk, ['conditional_false'])
                         exit_states = cls.visit(
-                            enter_states, has_ret, nxt_blk, vis, circles, guided, blk, ['conditional_true'])
+                            enter_states, has_ret, nxt_blk, vis, circles,
+                            guided, blk, ['conditional_true'])
                         final_states.extend(exit_states)
                     else:
                         exit_states = cls.visit(
-                            [copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk)
+                            [copy.deepcopy(state)],
+                            has_ret, nxt_blk, vis, circles, guided, blk)
                         final_states.extend(exit_states)
                 else:
                     final_states.extend(
-                        cls.visit([copy.deepcopy(state)], has_ret, nxt_blk, vis, circles, guided, blk))
+                        cls.visit(
+                            [copy.deepcopy(state)],
+                            has_ret, nxt_blk, vis, circles, guided, blk))
         vis[prev] -= 1
         # TODO: Fix the Bug : may return a dict state, which is illegal.
         return final_states if specify else emul_states
@@ -557,7 +570,8 @@ class Graph:
         return new_lvar
 
     @classmethod
-    def visit_interval(cls, states, has_ret, blk, heads, guided=False, prev=None):
+    def visit_interval(
+            cls, states, has_ret, blk, heads, guided=False, prev=None):
         '''`blk` is the head of an interval'''
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
@@ -576,7 +590,7 @@ class Graph:
             succs_list = cls.bbs_graph[current_block].items()
             flag = False
             # two intervals, use DFS to traverse between intervals
-            #logging.warning(f'into {current_block}')
+            # logging.warning(f'into {current_block}')
             _, emul_states = cls.wasmVM.emulate_basic_block(
                 state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
@@ -584,8 +598,8 @@ class Graph:
                 return flag, emul_states
             avail_br = {}
             for edge_type, next_block in succs_list:
-                valid_state = list(map(lambda s: s[edge_type] if isinstance(
-                    s, dict) else s, filter(lambda s: not cls.can_cut(edge_type, s, lvar[cur_head]), emul_states)))
+                valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
+                    lambda s: not cls.can_cut(edge_type, s, lvar[cur_head]), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
@@ -595,7 +609,8 @@ class Graph:
                     print(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
                     br_idx = ask_user_input(
-                        emul_states, isbr=True, onlyone=True, branches=avail_br)
+                        emul_states, isbr=True, onlyone=True,
+                        branches=avail_br)
                 else:
                     print(
                         f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
@@ -646,8 +661,8 @@ class Graph:
                             (new_score, ([stat], next_block, cur_head, vis, local_new_lvar)))
             return flag, []
         for item in producer():
-            f, l = consumer(item)
-            final_states['return'].extend(l)
+            f, emul_states = consumer(item)
+            final_states['return'].extend(emul_states)
             if f:
                 break
         return final_states

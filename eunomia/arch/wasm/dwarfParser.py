@@ -1,7 +1,5 @@
 import logging
 import os
-import re
-from math import exp
 
 from elftools.dwarf.descriptions import describe_form_class
 from elftools.dwarf.dwarf_expr import DWARFExprOp, DWARFExprParser
@@ -24,7 +22,9 @@ def get_real_addr(ana, func_ind, func_offset):
 
 def get_source_location(ana, func_ind, func_offset, is_full_path=True):
     """get source location by function id and instruction offset within function"""
-    return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path)
+    return get_source_location_by_addr(
+        ana.dwarf_info, get_real_addr(ana, func_ind, func_offset),
+        is_full_path)
 
 
 def get_source_location_range(ana, func_ind, func_offset, is_full_path=True):
@@ -32,7 +32,9 @@ def get_source_location_range(ana, func_ind, func_offset, is_full_path=True):
     get source location range by function id and instruction offset within function
     returns ((start_file, line_no, col_no), (next_file, next_line_no, next_col_no))
     """
-    return get_source_location_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset), is_full_path, is_range=True)
+    return get_source_location_by_addr(
+        ana.dwarf_info, get_real_addr(ana, func_ind, func_offset),
+        is_full_path, is_range=True)
 
 
 def get_source_location_string(ana, func_ind, func_offset, is_full_path=True):
@@ -59,10 +61,12 @@ def get_source_location_string(ana, func_ind, func_offset, is_full_path=True):
 
 def get_func_DIE(ana, func_ind, func_offset):
     """get source function name by function id and instruction offset within function"""
-    return get_func_DIE_by_addr(ana.dwarf_info, get_real_addr(ana, func_ind, func_offset))
+    return get_func_DIE_by_addr(
+        ana.dwarf_info, get_real_addr(ana, func_ind, func_offset))
 
 
-def get_source_location_by_addr(dwarf_info, addr, is_full_path=True, is_range=False):
+def get_source_location_by_addr(
+        dwarf_info, addr, is_full_path=True, is_range=False):
     """
     get source location by instruction offset within Code Section
     if absolute directory infomation is recorded, set is_full_path to True, returns absolute path in filename.
@@ -210,6 +214,7 @@ def get_size_by_type(die):
         logging.error("Unknown type tag: ", die.tag)
         return 4
 
+
 def get_value(func_DIE, ana, state):
     fb_expr = func_DIE.attributes['DW_AT_frame_base'].value
     fb_loc = parse_expr(ana.dwarf_info, fb_expr)
@@ -222,6 +227,7 @@ def get_value(func_DIE, ana, state):
         fb_value = state.globals[fb_loc.args[0]].as_long()
     else:  # operand stack
         raise Exception("Unimplemented")
+
 
 def decode_var_type(ana, state, addr_stack, use_global_sp=False):
     """
@@ -266,7 +272,7 @@ def decode_var_type(ana, state, addr_stack, use_global_sp=False):
                 start = variable_loc.args[0]
                 type_die = die.get_DIE_from_attribute('DW_AT_type')
                 size = get_size_by_type(type_die)
-                if start <= delta and delta < start+size:
+                if start <= delta and delta < start + size:
                     return type_die, size
     logging.warning(
         f"{bcolors.WARNING}unable to decode variable type: function: {func_name}, offset: {delta}{bcolors.ENDC}")

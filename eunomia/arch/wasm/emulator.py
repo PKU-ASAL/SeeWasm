@@ -4,14 +4,24 @@
 import copy
 import logging
 import re
+import sys
 
-from eunomia.arch.wasm.cfg import WasmCFG
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
-from eunomia.arch.wasm.instructions import *
+from eunomia.arch.wasm.cfg import WasmCFG
+from eunomia.arch.wasm.exceptions import UnsupportGlobalTypeError
+from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
+                                            BitwiseInstructions,
+                                            ConstantInstructions,
+                                            ControlInstructions,
+                                            ConversionInstructions,
+                                            LogicalInstructions,
+                                            MemoryInstructions,
+                                            ParametricInstructions,
+                                            VariableInstructions)
 from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
 from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.engine.emulator import EmulatorEngine
-from z3 import *
+from z3 import BitVec, BitVecVal, BoolRef
 
 sys.setrecursionlimit(4096)
 
@@ -74,14 +84,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # extract param and return str
         func_index = None
         if func_name[0] == '$':
-            func_index = int(re.match(r'\$func(.*)', func_name).group(1))
+            func_index = int(re.match('\$func(.*)', func_name).group(1))
         else:
             for index, wat_func_name in self.func_index2func_name.items():
                 if wat_func_name == func_name:
                     func_index = index
                     break
 
-        assert func_index != None, f"[!] Cannot find your entry function: {func_name}"
+        assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
         func_info = self.ana.func_prototypes[func_index]
         param_str, return_str = func_info[1], func_info[2]
 
@@ -138,7 +148,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return halt, states
 
-    def emulate_one_instruction(self, instr, state, depth, has_ret, call_depth):
+    def emulate_one_instruction(
+            self, instr, state, depth, has_ret, call_depth):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -160,11 +171,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
-#        logging.debug(
-#            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
+        logging.debug(
+            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
 
         for c in state.constraints:
-            if type(c) != BoolRef:
+            if not isinstance(c, BoolRef):
                 state.constraints.remove(c)
 
         instr_obj = instruction_map[instr.group](
@@ -172,7 +183,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.group == 'Memory':
             return instr_obj.emulate(state, self.data_section), None
         elif instr.group == 'Control':
-            return instr_obj.emulate(state, has_ret, self.ana.func_prototypes, self.func_index2func_name, self.data_section, self.ana)
+            return instr_obj.emulate(
+                state, has_ret, self.ana.func_prototypes, self.
+                func_index2func_name, self.data_section, self.ana)
         elif instr.group == 'Parametric':
             return instr_obj.emulate(state, depth, has_ret, call_depth)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':

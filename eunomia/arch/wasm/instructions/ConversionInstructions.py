@@ -1,7 +1,9 @@
 # emulate the conversion related instructions
 
-from eunomia.arch.wasm.exceptions import *
-from z3 import *
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from z3 import (RNE, RTZ, BitVecSort, BitVecVal, Extract, Float32, Float64,
+                SignExt, ZeroExt, fpBVToFP, fpFPToFP, fpSignedToFP, fpToIEEEBV,
+                fpToSBV, fpToUBV, fpUnsignedToFP, simplify)
 
 
 class ConversionInstructions:

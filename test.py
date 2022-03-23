@@ -1,11 +1,11 @@
 import os
+import sys
 import time
 from collections import defaultdict
 from os import walk
 
 import pytest
 import sh
-import sys
 
 user_assigned_path = str(sys.argv[1])
 assert user_assigned_path in {'e', 'b', 'o'}, f"you must enter the valid path"
@@ -41,6 +41,9 @@ candidates.remove('collaz_lo_l1')
 candidates.remove('aes_cf')
 candidates.remove('cpu_svd')
 
+candidates.remove('df2cf_cp_l1')
+candidates.remove('pointers_sj_l1')
+
 candidates.sort()
 
 for case in candidates:
@@ -50,7 +53,7 @@ for case in candidates:
                      '--onlyfunc', 'main', '--need_mapper'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('/usr/bin/python3')
+python_cmd = sh.Command('/usr/bin/python3.7')
 for i, cmd in enumerate(cmd_lists):
     try:
         print('Case: ', candidates[i])
@@ -58,7 +61,7 @@ for i, cmd in enumerate(cmd_lists):
             start = time.perf_counter()
             python_cmd(cmd)
             end = time.perf_counter()
-            result[candidates[i]].append("{:.3f}".format(end-start))
+            result[candidates[i]].append("{:.3f}".format(end - start))
     except sh.ErrorReturnCode as e:
         print(e)
         pytest.fail(e)

@@ -1,17 +1,16 @@
 from collections import namedtuple
 
-from wasm.compat import byte2int
-from wasm.formatter import format_instruction
-# from wasm.decode import decode_module
-from wasm.modtypes import CodeSection
-from wasm.opcodes import OPCODE_MAP
-
 from eunomia.arch.wasm.decode import decode_module
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.wasm import Wasm
 from eunomia.core.function import Function
 from eunomia.core.utils import bytecode_to_bytes
 from eunomia.engine.disassembler import Disassembler
+
+from wasm.compat import byte2int
+from wasm.formatter import format_instruction
+from wasm.modtypes import CodeSection
+from wasm.opcodes import OPCODE_MAP
 
 inst_namedtuple = namedtuple('Instruction', 'op imm len')
 
@@ -48,10 +47,10 @@ class WasmDisassembler(Disassembler):
                 OPCODE_MAP[opcode_id], operand, 1 + operand_size)
             operand_interpretation = format_instruction(insn)
         insn_byte = bytecode_wnd[:1 + operand_size].tobytes()
-        instruction = WasmInstruction(opcode_id, name, imm_struct, operand_size,
-                                      insn_byte, pops, pushes, description,
-                                      operand_interpretation=operand_interpretation,
-                                      offset=offset)
+        instruction = WasmInstruction(
+            opcode_id, name, imm_struct, operand_size, insn_byte, pops, pushes,
+            description, operand_interpretation=operand_interpretation,
+            offset=offset)
         # print('%d %s' % (offset, str(instruction)))
         return instruction
 
@@ -112,7 +111,8 @@ class WasmDisassembler(Disassembler):
             functions.append(cur_function)
         return functions
 
-    def disassemble_module(self, module_bytecode=None, offset=0, r_format='list'):
+    def disassemble_module(
+            self, module_bytecode=None, offset=0, r_format='list'):
 
         bytecode = bytecode_to_bytes(module_bytecode)
 

@@ -2,11 +2,12 @@
 
 import logging
 import math
+from ast import If
 
-from eunomia.arch.wasm.dawrf_parser import (decode_var_type, decode_vararg,
-                                            get_func_index_from_state,
-                                            get_source_location,
-                                            get_source_location_string)
+from eunomia.arch.wasm.dwarfParser import (decode_vararg,
+                                           get_func_index_from_state,
+                                           get_source_location,
+                                           get_source_location_string)
 from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.instruction import WasmInstruction
@@ -14,11 +15,13 @@ from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
-                                     Enable_Lasers, bin_to_float,
+                                     Enable_Lasers, bcolors, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting, bcolors)
-from z3 import *
-
+                                     parse_printf_formatting)
+from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
+                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If,
+                fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
+                is_eq, is_expr, is_not, simplify)
 
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
@@ -73,8 +76,11 @@ class CPredefinedFunction:
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
 
                 middle_p = lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
+                    state.symbolic_memory, data_section, param_p,
+                    C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                if isinstance(
+                        middle_p, BitVecRef) and not isinstance(
+                        middle_p, BitVecNumRef):
                     tmp_data = str(middle_p)
                 else:
                     middle_p = middle_p.as_long()
@@ -91,10 +97,12 @@ class CPredefinedFunction:
                 param_p += align_offset[i]
 
                 pattern = pattern[:index] + tmp_data + \
-                    pattern[index+len(cur_pattern):]
+                    pattern[index + len(cur_pattern):]
                 # update the following index
                 parsed_pattern = [
-                    [x[0], x[1] + len(tmp_data) - len(cur_pattern), x[2]] for x in parsed_pattern]
+                    [x[0],
+                     x[1] + len(tmp_data) - len(cur_pattern),
+                     x[2]] for x in parsed_pattern]
                 i += 1
 
             the_string = pattern
@@ -118,19 +126,22 @@ class CPredefinedFunction:
             parsed_pattern = parse_printf_formatting(pattern)
 
             i = 0
+            print('pattern: ', parsed_pattern)
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
-
                 middle_p = lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, param_p, C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if isinstance(middle_p, BitVecRef) and not isinstance(middle_p, BitVecNumRef):
+                    state.symbolic_memory, data_section, param_p,
+                    C_TYPE_TO_LENGTH[cur_pattern[-1]])
+                if isinstance(
+                        middle_p, BitVecRef) and not isinstance(
+                        middle_p, BitVecNumRef):
                     tmp_data = str(middle_p)
                 else:
                     middle_p = middle_p.as_long()
                     if cur_pattern[-1] == 's':
                         # TODO we insert a `abc` here, maybe we should insert a symbol
-                        state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, middle_p, 4,
-                                                                       BitVecVal(6513249, 32))
+                        state.symbolic_memory = insert_symbolic_memory(
+                            state.symbolic_memory, middle_p, 4, BitVecVal(6513249, 32))
                         logging.warning(
                             "================Initiated an scanf string: abc=================")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
@@ -139,9 +150,12 @@ class CPredefinedFunction:
                         original_file, line_no, col_no = get_source_location(
                             analyzer, func_ind, func_offset)
                         inserted_variable = BitVec(
-                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}",
+                            C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                         state.symbolic_memory = insert_symbolic_memory(
-                            state.symbolic_memory, middle_p, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
+                            state.symbolic_memory, middle_p,
+                            C_TYPE_TO_LENGTH[cur_pattern[-1]],
+                            inserted_variable)
                         logging.warning(
                             f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}============")
                     else:
@@ -184,11 +198,11 @@ class CPredefinedFunction:
                 state.symbolic_memory, the_one, 1, the_other_mem)
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, the_other, 1, the_one_mem)
-            logging.warning("================$swap! Swap the two: %s and %s=================\n", the_one_mem,
-                            the_other_mem)
+            logging.warning(
+                "================$swap! Swap the two: %s and %s=================\n",
+                the_one_mem, the_other_mem)
         elif self.name == 'strcpy':
             src, dest = param_list[0].as_long(), param_list[1].as_long()
-
             # extract the string according to the src pointer
             src_string = C_extract_string_by_mem_pointer(
                 src, data_section, state.symbolic_memory)
@@ -205,7 +219,8 @@ class CPredefinedFunction:
                 str.encode(f'{src_string}\x00'), "little")
 
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, dest, src_string_len, BitVecVal(little_endian_num, 8*src_string_len))
+                state.symbolic_memory, dest, src_string_len,
+                BitVecVal(little_endian_num, 8 * src_string_len))
             state.symbolic_stack.append(param_list[1])
             manually_constructed = True
         elif self.name == 'strncpy':
@@ -221,14 +236,15 @@ class CPredefinedFunction:
             if len(src_string) >= length:
                 src_string = src_string[:length]
             else:
-                src_string += '\x00'*(length - len(src_string))
+                src_string += '\x00' * (length - len(src_string))
 
             # the little endian refers to the implementation of scanf
             little_endian_num = int.from_bytes(
                 str.encode(f'{src_string}'), "little")
 
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, dest, length, BitVecVal(little_endian_num, 8*length))
+                state.symbolic_memory, dest, length,
+                BitVecVal(little_endian_num, 8 * length))
             state.symbolic_stack.append(param_list[1])
             manually_constructed = True
         elif self.name == 'strcat':
@@ -252,7 +268,8 @@ class CPredefinedFunction:
             little_endian_num = int.from_bytes(str.encode(
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+                state.symbolic_memory, dest, string_len,
+                BitVecVal(little_endian_num, 8 * string_len))
             state.symbolic_stack.append(param_list[1])
             manually_constructed = True
         elif self.name == 'strncat':
@@ -268,7 +285,7 @@ class CPredefinedFunction:
             if len(src_string) >= length:
                 src_string = src_string[:length]
             else:
-                src_string += '\x00'*(length - len(src_string))
+                src_string += '\x00' * (length - len(src_string))
 
             # concatenate two strings
             string_len = len(dest_string) + len(src_string) + 1
@@ -277,7 +294,8 @@ class CPredefinedFunction:
             little_endian_num = int.from_bytes(str.encode(
                 f'{dest_string}{src_string}\x00'), "little")
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, dest, string_len, BitVecVal(little_endian_num, 8*string_len))
+                state.symbolic_memory, dest, string_len,
+                BitVecVal(little_endian_num, 8 * string_len))
             state.symbolic_stack.append(param_list[1])
             manually_constructed = True
         elif self.name == 'strcmp':
@@ -319,7 +337,7 @@ class CPredefinedFunction:
                 exponent = simplify(fpToReal(exponent)).as_string()
                 if '/' in exponent:
                     i = exponent.find('/')
-                    exponent = int(exponent[:i]) / int(exponent[i+1:])
+                    exponent = int(exponent[:i]) / int(exponent[i + 1:])
                 else:
                     exponent = float(exponent)
 
@@ -329,8 +347,9 @@ class CPredefinedFunction:
             else:  # if it is a symbol, z3 does not support
                 raise UnsupportExternalFuncError
         elif self.name == 'getchar':
-            ret = getConcreteBitVec(return_str, self.name + '_ret_' +
-                                    return_str + '_' + self.cur_func + '_' + str(state.instr.offset))
+            ret = getConcreteBitVec(
+                return_str,
+                f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(ret)
             manually_constructed = True
         elif self.name == 'putchar':
@@ -419,7 +438,7 @@ class CPredefinedFunction:
             number_string = C_extract_string_by_mem_pointer(
                 str_p, data_section, state.symbolic_memory, 4)
 
-            # try to convert such a string to float
+            # try to convert such a string to int
             if isinstance(number_string, BitVecRef):
                 the_number = number_string
             else:
@@ -429,6 +448,9 @@ class CPredefinedFunction:
                     # if it cannot be converted into int
                     # default is 0
                     the_number = 0
+                # convert the number into the BitVecVal
+                the_number = BitVecVal(the_number, 32)
+
             # append into stack
             state.symbolic_stack.append(the_number)
             manually_constructed = True
@@ -467,19 +489,27 @@ class CPredefinedFunction:
             raise UnsupportExternalFuncError
 
         if not manually_constructed and return_str:
-            tmp_bitvec = getConcreteBitVec(return_str,
-                                           self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
-                                               state.instr.offset))
+            tmp_bitvec = getConcreteBitVec(
+                return_str,
+                f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(tmp_bitvec)
 
 
-_values = {0: BitVec("NaN", 32), 1: BitVecVal(0, 32), 2: BitVec("null", 32), 3: BoolVal(True),
-           4: BoolVal(False), 5: BitVec("global", 32), 6: BitVec("global.Go", 32)}  # module the memory map in wasm_exec.js
+_values = {
+    0: BitVec("NaN", 32),
+    1: BitVecVal(0, 32),
+    2: BitVec("null", 32),
+    3: BoolVal(True),
+    4: BoolVal(False),
+    5: BitVec("global", 32),
+    6: BitVec("global.Go", 32)}  # module the memory map in wasm_exec.js
 
 
 def calculateHeapAddresses(state, data_section):
-    val_81328 = simplify(lookup_symbolic_memory_data_section(
-        state.symbolic_memory, data_section, 81328, 4) + 15) & 4294967280  # calculate heap start
+    val_81328 = simplify(
+        lookup_symbolic_memory_data_section(
+            state.symbolic_memory, data_section, 81328, 4) +
+        15) & 4294967280  # calculate heap start
     val_81328 = simplify(val_81328)
     state.symbolic_memory = insert_symbolic_memory(
         state.symbolic_memory, 81328, 4, val_81328)  # save the heap start
@@ -516,19 +546,29 @@ class GoPredefinedFunction:
         def concrete_value(x):
             return x.as_long() if is_bv_value(x) else x
         # helper functions to access memory
-        def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
-            state.symbolic_memory, data_section, x, 4))
-        def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
-            state.symbolic_memory, data_section, x, 1))
-        def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, 4, BitVecVal(val, 32))
-        def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, 1, BitVecVal(val, 8))
-        
+
+        def load32(x):
+            return concrete_value(
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, x, 4))
+
+        def load8(x):
+            return concrete_value(
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, x, 1))
+
+        def store32(addr, val):
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, addr, 4, BitVecVal(val, 32))
+
+        def store8(addr, val):
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, addr, 1, BitVecVal(val, 8))
+
         def GO_extract_string_by_mem_pointer(addr, len):
             ret = []
             for i in range(len):
-                ret.append(load8(addr+i))
+                ret.append(load8(addr + i))
             return bytes(ret)
 
         def decode_golang_string(addr):
@@ -543,8 +583,10 @@ class GoPredefinedFunction:
             # func Scanf(format string, a ...interface{}) (n int, err error)
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Scanf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
             param_list[:] = map(concrete_value, param_list)
-            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
-            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            pret, format_data, format_len, interface_slice_data = param_list[
+                -1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[
+                -5], param_list[-6], param_list[-7], param_list[-8]
             num_scanned = 0
             format_str = GO_extract_string_by_mem_pointer(
                 format_data, format_len).decode()
@@ -553,7 +595,7 @@ class GoPredefinedFunction:
 
             for i, parsed_pattern in enumerate(parsed_patterns):
                 line_num, str_ind, cur_pattern = parsed_pattern[0], parsed_pattern[1], parsed_pattern[2]
-                # decode interface slice 
+                # decode interface slice
                 assert i < interface_slice_len
                 param_interface_ptr = load32(interface_slice_data + 8 * i + 4)
                 if cur_pattern[-1] == 's':
@@ -573,12 +615,16 @@ class GoPredefinedFunction:
                     # runtime.alloc (param i32 i32 i32 i32) (result i32)
                     # i8* @runtime.alloc(i32 %size, i8* %layout, i8* %context, i8* %parentHandle)
                     alloc_size = len(write_bytes)
-                    inst_call = WasmInstruction(0x10, 'call', None, None, b'\x10', 0, 0, 'call a function', 'call '+str(runtime_alloc_ind), -1)
+                    inst_call = WasmInstruction(
+                        0x10, 'call', None, None, b'\x10', 0, 0,
+                        'call a function', 'call ' + str(runtime_alloc_ind),
+                        -1)
                     arguments = [BitVecVal(0, 32) for i in range(3)]
                     arguments.insert(0, BitVecVal(alloc_size, 32))
                     for a in arguments:
                         state.symbolic_stack.append(a)
-                    halt, new_states = Graph.wasmVM.emulate_one_instruction(inst_call, state, 0, [True], 0)
+                    halt, new_states = Graph.wasmVM.emulate_one_instruction(
+                        inst_call, state, 0, [True], 0)
                     assert len(new_states) == 1
                     # assign state to new state? TODO
                     state.symbolic_memory = new_states[0].symbolic_memory
@@ -598,10 +644,13 @@ class GoPredefinedFunction:
                     original_file, line_no, col_no = get_source_location(
                         analyzer, func_ind, func_offset)
                     inserted_variable = BitVec(
-                        f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}", C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
+                        f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}",
+                        C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                     # store symblic integer to memory address
                     state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, param_interface_ptr, C_TYPE_TO_LENGTH[cur_pattern[-1]], inserted_variable)
+                        state.symbolic_memory, param_interface_ptr,
+                        C_TYPE_TO_LENGTH[cur_pattern[-1]],
+                        inserted_variable)
                     logging.warning(
                         f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}============")
                     num_scanned += 1
@@ -614,8 +663,10 @@ class GoPredefinedFunction:
             # define internal { i32, %runtime.funcValueWithSignature } @fmt.Printf(i8* %format.data, i32 %format.len, %runtime.funcValueWithSignature* %a.data, i32 %a.len, i32 %a.cap, i8* %context, i8* %parentHandle)
             # n is the number of bytes written.
             param_list[:] = map(concrete_value, param_list)
-            pret, format_data, format_len, interface_slice_data = param_list[-1], param_list[-2], param_list[-3], param_list[-4]
-            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[-5], param_list[-6], param_list[-7], param_list[-8]
+            pret, format_data, format_len, interface_slice_data = param_list[
+                -1], param_list[-2], param_list[-3], param_list[-4]
+            interface_slice_len, interface_slice_cap, context, parentHandle = param_list[
+                -5], param_list[-6], param_list[-7], param_list[-8]
             format_str = GO_extract_string_by_mem_pointer(
                 format_data, format_len).decode()
 
@@ -660,19 +711,19 @@ class GoPredefinedFunction:
             # match the condition
             # Not -> == -> If --arg0--> condition
             if is_not(constraint) and \
-                is_eq(constraint.arg(0)) and \
-                is_const(constraint.arg(0).arg(1)) and \
-                constraint.arg(0).arg(1).as_long() == 0 and \
-                constraint.arg(0).arg(0).decl().kind() == Z3_OP_ITE and \
-                is_const(constraint.arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(1).as_long() == 1 and \
-                is_const(constraint.arg(0).arg(0).arg(2)) and constraint.arg(0).arg(0).arg(2).as_long() == 0 and \
-                is_eq(constraint.arg(0).arg(0).arg(0)) and \
-                is_const(constraint.arg(0).arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(0).arg(1).as_long() == 0:
+                    is_eq(constraint.arg(0)) and \
+                    is_const(constraint.arg(0).arg(1)) and \
+                    constraint.arg(0).arg(1).as_long() == 0 and \
+                    constraint.arg(0).arg(0).decl().kind() == Z3_OP_ITE and \
+                    is_const(constraint.arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(1).as_long() == 1 and \
+                    is_const(constraint.arg(0).arg(0).arg(2)) and constraint.arg(0).arg(0).arg(2).as_long() == 0 and \
+                    is_eq(constraint.arg(0).arg(0).arg(0)) and \
+                    is_const(constraint.arg(0).arg(0).arg(0).arg(1)) and constraint.arg(0).arg(0).arg(0).arg(1).as_long() == 0:
                 # get divisor
                 divisor = constraint.arg(0).arg(0).arg(0).arg(0)
             # scanf_symbol == 0
             elif is_eq(constraint) and \
-                is_const(constraint.arg(1)) and constraint.arg(1).as_long() == 0:
+                    is_const(constraint.arg(1)) and constraint.arg(1).as_long() == 0:
                 divisor = constraint.arg(0)
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
@@ -726,10 +777,12 @@ class GoPredefinedFunction:
             for i in range(thisAlloc_v, nextAlloc_v):
                 alloc_at = simplify(
                     heapStart + BitVecVal(i << 4, 32)).as_long()
-                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at, 8,
-                                                               simplify(Extract(63, 0, BitVecVal(0, 64))))
-                state.symbolic_memory = insert_symbolic_memory(state.symbolic_memory, alloc_at + 8, 8,
-                                                               simplify(Extract(63, 0, BitVecVal(0, 64))))
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, alloc_at, 8,
+                    simplify(Extract(63, 0, BitVecVal(0, 64))))
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, alloc_at + 8, 8,
+                    simplify(Extract(63, 0, BitVecVal(0, 64))))
             headPtr = simplify(heapStart + BitVecVal(thisAlloc_v << 4, 32))
             state.symbolic_stack.append(headPtr)
             manually_constructed = True
@@ -738,8 +791,10 @@ class GoPredefinedFunction:
             src_addr = src.as_long()
             dest_addr = dest.as_long()
             len_v = length.as_long()
-            vlis = [lookup_symbolic_memory_data_section(
-                state.symbolic_memory, data_section, src_addr + i, 1) for i in range(len_v)]
+            vlis = [
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, src_addr + i, 1)
+                for i in range(len_v)]
             for i, v in enumerate(vlis):
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, dest_addr + i, 1, v)
@@ -753,7 +808,7 @@ class GoPredefinedFunction:
                 state.symbolic_memory, data_section, v_addr.as_long(), 4)
             value = _values[value.as_long()]
             _bs = prop.as_binary_string()
-            _bs_lis = [_bs[max(i-8, 0):i] for i in range(len(_bs), 0, -8)]
+            _bs_lis = [_bs[max(i - 8, 0):i] for i in range(len(_bs), 0, -8)]
             prop = ''.join(map(lambda x: chr(int(x, base=2)), _bs_lis))
             result = value.decl().name() + '_' + prop
             idx = None
@@ -766,7 +821,8 @@ class GoPredefinedFunction:
                 _values[len(_values)] = BitVec(result, 32)
             # print(_values)
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, retval.as_long() + 4, 4, BitVecVal(2146959360 | 4, 32))
+                state.symbolic_memory, retval.as_long() + 4, 4,
+                BitVecVal(2146959360 | 4, 32))
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, retval.as_long(), 4, BitVecVal(idx, 32))
             manually_constructed = True
@@ -778,9 +834,8 @@ class GoPredefinedFunction:
             print(param_list)
 
         if not manually_constructed and return_str:
-            tmp_bitvec = getConcreteBitVec(return_str,
-                                           self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
-                                               state.instr.offset))
+            tmp_bitvec = getConcreteBitVec(
+                return_str, f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(tmp_bitvec)
 
 
@@ -797,9 +852,9 @@ class ImportFunction:
         # if the return value is dependent on the library function, we will manually contruct it
         # and jump over the process in which it append a symbol according to the signature of the function
         if return_str:
-            tmp_bitvec = getConcreteBitVec(return_str,
-                                           self.name + '_ret_' + return_str + '_' + self.cur_func + '_' + str(
-                                               state.instr.offset))
+            tmp_bitvec = getConcreteBitVec(
+                return_str,
+                f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(tmp_bitvec)
 
 
@@ -823,15 +878,24 @@ class WASIFunction:
         def concrete_value(x):
             return x.as_long() if is_bv_value(x) else x
         # helper functions to access memory
-        def load32(x): return concrete_value(lookup_symbolic_memory_data_section(
-            state.symbolic_memory, data_section, x, 4))
-        def load8(x): return concrete_value(lookup_symbolic_memory_data_section(
-            state.symbolic_memory, data_section, x, 1))
-        def store32(addr, val): state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, 4, BitVecVal(val, 32))
-        def store8(addr, val): state.symbolic_memory = insert_symbolic_memory(
-            state.symbolic_memory, addr, 1, BitVecVal(val, 8))
 
+        def load32(x):
+            return concrete_value(
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, x, 4))
+
+        def load8(x):
+            return concrete_value(
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, x, 1))
+
+        def store32(addr, val):
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, addr, 4, BitVecVal(val, 32))
+
+        def store8(addr, val):
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, addr, 1, BitVecVal(val, 8))
 
         if self.name == 'fd_read':
             # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
@@ -845,7 +909,7 @@ class WASIFunction:
             # currently only support stdin
             assert fd == 0, 'invalid file descriptor:'
             # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
-            num = 0 # bytes written
+            num = 0  # bytes written
             out_bytes = []
             for i in range(iovcnt):
                 ptr = load32(iov + 8 * i)
@@ -855,7 +919,8 @@ class WASIFunction:
                     out_bytes.append(state.stdin_buffer[0])
                     store8(ptr + j, state.stdin_buffer.pop(0))
                     num += 1
-                if len(state.stdin_buffer) == 0: break
+                if len(state.stdin_buffer) == 0:
+                    break
             logging.warning(
                 f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
             # set pnum to num
@@ -863,7 +928,7 @@ class WASIFunction:
             store32(pnum, num)
             # return 0
             # manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))            
+            state.symbolic_stack.append(BitVecVal(0, 32))
         elif self.name == 'fd_write':
             # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
             # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js
@@ -900,7 +965,8 @@ class WASIFunction:
             raise UnsupportExternalFuncError
 
 
-def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, default_len=None):
+def C_extract_string_by_mem_pointer(
+        mem_pointer, data_section, symbolic_memory, default_len=None):
     """
     Extract string by the memory pointer from data section
     or symbolic memory
@@ -922,9 +988,9 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, 
             loaded_string = loaded_data.to_bytes(
                 (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
         elif is_bv(loaded_data):
-            assert not default_len is None, f"extract {mem_pointer} from memory, however, the loaded part is a symbol, the default len should not be None"
-            return BitVec('string_of_'+str(lookup_symbolic_memory_data_section(
-                symbolic_memory, data_section, mem_pointer, 4)), default_len*8)
+            assert default_len is not None, f"extract {mem_pointer} from memory, however, the loaded part is a symbol, the default len should not be None"
+            return BitVec('string_of_' + str(lookup_symbolic_memory_data_section(
+                symbolic_memory, data_section, mem_pointer, 4)), default_len * 8)
         else:
             raise UnexpectedDataType
 
@@ -939,7 +1005,8 @@ def C_extract_string_by_mem_pointer(mem_pointer, data_section, symbolic_memory, 
     return loaded_string
 
 
-def C_extract_possible_strings_by_mem_pointer(mem_pointer, symbolic_memory, string_length):
+def C_extract_possible_strings_by_mem_pointer(
+        mem_pointer, symbolic_memory, string_length):
     """
     Extract all possible strings by ite statements
 
@@ -957,10 +1024,23 @@ def C_extract_possible_strings_by_mem_pointer(mem_pointer, symbolic_memory, stri
             break
     assert maximum_length != -1, f"no string exists from {mem_pointer}"
 
-    def construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length):
+    def construct_possible_strings(
+            mem_pointer, symbolic_memory, string_length, maximum_length,
+            current_length):
         if current_length == maximum_length:
-            return C_extract_string_by_mem_pointer(mem_pointer, dict(), symbolic_memory, current_length)
-        return If(string_length == current_length, C_extract_string_by_mem_pointer(mem_pointer, dict(), symbolic_memory, current_length), construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length+1))
+            return C_extract_string_by_mem_pointer(
+                mem_pointer, dict(),
+                symbolic_memory, current_length)
+        return If(
+            string_length == current_length,
+            C_extract_string_by_mem_pointer(
+                mem_pointer, dict(),
+                symbolic_memory, current_length),
+            construct_possible_strings(
+                mem_pointer, symbolic_memory, string_length, maximum_length,
+                current_length + 1))
 
     current_length = 1
-    return construct_possible_strings(mem_pointer, symbolic_memory, string_length, maximum_length, current_length)
+    return construct_possible_strings(
+        mem_pointer, symbolic_memory, string_length, maximum_length,
+        current_length)

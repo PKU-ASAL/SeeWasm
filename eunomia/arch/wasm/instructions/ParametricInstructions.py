@@ -1,6 +1,7 @@
 import copy
+
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from z3 import *
+from z3 import BitVecNumRef, is_bool, is_bv, simplify
 
 
 class ParametricInstructions:
@@ -8,7 +9,6 @@ class ParametricInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    # TODO overflow check in this function?
     def emulate(self, state, depth, has_ret, call_depth):
         if self.instr_name == 'drop':
             state.symbolic_stack.pop()
@@ -33,5 +33,4 @@ class ParametricInstructions:
                 state2.constraints = list(set(state2.constraints))
                 return False, [state1, state2]
         else:
-            raise Exception('Instruction:', self.instr_name,
-                            'not match in emul_parametric function')
+            raise UnsupportInstructionError

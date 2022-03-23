@@ -3,22 +3,19 @@
 
 from logging import getLogger
 
-from graphviz import Digraph
-
 from eunomia.analysis.cfg import CFG
 from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.disassembler import WasmDisassembler
-from eunomia.arch.wasm.format import (format_bb_name,
-                                      format_func_name)
+from eunomia.arch.wasm.format import format_bb_name, format_func_name
 from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
-from eunomia.core.edge import (Edge,
-                               EDGE_UNCONDITIONAL,
-                               EDGE_CONDITIONAL_TRUE, EDGE_CONDITIONAL_FALSE,
-                               EDGE_FALLTHROUGH, EDGE_CALL)
+from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
+                               EDGE_CONDITIONAL_TRUE, EDGE_FALLTHROUGH,
+                               EDGE_UNCONDITIONAL, Edge)
 from eunomia.core.function import Function
 from eunomia.core.utils import bytecode_to_bytes
+from graphviz import Digraph
 
 logging = getLogger(__name__)
 
@@ -32,9 +29,11 @@ DESIGN_EXPORT = {'fillcolor': 'grey',
 
 
 def enum_func(module_bytecode):
-    ''' return a list of Function
-        see:: eunomia.core.function
-    '''
+    """
+    return a list of Function
+    see:: eunomia.core.function
+    """
+
     functions = list()
     analyzer = WasmModuleAnalyzer(module_bytecode)
 
@@ -50,6 +49,10 @@ def enum_func(module_bytecode):
         cur_function = Function(0, instructions[0], name=name,
                                 prefered_name=prefered_name)
         cur_function.instructions = instructions
+
+        cur_function.end_offset = instructions[-1].offset_end
+        cur_function.end_instr = instructions[-1]
+        cur_function.size = sum([i.size for i in instructions])
 
         functions.append(cur_function)
     return functions
@@ -82,7 +85,7 @@ def enum_func_call_edges(functions, len_imports):
         for inst in func.instructions:
             # detect if inst is a call instructions
             if inst.name == "call":  # is_call:
-                #logging.debug('%s', inst.operand_interpretation)
+                # logging.debug('%s', inst.operand_interpretation)
                 # if inst.name == "call":
                 # only get the import_id
                 import_id = inst.operand_interpretation.split(' ')[1]
@@ -150,8 +153,8 @@ def enum_blocks_edges(function_id, instructions):
             labl.append(int(inst.operand_interpretation.split(' ')[-1]))
 
         for d2 in labl:  # intent, start, end, name
-            rep = next(((i, s, e, n) for i, s, e, n in blocks_list if
-                        (i == (depth - d2) and s < inst.offset and e > inst.offset_end)), None)
+            rep = next(((i, s, e, n) for i, s, e, n in blocks_list if (
+                i == (depth - d2) and s < inst.offset and e > inst.offset_end)), None)
 
             if rep:
                 i, start, end, name = rep
@@ -241,7 +244,8 @@ def enum_blocks_edges(function_id, instructions):
                                       function_id, inst.offset_end + 1),
                                   EDGE_CONDITIONAL_TRUE))
                 if_b = next(
-                    iter([b for b in blocks_list if b[1] == inst.offset]), None)
+                    iter([b for b in blocks_list if b[1] == inst.offset]),
+                    None)
                 # else_block = blocks_list[blocks_list.index(if_block) + 1]
                 jump_target = if_b[2] + 1
                 edges.append(Edge(block.name,
@@ -258,10 +262,14 @@ def enum_blocks_edges(function_id, instructions):
                         if ref and _block.instructions[0].offset == ref:
                             if _index != len(inst.xref) - 1:
                                 edges.append(
-                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_TRUE + '_' + str(labels[_index])))
+                                    Edge(
+                                        block.name, _block.name,
+                                        f'{EDGE_CONDITIONAL_TRUE}_{str(labels[_index])}'))
                             else:
                                 edges.append(
-                                    Edge(block.name, _block.name, EDGE_CONDITIONAL_FALSE + '_0'))
+                                    Edge(
+                                        block.name, _block.name,
+                                        EDGE_CONDITIONAL_FALSE + '_0'))
                             break
             else:
                 for ref in inst.xref:
@@ -288,7 +296,8 @@ def enum_blocks_edges(function_id, instructions):
 
             else_ins = instructions[instructions.index(inst) + 1]
             else_b = next(
-                iter([b for b in blocks_list if b[1] == else_ins.offset]), None)
+                iter([b for b in blocks_list if b[1] == else_ins.offset]),
+                None)
 
             edges.append(Edge(block.name, format_bb_name(
                 function_id, else_b[2] + 1), EDGE_FALLTHROUGH))
@@ -351,7 +360,7 @@ class WasmCFG(CFG):
             else:
                 nodes.append(name)
 
-        #logging.debug('nodes: %s', nodes)
+        # logging.debug('nodes: %s', nodes)
 
         # create edges
         tmp_edges = enum_func_call_edges(self.functions,
@@ -373,7 +382,7 @@ class WasmCFG(CFG):
             else:
                 to_final = name
             edges.append(Edge(from_final, to_final, EDGE_CALL))
-        #logging.debug('edges: %s', edges)
+        # logging.debug('edges: %s', edges)
 
         return (nodes, edges)
 
@@ -410,15 +419,18 @@ class WasmCFG(CFG):
 
         with g.subgraph(name='global') as c:
 
-            export_list = [p[0]
-                           for p in self.analyzer.func_prototypes if p[3] == 'export']
-            import_list = [p[0]
-                           for p in self.analyzer.func_prototypes if p[3] == 'import']
+            export_list = [
+                p[0] for p in self.analyzer.func_prototypes
+                if p[3] == 'export']
+            import_list = [
+                p[0] for p in self.analyzer.func_prototypes
+                if p[3] == 'import']
             call_indirect_list = enum_func_name_call_indirect(self.functions)
 
             try:
-                indirect_target = [self.analyzer.func_prototypes[index][0] for index in
-                                   self.analyzer.elements[0].get('elems')]
+                indirect_target = [
+                    self.analyzer.func_prototypes[index][0]
+                    for index in self.analyzer.elements[0].get('elems')]
             except IndexError:
                 indirect_target = []
             # create all the graph nodes (function name)
@@ -434,14 +446,14 @@ class WasmCFG(CFG):
                 style = "filled"
 
                 if node in import_list:
-                    #logging.debug('import ' + node)
+                    # logging.debug('import ' + node)
                     fillcolor = DESIGN_IMPORT.get('fillcolor')
                     shape = DESIGN_IMPORT.get('shape')
                     style = DESIGN_IMPORT.get('style')
                     c.node(node_name, fillcolor=fillcolor,
                            shape=shape, style=style)
                 elif node in export_list:
-                    #logging.debug('export ' + node)
+                    # logging.debug('export ' + node)
                     fillcolor = DESIGN_EXPORT.get('fillcolor')
                     shape = DESIGN_EXPORT.get('shape')
                     style = DESIGN_EXPORT.get('style')
@@ -449,11 +461,11 @@ class WasmCFG(CFG):
                            shape=shape, style=style)
 
                 if node in indirect_target:
-                    #logging.debug('indirect_target ' + node)
+                    # logging.debug('indirect_target ' + node)
                     shape = "hexagon"
 
                 if node in call_indirect_list:
-                    #logging.debug('contain call_indirect ' + node)
+                    # logging.debug('contain call_indirect ' + node)
                     style = "dashed"
                 c.node(node_name, fillcolor=fillcolor,
                        shape=shape, style=style)
@@ -476,8 +488,8 @@ class WasmCFG(CFG):
         """Visualize the instructions repartitions per functions
         """
 
-        import numpy as np
         import matplotlib.pyplot as plt
+        import numpy as np
 
         final = list()
         datas = list()

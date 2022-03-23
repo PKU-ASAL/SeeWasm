@@ -1,12 +1,11 @@
 # Implement an div zero detector
 
-from z3 import *
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.utils import bcolors
-from eunomia.arch.wasm.utils import Configuration
 from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import Configuration, bcolors
+from z3 import sat
 
 div_operations = {'bvsdiv', 'bvudic', 'bvsrem', 'bvurem', 'fp.div'}
 
@@ -24,7 +23,7 @@ class DivZeroLaser:
 
     def fire(self, expr, original_constraints):
         # two operands
-        op1, op2 = expr.arg(0), expr.arg(1)
+        _, op2 = expr.arg(0), expr.arg(1)
         # copy the original_constraints
         new_cond = deepcopy(original_constraints)
         # indicate if div zero vulnerability

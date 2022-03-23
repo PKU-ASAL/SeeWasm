@@ -1,10 +1,11 @@
 # Implement an buffer overflow detector
 
-from z3 import *
 import logging
 
+from eunomia.arch.wasm.dwarfParser import (decode_var_type,
+                                            get_func_index_from_state,
+                                            get_source_location_string)
 from eunomia.arch.wasm.utils import bcolors
-from eunomia.arch.wasm.dawrf_parser import decode_var_type, decode_vararg, get_func_index_from_state, get_source_location_string
 
 
 class BufferOverflowLaser:
@@ -16,7 +17,8 @@ class BufferOverflowLaser:
 
         # the destination's type (should be array) and its corresponding size
         # TODO better approach than using global stack pointer
-        _, var_size = decode_var_type(analyzer, state, dest, use_global_sp=True)
+        _, var_size = decode_var_type(
+            analyzer, state, dest, use_global_sp=True)
         if var_size is None:
             logging.warning(
                 f"{bcolors.WARNING}unable to decode variable type for address {hex(dest)}{bcolors.ENDC}")

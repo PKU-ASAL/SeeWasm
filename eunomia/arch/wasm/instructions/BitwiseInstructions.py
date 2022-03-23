@@ -1,8 +1,10 @@
 # emulate the bitwise related instructions
 
-from .. exceptions import *
-from z3 import *
 import logging
+
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from z3 import (BitVec, BitVecVal, LShR, RotateLeft, RotateRight, is_bool,
+                is_bv, is_false, is_true, simplify)
 
 helper_map = {
     'i32': 32,

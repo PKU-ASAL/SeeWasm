@@ -16,7 +16,7 @@ def bytecode_to_bytes(bytecode):
             # last chance
             try:
                 bytecode = unhexlify(bytecode)
-            except:
+            except Exception:
                 pass
     # already bytes or bytearray
     except TypeError:
@@ -25,4 +25,8 @@ def bytecode_to_bytes(bytecode):
 
 
 def search_in_list_of_dict(string_to_search, target_list, key_dict):
-    return list(filter(lambda elem: str(string_to_search) in str(elem[key_dict]), target_list))
+    return list(
+        filter(
+            lambda elem: str(string_to_search) in str(
+                elem[key_dict]),
+            target_list))

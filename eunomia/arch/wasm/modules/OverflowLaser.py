@@ -1,12 +1,12 @@
 # Implement an integer overflow detector
 
-from z3 import *
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.utils import bcolors
-from eunomia.arch.wasm.utils import Configuration
 from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import Configuration, bcolors
+from z3 import (BitVecNumRef, BVAddNoOverflow, BVMulNoOverflow,
+                BVSubNoUnderflow, Not, sat)
 
 overflow_group = {'bvadd', 'bvmul', 'bvsub'}
 

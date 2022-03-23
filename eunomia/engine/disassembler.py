@@ -61,13 +61,3 @@ class Disassembler(object):
             return '\n'.join(map(str, self.instructions))
         elif r_format == 'reverse':
             return self.reverse_instructions
-
-    def disassemble_contract(self, contract):
-        """ Generic method to disassemble a Contract """
-
-        # reinitialize class variable
-        self.attributes_reset()
-        # update class bytecode
-        self.bytecode = contract.bytecode
-
-        self.disassemble(self.bytecode)

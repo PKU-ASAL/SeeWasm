@@ -3,7 +3,10 @@
 # * https://webassembly.github.io/spec/core/binary/instructions.html
 # * https://github.com/athre0z/wasm/blob/master/wasm/opcodes.py
 
-from wasm.immtypes import *
+from wasm.immtypes import (BlockImm, BranchImm, BranchTableImm, CallImm,
+                           CallIndirectImm, CurGrowMemImm, F32ConstImm,
+                           F64ConstImm, GlobalVarXsImm, I32ConstImm,
+                           I64ConstImm, LocalVarXsImm, MemoryImm)
 
 _groups = {0x00: 'Control',
            0x1A: 'Parametric',

@@ -2,11 +2,10 @@
 # Can refer the corresponding description in EOSAFE
 # only export lookup_symbolic_memory_data_section and insert_symbolic_memory
 
-from z3 import *
-
-from eunomia.arch.wasm.utils import Configuration
 from eunomia.arch.wasm.solver import SMTSolver
-
+from eunomia.arch.wasm.utils import Configuration
+from z3 import (BitVec, BitVecRef, BitVecVal, Concat, Extract, If, is_bv,
+                is_bv_value, sat, simplify)
 
 # GUIDANCE:
 # existed:          [____fixed____]                     is_overlapped
@@ -25,7 +24,8 @@ from eunomia.arch.wasm.solver import SMTSolver
 # case 13:          |             |        [______]         False
 
 
-def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, length):
+def lookup_symbolic_memory_data_section(
+        symbolic_memory, data_section, dest, length):
     """
     This funciton is used to determine if the dest existed in data section
     or symbolic memory, and retrieve it from corresponding area
@@ -34,7 +34,8 @@ def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, len
     # 1. assume the loaded value is in memory instead of data section
     # 2. the returned value is packed by `ite` from z3
     if is_bv(dest) and not is_bv_value(dest):
-        return _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length)
+        return _lookup_symbolic_memory_with_symbol(
+            symbolic_memory, dest, length)
 
     # in data section?
     in_symbolic_memory, is_overlapped, _, _ = _lookup_overlapped_interval(
@@ -42,7 +43,7 @@ def lookup_symbolic_memory_data_section(symbolic_memory, data_section, dest, len
 
     # if there is no overlapped exiting interval
     if not is_overlapped:
-        return BitVecVal(0, 8*length)
+        return BitVecVal(0, 8 * length)
 
     if not in_symbolic_memory:
         return _lookup_data_section(data_section, dest, length)
@@ -74,7 +75,8 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
         s2.add(chosen_num < higher_bound)
         if sat == s1.check() and sat == s2.check():
             # start to construct ite
-            return _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length)
+            return _construct_ite(
+                symbolic_memory, lower_bound, higher_bound, dest, length)
 
     print('here')
     exit()
@@ -94,8 +96,12 @@ def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
     s = SMTSolver(Configuration.get_solver())
     s.add(lower_bound + length > higher_bound)
     if sat == s.check():
-        return BitVec('no_such_memory', 8*length)
-    return If(dest == lower_bound, _lookup_symbolic_memory(symbolic_memory, lower_bound, length), _construct_ite(symbolic_memory, lower_bound+length, higher_bound, dest, length))
+        return BitVec('no_such_memory', 8 * length)
+    return If(
+        dest == lower_bound,
+        _lookup_symbolic_memory(symbolic_memory, lower_bound, length),
+        _construct_ite(
+            symbolic_memory, lower_bound + length, higher_bound, dest, length))
 
 
 def _lookup_data_section(data_section, dest, length):
@@ -110,8 +116,10 @@ def _lookup_data_section(data_section, dest, length):
         existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
 
-    data_section_bitvec = BitVecVal(int.from_bytes(data_section[(
-        existed_start, existed_end)], 'little'), len(data_section[(existed_start, existed_end)])*8)
+    data_section_bitvec = BitVecVal(
+        int.from_bytes(data_section[(existed_start, existed_end)],
+                       'little'),
+        len(data_section[(existed_start, existed_end)]) * 8)
     data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
     return data
 
@@ -185,8 +193,8 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
 
         # step 2:
         # insert the sub-intervals of the incoming interval that were not marked in `used_sub_intervals` into the memory
-        used_sub_intervals.append([dest-1, dest])
-        used_sub_intervals.append([dest+length, dest+length+1])
+        used_sub_intervals.append([dest - 1, dest])
+        used_sub_intervals.append([dest + length, dest + length + 1])
         used_sub_intervals.sort(key=lambda a: a[0])
         free_intervals = []
         for i in range(1, len(used_sub_intervals)):

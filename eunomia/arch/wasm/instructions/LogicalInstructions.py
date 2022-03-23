@@ -1,10 +1,9 @@
 # emulate the logical related instructions
 
-from eunomia.arch.wasm.exceptions import *
-from eunomia.arch.wasm.utils import Enable_Lasers, Configuration
-
-from z3 import *
-from collections import defaultdict
+from eunomia.arch.wasm.exceptions import UnsupportInstructionError
+from eunomia.arch.wasm.utils import Configuration, Enable_Lasers
+from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
+                fpLT, fpNEQ, is_bool, is_bv, is_bv_value, simplify)
 
 helper_map = {
     'i32': 32,
@@ -82,7 +81,8 @@ class LogicalInstructions:
                         sign_mapping[op.hash()] = sign_mapping.get(
                             op.hash(), 0) | 1
 
-                if overflow_check_flag and ('_u' in self.instr_name or '_s' in self.instr_name):
+                if overflow_check_flag and (
+                        '_u' in self.instr_name or '_s' in self.instr_name):
                     speculate_sign(arg1, self.instr_name, state.sign_mapping)
                     speculate_sign(arg2, self.instr_name, state.sign_mapping)
 

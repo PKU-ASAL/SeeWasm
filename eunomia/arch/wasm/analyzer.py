@@ -7,29 +7,21 @@ import json
 import os
 from logging import getLogger
 
-from wasm import (format_instruction, format_lang_type,
-                  format_mutability, decode_module, SEC_UNK, SEC_CODE)
-from wasm.modtypes import (TypeSection,
-                           ImportSection,
-                           FunctionSection,
-                           TableSection,
-                           MemorySection,
-                           GlobalSection,
-                           ExportSection,
-                           StartSection,
-                           ElementSection,
-                           CodeSection,
-                           DataSection)
-from elftools.dwarf.dwarfinfo import DWARFInfo, DwarfConfig, DebugSectionDescriptor
-
-from eunomia.arch.wasm.constant import LANG_TYPE, KIND_TYPE
+from elftools.dwarf.dwarfinfo import (DebugSectionDescriptor, DwarfConfig,
+                                      DWARFInfo)
+from eunomia.arch.wasm.constant import KIND_TYPE, LANG_TYPE
+from eunomia.arch.wasm.dwarfParser import dwarf_section_names
 from eunomia.arch.wasm.decode import decode_module
-from eunomia.arch.wasm.format import (format_kind_function,
-                                      format_kind_table,
-                                      format_kind_memory,
-                                      format_kind_global)
+from eunomia.arch.wasm.format import (format_kind_function, format_kind_global,
+                                      format_kind_memory, format_kind_table)
 from eunomia.core.utils import bytecode_to_bytes
-from eunomia.arch.wasm.dawrf_parser import dwarf_section_names
+
+from wasm import (SEC_CODE, SEC_UNK, decode_module, format_instruction,
+                  format_lang_type, format_mutability)
+from wasm.modtypes import (CodeSection, DataSection, ElementSection,
+                           ExportSection, FunctionSection, GlobalSection,
+                           ImportSection, MemorySection, StartSection,
+                           TableSection, TypeSection)
 
 logging = getLogger(__name__)
 
@@ -514,7 +506,7 @@ class WasmModuleAnalyzer(object):
                     data[name] = DebugSectionDescriptor(
                         stream=stream,
                         name=name,
-                        global_offset=offset+payload_header_size,
+                        global_offset=offset + payload_header_size,
                         size=len(payload_data),
                         address=0)  # not within address space
             elif cur_sec_data.id == SEC_CODE:
