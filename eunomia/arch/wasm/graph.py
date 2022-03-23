@@ -522,8 +522,13 @@ class Graph:
 
     @classmethod
     def algo_interval(cls, entry, state, has_ret, blks):
+        """
+        Traverse the CFG according to intervals.
+        See our paper for more details
+        """
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        # a mapping from a node to its corresponding interval's head
         heads = {v: head for head in intervals for v in intervals[head]}
         # TODO do we need to keep function `extract_edges`? @zzhzz
         # cls.extract_edges(entry)
@@ -534,6 +539,12 @@ class Graph:
 
     @classmethod
     def intervals_gen(cls, blk, blk_lis, revg, g):
+        """
+        Generate intervals according to paper: Frances E Allen. 1970. Control flow analysis
+
+        Return:
+            intervals, a mapping, from each interval's head to the interval's composed nodes
+        """
         intervals = {}
         nodes = set(blk_lis)
         que = deque([blk])
@@ -564,7 +575,11 @@ class Graph:
     @classmethod
     def visit_interval(
             cls, states, has_ret, blk, heads, guided=False, prev=None):
-        '''`blk` is the head of an interval'''
+        """
+        Performing interval traversal, see our paper for more details
+
+        Note: `blk` is the head of an interval
+        """
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
         lvar = defaultdict(lambda: defaultdict(
@@ -580,14 +595,13 @@ class Graph:
         def consumer(item):
             score, (state, current_block, cur_head, vis, lvar) = item
             succs_list = cls.bbs_graph[current_block].items()
-            flag = False
-            # two intervals, use DFS to traverse between intervals
-            # logging.warning(f'into {current_block}')
+            halt_flag = False
+            # adopt DFS to traverse two intervals
             _, emul_states = cls.wasmVM.emulate_basic_block(
                 state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
-                flag = lvar[cur_head]['checker_halt']
-                return flag, emul_states
+                halt_flag = lvar[cur_head]['checker_halt']
+                return halt_flag, emul_states
             avail_br = {}
             for edge_type, next_block in succs_list:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
@@ -595,6 +609,7 @@ class Graph:
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
+                # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
                 print(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
                 if len(avail_br) == 1:
@@ -611,27 +626,14 @@ class Graph:
                     br_idx = ask_user_input(
                         emul_states, isbr=True, branches=avail_br)
                 emul_states = avail_br[br_idx]
-                print(
-                    f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-                if len(emul_states) == 1:
-                    print(
-                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    state_index = ask_user_input(
-                        emul_states, isbr=False, onlyone=True)
-                else:
-                    print(
-                        f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-                    print(
-                        f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-                    state_index = ask_user_input(
-                        emul_states, isbr=False)  # 0 for state, is a flag
-                emul_state_item = emul_states[state_index]
-                avail_br = {br_idx: [emul_state_item]}
+
+                emul_states = state_choose_info(emul_states)
+                avail_br = {br_idx: emul_states}
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
                 new_head = heads[next_block]
-                for stat in valid_state:
+                for valid_state_item in valid_state:
                     local_new_lvar = copy.deepcopy(lvar)
                     local_new_lvar[cur_head] = cls.aes_run_local(
                         local_new_lvar[cur_head], next_block)
@@ -646,16 +648,19 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put(
-                            (new_score, ([stat], next_block, new_head, new_vis, local_new_lvar)))
+                        que.put((new_score,
+                                 ([valid_state_item],
+                                  next_block, new_head, new_vis,
+                                  local_new_lvar)))
                     else:
                         que.put(
-                            (new_score, ([stat], next_block, cur_head, vis, local_new_lvar)))
-            return flag, []
+                            (new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+            return halt_flag, []
+
         for item in producer():
-            f, emul_states = consumer(item)
+            halt_flag, emul_states = consumer(item)
             final_states['return'].extend(emul_states)
-            if f:
+            if halt_flag:
                 break
         return final_states
 
@@ -667,6 +672,9 @@ class Graph:
 
     @classmethod
     def can_cut(cls, edge_type, state, lvar):
+        """
+        The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
+        """
         if isinstance(state, dict):
             state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
                 'conditional_') else state

@@ -207,8 +207,6 @@ def branch_choose_info(avail_br, branches, emul_state_item, emul_states):
 
 def ask_user_input(
         emul_states, isbr, onlyone=False, branches=None, state_item=None):
-    # the flag can be 0 or 1,
-    # 0 means state, 1 means branch
     # `concerned_variable` is state_index or branch, depends on the flag value
     branch_mapping = {
         'T': 'conditional_true',
