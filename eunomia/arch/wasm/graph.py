@@ -422,10 +422,12 @@ class Graph:
         """
         Traverse the CFG according to DFS order
         """
-        vis = defaultdict(int)
         circles = set()
-        cls.calc_circle(entry, vis, circles)
-        # TODO recheck if this re-initialize of vis is correct, @zzhzz
+        # calculate circle in this function, and update the outside `circles`
+        # TODO, I think this is ugly, we should use circles = cls.calc_circle() instead @zzhzz
+        cls.calc_circle(entry, defaultdict(int), circles)
+
+        # initialize the vis
         vis = defaultdict(int)
         final_states = cls.visit(
             [state], has_ret, entry, vis, circles, cls.manual_guide)

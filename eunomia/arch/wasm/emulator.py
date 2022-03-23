@@ -153,8 +153,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 else:
                     next_states.append(copy.deepcopy(state))
             states = next_states
-        # TODO I think the halt can be removed.
-        # Because I found all of them are False through our program @zzhzz
         return states
 
     def emulate_one_instruction(
