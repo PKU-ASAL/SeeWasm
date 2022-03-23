@@ -142,12 +142,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             has_ret (list(bool)): Whether the functions in calling stack returns;
             instructions (list(Instruction)): A list of instruction objects
         """
-        halt = False
         for instruction in instructions:
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
-                halt, ret = self.emulate_one_instruction(
+                ret = self.emulate_one_instruction(
                     instruction, state, 0, has_ret, 0)
                 if ret is not None:
                     next_states.extend(ret)
@@ -156,7 +155,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         # TODO I think the halt can be removed.
         # Because I found all of them are False through our program @zzhzz
-        return halt, states
+        return states
 
     def emulate_one_instruction(
             self, instr, state, depth, has_ret, call_depth):
@@ -191,7 +190,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':
-            return instr_obj.emulate(state, self.data_section), None
+            instr_obj.emulate(state, self.data_section)
+            return None
         elif instr.group == 'Control':
             return instr_obj.emulate(
                 state, has_ret, self.ana.func_prototypes, self.
@@ -200,7 +200,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             return instr_obj.emulate(state, depth, has_ret, call_depth)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
             instr_obj.emulate(state, self.ana)
-            return False, None
+            return None
         else:
             instr_obj.emulate(state)
-            return False, None
+            return None

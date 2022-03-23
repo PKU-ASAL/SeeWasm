@@ -178,7 +178,7 @@ class Graph:
             bbs = cfg.basicblocks
             for bb in bbs:
                 for instr in bb.instructions:
-                    if instr.name == 'call': # aes rules will be regarded as instrumented function calls
+                    if instr.name == 'call':  # aes rules will be regarded as instrumented function calls
                         instr_operand = instr.operand_interpretation.split(' ')[
                             1]
                         try:
@@ -198,7 +198,8 @@ class Graph:
                             else:
                                 # meaning imported function
                                 readable_name = func_name
-                        if len(readable_name.split('$')) == 2: # aes function's name is generated in "name$index" format.
+                        # aes function's name is generated in "name$index" format.
+                        if len(readable_name.split('$')) == 2:
                             cls.aes_func[bb.name].add(readable_name)
 
         cfg = cls.wasmVM.cfg
@@ -470,7 +471,7 @@ class Graph:
             branches = cls.bbs_graph[blk]
 
         # emulate the given block, and obtain the final states
-        _, emul_states = cls.wasmVM.emulate_basic_block(
+        emul_states = cls.wasmVM.emulate_basic_block(
             states, has_ret, cls.bb_to_instructions[blk])
         if guided:
             emul_states = state_choose_info(emul_states)
@@ -597,7 +598,7 @@ class Graph:
             succs_list = cls.bbs_graph[current_block].items()
             halt_flag = False
             # adopt DFS to traverse two intervals
-            _, emul_states = cls.wasmVM.emulate_basic_block(
+            emul_states = cls.wasmVM.emulate_basic_block(
                 state, has_ret, cls.bb_to_instructions[current_block])
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
