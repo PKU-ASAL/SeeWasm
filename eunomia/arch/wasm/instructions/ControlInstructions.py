@@ -112,7 +112,7 @@ class ControlInstructions:
             if internal_function_name.startswith('$'):
                 try:
                     readable_name = func_index2func_name[int(
-                        re.search(r'(\d+)', internal_function_name).group())]
+                        re.search('(\d+)', internal_function_name).group())]
                 except AttributeError:
                     # if the internal_function_name is the readable name already
                     readable_name = internal_function_name
@@ -220,9 +220,9 @@ class ControlInstructions:
             self, state, has_ret, func_prototypes, func_index2func_name,
             data_section, analyzer):
         if self.instr_name in self.skip_command:
-            return False, None
+            return None
         if self.instr_name in self.term_command:
-            return False, None
+            return None
 
         if self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
@@ -235,7 +235,7 @@ class ControlInstructions:
             states['conditional_true_0'].constraints.append(op)
             states['conditional_false_0'].constraints.append(simplify(Not(op)))
 
-            return False, [states]
+            return [states]
         elif self.instr_name == 'if':
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
@@ -247,7 +247,7 @@ class ControlInstructions:
             states['conditional_true_0'].constraints.append(cond)
             states['conditional_false_0'].constraints.append(
                 simplify(Not(cond)))
-            return False, [states]
+            return [states]
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
             # this instruction will pop an element out of the stack, and use this as an index in the table, i.e., elem section in Wasm module, to dynamically determine which fucntion will be invoked
@@ -284,7 +284,7 @@ class ControlInstructions:
                 # try each of them, like what you do after line 167
             if len(states) == 0:
                 print('abc')
-            return False, states
+            return states
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()
@@ -308,7 +308,7 @@ class ControlInstructions:
             cond = simplify(op >= n_br)
             false_state.constraints.append(cond)
             states['conditional_false_0'] = false_state
-            return False, [states]
+            return [states]
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
             # get the callee's function signature
@@ -317,7 +317,7 @@ class ControlInstructions:
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
-            return False, self.deal_with_call(
+            return self.deal_with_call(
                 state, f_offset, has_ret, func_prototypes,
                 func_index2func_name, data_section, analyzer)
         else:

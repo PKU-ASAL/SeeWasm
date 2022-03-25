@@ -623,7 +623,7 @@ class GoPredefinedFunction:
                     arguments.insert(0, BitVecVal(alloc_size, 32))
                     for a in arguments:
                         state.symbolic_stack.append(a)
-                    halt, new_states = Graph.wasmVM.emulate_one_instruction(
+                    new_states = Graph.wasmVM.emulate_one_instruction(
                         inst_call, state, 0, [True], 0)
                     assert len(new_states) == 1
                     # assign state to new state? TODO

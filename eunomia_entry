@@ -161,7 +161,7 @@ def main():
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
-        Graph.extract_basic_blocks()
+        Graph.initialize()
         Graph.parse_dsl(user_dsl)
         if args.onlyfunc:
             graph = Graph(args.onlyfunc)
