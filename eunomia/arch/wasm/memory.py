@@ -116,11 +116,15 @@ def _lookup_data_section(data_section, dest, length):
         existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
 
-    data_section_bitvec = BitVecVal(
-        int.from_bytes(data_section[(existed_start, existed_end)],
-                       'little'),
-        len(data_section[(existed_start, existed_end)]) * 8)
-    data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
+    # data_section_bitvec = BitVecVal(
+    #     int.from_bytes(data_section[(existed_start, existed_end)],
+    #                    'little'),
+    #     len(data_section[(existed_start, existed_end)]) * 8)
+    # data = simplify(Extract(high * 8 - 1, low * 8, data_section_bitvec))
+    bytes = data_section[(existed_start, existed_end)][low:high]
+    data_section_bitvec = BitVecVal(int.from_bytes(bytes, 'little'), len(bytes) * 8)
+    data = simplify(Extract((high-low)*8-1, 0, data_section_bitvec))
+
     return data
 
 
