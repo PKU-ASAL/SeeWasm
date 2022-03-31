@@ -91,6 +91,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     func_index = index
                     break
 
+        # if func_index is still None, it means it may be an export function
+        # try another way
+        if func_index is None:
+            for index, item in enumerate(self.ana.func_prototypes):
+                if item[0] == func_name:
+                    func_index = index
+
         assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
         func_info = self.ana.func_prototypes[func_index]
         param_str, return_str = func_info[1], func_info[2]
