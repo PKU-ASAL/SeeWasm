@@ -126,7 +126,7 @@ class CPredefinedFunction:
             parsed_pattern = parse_printf_formatting(pattern)
 
             i = 0
-            print('pattern: ', parsed_pattern)
+            # print('pattern: ', parsed_pattern)
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
                 middle_p = lookup_symbolic_memory_data_section(
