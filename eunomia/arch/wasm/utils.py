@@ -158,9 +158,13 @@ def extract_mapping(file_path):
             mapper[i] = func_name[2:-2]
 
     # replace name used in export, like the way done in the extraction of func_prototypes
-    export_matches = re.findall('(\(export \"(.*)\" \(func \$(.*)\)\))', text)
+    export_matches = re.findall('(\(export \"(.*)\" \(func (.*)\)\))', text)
     for matched_groups in export_matches:
         target_func_name, original_func_name = matched_groups[1], matched_groups[2]
+        # starts with $ means a string, remove it
+        if original_func_name[0] == '$':
+            original_func_name = original_func_name[1:]
+
         if target_func_name == original_func_name:
             continue
         else:

@@ -387,7 +387,6 @@ class Graph:
         Returns:
             list(VMstate): A list of states
         """
-        func = cls.wasmVM.get_wasm_func_name(func)
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
             state, has_ret = cls.wasmVM.init_state(
