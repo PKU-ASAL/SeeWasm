@@ -63,24 +63,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
 
-    def get_wasm_func_name(self, func_name):
-        # translate the readable name to the internal name
-
-        # if the func_name is the internal name
-        for item in self.ana.func_prototypes:
-            if item[0] == func_name:
-                return func_name
-
-        func_index = None
-        for index, wat_func_name in self.func_index2func_name.items():
-            if wat_func_name == func_name:
-                func_index = index
-                break
-        # sometimes cannot find name specified by `--onlyfunc`
-        assert func_index is not None, "Unable to find function " + func_name
-        return '$func' + str(func_index)
-
     def get_signature(self, func_name):
+        """
+        Obtain function's signature from func_prototypes
+        """
         # extract param and return str
         func_index = None
         if func_name[0] == '$':

@@ -3,10 +3,13 @@ import re
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
+from matplotlib.animation import FuncAnimation
+
 from eunomia.arch.wasm.exceptions import DSLParseError
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
-                                     branch_choose_info, state_choose_info)
+from eunomia.arch.wasm.utils import (
+    Configuration, ask_user_input, bcolors, branch_choose_info,
+    state_choose_info, readable_internal_func_name)
 from z3 import sat, unsat
 
 
@@ -187,17 +190,8 @@ class Graph:
                             func_offset = int(instr_operand, 16)
                         target_func = cls.wasmVM.ana.func_prototypes[func_offset]
                         func_name, _, _, _ = target_func
-                        if cls.wasmVM.func_index2func_name is not None:
-                            if func_name.startswith('$'):
-                                try:
-                                    readable_name = cls.wasmVM.func_index2func_name[int(
-                                        re.search('(\d+)', func_name).group())]
-                                except AttributeError:
-                                    # the func_name is the readable name already
-                                    readable_name = func_name
-                            else:
-                                # meaning imported function
-                                readable_name = func_name
+                        readable_name = readable_internal_func_name(
+                            cls.wasmVM.func_index2func_name, func_name)
                         # aes function's name is generated in "name$index" format.
                         if len(readable_name.split('$')) == 2:
                             cls.aes_func[bb.name].add(readable_name)
@@ -393,7 +387,6 @@ class Graph:
         Returns:
             list(VMstate): A list of states
         """
-        func = cls.wasmVM.get_wasm_func_name(func)
         param_str, return_str = cls.wasmVM.get_signature(func)
         if state is None:
             state, has_ret = cls.wasmVM.init_state(

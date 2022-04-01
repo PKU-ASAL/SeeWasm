@@ -107,12 +107,34 @@ def getConcreteBitVec(type, name):
     else:
         raise UnsupportZ3TypeError
 
-# 该函数用于抽取 C 通过 -g3 等级编译得到的 wat 文件中的对应的 function index 和 function 名称之间的关系
-# This script will maintain a *map* structure, consisting of the function index and the corresponding
-# function name that obtained from the compiler from C to Wasm with -g3 debuggability
+
+def readable_internal_func_name(func_index2func_name, internal_func_name):
+    """
+    Convert the internal name to a more readable one with the help of func_index2func_name
+    """
+    if func_index2func_name is None:
+        return internal_func_name
+
+    if not internal_func_name.startswith('$'):
+        return internal_func_name
+
+    readable_name = None
+    try:
+        readable_name = func_index2func_name[int(
+            re.search('(\d+)', internal_func_name).group())]
+    except AttributeError:
+        # if the internal_function_name is the readable name already
+        readable_name = internal_func_name
+    assert readable_name is not None, f"the internal funciton {internal_func_name} cannot find its corresponding readable name"
+    return readable_name
 
 
 def extract_mapping(file_path):
+    """
+    该函数用于抽取 C 通过 -g3 等级编译得到的 wat 文件中的对应的 function index 和 function 名称之间的关系
+    This script will maintain a *map* structure, consisting of the function index and the corresponding
+    function name that obtained from the compiler from C to Wasm with -g3 debuggability
+    """
     with open(file_path) as fp:
         text = fp.read()
 
@@ -127,6 +149,29 @@ def extract_mapping(file_path):
         if len(matched_groups[2]) != 0:
             func_name = matched_groups[2]
         mapper[i] = func_name if func_name[0] != '$' else func_name[1:]
+
+    # if the wat file is compiled from -g3, the function name
+    # will be wrapped by a pair of parenthesis and semicolon.
+    # remove them
+    for i, func_name in mapper.items():
+        if func_name.startswith('(;') and func_name.endswith(';)'):
+            mapper[i] = func_name[2:-2]
+
+    # replace name used in export, like the way done in the extraction of func_prototypes
+    export_matches = re.findall('(\(export \"(.*)\" \(func (.*)\)\))', text)
+    for matched_groups in export_matches:
+        target_func_name, original_func_name = matched_groups[1], matched_groups[2]
+        # starts with $ means a string, remove it
+        if original_func_name[0] == '$':
+            original_func_name = original_func_name[1:]
+
+        if target_func_name == original_func_name:
+            continue
+        else:
+            for k, v in mapper.items():
+                if v == original_func_name:
+                    mapper[k] = target_func_name
+                    break
 
     return mapper
 
