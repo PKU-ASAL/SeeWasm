@@ -12,7 +12,7 @@ from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
                                                  GoPredefinedFunction,
                                                  ImportFunction, WASIFunction)
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
+from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec, readable_internal_func_name
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
@@ -107,18 +107,8 @@ class ControlInstructions:
         target_func = func_prototypes[f_offset]
         internal_function_name, param_str, return_str, _ = target_func
 
-        # find a more readable name, need `--need-mapper` flag
-        if func_index2func_name is not None:
-            if internal_function_name.startswith('$'):
-                try:
-                    readable_name = func_index2func_name[int(
-                        re.search('(\d+)', internal_function_name).group())]
-                except AttributeError:
-                    # if the internal_function_name is the readable name already
-                    readable_name = internal_function_name
-            else:
-                # meaning imported function
-                readable_name = internal_function_name
+        readable_name = readable_internal_func_name(
+            func_index2func_name, internal_function_name)
 
         new_states = []
         # if the callee is imported by env
@@ -163,7 +153,7 @@ class ControlInstructions:
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.warning(
-                f"From {state.current_func_name} Invoked: {readable_name}")
+                f"From: {readable_internal_func_name(func_index2func_name, state.current_func_name)}, invoke: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(

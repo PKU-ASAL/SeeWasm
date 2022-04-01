@@ -64,7 +64,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.func_index2func_name = func_index2func_name
 
     def get_wasm_func_name(self, func_name):
-        # translate the readable name to the internal name
+        """
+        translate the readable name to the internal name
+        """
 
         # if the func_name is the internal name
         for item in self.ana.func_prototypes:
