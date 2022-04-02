@@ -20,10 +20,10 @@ python3 -m pip install -r requirements.txt
 You can test if all of them are installed successfully by:
 
 ```shell
-python3 test.py
+python3 test.py e
 ```
 
-This command will traverse the `Wasm-samples/c_samples.nosync` folder and extract the Wasm files. If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several minutes**.
+This command will traverse the `Wasm-samples/c_samples.nosync/emcc` folder and extract the Wasm files. If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several minutes**. However, *during the developing stage, some exceptions may happen, please raise the issue for us*.
 
 ## Toolchain
 
