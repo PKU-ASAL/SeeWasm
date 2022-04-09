@@ -44,6 +44,10 @@ candidates.remove('cpu_svd')
 candidates.remove('df2cf_cp_l1')
 candidates.remove('pointers_sj_l1')
 
+# jumpover these samples in `bo` category
+candidates.remove('heap_bo_l1')
+candidates.remove('stack_bo_l2')
+
 candidates.sort()
 
 for case in candidates:

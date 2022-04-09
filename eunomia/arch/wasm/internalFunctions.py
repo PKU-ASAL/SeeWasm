@@ -13,9 +13,7 @@ from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from eunomia.arch.wasm.modules.BufferOverflowLaser import BufferOverflowLaser
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration,
-                                     Enable_Lasers, bcolors, bin_to_float,
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
                                      parse_printf_formatting)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,

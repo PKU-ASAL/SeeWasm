@@ -123,6 +123,7 @@ class ControlInstructions:
                 logging.warning(
                     f"Invoked a import function: {readable_name}")
             func.emul(state, param_str, return_str, data_section, analyzer)
+            logging.warning(f'End of a import function: {readable_name}')
         # if the callee is a library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
@@ -131,6 +132,7 @@ class ControlInstructions:
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
+            logging.warning(f'End of a C library function: {readable_name}')
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
             logging.warning(
@@ -138,6 +140,7 @@ class ControlInstructions:
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
+            logging.warning(f'End of a Go library function: {readable_name}')
             # terminate panic related functions. eg: runtime.divideByZeroPanic
             if readable_name in TERMINATED_FUNCS:
                 logging.warning(
@@ -201,7 +204,7 @@ class ControlInstructions:
                     new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
 
                 new_states.append(new_state)
-            logging.warning(f'End {readable_name}')
+            logging.warning(f'End of function: {readable_name}')
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
