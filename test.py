@@ -45,8 +45,13 @@ candidates.remove('df2cf_cp_l1')
 candidates.remove('pointers_sj_l1')
 
 # jumpover these samples in `bo` category
-candidates.remove('heap_bo_l1')
-candidates.remove('stack_bo_l2')
+candidates.remove('heap_bo_l1')  # dlfree problem
+candidates.remove('stack_bo_l2')    # no BOMB_ENDING return value
+
+# jumpover these samples in `sm` category
+candidates.remove('stackarray_sm_ln')  # timeout
+candidates.remove('list_sm')  # not support cpp
+candidates.remove('vector_sm')  # not support cpp
 
 candidates.sort()
 
