@@ -339,14 +339,6 @@ class WasmCFG(CFG):
             self.basicblocks += func.basicblocks
             self.edges += edges
 
-    def get_function(self, name=None, prefered_name=None):
-        if name:
-            return [x for x in self.functions if x.name == name][0]
-        elif prefered_name:
-            return [x for x in self.functions if x.prefered_name == prefered_name][0]
-        else:
-            raise Exception('name/prefered_name not found, please check again')
-
     def get_functions_call_edges(self, format_fname=False):
 
         nodes = list()

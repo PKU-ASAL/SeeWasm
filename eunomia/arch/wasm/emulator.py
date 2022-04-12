@@ -79,9 +79,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         assert func_index is not None, f"[!] Cannot find your entry function: {func_name}"
         func_info = self.ana.func_prototypes[func_index]
-        param_str, return_str = func_info[1], func_info[2]
+        func_index_name, param_str, return_str, func_type = *func_info,
 
-        return param_str, return_str
+        return func_index_name, param_str, return_str, func_type
 
     def init_globals(self, state, is_exported):
         for i, item in enumerate(self.ana.globals):

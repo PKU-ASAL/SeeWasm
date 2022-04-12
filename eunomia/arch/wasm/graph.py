@@ -387,14 +387,19 @@ class Graph:
         Returns:
             list(VMstate): A list of states
         """
-        param_str, return_str = cls.wasmVM.get_signature(func)
+        # func_index_name is like $func16
+        func_index_name, param_str, return_str, _ = cls.wasmVM.get_signature(
+            func)
+        if func not in cls.func_to_bbs:
+            func = func_index_name
+
         if state is None:
             state, has_ret = cls.wasmVM.init_state(
                 func, param_str, return_str, [])
 
         # switch the state from caller to callee
         caller_func_name = state.current_func_name
-        state.current_func_name = cls.wasmVM.cfg.get_function(func).name
+        state.current_func_name = func
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
