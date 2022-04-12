@@ -805,9 +805,10 @@ class WASIFunction:
             # due to previous pop operation, arguments are reversed
             params = [concrete_value(i) for i in param_list]
             fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
-            logging.warning(f"fd_write to fd: {fd}")
-            # currently only support stdout (also in wasm_exec.js)
-            assert fd == 1, 'invalid file descriptor:'
+            if fd == 2:
+                logging.warning(f"fd_write to stderr")
+            elif fd == 1:
+                logging.warning(f"fd_write to stdout")
 
             num = 0
             for i in range(iovcnt):
