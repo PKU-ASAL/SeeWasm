@@ -19,7 +19,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
-    'iprintf', 'log', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
+    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
     'system'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}

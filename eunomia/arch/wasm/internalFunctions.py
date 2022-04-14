@@ -323,8 +323,8 @@ class CPredefinedFunction:
             # append into stack
             state.symbolic_stack.append(the_number)
             manually_constructed = True
-        elif self.name == 'log':
-            pass
+        # elif self.name == 'log':
+        #     pass
         elif self.name == 'system':
             state.symbolic_stack.append(BitVec("cmd_system", 32))
             manually_constructed = True

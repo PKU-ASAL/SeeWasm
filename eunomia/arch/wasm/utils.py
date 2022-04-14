@@ -6,7 +6,7 @@ from codecs import decode
 from enum import Enum
 
 from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
-from z3 import FP, BitVec, Float32, Float64
+from z3 import FP, BitVec, Float32, Float64, is_bv_value, is_bv
 
 
 class Configuration:
@@ -357,3 +357,23 @@ def parse_printf_formatting(lines):
         for m in re.finditer(cfmt, line, flags=re.X):
             result.append([line_num, m.start(1), m.group(1)])
     return result
+
+
+def _extract_outermost_int(num):
+    """
+    This function is used to extract the outermost int for a symbol.
+    For example, if num is: a + 87, the function will return 87.
+    If num is: a + b, the function will return None.
+    """
+    the_int = None
+    if is_bv(num):
+        for i in range(num.num_args()):
+            if is_bv_value(num.arg(i)):
+                the_int = num.arg(i).as_long()
+                break
+    elif isinstance(num, int):
+        the_int = num
+    else:
+        exit(f"the type of num is {type(num)}, cannot extract the int args")
+
+    return the_int
