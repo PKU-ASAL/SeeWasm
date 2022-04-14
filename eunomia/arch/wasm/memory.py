@@ -78,16 +78,21 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
             s1.add(lower_bound_int <= chosen_num)
             s2.add(chosen_num < higher_bound_int)
             if sat == s1.check() and sat == s2.check():
+                # slice the dict
+                temp_symbolic_memory = {
+                    (lower_bound, higher_bound): symbolic_memory[(lower_bound, higher_bound)]}
                 # start to construct ite
                 return _construct_ite(
-                    symbolic_memory, lower_bound, higher_bound, dest, length)
+                    temp_symbolic_memory, lower_bound, higher_bound, dest,
+                    length, 0)
     else:
         # the heuristic does not work, try all the possible situations
         pass
     raise Exception('Encounter memory error')
 
 
-def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
+def _construct_ite(
+        symbolic_memory, lower_bound, higher_bound, dest, length, offset):
     """
     Recursively construct ite expression
 
@@ -97,17 +102,28 @@ def _construct_ite(symbolic_memory, lower_bound, higher_bound, dest, length):
         higher_bound (int): higher bound of interval
         dest (BitVecRef): from where the data would be loaded
         length (int): length of bytes that would be loaded
+        offset(int): the offset of how many bytes are shifted
     """
+    # used for extract
+    high = (length + offset) * 8 - 1
+    low = (offset) * 8
+    # print(f"offset: {offset}, length: {length}, high: {high}, low: {low}")
+
     s = SMTSolver(Configuration.get_solver())
-    s.add(lower_bound + length == higher_bound)
+    s.add((offset + length) == (higher_bound - lower_bound))
     if sat == s.check():
-        return _lookup_symbolic_memory(symbolic_memory, lower_bound, length)
-    return If(
-        dest == lower_bound,
-        _lookup_symbolic_memory(symbolic_memory, lower_bound, length),
-        _construct_ite(
-            symbolic_memory, lower_bound + 1,
-            higher_bound, dest, length))
+        tmp_result = simplify(Extract(
+            high, low, symbolic_memory[(lower_bound, higher_bound)]))
+        # return _lookup_symbolic_memory(symbolic_memory, lower_bound, length)
+    else:
+        tmp_result = If(
+            lower_bound + offset == dest,
+            Extract(
+                high, low, symbolic_memory[(lower_bound, higher_bound)]),
+            _construct_ite(
+                symbolic_memory, lower_bound,
+                higher_bound, dest, length, offset + 1))
+    return tmp_result
 
 
 def _lookup_data_section(data_section, dest, length):
