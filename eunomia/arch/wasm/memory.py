@@ -2,10 +2,13 @@
 # Can refer the corresponding description in EOSAFE
 # only export lookup_symbolic_memory_data_section and insert_symbolic_memory
 
+import logging
+from copy import deepcopy
+
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import Configuration, _extract_outermost_int
-from z3 import (BitVecVal, Concat, Extract, If,
-                is_bv, is_bv_value, sat, simplify)
+from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv,
+                is_bv_value, sat, simplify)
 
 # GUIDANCE:
 # existed:          [____fixed____]                     is_overlapped
@@ -85,10 +88,36 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                 return _construct_ite(
                     temp_symbolic_memory, lower_bound, higher_bound, dest,
                     length, 0)
-    else:
-        # the heuristic does not work, try all the possible situations
-        pass
-    raise Exception('Encounter memory error')
+
+    # the heuristic does not work, try all the possible situations.
+    # For example:
+    #   1. the concrete number is not limited by any interval
+    #   2. no concrete number at all
+    dup_symbolic_memory = deepcopy(symbolic_memory)
+    logging.warning(f"Encounter a symbolic pointer: {dest}")
+
+    def _big_construct_ite(symbolic_memory, dest, length):
+        """
+        Pop every item in symbolic memory to recursively construct all
+        valid intervals through If and Extract
+        """
+        try:
+            while True:
+                k, v = symbolic_memory.popitem()
+                if length <= (k[1] - k[0]):
+                    break
+        except KeyError:
+            return BitVec("invalid-memory", length * 8)
+
+        return If(And(k[0] <= dest, dest < k[1]),
+                  _construct_ite({k: v},
+                                 k[0],
+                                 k[1],
+                                 dest, length, 0),
+                  _big_construct_ite(symbolic_memory, dest, length))
+
+    tmp_result = _big_construct_ite(dup_symbolic_memory, dest, length)
+    return tmp_result
 
 
 def _construct_ite(
