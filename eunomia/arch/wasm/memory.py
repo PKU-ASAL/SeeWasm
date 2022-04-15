@@ -104,8 +104,16 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
         try:
             while True:
                 k, v = symbolic_memory.popitem()
-                if length <= (k[1] - k[0]):
-                    break
+                l, h = k[0], k[1]
+                if isinstance(l, int) and isinstance(h, int):
+                    if length <= (h - l):
+                        break
+                else:
+                    s = SMTSolver(Configuration.get_solver())
+                    s.add(length <= (h - l))
+                    if sat == s.check():
+                        break
+
         except KeyError:
             return BitVec("invalid-memory", length * 8)
 
