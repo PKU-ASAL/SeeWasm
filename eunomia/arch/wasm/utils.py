@@ -377,3 +377,11 @@ def _extract_outermost_int(num):
         exit(f"the type of num is {type(num)}, cannot extract the int args")
 
     return the_int
+
+
+def str_to_little_endian_int(string):
+    """
+    Convert the given string to an integer, little endian
+    For example, "abc" is 6513249
+    """
+    return int.from_bytes(str.encode(string), "little")

@@ -15,7 +15,8 @@ from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting)
+                                     parse_printf_formatting,
+                                     str_to_little_endian_int)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
                 BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If,
                 fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
@@ -720,6 +721,31 @@ class ImportFunction:
     def emul(self, state, param_str, return_str, data_section, analyzer):
         # if the return value is dependent on the library function, we will manually contruct it
         # and jump over the process in which it append a symbol according to the signature of the function
+        if self.name == 'args_sizes_get':
+            arg_buf_size_addr, argc_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, argc_addr, 4, BitVecVal(1, 32))
+            # the length of 'base64'
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, arg_buf_size_addr, 4,
+                BitVecVal(7, 32))
+
+            # append a 0 as return value
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'args_get':
+            arg_buf_addr, argv_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, arg_buf_addr, 7,
+                BitVecVal(str_to_little_endian_int('base64'), 56))
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, argv_addr, 4,
+                arg_buf_addr)
+
+            # append a 0 as return value
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+
         if return_str:
             tmp_bitvec = getConcreteBitVec(
                 return_str,
