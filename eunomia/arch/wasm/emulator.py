@@ -165,7 +165,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         logging.debug(
-            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + str(state))
+            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n'
+            + state.__str__(func_index2func_name=self.func_index2func_name))
 
         for c in state.constraints:
             if not isinstance(c, BoolRef):

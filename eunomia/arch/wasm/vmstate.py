@@ -3,6 +3,7 @@ import copy
 from collections import defaultdict
 
 from eunomia.engine.engine import VMstate
+from eunomia.arch.wasm.utils import readable_internal_func_name
 from z3 import BitVecVal
 
 STDIN_BYTES = b'123\n'
@@ -42,8 +43,8 @@ class WasmVMstate(VMstate):
         for c in self.constraints:
             state.constraints.append(copy.deepcopy(c).translate(ctx))
 
-    def __str__(self):
-        return f'''Current Func:\t{self.current_func_name}
+    def __str__(self, func_index2func_name=None):
+        return f'''Current Func:\t{readable_internal_func_name(func_index2func_name, self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}
