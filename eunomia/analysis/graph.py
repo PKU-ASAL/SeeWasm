@@ -11,15 +11,15 @@ def insert_edges_to_graph(graph, edges, call=False):
     # create link between block
     for edge in edges:
 
-        if edge.type == EDGE_UNCONDITIONAL:
+        if edge.type.startswith(EDGE_UNCONDITIONAL):
             graph.edge(edge.node_from, edge.node_to, color='blue')
-        elif edge.type == EDGE_CONDITIONAL_TRUE:
+        elif edge.type.startswith(EDGE_CONDITIONAL_TRUE):
             graph.edge(edge.node_from, edge.node_to, color='green')
-        elif edge.type == EDGE_CONDITIONAL_FALSE:
+        elif edge.type.startswith(EDGE_CONDITIONAL_FALSE):
             graph.edge(edge.node_from, edge.node_to, color='red')
-        elif edge.type == EDGE_FALLTHROUGH:
+        elif edge.type.startswith(EDGE_FALLTHROUGH):
             graph.edge(edge.node_from, edge.node_to, color='cyan')
-        elif edge.type == EDGE_CALL and call:
+        elif edge.type.startswith(EDGE_CALL) and call:
             graph.edge(edge.node_from, edge.node_to, color='yellow')
         else:
             raise Exception('Edge type unknown')

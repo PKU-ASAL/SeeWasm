@@ -8,6 +8,7 @@ from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.disassembler import WasmDisassembler
 from eunomia.arch.wasm.format import format_bb_name, format_func_name
+from eunomia.arch.wasm.utils import readable_internal_func_name
 from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
@@ -339,18 +340,16 @@ class WasmCFG(CFG):
             self.basicblocks += func.basicblocks
             self.edges += edges
 
-    def get_functions_call_edges(self, format_fname=False):
+    def get_functions_call_edges(self, analyzer, format_fname=False):
 
         nodes = list()
         edges = list()
 
-        if not self.analyzer:
-            self.analyzer = WasmModuleAnalyzer(self.module_bytecode)
         if not self.functions:
             self.functions = enum_func(self.module_bytecode)
 
         # create nodes
-        for name, param_str, return_str, _ in self.analyzer.func_prototypes:
+        for name, param_str, return_str, _ in analyzer.func_prototypes:
             if format_fname:
                 nodes.append(format_func_name(name, param_str, return_str))
             else:
@@ -360,18 +359,18 @@ class WasmCFG(CFG):
 
         # create edges
         tmp_edges = enum_func_call_edges(self.functions,
-                                         len(self.analyzer.imports_func))
+                                         len(analyzer.imports_func))
 
         # tmp_edges = [(node_from, node_to), (...), ...]
         for node_from, node_to in tmp_edges:
             # node_from
-            name, param, ret, _ = self.analyzer.func_prototypes[node_from]
+            name, param, ret, _ = analyzer.func_prototypes[node_from]
             if format_fname:
                 from_final = format_func_name(name, param, ret)
             else:
                 from_final = name
             # node_to
-            name, param, ret, _ = self.analyzer.func_prototypes[node_to]
+            name, param, ret, _ = analyzer.func_prototypes[node_to]
             to_final = format_func_name(name, param, ret)
             if format_fname:
                 to_final = format_func_name(name, param, ret)
@@ -401,14 +400,18 @@ class WasmCFG(CFG):
         else:
             graph.view(simplify=simplify, ssa=ssa)
 
-    def visualize_call_flow(self, filename="wasm_call_graph_octopus.gv",
+    def visualize_call_flow(self, func_index2func_name,
+                            filename="wasm_call_graph_octopus.gv",
                             format_fname=False):
         """Visualize the cfg call flow graph
         """
-        nodes, edges = self.get_functions_call_edges()
+        # init analyzer
+        analyzer = WasmModuleAnalyzer(self.module_bytecode)
+
+        nodes, edges = self.get_functions_call_edges(analyzer)
         if format_fname:
             nodes_longname, edges = self.get_functions_call_edges(
-                format_fname=True)
+                analyzer, format_fname=True)
 
         g = Digraph(filename, filename=filename)
         g.attr(rankdir='LR')
@@ -416,23 +419,24 @@ class WasmCFG(CFG):
         with g.subgraph(name='global') as c:
 
             export_list = [
-                p[0] for p in self.analyzer.func_prototypes
+                p[0] for p in analyzer.func_prototypes
                 if p[3] == 'export']
             import_list = [
-                p[0] for p in self.analyzer.func_prototypes
+                p[0] for p in analyzer.func_prototypes
                 if p[3] == 'import']
             call_indirect_list = enum_func_name_call_indirect(self.functions)
 
             try:
                 indirect_target = [
-                    self.analyzer.func_prototypes[index][0]
-                    for index in self.analyzer.elements[0].get('elems')]
+                    analyzer.func_prototypes[index][0]
+                    for index in analyzer.elements[0].get('elems')]
             except IndexError:
                 indirect_target = []
             # create all the graph nodes (function name)
             for idx, node in enumerate(nodes):
                 # name graph bubble
-                node_name = node
+                node_name = readable_internal_func_name(
+                    func_index2func_name, node)
                 if format_fname:
                     node_name = nodes_longname[idx]
 
@@ -474,7 +478,9 @@ class WasmCFG(CFG):
                 label = None
                 if count > 1:
                     label = str(count)
-                c.edge(edge.node_from, edge.node_to, label=label)
+                c.edge(readable_internal_func_name(
+                    func_index2func_name, edge.node_from), readable_internal_func_name(
+                    func_index2func_name, edge.node_to), label=label)
 
         g.render(filename, view=True)
 

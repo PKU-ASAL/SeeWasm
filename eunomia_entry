@@ -37,18 +37,18 @@ def main():
                         help='the adopted backend SMT-solver, z3 is default')
 
     features = parser.add_argument_group('Features')
-    features.add_argument('-v', '--verbose',
-                          action='store_true',
-                          help='switch the logging to debug level')
-    features.add_argument('-y', '--analytic',
-                          action='store_true',
-                          help='print Functions instructions analytics')
+    features.add_argument(
+        '-v', '--verbose', action='store_true',
+        help='switch the logging to debug level')
+    features.add_argument(
+        '-y', '--analytic', action='store_true',
+        help='print Functions instructions analytics')
     features.add_argument(
         '-g', '--cfg', action='store_true',
         help='generate the control flow graph (CFG) (instruction level)')
-    features.add_argument('-c', '--call',
-                          action='store_true',
-                          help='generate the call flow graph (function level)')
+    features.add_argument(
+        '-c', '--call', action='store_true',
+        help='generate the call flow graph (function level)')
     features.add_argument(
         '--need_mapper', action='store_true',
         help='generate a mapping from func index to func name')
@@ -72,10 +72,12 @@ def main():
     lasers.add_argument(
         '--overflow', action='store_true',
         help="fire the integer overflow vulnerability detector")
-    lasers.add_argument('--divzero', action='store_true',
-                        help="fire the div-zero vulnerability detector")
-    lasers.add_argument('--buffer', action='store_true',
-                        help="fire the buffer overflow vulnerability detector")
+    lasers.add_argument(
+        '--divzero', action='store_true',
+        help="fire the div-zero vulnerability detector")
+    lasers.add_argument(
+        '--buffer', action='store_true',
+        help="fire the buffer overflow vulnerability detector")
 
     analyze = parser.add_mutually_exclusive_group(required=False)
     analyze.add_argument(
@@ -100,15 +102,15 @@ def main():
     # the verbose
     Configuration.set_verbose_flag(args.verbose)
 
+    # func_index2func_name is the func index to real func name
+    # e.g., func 4 is $main, we have {4: '$main'}
+    # it should only be used in identifying readable name
+    if args.need_mapper:
+        wat_file_path = args.file.name.replace('.wasm', '.wat')
+        func_index2func_name = extract_mapping(wat_file_path)
+
     # process input file
     if args.file:
-        # func_index2func_name is the func index to real func name
-        # e.g., func 4 is $main, we have {4: '$main'}
-        # it should only be used in identifying readable name
-        if args.need_mapper:
-            wat_file_path = args.file.name.replace('.wasm', '.wat')
-            func_index2func_name = extract_mapping(wat_file_path)
-
         octo_bytecode = args.file.read()
 
     # if user pass the dsl file path
@@ -135,7 +137,7 @@ def main():
         octo_cfg = WasmCFG(octo_bytecode)
 
         if args.call:
-            octo_cfg.visualize_call_flow()
+            octo_cfg.visualize_call_flow(func_index2func_name)
         if args.analytic:
             octo_cfg.visualize_instrs_per_funcs()
 
