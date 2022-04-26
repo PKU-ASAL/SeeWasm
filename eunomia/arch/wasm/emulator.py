@@ -5,6 +5,8 @@ import copy
 import logging
 import re
 import sys
+from collections import defaultdict
+from datetime import datetime
 
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.cfg import WasmCFG
@@ -18,7 +20,8 @@ from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             MemoryInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
-from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec
+from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
+                                     readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.engine.emulator import EmulatorEngine
 from z3 import BitVec, BitVecVal, BoolRef
@@ -37,7 +40,7 @@ else:
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, func_index2func_name=None):
+    def __init__(self, bytecode, func_index2func_name=None, coverage=False):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
@@ -62,6 +65,16 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # func index to func real name
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
+
+        # the flag, if calculate the instruction coverage
+        self.coverage = coverage
+        # the data structure to store the instruction coverage info
+        self.instruction_coverage_bitmap = defaultdict(list)
+        # the coverage ratio
+        self.instruction_coverage = dict()
+
+        # the timestamp of the last output to terminal
+        self.last_timestamp = datetime.now()
 
     def get_signature(self, func_name):
         """
@@ -164,6 +177,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
+        # calculate instruction coverage
+        if self.coverage:
+            self.calculate_coverage(instr, readable_internal_func_name(
+                self.func_index2func_name, state.current_func_name))
+
         logging.debug(
             f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n'
             + state.__str__(func_index2func_name=self.func_index2func_name))
@@ -189,3 +207,29 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         else:
             instr_obj.emulate(state)
             return None
+
+    def calculate_coverage(self, instr, func_name):
+        if func_name not in self.instruction_coverage_bitmap:
+            for func in self.cfg.functions:
+                if readable_internal_func_name(
+                        self.func_index2func_name, func.name) == func_name:
+                    self.instruction_coverage_bitmap[func_name] = [
+                        False] * len(func.instructions)
+                    break
+        self.instruction_coverage_bitmap[func_name][instr.nature_offset] = True
+
+        # the ratio of coverage
+        self.instruction_coverage[func_name] = self.instruction_coverage_bitmap[func_name].count(
+            True) / len(self.instruction_coverage_bitmap[func_name])
+
+        current_timestamp = datetime.now()
+        if (current_timestamp - self.last_timestamp).total_seconds() > 3:
+            # output here
+            output_string = ["\n", "-------------------------------------\n"]
+            for k, v in self.instruction_coverage.items():
+                output_string.append(f"|{k:<30}\t{v:<.2f}|\n")
+            output_string.append("-------------------------------------\n\n")
+            sys.stdout.writelines(output_string)
+            sys.stdout.flush()
+
+            self.last_timestamp = current_timestamp

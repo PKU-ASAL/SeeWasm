@@ -13,10 +13,12 @@ class WasmInstruction(Instruction):
 
     def __init__(
             self, opcode, name, imm_struct, operand_size, insn_byte, pops,
-            pushes, description, operand_interpretation=None, offset=0):
+            pushes, description, operand_interpretation=None, offset=0,
+            nature_offset=0):
         """ TODO """
         self.opcode = opcode
         self.offset = offset
+        self.nature_offset = nature_offset
         self.name = name
         self.description = description
         self.operand_size = operand_size

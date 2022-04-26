@@ -20,7 +20,7 @@ class WasmDisassembler(Disassembler):
     def __init__(self, bytecode=None):
         Disassembler.__init__(self, asm=Wasm(), bytecode=bytecode)
 
-    def disassemble_opcode(self, bytecode=None, offset=0):
+    def disassemble_opcode(self, bytecode=None, offset=0, nature_offset=0):
         '''
         based on decode_bytecode()
         https://github.com/athre0z/wasm/blob/master/wasm/decode.py
@@ -50,11 +50,12 @@ class WasmDisassembler(Disassembler):
         instruction = WasmInstruction(
             opcode_id, name, imm_struct, operand_size, insn_byte, pops, pushes,
             description, operand_interpretation=operand_interpretation,
-            offset=offset)
+            offset=offset, nature_offset=nature_offset)
         # print('%d %s' % (offset, str(instruction)))
         return instruction
 
-    def disassemble(self, bytecode=None, offset=0, r_format='list'):
+    def disassemble(self, bytecode=None, offset=0, nature_offset=0,
+                    r_format='list'):
         """Disassemble WASM bytecode
 
         :param bytecode: bytecode sequence
@@ -86,7 +87,7 @@ class WasmDisassembler(Disassembler):
              5: <eunomia.arch.wasm.instruction.WasmInstruction at 0x7f802431fc18>}
         """
 
-        return super().disassemble(bytecode, offset, r_format)
+        return super().disassemble(bytecode, offset, nature_offset, r_format)
 
     def extract_functions_code(self, module_bytecode):
         functions = list()

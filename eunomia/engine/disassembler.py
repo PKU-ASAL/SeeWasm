@@ -24,7 +24,8 @@ class Disassembler(object):
         """ Generic method to disassemble one instruction """
         raise NotImplementedError
 
-    def disassemble(self, bytecode=None, offset=0, r_format='list'):
+    def disassemble(self, bytecode=None, offset=0, nature_offset=0,
+                    r_format='list'):
         """Generic method to disassemble bytecode
 
         :param bytecode: bytecode sequence
@@ -46,8 +47,11 @@ class Disassembler(object):
         self.bytecode = bytecode_to_bytes(self.bytecode)
 
         while offset < len(self.bytecode):
-            instr = self.disassemble_opcode(self.bytecode[offset:], offset)
+            instr = self.disassemble_opcode(
+                self.bytecode[offset:],
+                offset, nature_offset)
             offset += instr.size
+            nature_offset += 1
             self.instructions.append(instr)
 
         # fill reverse instructions

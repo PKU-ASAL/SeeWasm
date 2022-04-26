@@ -66,6 +66,9 @@ def main():
         '--stdin_file', type=argparse.FileType('rb'),
         help='file to be read adopts fd_read wasi syscall',
         metavar='STDIN_FILE')
+    features.add_argument(
+        '--coverage', action='store_true',
+        help='calculate the instruction coverage')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
@@ -160,7 +163,8 @@ def main():
         Configuration.set_solver(args.solver)
 
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, func_index2func_name=func_index2func_name)
+            octo_bytecode, func_index2func_name=func_index2func_name,
+            coverage=args.coverage)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide

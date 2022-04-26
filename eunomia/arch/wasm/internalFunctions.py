@@ -734,6 +734,8 @@ class ImportFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'args_get':
+            # this is not the complete version
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
             arg_buf_addr, argv_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, arg_buf_addr, 7,
