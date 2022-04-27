@@ -93,8 +93,9 @@ def main():
     graph.add_argument('--functions', action='store_true',
                        help='create subgraph for each function')
     graph.add_argument(
-        '--onlyfunc', type=str, nargs="*", default=[],
-        help='only generate the CFG for this list of function name')
+        '--onlyfunc', type=str, nargs=1, default=[],
+        help='only generate the CFG for this list of function name',
+        required=True)
 
     args = parser.parse_args()
 
@@ -108,6 +109,7 @@ def main():
     # func_index2func_name is the func index to real func name
     # e.g., func 4 is $main, we have {4: '$main'}
     # it should only be used in identifying readable name
+    # TODO, change to mandantory
     if args.need_mapper:
         wat_file_path = args.file.name.replace('.wasm', '.wat')
         func_index2func_name = extract_mapping(wat_file_path)
@@ -164,17 +166,14 @@ def main():
 
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, func_index2func_name=func_index2func_name,
-            coverage=args.coverage)
+            coverage=args.coverage, entry=args.onlyfunc)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
         Graph.initialize()
         Graph.parse_dsl(user_dsl)
-        if args.onlyfunc:
-            graph = Graph(args.onlyfunc)
-            graph.traverse()
-        else:
-            raise Exception("Please specify at least one entry function")
+        graph = Graph(args.onlyfunc)
+        graph.traverse()
 
     if not (args.symbolic or args.cfg or args.call or args.analytic):
         parser.print_help()

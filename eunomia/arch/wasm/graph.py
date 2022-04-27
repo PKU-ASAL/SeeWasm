@@ -3,13 +3,12 @@ import re
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
-from matplotlib.animation import FuncAnimation
-
 from eunomia.arch.wasm.exceptions import DSLParseError
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (
-    Configuration, ask_user_input, bcolors, branch_choose_info,
-    state_choose_info, readable_internal_func_name)
+from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
+                                     branch_choose_info,
+                                     readable_internal_func_name,
+                                     state_choose_info)
 from z3 import sat, unsat
 
 
@@ -74,9 +73,9 @@ class Graph:
     manual_guide = False
     _user_dsl = None
 
-    def __init__(self, funcs):
-        self.entries = funcs
-        self.final_states = {func: None for func in funcs}
+    def __init__(self, entry):
+        self.entry = entry
+        self.final_states = {entry[0]: None}
 
     @classproperty
     def workers(cls):
@@ -356,23 +355,23 @@ class Graph:
         This object can be initialized by a list of functions, each of them
         will be regarded as an entry function to perform symbolic execution
         """
-        for entry_func in self.entries:
-            self.final_states[entry_func] = self.traverse_one(entry_func)
+        entry_func = self.entry[0]
+        self.final_states[entry_func] = self.traverse_one(entry_func)
 
-            # final states of all feasible paths for the given function
-            print(
-                f'There are total {len(self.final_states[entry_func])} state(s):')
-            for i, final_state in enumerate(self.final_states[entry_func]):
-                s = SMTSolver(Configuration.get_solver())
-                s.add(final_state.constraints)
-                if sat == s.check():
-                    print(
-                        f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}',
-                        end='\n', flush=True)
-                else:
-                    print(
-                        f'For state{i}, return with {final_state.symbolic_stack}, which is unsat',
-                        end='\n', flush=True)
+        # final states of all feasible paths for the given function
+        print(
+            f'There are total {len(self.final_states[entry_func])} state(s):')
+        for i, final_state in enumerate(self.final_states[entry_func]):
+            s = SMTSolver(Configuration.get_solver())
+            s.add(final_state.constraints)
+            if sat == s.check():
+                print(
+                    f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}',
+                    end='\n', flush=True)
+            else:
+                print(
+                    f'For state{i}, return with {final_state.symbolic_stack}, which is unsat',
+                    end='\n', flush=True)
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=list()):

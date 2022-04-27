@@ -20,6 +20,8 @@ from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             MemoryInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
+from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
+from eunomia.arch.wasm.internalFunctions import WASI_FUNCTIONS
 from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
                                      readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
@@ -40,7 +42,12 @@ else:
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, func_index2func_name=None, coverage=False):
+    def __init__(
+            self, bytecode, func_index2func_name=None, coverage=False,
+            entry=None):
+        # the entry function
+        self.entry = entry[0]
+
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
@@ -66,15 +73,47 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # like func 4 is $main function in C
         self.func_index2func_name = func_index2func_name
 
-        # the flag, if calculate the instruction coverage
-        self.coverage = coverage
-        # the data structure to store the instruction coverage info
+        # the coverage bitmap and ratio
         self.instruction_coverage_bitmap = defaultdict(list)
-        # the coverage ratio
-        self.instruction_coverage = dict()
+        self.instruction_coverage = defaultdict(list)
+        self.total_instructions = 0
+        self.coverage_output_last_timestamp = datetime(1996, 12, 24)
 
-        # the timestamp of the last output to terminal
-        self.last_timestamp = datetime.now()
+        # whether enable the coverage calculation
+        self.coverage = coverage
+        if self.coverage:
+            self.count_instrs(self.entry)
+
+    def count_instrs(self, entry):
+        """
+        Statically count instructions followed by the entry function
+        """
+        # only consider the first given func
+        func = readable_internal_func_name(
+            self.func_index2func_name, entry)
+        _, edges = self.cfg.get_functions_call_edges(self.ana)
+        queue = [func]
+        visited = set()
+
+        while queue:
+            ele = queue.pop(0)
+            visited.add(ele)
+            for edge in edges:
+                if readable_internal_func_name(
+                        self.func_index2func_name, edge.node_from) == ele and readable_internal_func_name(
+                        self.func_index2func_name, edge.node_to) not in visited and readable_internal_func_name(
+                        self.func_index2func_name, edge.node_to) not in C_LIBRARY_FUNCS and readable_internal_func_name(
+                        self.func_index2func_name, edge.node_to) not in WASI_FUNCTIONS:
+                    queue.append(readable_internal_func_name(
+                        self.func_index2func_name, edge.node_to))
+            # add the instruction number
+            for f in self.cfg.functions:
+                if readable_internal_func_name(
+                        self.func_index2func_name, f.name) == ele:
+                    self.total_instructions += len(f.instructions)
+                    break
+
+        logging.warning(f'total instructions: {self.total_instructions}')
 
     def get_signature(self, func_name):
         """
@@ -209,27 +248,44 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             return None
 
     def calculate_coverage(self, instr, func_name):
+        """
+        Calculate the instruction coverage
+        """
+        # update coverage bitmap
         if func_name not in self.instruction_coverage_bitmap:
             for func in self.cfg.functions:
                 if readable_internal_func_name(
                         self.func_index2func_name, func.name) == func_name:
                     self.instruction_coverage_bitmap[func_name] = [
                         False] * len(func.instructions)
+                    self.instruction_coverage[func_name] = [
+                        0, len(func.instructions)]
                     break
         self.instruction_coverage_bitmap[func_name][instr.nature_offset] = True
 
-        # the ratio of coverage
-        self.instruction_coverage[func_name] = self.instruction_coverage_bitmap[func_name].count(
-            True) / len(self.instruction_coverage_bitmap[func_name])
+        # the visted number of instruction
+        self.instruction_coverage[func_name][0] = self.instruction_coverage_bitmap[func_name].count(
+            True)
+
+        # the ratio of total coverage
+        current_visited_instrs = sum([v[0]
+                                      for v in
+                                      self.instruction_coverage.values()])
 
         current_timestamp = datetime.now()
-        if (current_timestamp - self.last_timestamp).total_seconds() > 3:
+        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 3:
             # output here
-            output_string = ["\n", "-------------------------------------\n"]
+            output_string = ["------------------------------------------\n"]
             for k, v in self.instruction_coverage.items():
-                output_string.append(f"|{k:<30}\t{v:<.2f}|\n")
-            output_string.append("-------------------------------------\n\n")
-            sys.stdout.writelines(output_string)
-            sys.stdout.flush()
+                output_string.append(f"|{k:<30}\t\t{v[0]/v[1]:<.3f}|\n")
+            output_string.append(
+                "------------------------------------------\n")
 
-            self.last_timestamp = current_timestamp
+            with open('./log/base64-coverage.log', 'w') as fp:
+                fp.writelines(output_string)
+
+            with open('./log/base64-coverage-total.log', 'a') as fp:
+                fp.write(
+                    f'{current_timestamp}\t\t{current_visited_instrs}/{self.total_instructions}({current_visited_instrs/self.total_instructions:.3f})\n')
+
+            self.coverage_output_last_timestamp = current_timestamp
