@@ -50,9 +50,6 @@ def main():
         '-c', '--call', action='store_true',
         help='generate the call flow graph (function level)')
     features.add_argument(
-        '--need_mapper', action='store_true',
-        help='generate a mapping from func index to func name')
-    features.add_argument(
         '--manual_guide', action='store_true',
         help='allow users to manually guide the control flow')
     features.add_argument(
@@ -106,13 +103,18 @@ def main():
     # the verbose
     Configuration.set_verbose_flag(args.verbose)
 
-    # func_index2func_name is the func index to real func name
-    # e.g., func 4 is $main, we have {4: '$main'}
-    # it should only be used in identifying readable name
-    # TODO, change to mandantory
-    if args.need_mapper:
-        wat_file_path = args.file.name.replace('.wasm', '.wat')
-        func_index2func_name = extract_mapping(wat_file_path)
+    # retrieve the corresponding wat file
+    wat_file_path = args.file.name.replace('.wasm', '.wat')
+    if not path.exists(wat_file_path):
+        try:
+            cmd = sh.Command('wasm2wat')
+            cmd_option = [args.file.name, "-o", wat_file_path]
+            cmd(cmd_option)
+        except Exception:
+            raise("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
+
+    # extract the function index to function readable name's mapping
+    func_index2func_name = extract_mapping(wat_file_path)
 
     # process input file
     if args.file:
