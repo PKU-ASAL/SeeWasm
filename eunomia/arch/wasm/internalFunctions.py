@@ -3,6 +3,7 @@
 import logging
 import math
 from ast import If
+from datetime import datetime
 
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
@@ -18,7 +19,7 @@ from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
                                      parse_printf_formatting,
                                      str_to_little_endian_int)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
-                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If,
+                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If, Or,
                 fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
                 is_eq, is_expr, is_not, simplify)
 
@@ -745,6 +746,15 @@ class ImportFunction:
                 arg_buf_addr)
 
             # append a 0 as return value
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'environ_sizes_get':
+            env_buf_size_addr, env_count_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, env_count_addr, 4, BitVecVal(0, 32))
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, env_buf_size_addr, 4, BitVecVal(0, 32))
+
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
 
