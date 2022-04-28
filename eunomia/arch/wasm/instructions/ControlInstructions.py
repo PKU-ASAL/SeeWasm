@@ -225,8 +225,14 @@ class ControlInstructions:
                 state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 op = simplify(op != 0)
-            states['conditional_true_0'].constraints.append(op)
-            states['conditional_false_0'].constraints.append(simplify(Not(op)))
+
+            if not is_true(op):
+                # op is False, or a BoolRef that cannot be determined
+                states['conditional_true_0'].constraints.append(op)
+            if not is_false(op):
+                # op is True, or a BoolRef that cannot be determined
+                states['conditional_false_0'].constraints.append(
+                    simplify(Not(op)))
 
             return [states]
         elif self.instr_name == 'if':
@@ -237,9 +243,14 @@ class ControlInstructions:
                 state), 'conditional_false_0': copy.deepcopy(state)}
             if is_bv(op):
                 cond = simplify(op != 0)
-            states['conditional_true_0'].constraints.append(cond)
-            states['conditional_false_0'].constraints.append(
-                simplify(Not(cond)))
+
+            # similar as br_if
+            if not is_true(cond):
+                states['conditional_true_0'].constraints.append(cond)
+            if not is_false(cond):
+                states['conditional_false_0'].constraints.append(
+                    simplify(Not(cond)))
+
             return [states]
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
