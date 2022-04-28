@@ -766,6 +766,51 @@ class ImportFunction:
 
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
+        elif self.name == 'fd_fdstat_get':
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L717
+            fd_stat_addr, fd = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # fs_filetype is 1 byte, possible 0-7
+            fs_filetype = BitVec(
+                f'fs_filetype_{datetime.timestamp(datetime.now()):.0f}', 8)
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr, 1, fs_filetype)
+            state.constraints.append(
+                Or(
+                    fs_filetype == 0, fs_filetype == 1,
+                    fs_filetype == 2, fs_filetype == 3,
+                    fs_filetype == 4, fs_filetype == 5,
+                    fs_filetype == 6, fs_filetype == 7))
+            # align
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr + 1, 1, BitVecVal(0, 8))
+
+            # fs_flags is 2 bytes, possible from {0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15}
+            fs_flags = BitVec(
+                f'fs_flags_{datetime.timestamp(datetime.now()):.0f}', 16)
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr + 2, 2, fs_flags)
+            state.constraints.append(
+                Or(
+                    fs_flags == 0, fs_flags == 1, fs_flags
+                    == 2, fs_flags == 3, fs_flags == 4,
+                    fs_flags == 5, fs_flags == 6, fs_flags
+                    == 7, fs_flags == 10, fs_flags == 11,
+                    fs_flags == 14, fs_flags == 15))
+            # align
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr + 4, 4, BitVecVal(0, 32))
+
+            # fs_rights_base and fs_rights_inheriting is 0, 8 bytes for each
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr + 8, 8, BitVecVal(0, 64))
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_stat_addr + 16, 8, BitVecVal(0, 64))
+
+            print(
+                f"Encounter fd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
+
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
 
         if return_str:
             tmp_bitvec = getConcreteBitVec(
