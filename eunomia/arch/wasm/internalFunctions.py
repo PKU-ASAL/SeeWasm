@@ -757,6 +757,15 @@ class ImportFunction:
 
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
+        elif self.name == 'fd_advise':
+            # ref: https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
+            advice, length, offset, fd = state.symbolic_stack.pop(), state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            print(
+                f"Encounter fd_advise, fd: {fd}, offset: {offset}, length: {length}, advice: {advice}")
+
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
 
         if return_str:
             tmp_bitvec = getConcreteBitVec(
