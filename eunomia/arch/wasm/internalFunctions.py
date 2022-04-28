@@ -838,11 +838,16 @@ class ImportFunction:
 
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
-        else:
-            print('here')
-            print(self.name)
-            print(state.symbolic_stack)
-            exit()
+        elif self.name == 'fd_close':
+            # I did not emulate the fdMap, just return the success flag here
+            fd = state.symbolic_stack.pop()
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        # else:
+        #     print('here')
+        #     print(self.name)
+        #     print(state.symbolic_stack)
+        #     exit()
 
         if return_str:
             tmp_bitvec = getConcreteBitVec(
