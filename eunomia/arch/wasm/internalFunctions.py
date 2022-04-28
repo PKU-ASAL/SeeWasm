@@ -34,7 +34,7 @@ PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
 # supported functions in WASIFunction class
-WASI_FUNCTIONS = {'fd_read', 'fd_write'}
+WASI_FUNCTIONS = {'fd_write'}
 
 
 class CPredefinedFunction:
@@ -840,7 +840,56 @@ class ImportFunction:
             return
         elif self.name == 'fd_close':
             # I did not emulate the fdMap, just return the success flag here
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd = state.symbolic_stack.pop()
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'fd_read':
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L554
+            num_bytes_read_addr, num_iovs, iovs_addr, fd = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # concretize
+            fd = fd.as_long()
+            iovs_addr = iovs_addr.as_long()
+            num_iovs = num_iovs.as_long()
+            num_bytes_read_addr = num_bytes_read_addr.as_long()
+            assert fd == 0, 'only support stdin now'
+
+            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
+            bytes_read_cnt = 0
+            out_bytes = []
+            for i in range(num_iovs):
+                data_ptr = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + 8 * i, 4).as_long()
+                data_len = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + (8 * i + 4),
+                    4).as_long()
+                # why?
+                written_num = min(len(state.stdin_buffer), data_len)
+                for j in range(written_num):
+                    print(state.stdin_buffer)
+                    data_to_read = state.stdin_buffer.pop(0)
+                    print(state.stdin_buffer)
+
+                    out_bytes.append(data_to_read)
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, data_ptr + j, 1,
+                        BitVecVal(data_to_read, 8))
+                    bytes_read_cnt += 1
+
+                # why?
+                if len(state.stdin_buffer) == 0:
+                    break
+            logging.warning(
+                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
+            # set num_bytes_read_addr to bytes_read_cnt
+            logging.warning(f'{bytes_read_cnt} bytes read.')
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, num_bytes_read_addr, 4,
+                BitVecVal(bytes_read_cnt, 32))
+
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         # else:
