@@ -286,6 +286,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             with open('./log/base64-coverage-total.log', 'a') as fp:
                 fp.write(
-                    f'{current_timestamp}\t\t{current_visited_instrs}/{self.total_instructions}({current_visited_instrs/self.total_instructions:.3f})\n')
+                    f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
 
             self.coverage_output_last_timestamp = current_timestamp

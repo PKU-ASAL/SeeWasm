@@ -782,13 +782,14 @@ class ImportFunction:
                     fs_filetype == 6, fs_filetype == 7))
             # align
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, fd_stat_addr + 1, 1, BitVecVal(0, 8))
+                state.symbolic_memory, simplify(fd_stat_addr + 1),
+                1, BitVecVal(0, 8))
 
             # fs_flags is 2 bytes, possible from {0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15}
             fs_flags = BitVec(
                 f'fs_flags_{datetime.timestamp(datetime.now()):.0f}', 16)
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, fd_stat_addr + 2, 2, fs_flags)
+                state.symbolic_memory, simplify(fd_stat_addr + 2), 2, fs_flags)
             state.constraints.append(
                 Or(
                     fs_flags == 0, fs_flags == 1, fs_flags
@@ -798,19 +799,50 @@ class ImportFunction:
                     fs_flags == 14, fs_flags == 15))
             # align
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, fd_stat_addr + 4, 4, BitVecVal(0, 32))
+                state.symbolic_memory, simplify(fd_stat_addr + 4),
+                4, BitVecVal(0, 32))
 
             # fs_rights_base and fs_rights_inheriting is 0, 8 bytes for each
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, fd_stat_addr + 8, 8, BitVecVal(0, 64))
+                state.symbolic_memory, simplify(fd_stat_addr + 8),
+                8, BitVecVal(0, 64))
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, fd_stat_addr + 16, 8, BitVecVal(0, 64))
+                state.symbolic_memory, simplify(fd_stat_addr + 16),
+                8, BitVecVal(0, 64))
 
             print(
                 f"Encounter fd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
 
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
+        elif self.name == 'fd_tell':
+            # TODO, do not precisely emulate this function, just insert 0 temporarily
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L695
+            offset_addr, fd = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, offset_addr, 4,
+                BitVec(
+                    f"fd_tell_{datetime.timestamp(datetime.now()):.0f}", 32))
+
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'fd_seek':
+            # TODO, similar to fd_tell, do not precisely emulate this function
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L657
+            new_offset_addr, whence, offset, fd = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, new_offset_addr, 4,
+                BitVec(
+                    f"fd_seek_{datetime.timestamp(datetime.now()):.0f}", 32))
+
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        else:
+            print('here')
+            print(self.name)
+            print(state.symbolic_stack)
+            exit()
 
         if return_str:
             tmp_bitvec = getConcreteBitVec(
