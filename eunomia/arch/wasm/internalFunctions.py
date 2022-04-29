@@ -853,35 +853,38 @@ class ImportFunction:
             iovs_addr = iovs_addr.as_long()
             num_iovs = num_iovs.as_long()
             num_bytes_read_addr = num_bytes_read_addr.as_long()
+            logging.warning(
+                f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
+            # print(state)
             assert fd == 0, 'only support stdin now'
 
             # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
             bytes_read_cnt = 0
             out_bytes = []
             for i in range(num_iovs):
-                data_ptr = lookup_symbolic_memory_data_section(
+                buffer_ptr = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + 8 * i, 4).as_long()
-                data_len = lookup_symbolic_memory_data_section(
+                buffer_len = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + (8 * i + 4),
                     4).as_long()
-                # why?
-                written_num = min(len(state.stdin_buffer), data_len)
-                for j in range(written_num):
-                    print(state.stdin_buffer)
-                    data_to_read = state.stdin_buffer.pop(0)
-                    print(state.stdin_buffer)
+
+                given_buffer = list(state.stdin_buffer[i])
+                for j in range(min(len(given_buffer), buffer_len)):
+                    # print(given_buffer)
+                    data_to_read = given_buffer.pop(0)
+                    # print(given_buffer)
 
                     out_bytes.append(data_to_read)
                     state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, data_ptr + j, 1,
+                        state.symbolic_memory, buffer_ptr + j, 1,
                         BitVecVal(data_to_read, 8))
                     bytes_read_cnt += 1
 
-                # why?
-                if len(state.stdin_buffer) == 0:
-                    break
+                # TODO: why break? the iovNums is always 2, which means there should be two strings?
+                # if len(state.stdin_buffer) >= i:
+                #     break
             logging.warning(
                 f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
             # set num_bytes_read_addr to bytes_read_cnt
