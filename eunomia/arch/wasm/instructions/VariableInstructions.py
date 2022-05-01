@@ -14,7 +14,7 @@ class VariableInstructions:
         # for go_samples.nosync/tinygo_main.wasm, the global.get operand would be prefixed by four \x80
         if self.instr_operand.startswith(b'\x80\x80\x80\x80'):
             self.instr_operand = self.instr_operand[4:]
-        op = int.from_bytes(self.instr_operand, byteorder='big')
+        op = int.from_bytes(self.instr_operand, byteorder='little')
 
         if self.instr_name == 'get_local':
             if state.local_var.get(op, None) is not None:
