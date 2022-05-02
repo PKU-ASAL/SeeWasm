@@ -25,7 +25,9 @@ class WasmVMstate(VMstate):
         self.sign_mapping = defaultdict(bool)
         # TODO we insert a `123` here, maybe we should insert a symbol
         # stdin buffer used by _fd_read, but scanf(modeled seperately) does not read from it
-        self.stdin_buffer = list('123\n')  # int array, use pop(0)
+        # self.stdin_buffer = list('MTIzCg==')
+        self.stdin_buffer = list('123\n')
+        self.args = 'base64 -d'
 
     def translate(self, ctx):
         state = WasmVMstate()

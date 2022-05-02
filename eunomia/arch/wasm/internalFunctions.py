@@ -721,28 +721,48 @@ class ImportFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         if self.name == 'args_sizes_get':
             arg_buf_size_addr, argc_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # insert the `argc` into the corresponding addr
+            argc = len(state.args.split(" "))
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, argc_addr, 4, BitVecVal(1, 32))
-            # the length of 'base64'
+                state.symbolic_memory, argc_addr, 4, BitVecVal(argc, 32))
+            # the length of `argv` into the corresponding addr
+            # the `+ 1` is defined in the source code
+            argv_len = len(state.args) + 1
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, arg_buf_size_addr, 4,
-                BitVecVal(7, 32))
+                BitVecVal(argv_len, 32))
 
-            # append a 0 as return value
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'args_get':
             # this is not the complete version
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
             arg_buf_addr, argv_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, arg_buf_addr, 7,
-                BitVecVal(str_to_little_endian_int('base64'), 56))
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, argv_addr, 4,
-                arg_buf_addr)
+            # concretize
+            arg_buf_addr = arg_buf_addr.as_long()
+            argv_addr = argv_addr.as_long()
 
-            # append a 0 as return value
+            # emulate the official implementation
+            args = state.args.split(" ")
+            next_arg_buf_addr = arg_buf_addr
+            for arg_index in range(len(args)):
+                arg = args[arg_index]
+                num_arg_bytes = len(arg) + 1
+                # insert the arg
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, next_arg_buf_addr, num_arg_bytes,
+                    BitVecVal(
+                        str_to_little_endian_int(arg),
+                        8 * num_arg_bytes))
+                # insert the next_arg_buf_addr
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, argv_addr + 4 * arg_index, 4,
+                    BitVecVal(next_arg_buf_addr, 32))
+                # update the next_arg_buf_addr
+                next_arg_buf_addr += num_arg_bytes
+
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'environ_sizes_get':
@@ -761,6 +781,7 @@ class ImportFunction:
             print(
                 f"Encounter fd_advise, fd: {fd}, offset: {offset}, length: {length}, advice: {advice}")
 
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_fdstat_get':
@@ -810,6 +831,7 @@ class ImportFunction:
             print(
                 f"Encounter fd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
 
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_tell':
@@ -821,6 +843,7 @@ class ImportFunction:
                 BitVec(
                     f"fd_tell_{datetime.timestamp(datetime.now()):.0f}", 32))
 
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_seek':
@@ -833,12 +856,15 @@ class ImportFunction:
                 BitVec(
                     f"fd_seek_{datetime.timestamp(datetime.now()):.0f}", 32))
 
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_close':
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd = state.symbolic_stack.pop()
+
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_read':
@@ -903,6 +929,7 @@ class ImportFunction:
                 state.symbolic_memory, num_bytes_read_addr, 4,
                 BitVecVal(bytes_read_cnt, 32))
 
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'fd_write':
@@ -946,6 +973,8 @@ class ImportFunction:
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, num_bytes_written_addr, 4,
                 BitVecVal(bytes_written_cnt, 32))
+
+            # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         # else:
