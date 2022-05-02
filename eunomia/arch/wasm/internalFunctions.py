@@ -34,7 +34,7 @@ PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
 # supported functions in WASIFunction class
-WASI_FUNCTIONS = {'fd_write'}
+WASI_FUNCTIONS = {}
 
 
 class CPredefinedFunction:
@@ -906,6 +906,49 @@ class ImportFunction:
                 state.symbolic_memory, num_bytes_read_addr, 4,
                 BitVecVal(bytes_read_cnt, 32))
 
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'fd_write':
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L583
+            num_bytes_written_addr, num_iovs, iovs_addr, fd = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
+            # concretize
+            fd = fd.as_long()
+            iovs_addr = iovs_addr.as_long()
+            num_iovs = num_iovs.as_long()
+            num_bytes_written_addr = num_bytes_written_addr.as_long()
+            logging.warning(
+                f"fd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
+
+            if fd == 2:
+                logging.warning(f"fd_write to stderr")
+            elif fd == 1:
+                logging.warning(f"fd_write to stdout")
+
+            bytes_written_cnt = 0
+            for i in range(num_iovs):
+                data_ptr = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + 8 * i, 4).as_long()
+                data_len = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + (8 * i + 4),
+                    4).as_long()
+                out_str = []
+                for j in range(data_len):
+                    c = lookup_symbolic_memory_data_section(
+                        state.symbolic_memory, dict(), data_ptr + j, 1)
+                    c = chr(c.as_long()).encode()
+                    out_str.append(c)
+
+                logging.warning(
+                    f"================Output a string: {b''.join(out_str)}=================")
+                bytes_written_cnt += data_len
+
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, num_bytes_written_addr, 4,
+                BitVecVal(bytes_written_cnt, 32))
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         # else:
