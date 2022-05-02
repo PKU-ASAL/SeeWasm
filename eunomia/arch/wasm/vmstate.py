@@ -6,8 +6,6 @@ from eunomia.engine.engine import VMstate
 from eunomia.arch.wasm.utils import readable_internal_func_name
 from z3 import BitVecVal
 
-STDIN_BYTES = b'123\n'
-
 
 class WasmVMstate(VMstate):
     def __init__(self):
@@ -25,10 +23,9 @@ class WasmVMstate(VMstate):
         self.current_func_name = 'none'
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
-        # TODO adapt C code
         # TODO we insert a `123` here, maybe we should insert a symbol
         # stdin buffer used by _fd_read, but scanf(modeled seperately) does not read from it
-        self.stdin_buffer = [STDIN_BYTES, [255]]  # int array, use pop(0)
+        self.stdin_buffer = list('123\n')  # int array, use pop(0)
 
     def translate(self, ctx):
         state = WasmVMstate()

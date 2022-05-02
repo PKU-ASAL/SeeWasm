@@ -848,6 +848,16 @@ class ImportFunction:
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L554
             num_bytes_read_addr, num_iovs, iovs_addr, fd = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
+            # if there is no stdin chars
+            # just set the num_bytes_read_addr as 0 and return 0 immediately
+            if not state.stdin_buffer:
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, num_bytes_read_addr, 4,
+                    BitVecVal(0, 32))
+                state.symbolic_stack.append(BitVecVal(0, 32))
+                return
+
             # concretize
             fd = fd.as_long()
             iovs_addr = iovs_addr.as_long()
@@ -855,38 +865,41 @@ class ImportFunction:
             num_bytes_read_addr = num_bytes_read_addr.as_long()
             logging.warning(
                 f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
-            # print(state)
             assert fd == 0, 'only support stdin now'
 
-            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
             bytes_read_cnt = 0
             out_bytes = []
+            given_buffer = state.stdin_buffer
+
             for i in range(num_iovs):
+                # the buffer where to store data
                 buffer_ptr = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + 8 * i, 4).as_long()
+                # the buffer capacity
                 buffer_len = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + (8 * i + 4),
                     4).as_long()
 
-                given_buffer = list(state.stdin_buffer[i])
                 for j in range(min(len(given_buffer), buffer_len)):
-                    # print(given_buffer)
                     data_to_read = given_buffer.pop(0)
-                    # print(given_buffer)
 
-                    out_bytes.append(data_to_read)
+                    out_bytes.append(str.encode(data_to_read))
                     state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, buffer_ptr + j, 1,
-                        BitVecVal(data_to_read, 8))
-                    bytes_read_cnt += 1
+                        state.symbolic_memory, buffer_ptr + j, len(data_to_read),
+                        BitVecVal(str_to_little_endian_int(data_to_read), 8 * len(data_to_read)))
+                    bytes_read_cnt += len(data_to_read)
 
-                # TODO: why break? the iovNums is always 2, which means there should be two strings?
-                # if len(state.stdin_buffer) >= i:
-                #     break
+                # if there are more bytes to read, and the buffer is filled
+                # update the cursor and move to the next buffer
+                if len(given_buffer) > 0:
+                    continue
+                else:
+                    # or the stdin buffer is drained out, break out
+                    break
             logging.warning(
-                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
+                f"================Initiated an fd_read string: {b''.join(out_bytes)}=================")
             # set num_bytes_read_addr to bytes_read_cnt
             logging.warning(f'{bytes_read_cnt} bytes read.')
             state.symbolic_memory = insert_symbolic_memory(
