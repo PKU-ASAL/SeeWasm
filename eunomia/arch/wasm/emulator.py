@@ -21,7 +21,6 @@ from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.internalFunctions import WASI_FUNCTIONS
 from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
                                      readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
@@ -102,8 +101,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if readable_internal_func_name(
                         self.func_index2func_name, edge.node_from) == ele and readable_internal_func_name(
                         self.func_index2func_name, edge.node_to) not in visited and readable_internal_func_name(
-                        self.func_index2func_name, edge.node_to) not in C_LIBRARY_FUNCS and readable_internal_func_name(
-                        self.func_index2func_name, edge.node_to) not in WASI_FUNCTIONS:
+                        self.func_index2func_name, edge.node_to) not in C_LIBRARY_FUNCS:
                     queue.append(readable_internal_func_name(
                         self.func_index2func_name, edge.node_to))
             # add the instruction number

@@ -7,10 +7,9 @@ from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
 from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
-                                                 WASI_FUNCTIONS,
                                                  CPredefinedFunction,
                                                  GoPredefinedFunction,
-                                                 ImportFunction, WASIFunction)
+                                                 ImportFunction)
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec, readable_internal_func_name
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
@@ -44,10 +43,6 @@ def IS_GO_LIBRARY_FUNCS(x):
 
 def IS_C_LIBRARY_FUNCS(x):
     return x in C_LIBRARY_FUNCS
-
-
-def IS_WASI_FUNCS(x):
-    return x in WASI_FUNCTIONS
 
 
 class ControlInstructions:
@@ -114,14 +109,9 @@ class ControlInstructions:
         # if the callee is imported by env
         # only concerned C file
         if readable_name in [i[1] for i in analyzer.imports_func]:
-            if IS_WASI_FUNCS(readable_name):
-                logging.warning(
-                    f"Invoked a WASI import function: {readable_name}")
-                func = WASIFunction(readable_name, state.current_func_name)
-            else:
-                func = ImportFunction(readable_name, state.current_func_name)
-                logging.warning(
-                    f"Invoked a import function: {readable_name}")
+            func = ImportFunction(readable_name, state.current_func_name)
+            logging.warning(
+                f"Invoked a import function: {readable_name}")
             func.emul(state, param_str, return_str, data_section, analyzer)
             logging.warning(f'End of a import function: {readable_name}')
         # if the callee is a library function
