@@ -33,9 +33,6 @@ PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.negativeShiftPanic': 'negative shift',
                    'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
-# supported functions in WASIFunction class
-WASI_FUNCTIONS = {'fd_write'}
-
 
 class CPredefinedFunction:
     def __init__(self, name, cur_func_name):
@@ -848,16 +845,85 @@ class ImportFunction:
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L554
             num_bytes_read_addr, num_iovs, iovs_addr, fd = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
+            # if there is no stdin chars
+            # just set the num_bytes_read_addr as 0 and return 0 immediately
+            if not state.stdin_buffer:
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, num_bytes_read_addr, 4,
+                    BitVecVal(0, 32))
+                state.symbolic_stack.append(BitVecVal(0, 32))
+                return
+
             # concretize
             fd = fd.as_long()
             iovs_addr = iovs_addr.as_long()
             num_iovs = num_iovs.as_long()
             num_bytes_read_addr = num_bytes_read_addr.as_long()
+            logging.warning(
+                f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
             assert fd == 0, 'only support stdin now'
 
-            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
             bytes_read_cnt = 0
             out_bytes = []
+            given_buffer = state.stdin_buffer
+
+            for i in range(num_iovs):
+                # the buffer where to store data
+                buffer_ptr = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + 8 * i, 4).as_long()
+                # the buffer capacity
+                buffer_len = lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, dict(),
+                    iovs_addr + (8 * i + 4),
+                    4).as_long()
+
+                for j in range(min(len(given_buffer), buffer_len)):
+                    data_to_read = given_buffer.pop(0)
+
+                    out_bytes.append(str.encode(data_to_read))
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, buffer_ptr + j, len(data_to_read),
+                        BitVecVal(str_to_little_endian_int(data_to_read), 8 * len(data_to_read)))
+                    bytes_read_cnt += len(data_to_read)
+
+                # if there are more bytes to read, and the buffer is filled
+                # update the cursor and move to the next buffer
+                if len(given_buffer) > 0:
+                    continue
+                else:
+                    # or the stdin buffer is drained out, break out
+                    break
+            logging.warning(
+                f"================Initiated an fd_read string: {b''.join(out_bytes)}=================")
+            # set num_bytes_read_addr to bytes_read_cnt
+            logging.warning(f'{bytes_read_cnt} bytes read.')
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, num_bytes_read_addr, 4,
+                BitVecVal(bytes_read_cnt, 32))
+
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'fd_write':
+            # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L583
+            num_bytes_written_addr, num_iovs, iovs_addr, fd = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
+            # concretize
+            fd = fd.as_long()
+            iovs_addr = iovs_addr.as_long()
+            num_iovs = num_iovs.as_long()
+            num_bytes_written_addr = num_bytes_written_addr.as_long()
+            logging.warning(
+                f"fd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
+
+            if fd == 2:
+                logging.warning(f"fd_write to stderr")
+            elif fd == 1:
+                logging.warning(f"fd_write to stdout")
+
+            bytes_written_cnt = 0
             for i in range(num_iovs):
                 data_ptr = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
@@ -866,30 +932,20 @@ class ImportFunction:
                     state.symbolic_memory, dict(),
                     iovs_addr + (8 * i + 4),
                     4).as_long()
-                # why?
-                written_num = min(len(state.stdin_buffer), data_len)
-                for j in range(written_num):
-                    print(state.stdin_buffer)
-                    data_to_read = state.stdin_buffer.pop(0)
-                    print(state.stdin_buffer)
+                out_str = []
+                for j in range(data_len):
+                    c = lookup_symbolic_memory_data_section(
+                        state.symbolic_memory, dict(), data_ptr + j, 1)
+                    c = chr(c.as_long()).encode()
+                    out_str.append(c)
 
-                    out_bytes.append(data_to_read)
-                    state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, data_ptr + j, 1,
-                        BitVecVal(data_to_read, 8))
-                    bytes_read_cnt += 1
+                logging.warning(
+                    f"================Output a string: {b''.join(out_str)}=================")
+                bytes_written_cnt += data_len
 
-                # why?
-                if len(state.stdin_buffer) == 0:
-                    break
-            logging.warning(
-                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
-            # set num_bytes_read_addr to bytes_read_cnt
-            logging.warning(f'{bytes_read_cnt} bytes read.')
             state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, num_bytes_read_addr, 4,
-                BitVecVal(bytes_read_cnt, 32))
-
+                state.symbolic_memory, num_bytes_written_addr, 4,
+                BitVecVal(bytes_written_cnt, 32))
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         # else:
@@ -903,114 +959,6 @@ class ImportFunction:
                 return_str,
                 f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(tmp_bitvec)
-
-
-class WASIFunction:
-    """
-    Model WASI system call related functions. Usually as import function.
-    """
-
-    def __init__(self, name, cur_func_name):
-        self.name = name
-        self.cur_func = cur_func_name
-
-    def emul(self, state, param_str, return_str, data_section, analyzer):
-        param_list = []
-        if param_str:
-            num_arg = len(param_str.split(' '))
-            for _ in range(num_arg):
-                param_list.append(state.symbolic_stack.pop())
-
-        # helper function to convert from z3 value to python integer
-        def concrete_value(x):
-            return x.as_long() if is_bv_value(x) else x
-        # helper functions to access memory
-
-        def load32(x):
-            return concrete_value(
-                lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, x, 4))
-
-        def load8(x):
-            return concrete_value(
-                lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, x, 1))
-
-        def store32(addr, val):
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, addr, 4, BitVecVal(val, 32))
-
-        def store8(addr, val):
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, addr, 1, BitVecVal(val, 8))
-
-        if self.name == 'fd_read':
-            # https://github.com/WebAssembly/wasi-libc/blob/main/libc-bottom-half/headers/public/wasi/api.h#L1851 __wasi_fd_read
-            # sematic based on https://man7.org/linux/man-pages/man2/writev.2.html
-            # __wasi_errno_t __wasi_fd_read( __wasi_fd_t fd, const __wasi_iovec_t *iovs, size_t iovs_len, __wasi_size_t *retptr0 )
-            # (func (param i32 i32 i32 i32) (result i32))
-            # due to previous pop operation, arguments are reversed
-            params = [concrete_value(i) for i in param_list]
-            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
-            logging.warning(f"fd_read to fd: {fd}")
-            # currently only support stdin
-            assert fd == 0, 'invalid file descriptor:'
-            # TODO we insert a `123` here, maybe we should provide a stdin buffer for each case
-            num = 0  # bytes written
-            out_bytes = []
-            for i in range(iovcnt):
-                ptr = load32(iov + 8 * i)
-                length = load32(iov + (8 * i + 4))
-                written_num = min(len(state.stdin_buffer), length)
-                for j in range(written_num):
-                    out_bytes.append(state.stdin_buffer[0])
-                    store8(ptr + j, state.stdin_buffer.pop(0))
-                    num += 1
-                if len(state.stdin_buffer) == 0:
-                    break
-            logging.warning(
-                f"================Initiated an fd_read string: {bytes(out_bytes)}=================")
-            # set pnum to num
-            logging.warning(f'{num} bytes read.')
-            store32(pnum, num)
-            # return 0
-            # manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))
-        elif self.name == 'fd_write':
-            # based on https://github.com/tinygo-org/tinygo/blob/release/targets/wasm_exec.js
-            # .. seealso:: https://github.com/emscripten-core/emscripten/blob/main/src/library_wasi.js
-            # u32 _fd_write(u32 fd, u32 iov, u32 iovcnt, u32 pnum)
-            # due to previous pop operation, arguments are reversed
-            params = [concrete_value(i) for i in param_list]
-            fd, iov, iovcnt, pnum = params[-1], params[-2], params[-3], params[-4]
-            if fd == 2:
-                logging.warning(f"fd_write to stderr")
-            elif fd == 1:
-                logging.warning(f"fd_write to stdout")
-
-            num = 0
-            for i in range(iovcnt):
-                ptr = load32(iov + 8 * i)
-                length = load32(iov + (8 * i + 4))
-                # print from ptr, length is len
-                out_str = []
-                for j in range(length):
-                    c = lookup_symbolic_memory_data_section(
-                        state.symbolic_memory, data_section, ptr + j, 1)
-                    c = concrete_value(c)
-                    out_str.append(c)
-                # without assuming encoding ?
-                # sys.stdout.buffer.write(bytes(out_str))
-                # sys.stdout.flush()
-                logging.warning(bytes(out_str))
-                num += length
-            # set pnum to num
-            store32(pnum, num)
-            # return 0
-            # manually_constructed = True
-            state.symbolic_stack.append(BitVecVal(0, 32))
-        else:
-            raise UnsupportExternalFuncError
 
 
 def C_extract_string_by_mem_pointer(
