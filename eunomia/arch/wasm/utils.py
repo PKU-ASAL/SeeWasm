@@ -20,6 +20,10 @@ class Configuration:
     _verbose_flag = False    # if user set -v flag, the debugging info would be printed
     # the backend SMT solver, may integrate our lab's own backend in the future
     _solver = 'z3'
+    # the stdin buffer
+    _stdin_buffer = ''
+    # the command to run the to be analyzed program, like 'base64'
+    _args = ''
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -73,6 +77,22 @@ class Configuration:
     @staticmethod
     def set_solver(solver):
         Configuration._solver = solver
+
+    @staticmethod
+    def get_stdin_buffer():
+        return Configuration._stdin_buffer
+
+    @staticmethod
+    def set_stdin_buffer(stdin_buffer):
+        Configuration._stdin_buffer = stdin_buffer if stdin_buffer else ''
+
+    @staticmethod
+    def get_args():
+        return Configuration._args
+
+    @staticmethod
+    def set_args(args):
+        Configuration._args = args if args else ''
 
 
 class Enable_Lasers(Enum):

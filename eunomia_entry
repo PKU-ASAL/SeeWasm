@@ -35,6 +35,14 @@ def main():
                         nargs='?',
                         choices=['z3', 'lab'],
                         help='the adopted backend SMT-solver, z3 is default')
+    inputs.add_argument('--stdin',
+                        action='store',
+                        type=str,
+                        help='The stream of stdin')
+    inputs.add_argument('--args',
+                        action='store',
+                        type=str,
+                        help='The args that run the to be analyzed program')
 
     features = parser.add_argument_group('Features')
     features.add_argument(
@@ -165,6 +173,8 @@ def main():
         Configuration.set_algo(args.algo)
         Configuration.set_concrete_globals(args.concrete_globals)
         Configuration.set_solver(args.solver)
+        Configuration.set_stdin_buffer(args.stdin)
+        Configuration.set_args(args.args)
 
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, func_index2func_name=func_index2func_name,

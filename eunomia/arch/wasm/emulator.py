@@ -146,8 +146,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 raise UnsupportGlobalTypeError
             state.globals[i] = op_val
 
-    def init_state(self, func_name, param_str, return_str, has_ret):
-        state = WasmVMstate()
+    def init_state(
+            self, func_name, param_str, return_str, has_ret, stdin_buffer='',
+            args=''):
+        state = WasmVMstate(stdin_buffer=stdin_buffer, args=args)
         if param_str != '':
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(

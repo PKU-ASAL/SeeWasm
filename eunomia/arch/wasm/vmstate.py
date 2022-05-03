@@ -8,7 +8,7 @@ from z3 import BitVecVal
 
 
 class WasmVMstate(VMstate):
-    def __init__(self):
+    def __init__(self, stdin_buffer='', args=''):
         # data structure:
         def local_default():
             return BitVecVal(0, 32)
@@ -24,10 +24,8 @@ class WasmVMstate(VMstate):
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
         # TODO we insert a `123` here, maybe we should insert a symbol
-        # stdin buffer used by _fd_read, but scanf(modeled seperately) does not read from it
-        # self.stdin_buffer = list('MTIzCg==')
-        self.stdin_buffer = list('123\n')
-        self.args = 'base64 -d'
+        self.stdin_buffer = list(stdin_buffer) if stdin_buffer else []
+        self.args = args
 
     def translate(self, ctx):
         state = WasmVMstate()

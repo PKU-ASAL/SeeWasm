@@ -403,7 +403,9 @@ class Graph:
 
         if state is None:
             state, has_ret = cls.wasmVM.init_state(
-                func, param_str, return_str, [])
+                func, param_str, return_str, [],
+                stdin_buffer=Configuration.get_stdin_buffer(),
+                args=Configuration.get_args())
 
         # switch the state from caller to callee
         caller_func_name = state.current_func_name
