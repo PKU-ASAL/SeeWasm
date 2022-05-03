@@ -9,7 +9,9 @@ from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
                                            get_source_location,
                                            get_source_location_string)
-from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
+from eunomia.arch.wasm.exceptions import (ProcFailTermination,
+                                          ProcSuccessTermination,
+                                          UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
@@ -977,11 +979,17 @@ class ImportFunction:
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
-        # else:
-        #     print('here')
-        #     print(self.name)
-        #     print(state.symbolic_stack)
-        #     exit()
+        elif self.name == 'proc_exit':
+            return_val = state.symbolic_stack.pop().as_long()
+            if return_val == 0:
+                raise ProcSuccessTermination(return_val)
+            else:
+                raise ProcFailTermination(return_val)
+        else:
+            print('here')
+            print(self.name)
+            print(state.symbolic_stack)
+            exit()
 
         if return_str:
             tmp_bitvec = getConcreteBitVec(

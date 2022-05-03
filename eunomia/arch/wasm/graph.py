@@ -2,8 +2,10 @@ import copy
 import re
 from collections import defaultdict, deque
 from queue import PriorityQueue
+import sys
 
-from eunomia.arch.wasm.exceptions import DSLParseError
+from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
+                                          ProcSuccessTermination)
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
                                      branch_choose_info,
@@ -356,7 +358,14 @@ class Graph:
         will be regarded as an entry function to perform symbolic execution
         """
         entry_func = self.entry[0]
-        self.final_states[entry_func] = self.traverse_one(entry_func)
+        try:
+            self.final_states[entry_func] = self.traverse_one(entry_func)
+        except ProcSuccessTermination as pst:
+            print(f"The process terminated with code: {pst}")
+            sys.exit()
+        except ProcFailTermination as pft:
+            print(f"The process unexpectedly terminated with code: {pft}")
+            sys.exit()
 
         # final states of all feasible paths for the given function
         print(

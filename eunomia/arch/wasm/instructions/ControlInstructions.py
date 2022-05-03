@@ -22,7 +22,7 @@ C_LIBRARY_FUNCS = {
     'system'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
-TERMINATED_FUNCS = {'__assert_fail', 'exit', 'runtime.divideByZeroPanic'}
+TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
 # below functions are not regarded as library function, need step in
 NEED_STEP_IN_GO = {
     'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte',

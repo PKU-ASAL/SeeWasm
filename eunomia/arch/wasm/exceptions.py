@@ -74,3 +74,29 @@ class DSLParseError(Exception):
     Raising an error when parsing DSL
     """
     pass
+
+
+class ProcSuccessTermination(Exception):
+    """
+    Indicate the process is successfully terminated
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+    # __str__ is to print() the value
+    def __str__(self):
+        return(repr(self.value))
+
+
+class ProcFailTermination(Exception):
+    """
+    Indicate the process is failedly terminated
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+    # __str__ is to print() the value
+    def __str__(self):
+        return(repr(self.value))
