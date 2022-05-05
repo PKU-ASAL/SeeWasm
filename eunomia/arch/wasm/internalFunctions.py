@@ -985,10 +985,52 @@ class ImportFunction:
                 raise ProcSuccessTermination(return_val)
             else:
                 raise ProcFailTermination(return_val)
+        elif self.name == 'fd_prestat_get':
+            prestat_addr, fd = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # concretize
+            prestat_addr = prestat_addr.as_long()
+            fd = fd.as_long()
+            print(
+                f"Encounter fd_prestat_get, fd: {fd}, prestat_addr: {prestat_addr}")
+
+            if fd > 5:
+                state.symbolic_stack.append(BitVecVal(1, 32))
+                return
+
+            # the first byte means '__WASI_PREOPENTYPE_DIR', the other three are for align
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, prestat_addr, 4, BitVecVal(0, 32))
+            # store the length of file's path in 4 bytes, like 'a.txt' is 5 bytes
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, prestat_addr + 4, 4, BitVecVal(5, 32))
+
+            # append a 0 as return value, means success
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'fd_prestat_dir_name':
+            buffer_len, buffer_addr, fd = state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # concretize
+            buffer_len = buffer_len.as_long()
+            buffer_addr = buffer_addr.as_long()
+            fd = fd.as_long()
+            print(
+                f"Encounter fd_prestat_dir_name, fd: {fd}, buffer_addr: {buffer_addr}, buffer_len: {buffer_len}")
+
+            # copy the file path into the buffer
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, buffer_addr, buffer_len,
+                BitVecVal(str_to_little_endian_int('a.txt'),
+                          buffer_len * 8))
+
+            # append a 0 as return value, means success
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
         else:
             print('here')
             print(self.name)
             print(state.symbolic_stack)
+            print(state.symbolic_memory)
             exit()
 
         if return_str:
