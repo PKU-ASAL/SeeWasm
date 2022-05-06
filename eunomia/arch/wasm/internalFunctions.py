@@ -990,13 +990,14 @@ class ImportFunction:
             # concretize
             prestat_addr = prestat_addr.as_long()
             fd = fd.as_long()
-            print(
-                f"Encounter fd_prestat_get, fd: {fd}, prestat_addr: {prestat_addr}")
-
-            if fd > 5:
-                state.symbolic_stack.append(BitVecVal(1, 32))
+            # we assume there are only two input files, like "demo.wasm a.txt b.txt"
+            # if we do not return 8, the loop in `__wasilibc_populate_preopens` will never end
+            if fd >= 5:
+                state.symbolic_stack.append(BitVecVal(8, 32))
                 return
 
+            print(
+                f"Encounter fd_prestat_get, fd: {fd}, prestat_addr: {prestat_addr}")
             # the first byte means '__WASI_PREOPENTYPE_DIR', the other three are for align
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, prestat_addr, 4, BitVecVal(0, 32))
@@ -1022,6 +1023,21 @@ class ImportFunction:
                 state.symbolic_memory, buffer_addr, buffer_len,
                 BitVecVal(str_to_little_endian_int('a.txt'),
                           buffer_len * 8))
+
+            # append a 0 as return value, means success
+            state.symbolic_stack.append(BitVecVal(0, 32))
+            return
+        elif self.name == 'path_open':
+            fd_addr, _, _, _, _, _, _, _, dir_fd = state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop(
+            ), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            # concretize
+            fd_addr = fd_addr.as_long()
+            dir_fd = dir_fd.as_long()
+            print(
+                f"Encounter path_open, fd: {dir_fd}")
+
+            state.symbolic_memory = insert_symbolic_memory(
+                state.symbolic_memory, fd_addr, 4, BitVecVal(dir_fd, 32))
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
