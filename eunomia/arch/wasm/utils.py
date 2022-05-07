@@ -84,7 +84,16 @@ class Configuration:
 
     @staticmethod
     def set_stdin_buffer(stdin_buffer):
-        Configuration._stdin_buffer = stdin_buffer if stdin_buffer else ''
+        """
+        The `stdin_buffer` can by two types:
+        1. str: the stdin is given concretely, like "123"
+        2. [int]: the stdin is given with designated length, like [3]
+        """
+        if isinstance(stdin_buffer, str):
+            Configuration._stdin_buffer = stdin_buffer
+        elif isinstance(stdin_buffer, list):
+            length = stdin_buffer[0]
+            Configuration._stdin_buffer = BitVec("sym_stdin", 8 * length)
 
     @staticmethod
     def get_args():
