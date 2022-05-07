@@ -101,7 +101,16 @@ class Configuration:
 
     @staticmethod
     def set_args(args):
-        Configuration._args = args if args else ''
+        """
+        The `args` can by two types:
+        1. str: the stdin is given concretely, like "base64"
+        2. [int]: the stdin is given with designated length, like [3]
+        """
+        if isinstance(args, str):
+            Configuration._args = args
+        elif isinstance(args, list):
+            length = args[0]
+            Configuration._args = BitVec("sym_arg", 8 * length)
 
 
 class Enable_Lasers(Enum):

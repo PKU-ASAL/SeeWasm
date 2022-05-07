@@ -21,9 +21,9 @@ from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
                                      parse_printf_formatting,
                                      str_to_little_endian_int)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
-                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If, Or,
-                fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
-                is_eq, is_expr, is_not, simplify)
+                BitVecVal, BoolVal, Concat, Extract, Float64, FPNumRef, FPVal,
+                If, Or, fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value,
+                is_const, is_eq, is_expr, is_not, simplify)
 
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
@@ -723,13 +723,22 @@ class ImportFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         if self.name == 'args_sizes_get':
             arg_buf_size_addr, argc_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+            assert isinstance(state.args, str) or is_bv(
+                state.args), f"The state.args type is {type(state.args)}, which we do not support"
             # insert the `argc` into the corresponding addr
-            argc = len(state.args.split(" "))
+            if isinstance(state.args, str):
+                argc = len(state.args.split(" "))
+            elif is_bv(state.args):
+                # TODO, --sym_args allows multiple arg, but we set argc as 1 temporarily
+                argc = 1
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, argc_addr, 4, BitVecVal(argc, 32))
             # the length of `argv` into the corresponding addr
             # the `+ 1` is defined in the source code
-            argv_len = len(state.args) + 1
+            if isinstance(state.args, str):
+                argv_len = len(state.args) + 1
+            elif is_bv(state.args):
+                argv_len = state.args.size() // 8 + 1
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, arg_buf_size_addr, 4,
                 BitVecVal(argv_len, 32))
@@ -744,19 +753,37 @@ class ImportFunction:
             # concretize
             arg_buf_addr = arg_buf_addr.as_long()
             argv_addr = argv_addr.as_long()
+            assert isinstance(state.args, str) or is_bv(
+                state.args), f"The state.args type is {type(state.args)}, which we do not support"
 
             # emulate the official implementation
-            args = state.args.split(" ")
+            if isinstance(state.args, str):
+                args = state.args.split(" ")
+            elif is_bv(state.args):
+                # TODO, --sym_args allows multiple arg, but we just insert one element temporarily
+                args = [state.args]
             next_arg_buf_addr = arg_buf_addr
             for arg_index in range(len(args)):
                 arg = args[arg_index]
-                num_arg_bytes = len(arg) + 1
-                # insert the arg
-                state.symbolic_memory = insert_symbolic_memory(
-                    state.symbolic_memory, next_arg_buf_addr, num_arg_bytes,
-                    BitVecVal(
-                        str_to_little_endian_int(arg),
-                        8 * num_arg_bytes))
+
+                if isinstance(arg, str):
+                    num_arg_bytes = len(arg) + 1
+                    # insert the arg
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, next_arg_buf_addr,
+                        num_arg_bytes,
+                        BitVecVal(
+                            str_to_little_endian_int(arg),
+                            8 * num_arg_bytes))
+                elif is_bv(arg):
+                    num_arg_bytes = arg.size() // 8 + 1
+                    # insert the arg
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, next_arg_buf_addr,
+                        num_arg_bytes, simplify(
+                            Concat(BitVecVal(0, 8),
+                                   arg)))
+
                 # insert the next_arg_buf_addr
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, argv_addr + 4 * arg_index, 4,
