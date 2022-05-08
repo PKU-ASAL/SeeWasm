@@ -22,8 +22,9 @@ class Configuration:
     _solver = 'z3'
     # the stdin buffer
     _stdin_buffer = ''
-    # the command to run the to be analyzed program, like 'base64'
-    _args = ''
+    # the command to run the to be analyzed program, like ['base64', a]
+    # where 'a' is a symbol
+    _args = []
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -100,17 +101,20 @@ class Configuration:
         return Configuration._args
 
     @staticmethod
-    def set_args(args):
+    def set_args(args, sym_args):
         """
-        The `args` can by two types:
-        1. str: the stdin is given concretely, like "base64"
-        2. [int]: the stdin is given with designated length, like [3]
+        Parse the given args and symbolic args into the _args
+
+        args: str: typically is the argv[0] and is given concretely, like "base64"
+        sym_args: [int, ...]: each symbolic arg is given with designated length, like [1, 2]
         """
-        if isinstance(args, str):
-            Configuration._args = args
-        elif isinstance(args, list):
-            length = args[0]
-            Configuration._args = BitVec("sym_arg", 8 * length)
+        if args:
+            Configuration._args += args.split(" ")
+
+        if sym_args:
+            for i, sym_len in enumerate(sym_args):
+                Configuration._args.append(
+                    BitVec(f"sym_args_{i + 1}", 8 * sym_len))
 
 
 class Enable_Lasers(Enum):

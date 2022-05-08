@@ -16,14 +16,16 @@ from eunomia.arch.wasm.exceptions import (ProcFailTermination,
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
-                                     calc_memory_align, getConcreteBitVec,
+from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration, bcolors,
+                                     bin_to_float, calc_memory_align,
+                                     getConcreteBitVec,
                                      parse_printf_formatting,
                                      str_to_little_endian_int)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
                 BitVecVal, BoolVal, Concat, Extract, Float64, FPNumRef, FPVal,
                 If, Or, fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value,
-                is_const, is_eq, is_expr, is_not, simplify)
+                is_const, is_eq, is_expr, is_not, sat, simplify)
 
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
@@ -723,22 +725,21 @@ class ImportFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         if self.name == 'args_sizes_get':
             arg_buf_size_addr, argc_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-            assert isinstance(state.args, str) or is_bv(
-                state.args), f"The state.args type is {type(state.args)}, which we do not support"
+
             # insert the `argc` into the corresponding addr
-            if isinstance(state.args, str):
-                argc = len(state.args.split(" "))
-            elif is_bv(state.args):
-                # TODO, --sym_args allows multiple arg, but we set argc as 1 temporarily
-                argc = 1
+            argc = len(state.args)
+
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, argc_addr, 4, BitVecVal(argc, 32))
             # the length of `argv` into the corresponding addr
             # the `+ 1` is defined in the source code
-            if isinstance(state.args, str):
-                argv_len = len(state.args) + 1
-            elif is_bv(state.args):
-                argv_len = state.args.size() // 8 + 1
+            argv_len = 0
+            for arg_i in state.args:
+                if isinstance(arg_i, str):
+                    argv_len += len(arg_i) + 1
+                elif is_bv(arg_i):
+                    argv_len += arg_i.size() // 8 + 1
+
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, arg_buf_size_addr, 4,
                 BitVecVal(argv_len, 32))
@@ -753,15 +754,9 @@ class ImportFunction:
             # concretize
             arg_buf_addr = arg_buf_addr.as_long()
             argv_addr = argv_addr.as_long()
-            assert isinstance(state.args, str) or is_bv(
-                state.args), f"The state.args type is {type(state.args)}, which we do not support"
 
             # emulate the official implementation
-            if isinstance(state.args, str):
-                args = state.args.split(" ")
-            elif is_bv(state.args):
-                # TODO, --sym_args allows multiple arg, but we just insert one element temporarily
-                args = [state.args]
+            args = state.args
             next_arg_buf_addr = arg_buf_addr
             for arg_index in range(len(args)):
                 arg = args[arg_index]
@@ -1012,7 +1007,22 @@ class ImportFunction:
                 data_len = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + (8 * i + 4),
-                    4).as_long()
+                    4)
+
+                # data_len could be BitVec
+                # if it is, try to concretize it with the current constraints
+                if is_bv_value(data_len):
+                    data_len = data_len.as_long()
+                elif is_bv(data_len):
+                    s = SMTSolver(Configuration.get_solver())
+                    s += state.constraints
+                    tmp_data_len = BitVec('tmp_data_len', data_len.size())
+                    s.add(tmp_data_len == data_len)
+                    if sat == s.check():
+                        m = s.model()
+                        data_len = m[tmp_data_len].as_long()
+                    else:
+                        raise Exception("the data_len cannot be solved")
                 out_str = []
                 for j in range(data_len):
                     c = lookup_symbolic_memory_data_section(

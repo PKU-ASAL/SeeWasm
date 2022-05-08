@@ -47,7 +47,7 @@ def main():
                         type=str,
                         help='The args that run the to be analyzed program')
     inputs.add_argument(
-        '--sym_arg', type=int, nargs=1,
+        '--sym_args', type=int, nargs='+',
         help="Replace the argument by a symbolic argument with length N")
 
     features = parser.add_argument_group('Features')
@@ -188,14 +188,10 @@ def main():
         elif args.sym_stdin:
             Configuration.set_stdin_buffer(args.sym_stdin)
 
-        # --args and --sym_arg cannot exist at the same time
-        if args.args and args.sym_arg:
-            raise Exception(
-                "The --stdin and --sym_stdin cannot exist at the same time")
-        if args.args:
-            Configuration.set_args(args.args)
-        elif args.sym_arg:
-            Configuration.set_args(args.sym_arg)
+        # --args and --sym_args can exist simultaneously
+        # --args is usually used as argv[0], and --sym_args are the following argv
+        # their order are fixed, i.e., --args is in front of --sym_args
+        Configuration.set_args(args.args, args.sym_args)
 
         wasmVM = WasmSSAEmulatorEngine(
             octo_bytecode, func_index2func_name=func_index2func_name,
