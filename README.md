@@ -134,3 +134,15 @@ Users can input `--overflow`, `--divzero` or `--buffer` to enable the correspond
 ### Enable Coverage Calculation
 
 The option `--coverage` can output the coverage information under the `log` director.
+
+### Enable Symbolic Input
+
+We have supported to specify the input and arguments to the to-be-analyzed program:
+
+- `--stdin`: specify the stdin in string, like `--stdin test` will pass the string `test` as stdin;
+- `--sym_stdin N`: make a symbolic string with `N` chars, like `--sym_stdin 10` will construct a symbolic string with 10 chars;
+- `--args`: specify the arguments that will be taked, like `--argv base64` will pass the `base64` as argv[0];
+- `--sym_args N1 N2 ... Nn`: make `n` symbols and each of them is with `Ni` chars.
+
+**Note that, the `--stdin` and `--sym_stdin` are mutually exclusive, i.e., they can not be set simultaneously. However, the `--args` and `--sym_args` can be set at the same time.** Typically, the `--args` is used to set argv[0] and `--sym_args` is used to set the following argv.
+For example, `--args base64 --sym_args 2 2` will pass the `base64` as argv[0], and two strings (each of them are with 2-chars length) as following argv[1] and argv[2].

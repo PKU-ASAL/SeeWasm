@@ -16,14 +16,16 @@ from eunomia.arch.wasm.exceptions import (ProcFailTermination,
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
-                                     calc_memory_align, getConcreteBitVec,
+from eunomia.arch.wasm.solver import SMTSolver
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration, bcolors,
+                                     bin_to_float, calc_memory_align,
+                                     getConcreteBitVec,
                                      parse_printf_formatting,
                                      str_to_little_endian_int)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
-                BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If, Or,
-                fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value, is_const,
-                is_eq, is_expr, is_not, simplify)
+                BitVecVal, BoolVal, Concat, Extract, Float64, FPNumRef, FPVal,
+                If, Or, fpBVToFP, fpRealToFP, fpToReal, is_bv, is_bv_value,
+                is_const, is_eq, is_expr, is_not, sat, simplify)
 
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
@@ -723,13 +725,21 @@ class ImportFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         if self.name == 'args_sizes_get':
             arg_buf_size_addr, argc_addr = state.symbolic_stack.pop(), state.symbolic_stack.pop()
+
             # insert the `argc` into the corresponding addr
-            argc = len(state.args.split(" "))
+            argc = len(state.args)
+
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, argc_addr, 4, BitVecVal(argc, 32))
             # the length of `argv` into the corresponding addr
             # the `+ 1` is defined in the source code
-            argv_len = len(state.args) + 1
+            argv_len = 0
+            for arg_i in state.args:
+                if isinstance(arg_i, str):
+                    argv_len += len(arg_i) + 1
+                elif is_bv(arg_i):
+                    argv_len += arg_i.size() // 8 + 1
+
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, arg_buf_size_addr, 4,
                 BitVecVal(argv_len, 32))
@@ -746,17 +756,29 @@ class ImportFunction:
             argv_addr = argv_addr.as_long()
 
             # emulate the official implementation
-            args = state.args.split(" ")
+            args = state.args
             next_arg_buf_addr = arg_buf_addr
             for arg_index in range(len(args)):
                 arg = args[arg_index]
-                num_arg_bytes = len(arg) + 1
-                # insert the arg
-                state.symbolic_memory = insert_symbolic_memory(
-                    state.symbolic_memory, next_arg_buf_addr, num_arg_bytes,
-                    BitVecVal(
-                        str_to_little_endian_int(arg),
-                        8 * num_arg_bytes))
+
+                if isinstance(arg, str):
+                    num_arg_bytes = len(arg) + 1
+                    # insert the arg
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, next_arg_buf_addr,
+                        num_arg_bytes,
+                        BitVecVal(
+                            str_to_little_endian_int(arg),
+                            8 * num_arg_bytes))
+                elif is_bv(arg):
+                    num_arg_bytes = arg.size() // 8 + 1
+                    # insert the arg
+                    state.symbolic_memory = insert_symbolic_memory(
+                        state.symbolic_memory, next_arg_buf_addr,
+                        num_arg_bytes, simplify(
+                            Concat(BitVecVal(0, 8),
+                                   arg)))
+
                 # insert the next_arg_buf_addr
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, argv_addr + 4 * arg_index, 4,
@@ -876,10 +898,11 @@ class ImportFunction:
 
             # if there is no stdin chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if not state.stdin_buffer:
+            if (isinstance(state.stdin_buffer, str) and not state.stdin_buffer) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() < 8):
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, num_bytes_read_addr, 4,
                     BitVecVal(0, 32))
+                # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
                 return
 
@@ -892,10 +915,8 @@ class ImportFunction:
                 f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
             assert fd == 0, 'only support stdin now'
 
-            bytes_read_cnt = 0
-            out_bytes = []
-            given_buffer = state.stdin_buffer
-
+            char_read_cnt = 0
+            out_chars = []
             for i in range(num_iovs):
                 # the buffer where to store data
                 buffer_ptr = lookup_symbolic_memory_data_section(
@@ -907,29 +928,55 @@ class ImportFunction:
                     iovs_addr + (8 * i + 4),
                     4).as_long()
 
-                for j in range(min(len(given_buffer), buffer_len)):
-                    data_to_read = given_buffer.pop(0)
+                assert isinstance(state.stdin_buffer, str) ^ is_bv(
+                    state.stdin_buffer), "The stdin type is wrong, please recheck"
+                if isinstance(state.stdin_buffer, str):
+                    stdin_length = len(state.stdin_buffer)
+                else:
+                    stdin_length = state.stdin_buffer.size() // 8
 
-                    out_bytes.append(str.encode(data_to_read))
-                    state.symbolic_memory = insert_symbolic_memory(
-                        state.symbolic_memory, buffer_ptr + j, len(data_to_read),
-                        BitVecVal(str_to_little_endian_int(data_to_read), 8 * len(data_to_read)))
-                    bytes_read_cnt += len(data_to_read)
+                for j in range(min(stdin_length, buffer_len)):
+                    if isinstance(state.stdin_buffer, str):
+                        data_to_read = state.stdin_buffer[0]
+                        state.stdin_buffer = state.stdin_buffer[1:]
+                    else:
+                        data_to_read = simplify(Extract(8 * (stdin_length - char_read_cnt) - 1, 8 * (
+                            stdin_length - char_read_cnt) - 8, state.stdin_buffer))
+                        if (stdin_length - char_read_cnt) == 1:
+                            state.stdin_buffer = BitVec('dummy', 1)
+                        else:
+                            state.stdin_buffer = simplify(
+                                Extract(
+                                    8 * (stdin_length - char_read_cnt) - 9, 0,
+                                    state.stdin_buffer))
+
+                    out_chars.append(data_to_read)
+                    char_read_cnt += 1
+                    if isinstance(state.stdin_buffer, str):
+                        state.symbolic_memory = insert_symbolic_memory(
+                            state.symbolic_memory, buffer_ptr + j,
+                            len(data_to_read),
+                            BitVecVal(
+                                str_to_little_endian_int(data_to_read),
+                                8 * len(data_to_read)))
+                    else:
+                        state.symbolic_memory = insert_symbolic_memory(
+                            state.symbolic_memory, buffer_ptr + j, 1, data_to_read)
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if len(given_buffer) > 0:
+                if (isinstance(state.stdin_buffer, str) and len(state.stdin_buffer) > 0) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() > 1):
                     continue
                 else:
                     # or the stdin buffer is drained out, break out
                     break
             logging.warning(
-                f"================Initiated an fd_read string: {b''.join(out_bytes)}=================")
+                f"================Initiated an fd_read string: {out_chars}=================")
             # set num_bytes_read_addr to bytes_read_cnt
-            logging.warning(f'{bytes_read_cnt} bytes read.')
+            logging.warning(f'{char_read_cnt} chars read.')
             state.symbolic_memory = insert_symbolic_memory(
                 state.symbolic_memory, num_bytes_read_addr, 4,
-                BitVecVal(bytes_read_cnt, 32))
+                BitVecVal(char_read_cnt, 32))
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -960,16 +1007,37 @@ class ImportFunction:
                 data_len = lookup_symbolic_memory_data_section(
                     state.symbolic_memory, dict(),
                     iovs_addr + (8 * i + 4),
-                    4).as_long()
+                    4)
+
+                # data_len could be BitVec
+                # if it is, try to concretize it with the current constraints
+                if is_bv_value(data_len):
+                    data_len = data_len.as_long()
+                elif is_bv(data_len):
+                    s = SMTSolver(Configuration.get_solver())
+                    s += state.constraints
+                    tmp_data_len = BitVec('tmp_data_len', data_len.size())
+                    s.add(tmp_data_len == data_len)
+                    if sat == s.check():
+                        m = s.model()
+                        data_len = m[tmp_data_len].as_long()
+                    else:
+                        raise Exception("the data_len cannot be solved")
                 out_str = []
                 for j in range(data_len):
                     c = lookup_symbolic_memory_data_section(
                         state.symbolic_memory, dict(), data_ptr + j, 1)
-                    c = chr(c.as_long()).encode()
+                    if is_bv_value(c):
+                        c = chr(c.as_long())
+                    elif is_bv(c):
+                        c = c
+                    else:
+                        raise Exception(
+                            f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
 
                 logging.warning(
-                    f"================Output a string: {b''.join(out_str)}=================")
+                    f"================Output a string: {out_str}=================")
                 bytes_written_cnt += data_len
 
             state.symbolic_memory = insert_symbolic_memory(
