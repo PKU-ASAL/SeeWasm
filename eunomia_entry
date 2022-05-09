@@ -196,8 +196,7 @@ def main():
         # their order are fixed, i.e., --args is in front of --sym_args
         Configuration.set_args(args.args, args.sym_args)
 
-        wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, entry=args.onlyfunc)
+        wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide

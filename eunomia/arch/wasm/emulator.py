@@ -41,10 +41,7 @@ else:
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, entry=None):
-        # the entry function
-        self.entry = entry[0]
-
+    def __init__(self, bytecode):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
@@ -74,15 +71,16 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # whether enable the coverage calculation
         if Configuration.get_coverage():
-            self.count_instrs(self.entry)
+            self.count_instrs()
 
-    def count_instrs(self, entry):
+    def count_instrs(self):
         """
         Statically count instructions followed by the entry function
         """
         # only consider the first given func
         func = readable_internal_func_name(
-            Configuration.get_func_index_to_func_name(), entry)
+            Configuration.get_func_index_to_func_name(),
+            Configuration.get_entry())
         _, edges = self.cfg.get_functions_call_edges(self.ana)
         queue = [func]
         visited = set()
