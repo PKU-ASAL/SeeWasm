@@ -112,7 +112,7 @@ def main():
 
     octo_bytecode = None
     octo_cfg = None
-    func_index2func_name = None
+    func_index_to_func_name = None
 
     # the verbose
     Configuration.set_verbose_flag(args.verbose)
@@ -127,8 +127,8 @@ def main():
             cmd(cmd_option)
         except Exception:
             raise("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
-    func_index2func_name = extract_mapping(wat_file_path)
-    Configuration.set_func_index_to_func_name(func_index2func_name)
+    func_index_to_func_name = extract_mapping(wat_file_path)
+    Configuration.set_func_index_to_func_name(func_index_to_func_name)
 
     # process input file
     Configuration.set_file(args.file.name)
@@ -158,7 +158,8 @@ def main():
         octo_cfg = WasmCFG(octo_bytecode)
 
         if args.call:
-            octo_cfg.visualize_call_flow(func_index2func_name)
+            octo_cfg.visualize_call_flow(
+                Configuration.get_func_index_to_func_name())
         if args.analytic:
             octo_cfg.visualize_instrs_per_funcs()
 
@@ -195,7 +196,7 @@ def main():
         Configuration.set_args(args.args, args.sym_args)
 
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode, func_index2func_name=func_index2func_name,
+            octo_bytecode,
             coverage=args.coverage, entry=args.onlyfunc)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM

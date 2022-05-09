@@ -197,11 +197,11 @@ def getConcreteBitVec(type, name):
         raise UnsupportZ3TypeError
 
 
-def readable_internal_func_name(func_index2func_name, internal_func_name):
+def readable_internal_func_name(func_index_to_func_name, internal_func_name):
     """
-    Convert the internal name to a more readable one with the help of func_index2func_name
+    Convert the internal name to a more readable one with the help of func_index_to_func_name
     """
-    if func_index2func_name is None:
+    if func_index_to_func_name is None:
         return internal_func_name
 
     if not internal_func_name.startswith('$'):
@@ -209,7 +209,7 @@ def readable_internal_func_name(func_index2func_name, internal_func_name):
 
     readable_name = None
     try:
-        readable_name = func_index2func_name[int(
+        readable_name = func_index_to_func_name[int(
             re.search('(\d+)', internal_func_name).group())]
     except AttributeError:
         # if the internal_function_name is the readable name already
