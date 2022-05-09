@@ -202,7 +202,7 @@ def main():
         Graph.manual_guide = args.manual_guide
         Graph.initialize()
         Graph.parse_dsl(user_dsl)
-        graph = Graph(args.onlyfunc)
+        graph = Graph()
         graph.traverse()
 
     if not (args.symbolic or args.cfg or args.call or args.analytic):

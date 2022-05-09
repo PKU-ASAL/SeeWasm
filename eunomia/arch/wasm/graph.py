@@ -75,9 +75,9 @@ class Graph:
     manual_guide = False
     _user_dsl = None
 
-    def __init__(self, entry):
-        self.entry = entry
-        self.final_states = {entry[0]: None}
+    def __init__(self):
+        self.entry = Configuration.get_entry()
+        self.final_states = {self.entry: None}
 
     @classproperty
     def workers(cls):
@@ -357,7 +357,7 @@ class Graph:
         This object can be initialized by a list of functions, each of them
         will be regarded as an entry function to perform symbolic execution
         """
-        entry_func = self.entry[0]
+        entry_func = self.entry
         try:
             self.final_states[entry_func] = self.traverse_one(entry_func)
         except ProcSuccessTermination as pst:
