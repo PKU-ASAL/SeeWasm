@@ -75,9 +75,9 @@ class Graph:
     manual_guide = False
     _user_dsl = None
 
-    def __init__(self, entry):
-        self.entry = entry
-        self.final_states = {entry[0]: None}
+    def __init__(self):
+        self.entry = Configuration.get_entry()
+        self.final_states = {self.entry: None}
 
     @classproperty
     def workers(cls):
@@ -192,7 +192,7 @@ class Graph:
                         target_func = cls.wasmVM.ana.func_prototypes[func_offset]
                         func_name, _, _, _ = target_func
                         readable_name = readable_internal_func_name(
-                            cls.wasmVM.func_index2func_name, func_name)
+                            Configuration.get_func_index_to_func_name(), func_name)
                         # aes function's name is generated in "name$index" format.
                         if len(readable_name.split('$')) == 2:
                             cls.aes_func[bb.name].add(readable_name)
@@ -215,7 +215,7 @@ class Graph:
             target_blocks = cls.func_to_bbs.get(target_func_name, None)
             if not target_blocks:
                 # if it cannot be accessed by name directly
-                for func_offset, func_name in cls.wasmVM.func_index2func_name.items():
+                for func_offset, func_name in Configuration.get_func_index_to_func_name().items():
                     if target_func_name == func_name:
                         # if func_name is target_func_name, extract the blocks
                         target_blocks = cls.func_to_bbs[f"$func{str(func_offset)}"]
@@ -299,7 +299,7 @@ class Graph:
                 target_func_name_re = dsl_item["scope"]
                 r = re.compile(target_func_name_re)
                 target_func_names = list(
-                    filter(r.match, cls.wasmVM.func_index2func_name.values()))
+                    filter(r.match, Configuration.get_func_index_to_func_name().values()))
             else:
                 target_func_names = [dsl_item["scope"]]
 
@@ -357,7 +357,7 @@ class Graph:
         This object can be initialized by a list of functions, each of them
         will be regarded as an entry function to perform symbolic execution
         """
-        entry_func = self.entry[0]
+        entry_func = self.entry
         try:
             self.final_states[entry_func] = self.traverse_one(entry_func)
         except ProcSuccessTermination as pst:

@@ -41,12 +41,7 @@ else:
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(
-            self, bytecode, func_index2func_name=None, coverage=False,
-            entry=None):
-        # the entry function
-        self.entry = entry[0]
-
+    def __init__(self, bytecode):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
@@ -68,10 +63,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
             self.data_section[(offset, offset + size)] = data
 
-        # func index to func real name
-        # like func 4 is $main function in C
-        self.func_index2func_name = func_index2func_name
-
         # the coverage bitmap and ratio
         self.instruction_coverage_bitmap = defaultdict(list)
         self.instruction_coverage = defaultdict(list)
@@ -79,17 +70,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.coverage_output_last_timestamp = datetime(1996, 12, 24)
 
         # whether enable the coverage calculation
-        self.coverage = coverage
-        if self.coverage:
-            self.count_instrs(self.entry)
+        if Configuration.get_coverage():
+            self.count_instrs()
 
-    def count_instrs(self, entry):
+    def count_instrs(self):
         """
         Statically count instructions followed by the entry function
         """
         # only consider the first given func
         func = readable_internal_func_name(
-            self.func_index2func_name, entry)
+            Configuration.get_func_index_to_func_name(),
+            Configuration.get_entry())
         _, edges = self.cfg.get_functions_call_edges(self.ana)
         queue = [func]
         visited = set()
@@ -99,15 +90,18 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             visited.add(ele)
             for edge in edges:
                 if readable_internal_func_name(
-                        self.func_index2func_name, edge.node_from) == ele and readable_internal_func_name(
-                        self.func_index2func_name, edge.node_to) not in visited and readable_internal_func_name(
-                        self.func_index2func_name, edge.node_to) not in C_LIBRARY_FUNCS:
-                    queue.append(readable_internal_func_name(
-                        self.func_index2func_name, edge.node_to))
+                        Configuration.get_func_index_to_func_name(), edge.node_from) == ele and readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(), edge.node_to) not in visited and readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(), edge.node_to) not in C_LIBRARY_FUNCS:
+                    queue.append(
+                        readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(),
+                            edge.node_to))
             # add the instruction number
             for f in self.cfg.functions:
                 if readable_internal_func_name(
-                        self.func_index2func_name, f.name) == ele:
+                        Configuration.get_func_index_to_func_name(),
+                        f.name) == ele:
                     self.total_instructions += len(f.instructions)
                     break
 
@@ -122,7 +116,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if func_name[0] == '$':
             func_index = int(re.match('\$func(.*)', func_name).group(1))
         else:
-            for index, wat_func_name in self.func_index2func_name.items():
+            for index, wat_func_name in Configuration.get_func_index_to_func_name().items():
                 if wat_func_name == func_name:
                     func_index = index
                     break
@@ -217,13 +211,15 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         # calculate instruction coverage
-        if self.coverage:
-            self.calculate_coverage(instr, readable_internal_func_name(
-                self.func_index2func_name, state.current_func_name))
+        if Configuration.get_coverage():
+            self.calculate_coverage(
+                instr,
+                readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    state.current_func_name))
 
         logging.debug(
-            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n'
-            + state.__str__(func_index2func_name=self.func_index2func_name))
+            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + state.__str__())
 
         for c in state.constraints:
             if not isinstance(c, BoolRef):
@@ -236,8 +232,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             return None
         elif instr.group == 'Control':
             return instr_obj.emulate(
-                state, has_ret, self.ana.func_prototypes, self.
-                func_index2func_name, self.data_section, self.ana)
+                state, has_ret, self.ana.func_prototypes, self.data_section,
+                self.ana)
         elif instr.group == 'Parametric':
             return instr_obj.emulate(state, depth, has_ret, call_depth)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
@@ -255,7 +251,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if func_name not in self.instruction_coverage_bitmap:
             for func in self.cfg.functions:
                 if readable_internal_func_name(
-                        self.func_index2func_name, func.name) == func_name:
+                        Configuration.get_func_index_to_func_name(),
+                        func.name) == func_name:
                     self.instruction_coverage_bitmap[func_name] = [
                         False] * len(func.instructions)
                     self.instruction_coverage[func_name] = [
@@ -273,7 +270,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                                       self.instruction_coverage.values()])
 
         current_timestamp = datetime.now()
-        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 3:
+        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 1:
             # output here
             output_string = ["------------------------------------------\n"]
             for k, v in self.instruction_coverage.items():
@@ -281,10 +278,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             output_string.append(
                 "------------------------------------------\n")
 
-            with open('./log/base64-coverage.log', 'w') as fp:
+            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_func_level.log', 'w') as fp:
                 fp.writelines(output_string)
 
-            with open('./log/base64-coverage-total.log', 'a') as fp:
+            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_ins_level.log', 'a') as fp:
                 fp.write(
                     f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
 

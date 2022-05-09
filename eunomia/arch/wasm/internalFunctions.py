@@ -475,10 +475,8 @@ class GoPredefinedFunction:
                     # then store the pointer and size to the string struct in vargs.
 
                     # find the index of runtime.alloc
-                    from eunomia.arch.wasm.graph import Graph
-                    func_index2func_name = Graph.wasmVM.func_index2func_name
                     runtime_alloc_ind = -1
-                    for ind, name in func_index2func_name.items():
+                    for ind, name in Configuration.get_func_index_to_func_name().items():
                         if name == 'runtime.alloc':
                             runtime_alloc_ind = ind
                     assert runtime_alloc_ind != -1

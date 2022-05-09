@@ -8,7 +8,7 @@ from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.disassembler import WasmDisassembler
 from eunomia.arch.wasm.format import format_bb_name, format_func_name
-from eunomia.arch.wasm.utils import readable_internal_func_name
+from eunomia.arch.wasm.utils import Configuration, readable_internal_func_name
 from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
@@ -400,9 +400,8 @@ class WasmCFG(CFG):
         else:
             graph.view(simplify=simplify, ssa=ssa)
 
-    def visualize_call_flow(self, func_index2func_name,
-                            filename="wasm_call_graph_octopus.gv",
-                            format_fname=False):
+    def visualize_call_flow(
+            self, filename="wasm_call_graph_octopus.gv", format_fname=False):
         """Visualize the cfg call flow graph
         """
         # init analyzer
@@ -436,7 +435,7 @@ class WasmCFG(CFG):
             for idx, node in enumerate(nodes):
                 # name graph bubble
                 node_name = readable_internal_func_name(
-                    func_index2func_name, node)
+                    Configuration.get_func_index_to_func_name(), node)
                 if format_fname:
                     node_name = nodes_longname[idx]
 
@@ -478,9 +477,14 @@ class WasmCFG(CFG):
                 label = None
                 if count > 1:
                     label = str(count)
-                c.edge(readable_internal_func_name(
-                    func_index2func_name, edge.node_from), readable_internal_func_name(
-                    func_index2func_name, edge.node_to), label=label)
+                c.edge(
+                    readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        edge.node_from),
+                    readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        edge.node_to),
+                    label=label)
 
         g.render(filename, view=True)
 

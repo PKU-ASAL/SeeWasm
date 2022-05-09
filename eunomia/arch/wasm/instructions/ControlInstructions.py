@@ -97,14 +97,15 @@ class ControlInstructions:
         return new_state, new_has_ret
 
     def deal_with_call(
-            self, state, f_offset, has_ret, func_prototypes,
-            func_index2func_name, data_section, analyzer):
+            self, state, f_offset, has_ret, func_prototypes, data_section,
+            analyzer):
         # get the callee's function signature
         target_func = func_prototypes[f_offset]
         internal_function_name, param_str, return_str, _ = target_func
 
         readable_name = readable_internal_func_name(
-            func_index2func_name, internal_function_name)
+            Configuration.get_func_index_to_func_name(),
+            internal_function_name)
 
         new_states = []
         # if the callee is imported by env
@@ -147,7 +148,7 @@ class ControlInstructions:
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.warning(
-                f"From: {readable_internal_func_name(func_index2func_name, state.current_func_name)}, invoke: {readable_name}")
+                f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -201,8 +202,7 @@ class ControlInstructions:
         return new_states
 
     def emulate(
-            self, state, has_ret, func_prototypes, func_index2func_name,
-            data_section, analyzer):
+            self, state, has_ret, func_prototypes, data_section, analyzer):
         if self.instr_name in self.skip_command:
             return None
         if self.instr_name in self.term_command:
@@ -274,7 +274,7 @@ class ControlInstructions:
                     continue
                 after_calls = self.deal_with_call(
                     new_state, possible_func_offset, has_ret, func_prototypes,
-                    func_index2func_name, data_section, analyzer)
+                    data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
@@ -316,8 +316,8 @@ class ControlInstructions:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
             return self.deal_with_call(
-                state, f_offset, has_ret, func_prototypes,
-                func_index2func_name, data_section, analyzer)
+                state, f_offset, has_ret, func_prototypes, data_section,
+                analyzer)
         else:
             print(self.instr_name)
             raise UnsupportInstructionError
