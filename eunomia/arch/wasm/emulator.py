@@ -270,7 +270,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                                       self.instruction_coverage.values()])
 
         current_timestamp = datetime.now()
-        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 3:
+        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 1:
             # output here
             output_string = ["------------------------------------------\n"]
             for k, v in self.instruction_coverage.items():
@@ -278,10 +278,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             output_string.append(
                 "------------------------------------------\n")
 
-            with open('./log/base64-coverage.log', 'w') as fp:
+            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_func_level.log', 'w') as fp:
                 fp.writelines(output_string)
 
-            with open('./log/base64-coverage-total.log', 'a') as fp:
+            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_ins_level.log', 'a') as fp:
                 fp.write(
                     f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
 
