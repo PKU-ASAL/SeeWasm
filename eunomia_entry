@@ -176,6 +176,7 @@ def main():
     from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         Configuration.set_entry(args.onlyfunc)
+        Configuration.set_coverage(args.coverage)
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
         Configuration.set_algo(args.algo)
@@ -196,8 +197,7 @@ def main():
         Configuration.set_args(args.args, args.sym_args)
 
         wasmVM = WasmSSAEmulatorEngine(
-            octo_bytecode,
-            coverage=args.coverage, entry=args.onlyfunc)
+            octo_bytecode, entry=args.onlyfunc)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide

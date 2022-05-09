@@ -41,7 +41,7 @@ else:
 
 class WasmSSAEmulatorEngine(EmulatorEngine):
 
-    def __init__(self, bytecode, coverage=False, entry=None):
+    def __init__(self, bytecode, entry=None):
         # the entry function
         self.entry = entry[0]
 
@@ -73,8 +73,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.coverage_output_last_timestamp = datetime(1996, 12, 24)
 
         # whether enable the coverage calculation
-        self.coverage = coverage
-        if self.coverage:
+        if Configuration.get_coverage():
             self.count_instrs(self.entry)
 
     def count_instrs(self, entry):
@@ -214,7 +213,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         # calculate instruction coverage
-        if self.coverage:
+        if Configuration.get_coverage():
             self.calculate_coverage(
                 instr,
                 readable_internal_func_name(

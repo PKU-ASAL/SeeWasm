@@ -34,6 +34,8 @@ class Configuration:
     _entry_func = ''
     # the mapping of func index to func name
     _func_index_to_func_name = None
+    # if enable the instruction-level coverage calculation
+    _coverage = False
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -162,6 +164,14 @@ class Configuration:
     @staticmethod
     def set_func_index_to_func_name(func_index_to_func_name):
         Configuration._func_index_to_func_name = func_index_to_func_name
+
+    @staticmethod
+    def get_coverage():
+        return Configuration._coverage
+
+    @staticmethod
+    def set_coverage(coverage):
+        Configuration._coverage = coverage
 
 
 class Enable_Lasers(Enum):
