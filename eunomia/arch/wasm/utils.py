@@ -22,8 +22,18 @@ class Configuration:
     _solver = 'z3'
     # the stdin buffer
     _stdin_buffer = ''
-    # the command to run the to be analyzed program, like 'base64'
-    _args = ''
+    # the command to run the to be analyzed program, like ['base64', a]
+    # where 'a' is a symbol
+    _args = []
+    # the to-be-analyzed file's path and name
+    _file_path = ''
+    _file_name = ''
+    # the start time of analyze
+    _start_time = ''
+    # the entry function
+    _entry_func = ''
+    # the mapping of func index to func name
+    _func_index_to_func_name = None
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -84,15 +94,74 @@ class Configuration:
 
     @staticmethod
     def set_stdin_buffer(stdin_buffer):
-        Configuration._stdin_buffer = stdin_buffer if stdin_buffer else ''
+        """
+        The `stdin_buffer` can by two types:
+        1. str: the stdin is given concretely, like "123"
+        2. [int]: the stdin is given with designated length, like [3]
+        """
+        if isinstance(stdin_buffer, str):
+            Configuration._stdin_buffer = stdin_buffer
+        elif isinstance(stdin_buffer, list):
+            length = stdin_buffer[0]
+            Configuration._stdin_buffer = BitVec("sym_stdin", 8 * length)
 
     @staticmethod
     def get_args():
         return Configuration._args
 
     @staticmethod
-    def set_args(args):
-        Configuration._args = args if args else ''
+    def set_args(args, sym_args):
+        """
+        Parse the given args and symbolic args into the _args
+
+        args: str: typically is the argv[0] and is given concretely, like "base64"
+        sym_args: [int, ...]: each symbolic arg is given with designated length, like [1, 2]
+        """
+        if args:
+            Configuration._args += args.split(" ")
+
+        if sym_args:
+            for i, sym_len in enumerate(sym_args):
+                Configuration._args.append(
+                    BitVec(f"sym_args_{i + 1}", 8 * sym_len))
+
+    @staticmethod
+    def get_file_name():
+        return Configuration._file_name
+
+    @staticmethod
+    def get_file_path():
+        return Configuration._file_path
+
+    @staticmethod
+    def set_file(file_path):
+        Configuration._file_path = file_path
+        # keep the file name without path and extended type
+        Configuration._file_name = file_path.split('/')[-1].split('.')[0]
+
+    @staticmethod
+    def get_start_time():
+        return Configuration._start_time
+
+    @staticmethod
+    def set_start_time(start_time):
+        Configuration._start_time = start_time
+
+    @staticmethod
+    def get_entry():
+        return Configuration._entry_func
+
+    @staticmethod
+    def set_entry(entry_func):
+        Configuration._entry_func = entry_func[0]
+
+    @staticmethod
+    def get_func_index_to_func_name():
+        return Configuration._func_index_to_func_name
+
+    @staticmethod
+    def set_func_index_to_func_name(func_index_to_func_name):
+        Configuration._func_index_to_func_name = func_index_to_func_name
 
 
 class Enable_Lasers(Enum):
@@ -324,6 +393,10 @@ def bin_to_float(b):
     """ Convert binary string to a float. """
     bf = int_to_bytes(int(b, 2), 8)  # 8 bytes needed for IEEE 754 binary64.
     return struct.unpack('>d', bf)[0]
+
+
+def my_int_to_bytes(x: int) -> bytes:
+    return x.to_bytes((x.bit_length() + 7) // 8, "little")
 
 
 def int_to_bytes(n, length):  # Helper function

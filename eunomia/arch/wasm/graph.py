@@ -1,14 +1,14 @@
 import copy
 import re
+import sys
 from collections import defaultdict, deque
 from queue import PriorityQueue
-import sys
 
 from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
-                                     branch_choose_info,
+                                     branch_choose_info, my_int_to_bytes,
                                      readable_internal_func_name,
                                      state_choose_info)
 from z3 import sat, unsat
@@ -367,21 +367,6 @@ class Graph:
             print(f"The process unexpectedly terminated with code: {pft}")
             sys.exit()
 
-        # final states of all feasible paths for the given function
-        print(
-            f'There are total {len(self.final_states[entry_func])} state(s):')
-        for i, final_state in enumerate(self.final_states[entry_func]):
-            s = SMTSolver(Configuration.get_solver())
-            s.add(final_state.constraints)
-            if sat == s.check():
-                print(
-                    f'For state{i}, return with {final_state.symbolic_stack}, a set of possible input: {s.model()}',
-                    end='\n', flush=True)
-            else:
-                print(
-                    f'For state{i}, return with {final_state.symbolic_stack}, which is unsat',
-                    end='\n', flush=True)
-
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=list()):
         """
@@ -665,6 +650,25 @@ class Graph:
 
         for item in producer():
             halt_flag, emul_states = consumer(item)
+
+            # each item in emul_states indicates the end of path
+            # solve the constraint and output to the log file
+            for item in emul_states:
+                if readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        item.current_func_name) != Configuration.get_entry():
+                    continue
+                with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+                    fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
+                    fp.write("Solution of symbol(s):\n")
+                    s = SMTSolver(Configuration.get_solver())
+                    s += item.constraints
+                    s.check()
+                    m = s.model()
+                    for k in m:
+                        fp.write(f"\t{k}: {my_int_to_bytes(m[k].as_long())}\n")
+                    fp.write("\n")
+
             final_states['return'].extend(emul_states)
             if halt_flag:
                 break

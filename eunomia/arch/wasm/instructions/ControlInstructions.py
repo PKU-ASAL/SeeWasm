@@ -11,7 +11,8 @@ from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
                                                  GoPredefinedFunction,
                                                  ImportFunction)
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import Configuration, getConcreteBitVec, readable_internal_func_name
+from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
+                                     readable_internal_func_name)
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
@@ -296,12 +297,15 @@ class ControlInstructions:
                 new_state = copy.deepcopy(state)
                 index_list = [simplify(op == i) for i in index_list]
                 cond = simplify(Or(index_list))
-                new_state.constraints.append(cond)
+                if not is_true(cond):
+                    new_state.constraints.append(cond)
                 states['conditional_true_' + str(target)] = new_state
             false_state = copy.deepcopy(state)
             cond = simplify(op >= n_br)
-            false_state.constraints.append(cond)
+            if not is_true(cond):
+                false_state.constraints.append(cond)
             states['conditional_false_0'] = false_state
+
             return [states]
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
