@@ -20,7 +20,7 @@ def main():
     inputs.add_argument('-f', '--file',
                         type=argparse.FileType('rb'),
                         help='binary file (.wasm)',
-                        metavar='WASMMODULE')
+                        metavar='WASMMODULE', required=True)
     inputs.add_argument(
         '--source_type', default='c', const='c', nargs='?', choices=['c',
                                                                      'go'],
@@ -118,6 +118,7 @@ def main():
     Configuration.set_verbose_flag(args.verbose)
 
     # retrieve the corresponding wat file
+    # and extract the function index to function readable name's mapping
     wat_file_path = args.file.name.replace('.wasm', '.wat')
     if not path.exists(wat_file_path):
         try:
@@ -126,13 +127,12 @@ def main():
             cmd(cmd_option)
         except Exception:
             raise("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
-
-    # extract the function index to function readable name's mapping
     func_index2func_name = extract_mapping(wat_file_path)
+    Configuration.set_func_index_to_func_name(func_index2func_name)
 
     # process input file
-    if args.file:
-        octo_bytecode = args.file.read()
+    Configuration.set_file(args.file.name)
+    octo_bytecode = args.file.read()
 
     # if user pass the dsl file path
     user_dsl = []
@@ -174,6 +174,7 @@ def main():
     # import necessary library
     from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
+        Configuration.set_entry(args.onlyfunc)
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
         Configuration.set_algo(args.algo)
@@ -210,13 +211,14 @@ def main():
 
 if __name__ == '__main__':
     job_start_time = datetime.now()
-    current_time_start = job_start_time.strftime("%m-%d %H:%M:%S")
+    current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"Start to analyze: {current_time_start}")
+    Configuration.set_start_time(current_time_start)
 
     main()
 
     job_end_time = datetime.now()
-    current_time_end = job_end_time.strftime("%m-%d %H:%M:%S")
+    current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"End of analyze: {current_time_end}")
     elapsed_time = job_end_time - job_start_time
     print(f"Time elapsed: {elapsed_time}")

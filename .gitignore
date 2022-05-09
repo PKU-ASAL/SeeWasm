@@ -14,3 +14,4 @@ go_samples.nosync/div_zero/tinygo_main.h
 profile
 profile_fo
 *.swp
+result/
