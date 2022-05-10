@@ -1,6 +1,5 @@
 import copy
 import logging
-import re
 from collections import defaultdict
 
 from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
@@ -8,8 +7,8 @@ from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
 from eunomia.arch.wasm.graph import Graph
 from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
                                                  CPredefinedFunction,
-                                                 GoPredefinedFunction,
-                                                 ImportFunction)
+                                                 GoPredefinedFunction)
+from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
                                      readable_internal_func_name)
@@ -108,15 +107,14 @@ class ControlInstructions:
             internal_function_name)
 
         new_states = []
-        # if the callee is imported by env
-        # only concerned C file
+        # if the callee is imported by WASI
         if readable_name in [i[1] for i in analyzer.imports_func]:
-            func = ImportFunction(readable_name, state.current_func_name)
+            func = WASIImportFunction(readable_name, state.current_func_name)
             logging.warning(
-                f"Invoked a import function: {readable_name}")
-            func.emul(state, param_str, return_str, data_section, analyzer)
+                f"Invoked a WASI import function: {readable_name}")
+            func.emul(state, param_str, return_str, data_section)
             logging.warning(f'End of a import function: {readable_name}')
-        # if the callee is a library function
+        # if the callee is a C library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
             logging.warning(
