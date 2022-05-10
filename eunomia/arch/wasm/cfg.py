@@ -6,9 +6,10 @@ from logging import getLogger
 from eunomia.analysis.cfg import CFG
 from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.disassembler import WasmDisassembler
 from eunomia.arch.wasm.format import format_bb_name, format_func_name
-from eunomia.arch.wasm.utils import Configuration, readable_internal_func_name
+from eunomia.arch.wasm.utils import readable_internal_func_name
 from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,

@@ -2,6 +2,7 @@ import copy
 import logging
 from collections import defaultdict
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
@@ -10,7 +11,7 @@ from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
                                                  GoPredefinedFunction)
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
+from eunomia.arch.wasm.utils import (getConcreteBitVec,
                                      readable_internal_func_name)
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)

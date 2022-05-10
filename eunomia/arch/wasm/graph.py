@@ -4,10 +4,11 @@ import sys
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (Configuration, ask_user_input, bcolors,
+from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
                                      branch_choose_info, my_int_to_bytes,
                                      readable_internal_func_name,
                                      state_choose_info)

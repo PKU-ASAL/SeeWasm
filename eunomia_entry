@@ -8,8 +8,9 @@ from os import path
 
 import sh
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.utils import Configuration, extract_mapping
+from eunomia.arch.wasm.utils import extract_mapping
 
 
 def main():

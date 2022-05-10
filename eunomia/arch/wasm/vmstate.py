@@ -2,7 +2,8 @@
 import copy
 from collections import defaultdict
 
-from eunomia.arch.wasm.utils import Configuration, readable_internal_func_name
+from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.utils import readable_internal_func_name
 from eunomia.engine.engine import VMstate
 from z3 import BitVecVal
 

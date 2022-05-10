@@ -3,6 +3,7 @@
 import logging
 import math
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
                                            get_source_location,
@@ -12,9 +13,8 @@ from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, Configuration, bcolors,
-                                     bin_to_float, calc_memory_align,
-                                     getConcreteBitVec,
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors, bin_to_float,
+                                     calc_memory_align, getConcreteBitVec,
                                      parse_printf_formatting)
 from z3 import (RNE, Z3_OP_ITE, ArithRef, BitVec, BitVecNumRef, BitVecRef,
                 BitVecVal, BoolVal, Extract, Float64, FPNumRef, FPVal, If,

@@ -10,6 +10,7 @@ from datetime import datetime
 
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.cfg import WasmCFG
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import UnsupportGlobalTypeError
 from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             BitwiseInstructions,
@@ -21,7 +22,7 @@ from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
+from eunomia.arch.wasm.utils import (getConcreteBitVec,
                                      readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.engine.emulator import EmulatorEngine

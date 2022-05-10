@@ -4,13 +4,13 @@
 import logging
 from datetime import datetime
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (Configuration, getConcreteBitVec,
-                                     str_to_little_endian_int)
+from eunomia.arch.wasm.utils import getConcreteBitVec, str_to_little_endian_int
 from z3 import (BitVec, BitVecVal, Concat, Extract, Or, is_bv, is_bv_value,
                 sat, simplify)
 
