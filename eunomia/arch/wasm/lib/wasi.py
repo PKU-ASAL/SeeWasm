@@ -213,7 +213,7 @@ class WASIImportFunction:
         elif self.name == 'fd_close':
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
-            fd = self._extract_params(param_str, state)
+            fd, = self._extract_params(param_str, state)
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -367,11 +367,15 @@ class WASIImportFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'proc_exit':
-            return_val = self._extract_params(param_str, state)
-            if return_val == 0:
-                raise ProcSuccessTermination(return_val)
-            else:
-                raise ProcFailTermination(return_val)
+            return_val, = self._extract_params(param_str, state)
+
+            proc_exit = BitVec('proc_exit', 32)
+            state.constraints.append(proc_exit == return_val)
+            return
+            # if return_val == 0:
+            #     raise ProcSuccessTermination(return_val)
+            # else:
+            #     raise ProcFailTermination(return_val)
         elif self.name == 'fd_prestat_get':
             prestat_addr, fd = self._extract_params(param_str, state)
 
