@@ -96,11 +96,9 @@ class ControlInstructions:
 
         return new_state, new_has_ret
 
-    def deal_with_call(
-            self, state, f_offset, has_ret, func_prototypes, data_section,
-            analyzer):
+    def deal_with_call(self, state, f_offset, has_ret, data_section, analyzer):
         # get the callee's function signature
-        target_func = func_prototypes[f_offset]
+        target_func = analyzer.func_prototypes[f_offset]
         internal_function_name, param_str, return_str, _ = target_func
 
         readable_name = readable_internal_func_name(
@@ -201,7 +199,7 @@ class ControlInstructions:
         return new_states
 
     def emulate(
-            self, state, has_ret, func_prototypes, data_section, analyzer):
+            self, state, has_ret, data_section, analyzer):
         if self.instr_name in self.skip_command:
             return None
         if self.instr_name in self.term_command:
@@ -259,8 +257,7 @@ class ControlInstructions:
             solver = SMTSolver(Configuration.get_solver())
             for i, possible_func_offset in enumerate(possible_callee):
                 # if the type is not suitable, just jump over
-                if analyzer.func_types[possible_func_offset - import_funcs_num -
-                                       1] != call_indirect_func_type:
+                if analyzer.func_types[possible_func_offset - import_funcs_num] != call_indirect_func_type:
                     continue
 
                 i = i + offset
@@ -270,8 +267,7 @@ class ControlInstructions:
                 if unsat == solver.check():
                     continue
                 after_calls = self.deal_with_call(
-                    new_state, possible_func_offset, has_ret, func_prototypes,
-                    data_section, analyzer)
+                    new_state, possible_func_offset, has_ret, data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
@@ -317,8 +313,7 @@ class ControlInstructions:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
             return self.deal_with_call(
-                state, f_offset, has_ret, func_prototypes, data_section,
-                analyzer)
+                state, f_offset, has_ret, data_section, analyzer)
         else:
             print(self.instr_name)
             raise UnsupportInstructionError
