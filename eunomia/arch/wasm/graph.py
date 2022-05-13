@@ -359,14 +359,15 @@ class Graph:
         will be regarded as an entry function to perform symbolic execution
         """
         entry_func = self.entry
-        try:
-            self.final_states[entry_func] = self.traverse_one(entry_func)
-        except ProcSuccessTermination as pst:
-            print(f"The process terminated with code: {pst}")
-            sys.exit()
-        except ProcFailTermination as pft:
-            print(f"The process unexpectedly terminated with code: {pft}")
-            sys.exit()
+        self.final_states[entry_func] = self.traverse_one(entry_func)
+        # try:
+        #     self.final_states[entry_func] = self.traverse_one(entry_func)
+        # except ProcSuccessTermination as pst:
+        #     print(f"The process terminated with code: {pst}")
+        #     sys.exit()
+        # except ProcFailTermination as pft:
+        #     print(f"The process unexpectedly terminated with code: {pft}")
+        #     sys.exit()
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=list()):
@@ -657,10 +658,18 @@ class Graph:
             for item in emul_states:
                 if readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
+                        item.current_func_name) == '_Exit':
+                    # `_Exit` is a specifal function that indicates the end of a path
+                    pass
+                elif readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
                 with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
-                    fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
+                    if item.symbolic_stack:
+                        fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
+                    else:
+                        fp.write(f"No return value\n")
                     fp.write("Solution of symbol(s):\n")
                     s = SMTSolver(Configuration.get_solver())
                     s += item.constraints

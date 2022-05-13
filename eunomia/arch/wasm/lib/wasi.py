@@ -143,30 +143,36 @@ class WASIImportFunction:
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L717
             fd_stat_addr, fd = self._extract_params(param_str, state)
             # fs_filetype is 1 byte, possible 0-7
-            fs_filetype = BitVec(
-                f'fs_filetype_{datetime.timestamp(datetime.now()):.0f}', 8)
+            # fs_filetype = BitVec(
+            #     f'fs_filetype_{datetime.timestamp(datetime.now()):.0f}', 8)
+            # TODO we temporarily to concretize the fs_filetype as 1, i.e., __WASI_FILETYPE_BLOCK_DEVICE
+            fs_filetype = 1
             self._storeN(state, fd_stat_addr, fs_filetype, 1)
-            state.constraints.append(
-                Or(
-                    fs_filetype == 0, fs_filetype == 1,
-                    fs_filetype == 2, fs_filetype == 3,
-                    fs_filetype == 4, fs_filetype == 5,
-                    fs_filetype == 6, fs_filetype == 7))
+            # TODO the fs_filetype could be 0-7, jump over temporarily
+            # state.constraints.append(
+            #     Or(
+            #         fs_filetype == 0, fs_filetype == 1,
+            #         fs_filetype == 2, fs_filetype == 3,
+            #         fs_filetype == 4, fs_filetype == 5,
+            #         fs_filetype == 6, fs_filetype == 7))
             # align
             self._storeN(state, fd_stat_addr + 1, 0, 1)
 
             # fs_flags is 2 bytes, possible from {0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 14, 15}
-            fs_flags = BitVec(
-                f'fs_flags_{datetime.timestamp(datetime.now()):.0f}', 16)
+            # fs_flags = BitVec(
+            #     f'fs_flags_{datetime.timestamp(datetime.now()):.0f}', 16)
+            # TODO we temporarily to concretize the fs_flags as 0, i.e., no flags are set
+            fs_flags = 0
             self._storeN(state, fd_stat_addr + 2, fs_flags, 2)
-            state.constraints.append(
-                Or(
-                    fs_flags == 0, fs_flags == 1,
-                    fs_flags == 2, fs_flags == 3,
-                    fs_flags == 4, fs_flags == 5,
-                    fs_flags == 6, fs_flags == 7,
-                    fs_flags == 10, fs_flags == 11,
-                    fs_flags == 14, fs_flags == 15))
+            # TODO the fs_flags could be the following values, jump over temporarily
+            # state.constraints.append(
+            #     Or(
+            #         fs_flags == 0, fs_flags == 1,
+            #         fs_flags == 2, fs_flags == 3,
+            #         fs_flags == 4, fs_flags == 5,
+            #         fs_flags == 6, fs_flags == 7,
+            #         fs_flags == 10, fs_flags == 11,
+            #         fs_flags == 14, fs_flags == 15))
             # align
             self._storeN(state, fd_stat_addr + 4, 0, 4)
 
@@ -207,7 +213,7 @@ class WASIImportFunction:
         elif self.name == 'fd_close':
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
-            fd = self._extract_params(param_str, state)
+            fd, = self._extract_params(param_str, state)
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -278,8 +284,18 @@ class WASIImportFunction:
                 else:
                     # or the stdin buffer is drained out, break out
                     break
-            logging.warning(
-                f"================Initiated an fd_read string: {out_chars}=================")
+            all_char = True
+            for ele in out_chars:
+                if not isinstance(ele, str):
+                    all_char = False
+                    break
+            if all_char:
+                out_chars = [ele.encode() for ele in out_chars]
+                logging.warning(
+                    f"================Output a string: {b''.join(out_chars)}=================")
+            else:
+                logging.warning(
+                    f"================Initiated an fd_read string: {out_chars}=================")
             # set num_bytes_read_addr to bytes_read_cnt
             logging.warning(f'{char_read_cnt} chars read.')
             self._storeN(state, num_bytes_read_addr, char_read_cnt, 4)
@@ -331,8 +347,18 @@ class WASIImportFunction:
                             f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
 
-                logging.warning(
-                    f"================Output a string: {out_str}=================")
+                all_char = True
+                for ele in out_str:
+                    if not isinstance(ele, str):
+                        all_char = False
+                        break
+                if all_char:
+                    out_str = [ele.encode() for ele in out_str]
+                    logging.warning(
+                        f"================Output a string: {b''.join(out_str)}=================")
+                else:
+                    logging.warning(
+                        f"================Output a string: {out_str}=================")
                 bytes_written_cnt += data_len
 
             self._storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)
@@ -341,11 +367,15 @@ class WASIImportFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         elif self.name == 'proc_exit':
-            return_val = self._extract_params(param_str, state)
-            if return_val == 0:
-                raise ProcSuccessTermination(return_val)
-            else:
-                raise ProcFailTermination(return_val)
+            return_val, = self._extract_params(param_str, state)
+
+            proc_exit = BitVec('proc_exit', 32)
+            state.constraints.append(proc_exit == return_val)
+            return
+            # if return_val == 0:
+            #     raise ProcSuccessTermination(return_val)
+            # else:
+            #     raise ProcFailTermination(return_val)
         elif self.name == 'fd_prestat_get':
             prestat_addr, fd = self._extract_params(param_str, state)
 
