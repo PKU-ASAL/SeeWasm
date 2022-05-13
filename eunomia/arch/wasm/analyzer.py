@@ -301,8 +301,12 @@ class WasmModuleAnalyzer(object):
         element_list = []
 
         for idx, entry in enumerate(entries):
+            for cur_insn in entry.offset:
+                offset = int(format_instruction(cur_insn).split(' ')[1])
+                break
+
             fmt = {'index': entry.index,
-                   'offset': entry.offset,
+                   'offset': offset,
                    'elems': entry.elems}
 
             element_list.append(fmt)

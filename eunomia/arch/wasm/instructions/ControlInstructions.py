@@ -248,24 +248,22 @@ class ControlInstructions:
 
             # target function index
             op = state.symbolic_stack.pop()
-            # intended callee type
-            func_type = int(self.instr_string.split(' ')[1][:-1])
 
-            import_funcs_num = len(analyzer.imports_func)
             # traverse the elem section
             possible_callee = analyzer.elements[0]['elems']
             offset = analyzer.elements[0]['offset']
-            """
-            possible_callee = []
-            for func_offset in analyzer.elements[0]['elems']:
-                print(analyzer.func_types[func_offset - import_funcs_num], end = ' ')
-                if analyzer.func_types[func_offset - import_funcs_num] == func_type:
-                    possible_callee.append(func_offset)
-            """
+            call_indirect_func_type = int(self.instr_string.split(' ')[1][:-1])
+            import_funcs_num = len(analyzer.imports_func)
+
             states = []
             solver = SMTSolver(Configuration.get_solver())
             for i, possible_func_offset in enumerate(possible_callee):
-                i = i + 1
+                # if the type is not suitable, just jump over
+                if analyzer.func_types[possible_func_offset - import_funcs_num -
+                                       1] != call_indirect_func_type:
+                    continue
+
+                i = i + offset
                 new_state = copy.deepcopy(state)
                 solver.reset()
                 solver.add(simplify(op == i))
@@ -277,7 +275,11 @@ class ControlInstructions:
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
-                print('abc')
+                print(op)
+                print(possible_callee)
+                print(offset)
+                print(state)
+                exit("call indirect error")
             return states
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
