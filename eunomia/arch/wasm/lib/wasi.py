@@ -347,6 +347,11 @@ class WASIImportFunction:
                             f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
 
+                if fd == 1:
+                    state.stdout_buffer += out_str
+                elif fd == 2:
+                    state.stderr_buffer += out_str
+
                 all_char = True
                 for ele in out_str:
                     if not isinstance(ele, str):

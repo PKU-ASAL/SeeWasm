@@ -27,6 +27,8 @@ class WasmVMstate(VMstate):
 
         self.stdin_buffer = stdin_buffer
         self.args = args
+        self.stdout_buffer = []
+        self.stderr_buffer = []
 
     def translate(self, ctx):
         state = WasmVMstate()

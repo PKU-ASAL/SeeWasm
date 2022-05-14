@@ -666,6 +666,7 @@ class Graph:
                         item.current_func_name) != Configuration.get_entry():
                     continue
                 with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+                    fp.write("-----------------------------\n")
                     if item.symbolic_stack:
                         fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
                     else:
@@ -677,6 +678,13 @@ class Graph:
                     m = s.model()
                     for k in m:
                         fp.write(f"\t{k}: {my_int_to_bytes(m[k].as_long())}\n")
+                    fp.write("Output to stdout:\n")
+                    item.stdout_buffer = [str(i) for i in item.stdout_buffer]
+                    fp.write(f'{"".join(item.stdout_buffer)}' + "\n")
+                    fp.write("Output to stderr:\n")
+                    item.stderr_buffer = [str(i) for i in item.stderr_buffer]
+                    fp.write(f'{"".join(item.stderr_buffer)}' + "\n")
+                    fp.write("-----------------------------")
                     fp.write("\n")
 
             final_states['return'].extend(emul_states)
