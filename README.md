@@ -146,3 +146,27 @@ We have supported to specify the input and arguments to the to-be-analyzed progr
 
 **Note that, the `--stdin` and `--sym_stdin` are mutually exclusive, i.e., they can not be set simultaneously. However, the `--args` and `--sym_args` can be set at the same time.** Typically, the `--args` is used to set argv[0] and `--sym_args` is used to set the following argv.
 For example, `--args base64 --sym_args 2 2` will pass the `base64` as argv[0], and two strings (each of them are with 2-chars length) as following argv[1] and argv[2].
+
+#### Example: base64
+We can prove the equivalence between Eunomia and the real runtime (we use [`wasmtime`](https://github.com/bytecodealliance/wasmtime) here).
+
+For example, if we conduct the base64 encode:
+```
+# wasmtime runtime
+echo -n "123" | wasmtime run base64-14.wasm
+
+# Eunomia
+python3 eunomia_entry -f /Users/ningyuhe/Downloads/wasm-lavam/base64-14.wasm -s --onlyfunc __original_main --concrete_globals --stdin "123" --args "base64"
+```
+
+And if we run base64 decode:
+```
+# wasmtime runtime
+echo -n "MTIzNDU2Cg==" | wasmtime run base64-14.wasm -- -d
+
+# Eunomia
+python3 eunomia_entry -f /Users/ningyuhe/Downloads/wasm-lavam/base64-14.wasm -s --onlyfunc __original_main --concrete_globals --stdin "MTIzNDU2Cg==" --args "base64 -d"
+```
+
+The output of these two can prove the equivalence of these two solutions.
+

@@ -145,8 +145,8 @@ class WASIImportFunction:
             # fs_filetype is 1 byte, possible 0-7
             # fs_filetype = BitVec(
             #     f'fs_filetype_{datetime.timestamp(datetime.now()):.0f}', 8)
-            # TODO we temporarily to concretize the fs_filetype as 1, i.e., __WASI_FILETYPE_BLOCK_DEVICE
-            fs_filetype = 1
+            # TODO we temporarily to concretize the fs_filetype as 1, i.e., __WASI_FILETYPE_CHARACTER_DEVICE
+            fs_filetype = 2
             self._storeN(state, fd_stat_addr, fs_filetype, 1)
             # TODO the fs_filetype could be 0-7, jump over temporarily
             # state.constraints.append(
@@ -346,6 +346,11 @@ class WASIImportFunction:
                         raise Exception(
                             f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
+
+                if fd == 1:
+                    state.stdout_buffer += out_str
+                elif fd == 2:
+                    state.stderr_buffer += out_str
 
                 all_char = True
                 for ele in out_str:

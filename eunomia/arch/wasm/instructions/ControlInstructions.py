@@ -19,7 +19,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
-    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
+    'iprintf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
     'system'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
@@ -116,6 +116,7 @@ class ControlInstructions:
         # if the callee is a C library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
+            exit("Currently, we don't allow external function's model")
             logging.warning(
                 f"Invoked a C library function: {readable_name}")
             func = CPredefinedFunction(
@@ -185,12 +186,14 @@ class ControlInstructions:
                     new_state.constraints = constraint
                     new_state.symbolic_memory = state_symbolic_memory
                     new_state.globals = current_globals
-                    new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
                 else:
                     new_state.constraints = constraint
                     new_state.symbolic_memory = state_symbolic_memory
                     new_state.globals = current_globals
-                    new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
+                new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
+                new_state.args = return_constraint_tuple[1].args
+                new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
+                new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
 
                 new_states.append(new_state)
             logging.warning(f'End of function: {readable_name}')

@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import sys
 from datetime import datetime
 from os import path
 
@@ -191,6 +192,10 @@ def main():
             Configuration.set_stdin_buffer(args.stdin)
         elif args.sym_stdin:
             Configuration.set_stdin_buffer(args.sym_stdin)
+
+        with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+            fp.write("Running command:\n")
+            fp.write(" ".join(sys.argv) + "\n")
 
         # --args and --sym_args can exist simultaneously
         # --args is usually used as argv[0], and --sym_args are the following argv
