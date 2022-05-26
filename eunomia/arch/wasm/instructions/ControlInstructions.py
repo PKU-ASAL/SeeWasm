@@ -6,9 +6,8 @@ from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
-                                                 CPredefinedFunction,
-                                                 GoPredefinedFunction)
+from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
+from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (getConcreteBitVec,
@@ -19,7 +18,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 # TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
-    'iprintf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
+    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
     'system'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
@@ -34,6 +33,15 @@ NEED_STEP_IN_GO = {
     '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', '_*sync.Pool_.Get',
     'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
 NEED_STEP_IN_C = {}
+PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
+                   'runtime.lookupPanic': 'index out of range',
+                   'runtime.slicePanic': 'slice out of range',
+                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
+                   'runtime.divideByZeroPanic': 'divide by zero',
+                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
+                   'runtime.chanMakePanic': 'new channel is too big',
+                   'runtime.negativeShiftPanic': 'negative shift',
+                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
 
@@ -116,7 +124,7 @@ class ControlInstructions:
         # if the callee is a C library function
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
-            exit("Currently, we don't allow external function's model")
+            # exit("Currently, we don't allow external function's model")
             logging.warning(
                 f"Invoked a C library function: {readable_name}")
             func = CPredefinedFunction(
@@ -147,6 +155,10 @@ class ControlInstructions:
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.warning(
                 f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
+            if readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    state.current_func_name) == 'main' and readable_name == 'fopen':
+                print('here')
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
