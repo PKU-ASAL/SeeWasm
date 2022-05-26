@@ -19,7 +19,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
     'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
-    'system'}
+    'system', 'fopen', 'emscripten_resize_heap'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
@@ -114,15 +114,8 @@ class ControlInstructions:
             internal_function_name)
 
         new_states = []
-        # if the callee is imported by WASI
-        if readable_name in [i[1] for i in analyzer.imports_func]:
-            func = WASIImportFunction(readable_name, state.current_func_name)
-            logging.warning(
-                f"Invoked a WASI import function: {readable_name}")
-            func.emul(state, param_str, return_str, data_section)
-            logging.warning(f'End of a import function: {readable_name}')
         # if the callee is a C library function
-        elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
+        if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
             # exit("Currently, we don't allow external function's model")
             logging.warning(
@@ -144,6 +137,13 @@ class ControlInstructions:
                 logging.warning(
                     f"Terminated function invoked (Golang): {readable_name} ")
                 # TODO terminate state, but normally there will be `unreachable` instruction after the call
+        # if the callee is the imported
+        elif readable_name in [i[1] for i in analyzer.imports_func]:
+            func = WASIImportFunction(readable_name, state.current_func_name)
+            logging.warning(
+                f"Invoked a WASI import function: {readable_name}")
+            func.emul(state, param_str, return_str, data_section)
+            logging.warning(f'End of a import function: {readable_name}')
         elif readable_name in TERMINATED_FUNCS:
             logging.warning(
                 f"Terminated function invoked: {readable_name} ")
@@ -206,6 +206,7 @@ class ControlInstructions:
                 new_state.args = return_constraint_tuple[1].args
                 new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
                 new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
+                new_state.fd = return_constraint_tuple[1].fd
 
                 new_states.append(new_state)
             logging.warning(f'End of function: {readable_name}')

@@ -296,6 +296,22 @@ class CPredefinedFunction:
 
             state.symbolic_stack.append(result)
             manually_constructed = True
+        elif self.name == 'fopen':
+            mode_ptr, filename_ptr = _extract_params(param_str, state)
+
+            # mode = C_extract_string_by_mem_pointer(
+            #     mode_ptr, data_section, state.symbolic_memory)
+            filename = C_extract_string_by_mem_pointer(
+                filename_ptr, data_section, state.symbolic_memory)
+
+            if filename not in state.fd:
+                filename_fd = max(state.fd.values()) + 1
+                state.fd[filename] = filename_fd
+            else:
+                exit(f"the file: {filename} is opened already")
+            filename_fd = BitVecVal(filename_fd, 32)
+            state.symbolic_stack.append(filename_fd)
+            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
