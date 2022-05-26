@@ -6,6 +6,7 @@ from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_source_location)
 from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
+from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
@@ -26,18 +27,9 @@ class CPredefinedFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         manually_constructed = False
 
-        param_list = []
-        if param_str:
-            num_arg = len(param_str.split(' '))
-            for _ in range(num_arg):
-                param_list.append(state.symbolic_stack.pop())
-
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
-            import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
             # has to use as_long()
-            param_p, pattern_p = param_list[0].as_long(
-            ), param_list[1].as_long()
+            param_p, pattern_p = _extract_params(param_str, state)
 
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state.symbolic_memory)
@@ -88,8 +80,7 @@ class CPredefinedFunction:
 
             logging.warning("%s\n", the_string)
         elif self.name == 'scanf':
-            param_p, pattern_p = param_list[0].as_long(
-            ), param_list[1].as_long()
+            param_p, pattern_p = _extract_params(param_str, state)
 
             # parse the scanf's argument's type
             # get addr of vararg 0.
@@ -144,7 +135,7 @@ class CPredefinedFunction:
 
                 i += 1
         elif self.name == 'strlen':
-            mem_pointer = param_list[0]
+            mem_pointer, = _extract_params(param_str, state)
             if is_bv_value(mem_pointer):
                 mem_pointer = mem_pointer.as_long()
 
@@ -167,8 +158,7 @@ class CPredefinedFunction:
             else:
                 raise UnexpectedDataType
         elif self.name == 'swap':
-            the_one, the_other = param_list[0].as_long(
-            ), param_list[1].as_long()
+            the_one, the_other = _extract_params(param_str, state)
             the_one_mem = lookup_symbolic_memory_data_section(
                 state.symbolic_memory, {}, the_one, 1)
             the_other_mem = lookup_symbolic_memory_data_section(
@@ -181,7 +171,7 @@ class CPredefinedFunction:
                 "================$swap! Swap the two: %s and %s=================\n",
                 the_one_mem, the_other_mem)
         elif self.name == 'exp':
-            exponent = param_list[0]
+            exponent, = _extract_params(param_str, state)
             if isinstance(exponent, FPNumRef):
                 # we have to adopt this trick to convert it to a float number
                 exponent = simplify(fpToReal(exponent)).as_string()
@@ -203,16 +193,17 @@ class CPredefinedFunction:
             state.symbolic_stack.append(ret)
             manually_constructed = True
         elif self.name == 'putchar':
-            if isinstance(param_list[0], BitVecNumRef):
-                the_char = param_list[0].as_long()
+            the_char, = _extract_params(param_str, state)
+            if isinstance(the_char, BitVecNumRef):
+                the_char = the_char.as_long()
                 logging.warning("%s\n", chr(the_char))
             else:
-                the_char = param_list[0]
+                the_char = the_char
                 logging.warning("%s\n", the_char)
         elif self.name == 'abs':
-            candidate_num = param_list[0]
-            abs_num = simplify(
-                If(candidate_num > 0, candidate_num, -candidate_num))
+            candidate_num, = _extract_params(param_str, state)
+            abs_num = simplify(If(candidate_num > 0, BitVecVal(
+                candidate_num, 32), BitVecVal(-candidate_num, 32)))
             state.symbolic_stack.append(abs_num)
             manually_constructed = True
         elif self.name == 'emscripten_resize_heap':
@@ -226,40 +217,12 @@ class CPredefinedFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             manually_constructed = True
         elif self.name == 'puts':
-            mem_pointer = param_list[0].as_long()
+            mem_pointer, = _extract_params(param_str, state)
             the_string = str(C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state.symbolic_memory))
             logging.warning("%s\n", the_string)
-        elif self.name == '__memcpy':
-            length, src, dest = param_list[0].as_long(
-            ), param_list[1].as_long(), param_list[2].as_long()
-
-            # lookup the raw data
-            raw_src_data = lookup_symbolic_memory_data_section(
-                state.symbolic_memory, data_section, src, length)
-            # insert the raw data into the memory
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, dest, length, raw_src_data)
-
-            # indicating the memcpy is successful
-            state.symbolic_stack.append(BitVecVal(0, 32))
-            manually_constructed = True
-        elif self.name == 'memcmp':
-            length, str2_p, str1_p = param_list[0].as_long(
-            ), param_list[1].as_long(), param_list[2].as_long()
-            str1 = C_extract_string_by_mem_pointer(
-                str1_p, data_section, state.symbolic_memory)
-            str2 = C_extract_string_by_mem_pointer(
-                str2_p, data_section, state.symbolic_memory)
-
-            # if both str1 and str2 are string literal
-            if isinstance(str1, str) and isinstance(str2, str):
-                str1, str2 = str1[:length], str2[:length]
-                ret = 1 if str1 > str2 else (-1 if str1 < str2 else 0)
-                state.symbolic_stack.append(BitVecVal(ret, 32))
-                manually_constructed = True
         elif self.name == 'atof':
-            str_p = param_list[0]
+            str_p, = _extract_params(param_str, state)
             if isinstance(str_p, BitVecNumRef):
                 str_p = str_p.as_long()
             number_string = C_extract_string_by_mem_pointer(
@@ -282,7 +245,7 @@ class CPredefinedFunction:
             state.symbolic_stack.append(the_number)
             manually_constructed = True
         elif self.name == 'atoi':
-            str_p = param_list[0]
+            str_p, = _extract_params(param_str, state)
             if isinstance(str_p, BitVecNumRef):
                 str_p = str_p.as_long()
             number_string = C_extract_string_by_mem_pointer(
@@ -304,8 +267,6 @@ class CPredefinedFunction:
             # append into stack
             state.symbolic_stack.append(the_number)
             manually_constructed = True
-        # elif self.name == 'log':
-        #     pass
         elif self.name == 'system':
             state.symbolic_stack.append(BitVec("cmd_system", 32))
             manually_constructed = True
@@ -314,7 +275,7 @@ class CPredefinedFunction:
             Note: we can step in library pow function
             Do not need this part emulation
             """
-            exp, base = param_list[0], param_list[1]
+            exp, base = _extract_params(param_str, state)
 
             if isinstance(base, FPNumRef):
                 base = eval(str(base))
