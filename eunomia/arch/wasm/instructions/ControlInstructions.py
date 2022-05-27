@@ -15,10 +15,9 @@ from eunomia.arch.wasm.utils import (getConcreteBitVec,
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
-# TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {
-    '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
-    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
+    '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
+    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
     'system', 'fopen', 'emscripten_resize_heap'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}

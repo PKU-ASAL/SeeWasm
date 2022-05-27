@@ -7,14 +7,11 @@ from eunomia.arch.wasm.dwarfParser import (decode_vararg,
 from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
-from eunomia.arch.wasm.memory import (insert_symbolic_memory,
-                                      lookup_symbolic_memory_data_section)
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
                                      parse_printf_formatting)
-from z3 import (RNE, ArithRef, BitVec, BitVecNumRef, BitVecRef, BitVecVal,
-                Float64, FPNumRef, FPVal, If, fpBVToFP, fpRealToFP, fpToReal,
-                is_bv, is_bv_value, simplify)
+from z3 import (BitVec, BitVecRef, BitVecVal, Float64, FPNumRef, FPVal, If,
+                fpBVToFP, fpToReal, is_bv, simplify)
 
 
 class CPredefinedFunction:
@@ -23,16 +20,11 @@ class CPredefinedFunction:
         self.cur_func = cur_func_name
 
     def emul(self, state, param_str, return_str, data_section, analyzer):
-        # if the return value is dependent on the library function, we will manually contruct it
-        # and jump over the process in which it append a symbol according to the signature of the function
-        manually_constructed = False
-
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
-            # has to use as_long()
             param_p, pattern_p = _extract_params(param_str, state)
 
             pattern = C_extract_string_by_mem_pointer(
-                pattern_p, data_section, state.symbolic_memory)
+                pattern_p, data_section, state)
 
             the_string = ""
             parsed_pattern = parse_printf_formatting(pattern)
@@ -46,18 +38,15 @@ class CPredefinedFunction:
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
 
-                middle_p = lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, param_p,
+                middle_p = _loadN(
+                    state, data_section, param_p,
                     C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if isinstance(
-                        middle_p, BitVecRef) and not isinstance(
-                        middle_p, BitVecNumRef):
+                if is_bv(middle_p):
                     tmp_data = str(middle_p)
                 else:
-                    middle_p = middle_p.as_long()
                     if cur_pattern[-1] == 's':
                         tmp_data = str(C_extract_string_by_mem_pointer(
-                            middle_p, data_section, state.symbolic_memory))
+                            middle_p, data_section, state))
                     elif cur_pattern[-1] == 'c':
                         tmp_data = chr(middle_p)
                     elif cur_pattern[-1] == 'f':
@@ -79,6 +68,8 @@ class CPredefinedFunction:
             the_string = pattern
 
             logging.warning("%s\n", the_string)
+            string_length = BitVecVal(len(the_string), 32)
+            state.symbolic_stack.append(string_length)
         elif self.name == 'scanf':
             param_p, pattern_p = _extract_params(param_str, state)
 
@@ -90,7 +81,7 @@ class CPredefinedFunction:
             # var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern = C_extract_string_by_mem_pointer(
-                pattern_p, data_section, state.symbolic_memory)
+                pattern_p, data_section, state)
 
             # in scanf, the loaded_data is the pattern string, like '%d %d'
             parsed_pattern = parse_printf_formatting(pattern)
@@ -99,19 +90,15 @@ class CPredefinedFunction:
             # print('pattern: ', parsed_pattern)
             while i < len(parsed_pattern):
                 index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
-                middle_p = lookup_symbolic_memory_data_section(
-                    state.symbolic_memory, data_section, param_p,
+                middle_p = _loadN(
+                    state, data_section, param_p,
                     C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if isinstance(
-                        middle_p, BitVecRef) and not isinstance(
-                        middle_p, BitVecNumRef):
+                if is_bv(middle_p):
                     tmp_data = str(middle_p)
                 else:
-                    middle_p = middle_p.as_long()
                     if cur_pattern[-1] == 's':
                         # TODO we insert a `abc` here, maybe we should insert a symbol
-                        state.symbolic_memory = insert_symbolic_memory(
-                            state.symbolic_memory, middle_p, 4, BitVecVal(6513249, 32))
+                        _storeN(state, middle_p, 6513249, 4)
                         logging.warning(
                             "================Initiated an scanf string: abc=================")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
@@ -122,10 +109,8 @@ class CPredefinedFunction:
                         inserted_variable = BitVec(
                             f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}",
                             C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
-                        state.symbolic_memory = insert_symbolic_memory(
-                            state.symbolic_memory, middle_p,
-                            C_TYPE_TO_LENGTH[cur_pattern[-1]],
-                            inserted_variable)
+                        _storeN(state, middle_p, inserted_variable,
+                                C_TYPE_TO_LENGTH[cur_pattern[-1]])
                         logging.warning(
                             f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}============")
                     else:
@@ -134,39 +119,15 @@ class CPredefinedFunction:
                 param_p += C_TYPE_TO_LENGTH[cur_pattern[-1]]
 
                 i += 1
-        elif self.name == 'strlen':
-            mem_pointer, = _extract_params(param_str, state)
-            if is_bv_value(mem_pointer):
-                mem_pointer = mem_pointer.as_long()
 
-                the_string = C_extract_string_by_mem_pointer(
-                    mem_pointer, data_section, state.symbolic_memory, 1)
-
-                if is_bv_value(the_string):
-                    string_length = len(the_string)
-                    state.symbolic_stack.append(BitVecVal(string_length, 32))
-                elif is_bv(the_string):
-                    # if the loaded string is a bv, we assign a symbol here
-                    string_length = BitVec("string_length", 32)
-                    state.symbolic_stack.append(string_length)
-                else:
-                    raise UnexpectedDataType
-
-                manually_constructed = True
-            elif is_bv(mem_pointer):
-                raise UnsupportExternalFuncError
-            else:
-                raise UnexpectedDataType
+            # the scanf returns how many items are inputted
+            state.symbolic_stack.append(BitVecVal(len(parsed_pattern), 32))
         elif self.name == 'swap':
             the_one, the_other = _extract_params(param_str, state)
-            the_one_mem = lookup_symbolic_memory_data_section(
-                state.symbolic_memory, {}, the_one, 1)
-            the_other_mem = lookup_symbolic_memory_data_section(
-                state.symbolic_memory, {}, the_other, 1)
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, the_one, 1, the_other_mem)
-            state.symbolic_memory = insert_symbolic_memory(
-                state.symbolic_memory, the_other, 1, the_one_mem)
+            the_one_mem = _loadN(state, {}, the_one, 1)
+            the_other_mem = _loadN(state, {}, the_other, 1)
+            _storeN(state, the_one, the_other_mem, 1)
+            _storeN(state, the_other, the_one_mem, 1)
             logging.warning(
                 "================$swap! Swap the two: %s and %s=================\n",
                 the_one_mem, the_other_mem)
@@ -183,7 +144,6 @@ class CPredefinedFunction:
 
                 ret = math.e ** exponent
                 state.symbolic_stack.append(FPVal(ret, Float64()))
-                manually_constructed = True
             else:  # if it is a symbol, z3 does not support
                 raise UnsupportExternalFuncError
         elif self.name == 'getchar':
@@ -191,21 +151,18 @@ class CPredefinedFunction:
                 return_str,
                 f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(ret)
-            manually_constructed = True
         elif self.name == 'putchar':
             the_char, = _extract_params(param_str, state)
-            if isinstance(the_char, BitVecNumRef):
-                the_char = the_char.as_long()
-                logging.warning("%s\n", chr(the_char))
-            else:
-                the_char = the_char
-                logging.warning("%s\n", the_char)
+            logging.warning("%s\n", the_char)
+
+            if isinstance(the_char, int):
+                the_char = BitVecVal(the_char, 32)
+            state.symbolic_stack.append(the_char)
         elif self.name == 'abs':
             candidate_num, = _extract_params(param_str, state)
             abs_num = simplify(If(candidate_num > 0, BitVecVal(
                 candidate_num, 32), BitVecVal(-candidate_num, 32)))
             state.symbolic_stack.append(abs_num)
-            manually_constructed = True
         elif self.name == 'emscripten_resize_heap':
             '''
             dlmalloc in C may call this function, which is imported.
@@ -215,18 +172,18 @@ class CPredefinedFunction:
             '''
             # TODO better emulate this function
             state.symbolic_stack.append(BitVecVal(0, 32))
-            manually_constructed = True
         elif self.name == 'puts':
             mem_pointer, = _extract_params(param_str, state)
-            the_string = str(C_extract_string_by_mem_pointer(
-                mem_pointer, data_section, state.symbolic_memory))
+            the_string = str(
+                C_extract_string_by_mem_pointer(
+                    mem_pointer, data_section, state))
+            # the '\n' is added according to semantic of puts
             logging.warning("%s\n", the_string)
+            state.symbolic_stack.append(BitVecVal(1, 32))
         elif self.name == 'atof':
             str_p, = _extract_params(param_str, state)
-            if isinstance(str_p, BitVecNumRef):
-                str_p = str_p.as_long()
             number_string = C_extract_string_by_mem_pointer(
-                str_p, data_section, state.symbolic_memory, 8)
+                str_p, data_section, state, 8)
 
             # try to convert such a string to float
             if isinstance(number_string, BitVecRef):
@@ -243,13 +200,10 @@ class CPredefinedFunction:
 
             # append into stack
             state.symbolic_stack.append(the_number)
-            manually_constructed = True
         elif self.name == 'atoi':
             str_p, = _extract_params(param_str, state)
-            if isinstance(str_p, BitVecNumRef):
-                str_p = str_p.as_long()
             number_string = C_extract_string_by_mem_pointer(
-                str_p, data_section, state.symbolic_memory, 4)
+                str_p, data_section, state, 4)
 
             # try to convert such a string to int
             if isinstance(number_string, BitVecRef):
@@ -266,43 +220,15 @@ class CPredefinedFunction:
 
             # append into stack
             state.symbolic_stack.append(the_number)
-            manually_constructed = True
         elif self.name == 'system':
             state.symbolic_stack.append(BitVec("cmd_system", 32))
-            manually_constructed = True
-        elif self.name == 'pow':
-            """
-            Note: we can step in library pow function
-            Do not need this part emulation
-            """
-            exp, base = _extract_params(param_str, state)
-
-            if isinstance(base, FPNumRef):
-                base = eval(str(base))
-            else:
-                base = fpToReal(base)
-
-            if isinstance(exp, FPNumRef):
-                exp = eval(str(exp))
-            else:
-                exp = fpToReal(exp)
-
-            result = simplify(base ** exp)
-
-            if isinstance(result, ArithRef):
-                result = simplify(fpRealToFP(RNE(), result, Float64()))
-            else:
-                result = simplify(FPVal(result, Float64()))
-
-            state.symbolic_stack.append(result)
-            manually_constructed = True
         elif self.name == 'fopen':
             mode_ptr, filename_ptr = _extract_params(param_str, state)
 
             # mode = C_extract_string_by_mem_pointer(
-            #     mode_ptr, data_section, state.symbolic_memory)
+            #     mode_ptr, data_section, state)
             filename = C_extract_string_by_mem_pointer(
-                filename_ptr, data_section, state.symbolic_memory)
+                filename_ptr, data_section, state)
 
             if filename not in state.fd:
                 filename_fd = max(state.fd.values()) + 1
@@ -311,19 +237,12 @@ class CPredefinedFunction:
                 exit(f"the file: {filename} is opened already")
             filename_fd = BitVecVal(filename_fd, 32)
             state.symbolic_stack.append(filename_fd)
-            manually_constructed = True
         else:
             raise UnsupportExternalFuncError
 
-        if not manually_constructed and return_str:
-            tmp_bitvec = getConcreteBitVec(
-                return_str,
-                f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
-            state.symbolic_stack.append(tmp_bitvec)
-
 
 def C_extract_string_by_mem_pointer(
-        mem_pointer, data_section, symbolic_memory, default_len=None):
+        mem_pointer, data_section, state, default_len=None):
     """
     Extract string by the memory pointer from data section
     or symbolic memory
@@ -335,19 +254,19 @@ def C_extract_string_by_mem_pointer(
     i = 1
     previous_string = ""
     while True:
-        loaded_data = lookup_symbolic_memory_data_section(
-            symbolic_memory, data_section, mem_pointer, i)
+        loaded_data = _loadN(state, data_section, mem_pointer, i)
 
         # if loaded_data is None:
         #     return BitVec('string*'+str(mem_pointer), default_len*8)
-        if is_bv_value(loaded_data):
-            loaded_data = loaded_data.as_long()
+        if isinstance(loaded_data, int):
             loaded_string = loaded_data.to_bytes(
                 (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
         elif is_bv(loaded_data):
             assert default_len is not None, f"extract {mem_pointer} from memory, however, the loaded part is a symbol, the default len should not be None"
-            return BitVec('string_of_' + str(lookup_symbolic_memory_data_section(
-                symbolic_memory, data_section, mem_pointer, 4)), default_len * 8)
+            return BitVec(
+                'string_of_' +
+                str(_loadN(state, data_section, mem_pointer, 4)),
+                default_len * 8)
         else:
             raise UnexpectedDataType
 
