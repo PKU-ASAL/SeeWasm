@@ -235,8 +235,17 @@ class CPredefinedFunction:
                 state.fd[filename] = filename_fd
             else:
                 exit(f"the file: {filename} is opened already")
-            filename_fd = BitVecVal(filename_fd, 32)
-            state.symbolic_stack.append(filename_fd)
+
+            # each FILE * is 60 bytes long
+            # the last 4 bytes are the fd
+            _storeN(state, 100000000, 0, 60)
+            _storeN(state, 100000056, filename_fd, 4)
+            # these two are the offset of __stdio_read and __stdio_close
+            # TODO may dynamically adjust
+            _storeN(state, 100000028, 6, 4)
+            _storeN(state, 100000012, 7, 4)
+            # return the FILE *
+            state.symbolic_stack.append(BitVecVal(100000000, 32))
         else:
             raise UnsupportExternalFuncError
 

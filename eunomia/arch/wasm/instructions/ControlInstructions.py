@@ -18,7 +18,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
     'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
-    'system', 'fopen', 'emscripten_resize_heap'}
+    'system', 'emscripten_resize_heap', 'fopen'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
@@ -154,10 +154,6 @@ class ControlInstructions:
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.warning(
                 f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
-            if readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(),
-                    state.current_func_name) == 'main' and readable_name == 'fopen':
-                print('here')
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -221,6 +217,10 @@ class ControlInstructions:
             return None
 
         if self.instr_name == 'br_if':
+            if readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    state.current_func_name) == '__wasilibc_find_abspath':
+                print('here')
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"

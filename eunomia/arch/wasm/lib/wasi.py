@@ -191,7 +191,7 @@ class WASIImportFunction:
 
             logging.warning(
                 f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
-            assert fd == 0, 'only support stdin now'
+            # assert fd == 0, 'only support stdin now'
 
             char_read_cnt = 0
             out_chars = []
