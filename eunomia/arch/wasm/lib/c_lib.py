@@ -9,7 +9,7 @@ from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting)
+                                     parse_printf_formatting, my_int_to_bytes)
 from z3 import (BitVec, BitVecRef, BitVecVal, Float64, FPNumRef, FPVal, If,
                 fpBVToFP, fpToReal, is_bv, simplify)
 
@@ -45,8 +45,8 @@ class CPredefinedFunction:
                     tmp_data = str(middle_p)
                 else:
                     if cur_pattern[-1] == 's':
-                        tmp_data = str(C_extract_string_by_mem_pointer(
-                            middle_p, data_section, state))
+                        tmp_data = C_extract_string_by_mem_pointer(
+                            middle_p, data_section, state)
                     elif cur_pattern[-1] == 'c':
                         tmp_data = chr(middle_p)
                     elif cur_pattern[-1] == 'f':
@@ -67,7 +67,9 @@ class CPredefinedFunction:
 
             the_string = pattern
 
-            logging.warning("%s\n", the_string)
+            logging.warning(
+                f"================Output a string: {the_string.encode()}=================")
+            state.stdout_buffer += the_string
             string_length = BitVecVal(len(the_string), 32)
             state.symbolic_stack.append(string_length)
         elif self.name == 'scanf':
@@ -153,10 +155,16 @@ class CPredefinedFunction:
             state.symbolic_stack.append(ret)
         elif self.name == 'putchar':
             the_char, = _extract_params(param_str, state)
-            logging.warning("%s\n", the_char)
 
             if isinstance(the_char, int):
+                logging.warning(
+                    f"================Output a string: {chr(the_char).encode()}=================")
+                state.stdout_buffer += chr(the_char)
                 the_char = BitVecVal(the_char, 32)
+            elif is_bv(the_char):
+                logging.warning(
+                    f"================Output a string: {str(the_char).encode()}=================")
+                state.stdout_buffer += str(the_char)
             state.symbolic_stack.append(the_char)
         elif self.name == 'abs':
             candidate_num, = _extract_params(param_str, state)
@@ -174,11 +182,12 @@ class CPredefinedFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
         elif self.name == 'puts':
             mem_pointer, = _extract_params(param_str, state)
-            the_string = str(
-                C_extract_string_by_mem_pointer(
-                    mem_pointer, data_section, state))
+            the_string = C_extract_string_by_mem_pointer(
+                mem_pointer, data_section, state)
             # the '\n' is added according to semantic of puts
-            logging.warning("%s\n", the_string)
+            logging.warning(
+                f"================Output a string: {the_string.encode()}=================")
+            state.stdout_buffer += the_string
             state.symbolic_stack.append(BitVecVal(1, 32))
         elif self.name == 'atof':
             str_p, = _extract_params(param_str, state)
@@ -256,35 +265,23 @@ def C_extract_string_by_mem_pointer(
     Extract string by the memory pointer from data section
     or symbolic memory
     """
-    # TODO the string may not be 4 bytes in length
-    # for example, the RorateArray, the scanf takes a string,
-    # the strlen will measure the length of the string,
-    # so we can not assume that the length would be 4
-    i = 1
-    previous_string = ""
-    while True:
+    if default_len:
+        loaded_data = _loadN(state, data_section, mem_pointer, default_len)
+    else:
+        i = 1
+        while True:
+            loaded_data = _loadN(state, data_section, mem_pointer + i, 1)
+            if isinstance(loaded_data, int) and loaded_data == 0:
+                break
+            i += 1
         loaded_data = _loadN(state, data_section, mem_pointer, i)
 
-        # if loaded_data is None:
-        #     return BitVec('string*'+str(mem_pointer), default_len*8)
-        if isinstance(loaded_data, int):
-            loaded_string = loaded_data.to_bytes(
-                (loaded_data.bit_length() + 7) // 8, 'little').decode("utf-8")
-        elif is_bv(loaded_data):
-            assert default_len is not None, f"extract {mem_pointer} from memory, however, the loaded part is a symbol, the default len should not be None"
-            return BitVec(
-                'string_of_' +
-                str(_loadN(state, data_section, mem_pointer, 4)),
-                default_len * 8)
-        else:
-            raise UnexpectedDataType
-
-        # as the b"\x00" cannot be loaded from the memory
-        # thus we have to compare the current string with the previous round's
-        if loaded_string == previous_string:
-            break
-
-        i += 1
-        previous_string = loaded_string
+    # if loaded_data is int, transfer it to the string
+    if isinstance(loaded_data, int):
+        loaded_string = my_int_to_bytes(loaded_data).decode()
+    elif is_bv(loaded_data):
+        loaded_string = loaded_data
+    else:
+        UnexpectedDataType
 
     return loaded_string

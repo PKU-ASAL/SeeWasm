@@ -26,11 +26,9 @@ class ParametricInstructions:
                 state1 = copy.deepcopy(state)
                 state1.constraints.append(simplify(arg0 != 0))
                 state1.symbolic_stack.append(arg1)
-                state1.constraints = list(set(state1.constraints))
                 state2 = copy.deepcopy(state)
                 state2.constraints.append(simplify(arg0 == 0))
                 state2.symbolic_stack.append(arg2)
-                state2.constraints = list(set(state2.constraints))
                 return [state1, state2]
         else:
             raise UnsupportInstructionError
