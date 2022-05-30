@@ -249,10 +249,10 @@ class WASIImportFunction:
             if all_char:
                 out_chars = [ele.encode() for ele in out_chars]
                 logging.warning(
-                    f"================Output a string: {b''.join(out_chars)}=================")
+                    f"================Input a fd_read string: {b''.join(out_chars)}=================")
             else:
                 logging.warning(
-                    f"================Initiated an fd_read string: {out_chars}=================")
+                    f"================Input a fd_read string: {out_chars}=================")
             # set num_bytes_read_addr to bytes_read_cnt
             logging.warning(f'{char_read_cnt} chars read.')
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
@@ -317,10 +317,10 @@ class WASIImportFunction:
                 if all_char:
                     out_str = [ele.encode() for ele in out_str]
                     logging.warning(
-                        f"================Output a string: {b''.join(out_str)}=================")
+                        f"================Output a fd_write string: {b''.join(out_str)}=================")
                 else:
                     logging.warning(
-                        f"================Output a string: {out_str}=================")
+                        f"================Output a fd_write string: {out_str}=================")
                 bytes_written_cnt += data_len
 
             _storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)
