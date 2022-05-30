@@ -1,6 +1,7 @@
 import logging
 import math
 
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
                                            get_source_location)
@@ -9,7 +10,8 @@ from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     parse_printf_formatting, my_int_to_bytes)
+                                     my_int_to_bytes, parse_printf_formatting,
+                                     readable_internal_func_name)
 from z3 import (BitVec, BitVecRef, BitVecVal, Float64, FPNumRef, FPVal, If,
                 fpBVToFP, fpToReal, is_bv, simplify)
 
@@ -19,59 +21,77 @@ class CPredefinedFunction:
         self.name = name
         self.cur_func = cur_func_name
 
+    def output_pattern_string(self, param_p, pattern_p, state, data_section):
+        pattern = C_extract_string_by_mem_pointer(
+            pattern_p, data_section, state)
+
+        the_string = ""
+        parsed_pattern = parse_printf_formatting(pattern)
+
+        # For memory align, e.g.,
+        # %s %f %c would be 4 bytes (%s), None (4 bytes), 8 bytes (%f), 4 bytes (%c)
+        # the memory align would occur at most once
+        align_offset = calc_memory_align(parsed_pattern)
+
+        i = 0
+        while i < len(parsed_pattern):
+            index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
+
+            middle_p = _loadN(
+                state, data_section, param_p,
+                C_TYPE_TO_LENGTH[cur_pattern[-1]])
+            if is_bv(middle_p):
+                tmp_data = str(middle_p)
+            else:
+                if cur_pattern[-1] == 's':
+                    tmp_data = C_extract_string_by_mem_pointer(
+                        middle_p, data_section, state)
+                elif cur_pattern[-1] == 'c':
+                    tmp_data = chr(middle_p)
+                elif cur_pattern[-1] == 'f':
+                    tmp_data = str(bin_to_float(bin(middle_p)))
+                elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                    tmp_data = str(middle_p)
+
+            param_p += align_offset[i]
+
+            pattern = pattern[:index] + tmp_data + \
+                pattern[index + len(cur_pattern):]
+            # update the following index
+            parsed_pattern = [
+                [x[0],
+                    x[1] + len(tmp_data) - len(cur_pattern),
+                    x[2]] for x in parsed_pattern]
+            i += 1
+
+        the_string = pattern
+
+        logging.warning(
+            f"================Output a string: {the_string.encode()}=================")
+        state.stdout_buffer += the_string
+        string_length = BitVecVal(len(the_string), 32)
+        state.symbolic_stack.append(string_length)
+
     def emul(self, state, param_str, return_str, data_section, analyzer):
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
             param_p, pattern_p = _extract_params(param_str, state)
+            self.output_pattern_string(param_p, pattern_p, state, data_section)
 
-            pattern = C_extract_string_by_mem_pointer(
-                pattern_p, data_section, state)
+        elif self.name == 'vfprintf':
+            param_p, pattern_p, stream_p = _extract_params(param_str, state)
+            stream = _loadN(state, data_section, stream_p, 4)
 
-            the_string = ""
-            parsed_pattern = parse_printf_formatting(pattern)
+            possible_callee = analyzer.elements[0]['elems']
+            offset = analyzer.elements[0]['offset']
+            fp_func = '$func' + str(possible_callee[stream - offset])
+            fp_func = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(), fp_func)
+            if fp_func == '__stdio_write':
+                pass
+            else:
+                exit(f'the vfprintf stream func is: {fp_func}')
 
-            # For memory align, e.g.,
-            # %s %f %c would be 4 bytes (%s), None (4 bytes), 8 bytes (%f), 4 bytes (%c)
-            # the memory align would occur at most once
-            align_offset = calc_memory_align(parsed_pattern)
-
-            i = 0
-            while i < len(parsed_pattern):
-                index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
-
-                middle_p = _loadN(
-                    state, data_section, param_p,
-                    C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                if is_bv(middle_p):
-                    tmp_data = str(middle_p)
-                else:
-                    if cur_pattern[-1] == 's':
-                        tmp_data = C_extract_string_by_mem_pointer(
-                            middle_p, data_section, state)
-                    elif cur_pattern[-1] == 'c':
-                        tmp_data = chr(middle_p)
-                    elif cur_pattern[-1] == 'f':
-                        tmp_data = str(bin_to_float(bin(middle_p)))
-                    elif cur_pattern[-1] in {'d', 'u', 'x'}:
-                        tmp_data = str(middle_p)
-
-                param_p += align_offset[i]
-
-                pattern = pattern[:index] + tmp_data + \
-                    pattern[index + len(cur_pattern):]
-                # update the following index
-                parsed_pattern = [
-                    [x[0],
-                     x[1] + len(tmp_data) - len(cur_pattern),
-                     x[2]] for x in parsed_pattern]
-                i += 1
-
-            the_string = pattern
-
-            logging.warning(
-                f"================Output a string: {the_string.encode()}=================")
-            state.stdout_buffer += the_string
-            string_length = BitVecVal(len(the_string), 32)
-            state.symbolic_stack.append(string_length)
+            self.output_pattern_string(param_p, pattern_p, state, data_section)
         elif self.name == 'scanf':
             param_p, pattern_p = _extract_params(param_str, state)
 

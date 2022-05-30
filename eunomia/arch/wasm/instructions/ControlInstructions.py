@@ -18,7 +18,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
     'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
-    'system', 'emscripten_resize_heap', 'fopen'}
+    'system', 'emscripten_resize_heap', 'fopen', 'vfprintf'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
