@@ -1,18 +1,21 @@
 import copy
 import re
-import sys
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
-                                          ProcSuccessTermination)
+from eunomia.arch.wasm.exceptions import DSLParseError
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
                                      branch_choose_info, my_int_to_bytes,
                                      readable_internal_func_name,
                                      state_choose_info)
-from z3 import sat, unsat
+from z3 import unsat
+
+# if a state belongs to one of these functions, it means that
+# the state is returned normally / unexpectedly.
+# we should output these states to the 'result' folder
+VALUABLE_FUNC_STATE_SET = {'main'}
 
 
 class ClassPropertyDescriptor:
@@ -658,8 +661,8 @@ class Graph:
             for item in emul_states:
                 if readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
-                        item.current_func_name) == '_Exit':
-                    # `_Exit` is a specifal function that indicates the end of a path
+                        item.current_func_name) in VALUABLE_FUNC_STATE_SET:
+                    # these functions correspond to end of path
                     pass
                 elif readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
@@ -678,6 +681,7 @@ class Graph:
                     m = s.model()
                     for k in m:
                         fp.write(f"\t{k}: {my_int_to_bytes(m[k].as_long())}\n")
+                    fp.write("\n")
                     fp.write("Output to stdout:\n")
                     item.stdout_buffer = [str(i) for i in item.stdout_buffer]
                     fp.write(f'{"".join(item.stdout_buffer)}' + "\n")
