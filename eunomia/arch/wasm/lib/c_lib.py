@@ -280,7 +280,7 @@ def C_extract_string_by_mem_pointer(
     if isinstance(loaded_data, int):
         loaded_string = my_int_to_bytes(loaded_data).decode()
     elif is_bv(loaded_data):
-        loaded_string = loaded_data
+        loaded_string = str(loaded_data).encode()
     else:
         UnexpectedDataType
 
