@@ -669,7 +669,7 @@ class Graph:
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+                with open(f'./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
                     fp.write("-----------------------------\n")
                     if item.symbolic_stack:
                         fp.write(f"Return with: {item.symbolic_stack[-1]}\n")

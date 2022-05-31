@@ -31,11 +31,17 @@ from z3 import BitVec, BitVecVal, BoolRef
 sys.setrecursionlimit(4096)
 
 if 'debug' == Configuration.get_verbose_flag():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+        filemode='w', level=logging.DEBUG)
 elif 'info' == Configuration.get_verbose_flag():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(
+        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+        filemode='w', level=logging.INFO)
 else:
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(
+        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+        filemode='w', level=logging.WARNING)
 
 
 # =======================================
@@ -280,10 +286,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             output_string.append(
                 "------------------------------------------\n")
 
-            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_func_level.log', 'w') as fp:
+            with open(f'./log/coverage-function/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'w') as fp:
                 fp.writelines(output_string)
 
-            with open(f'./log/{Configuration.get_file_name()}_{Configuration.get_start_time()}_ins_level.log', 'a') as fp:
+            with open(f'./log/coverage-instruction/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
                 fp.write(
                     f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
 
