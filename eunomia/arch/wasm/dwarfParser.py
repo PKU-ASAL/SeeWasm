@@ -148,8 +148,8 @@ def get_func_DIE_by_addr(dwarf_info, addr):
                     elif highpc_attr_class == 'constant':
                         highpc = lowpc + highpc_attr.value
                     else:
-                        logging.warning('Error: invalid DW_AT_high_pc class:',
-                              highpc_attr_class)
+                        logging.warning(
+                            f"Error: invalid DW_AT_high_pc class: {highpc_attr_class}")
                         continue
 
                     if lowpc <= addr < highpc:
@@ -211,7 +211,7 @@ def get_size_by_type(die):
     elif die.tag == 'DW_TAG_typedef':
         return get_size_by_type(die.get_DIE_from_attribute('DW_AT_type'))
     else:
-        logging.error("Unknown type tag: ", die.tag)
+        logging.error(f"Unknown type tag: {die.tag}")
         return 4
 
 

@@ -35,9 +35,9 @@ class DivZeroLaser:
             new_cond += [op2 == 0]
             if self._check(new_cond):
                 logging.warning(
-                    f'{bcolors.WARNING}The op2 ({op2}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}')
+                    f"{bcolors.WARNING}The op2 ({op2}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}")
                 divzeroed = True
         if divzeroed:
             import datetime
-            logging.info(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f"Current Time: {datetime.datetime.now()}")
         return divzeroed

@@ -122,7 +122,7 @@ class ControlInstructions:
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f'End of a C library function: {readable_name}')
+            logging.info(f"End of a C library function: {readable_name}")
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
             logging.info(
@@ -130,7 +130,7 @@ class ControlInstructions:
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f'End of a Go library function: {readable_name}')
+            logging.info(f"End of a Go library function: {readable_name}")
             # terminate panic related functions. eg: runtime.divideByZeroPanic
             if readable_name in TERMINATED_FUNCS:
                 logging.info(
@@ -142,7 +142,7 @@ class ControlInstructions:
             logging.info(
                 f"Invoked a WASI import function: {readable_name}")
             func.emul(state, param_str, return_str, data_section)
-            logging.info(f'End of a import function: {readable_name}')
+            logging.info(f"End of a import function: {readable_name}")
         elif readable_name in TERMINATED_FUNCS:
             logging.info(
                 f"Terminated function invoked: {readable_name} ")
@@ -204,7 +204,7 @@ class ControlInstructions:
                 new_state.fd = return_constraint_tuple[1].fd
 
                 new_states.append(new_state)
-            logging.info(f'End of function: {readable_name}')
+            logging.info(f"End of function: {readable_name}")
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
@@ -282,10 +282,10 @@ class ControlInstructions:
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
-                logging.error(op)
-                logging.error(possible_callee)
-                logging.error(offset)
-                logging.error(state)
+                logging.error(f"{op}")
+                logging.error(f"{possible_callee}")
+                logging.error(f"{offset}")
+                logging.error(f"{state}")
                 exit("call indirect error")
             return states
         elif self.instr_name == 'br_table':

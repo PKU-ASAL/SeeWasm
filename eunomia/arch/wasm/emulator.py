@@ -114,7 +114,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     self.total_instructions += len(f.instructions)
                     break
 
-        logging.info(f'total instructions: {self.total_instructions}')
+        logging.info(f"total instructions: {self.total_instructions}")
 
     def get_signature(self, func_name):
         """
@@ -228,7 +228,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     state.current_func_name))
 
         logging.debug(
-            f'\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n' + state.__str__())
+            f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.offset}\n{state.__str__()}")
 
         for c in state.constraints:
             if not isinstance(c, BoolRef):

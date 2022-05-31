@@ -218,8 +218,8 @@ class GoPredefinedFunction:
                     data = param_interface_ptr
                     out_bytes += str(data).encode()
             out_bytes += format_str[parsed_ind:].encode()
-            logging.info("fmt.printf:" + repr(format_str))
-            logging.info(out_bytes)
+            logging.info(f"fmt.printf: {repr(format_str)}")
+            logging.info(f"{out_bytes}")
             store32(pret, len(out_bytes))
             store32(pret + 4, 0)
             manually_constructed = True
@@ -247,28 +247,28 @@ class GoPredefinedFunction:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.info(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f"Current Time: {datetime.datetime.now()}")
             logging.warning(
-                f'{bcolors.WARNING}Div-zero! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+                f"{bcolors.WARNING}Div-zero! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
             if divisor is not None:
                 logging.warning(
-                    f'{bcolors.WARNING}The op2 ({divisor}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}')
+                    f"{bcolors.WARNING}The op2 ({divisor}) may be zero, which may result in Div-Zero vulnerability!{bcolors.ENDC}")
             manually_constructed = True
         elif self.name == 'runtime.lookupPanic':
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.info(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f"Current Time: {datetime.datetime.now()}")
             logging.warning(
-                f'{bcolors.WARNING}{self.name} is possible! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+                f"{bcolors.WARNING}{self.name} is possible! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
             manually_constructed = True
         elif self.name in PANIC_FUNCTIONS:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.info(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f"Current Time: {datetime.datetime.now()}")
             logging.warning(
-                f'{bcolors.WARNING}{PANIC_FUNCTIONS[self.name]}! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+                f"{bcolors.WARNING}{PANIC_FUNCTIONS[self.name]}! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
             manually_constructed = True
         elif self.name == 'runtime.calculateHeapAddresses':
             calculateHeapAddresses(state, data_section)

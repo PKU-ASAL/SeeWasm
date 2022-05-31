@@ -129,9 +129,9 @@ def show_branch_info(branch, branches, state):
     bb_name = branches[branch]
     if branch in ['conditional_true', 'conditional_false']:
         logging.warning(
-            f'[!] The constraint: {bcolors.WARNING}"{state[branch].constraints[-1]}"{bcolors.ENDC} will be appended')
+            f"[!] The constraint: {bcolors.WARNING}'{state[branch].constraints[-1]}'{bcolors.ENDC} will be appended")
     logging.warning(
-        f'[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}')
+        f"[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}")
     # commented, TODO, need revise, uncomment if neccessary
     # print(f'[!] Its instruction begins at offset {cls.bb_to_instructions[bb_name][0].offset}')
     # print(f'[!] The leading instructions are showed as follows:')

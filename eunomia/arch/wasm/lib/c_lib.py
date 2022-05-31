@@ -122,7 +122,7 @@ class CPredefinedFunction:
                         # TODO we insert a `abc` here, maybe we should insert a symbol
                         _storeN(state, middle_p, 6513249, 4)
                         logging.info(
-                            "================Initiated an scanf string: abc=================")
+                            f"================Initiated an scanf string: abc=================")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
@@ -151,7 +151,7 @@ class CPredefinedFunction:
             _storeN(state, the_one, the_other_mem, 1)
             _storeN(state, the_other, the_one_mem, 1)
             logging.info(
-                "================$swap! Swap the two: %s and %s=================\n",
+                f"================$swap! Swap the two: %s and %s=================\n",
                 the_one_mem, the_other_mem)
         elif self.name == 'exp':
             exponent, = _extract_params(param_str, state)

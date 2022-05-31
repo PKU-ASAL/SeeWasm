@@ -254,7 +254,7 @@ class WASIImportFunction:
                 logging.info(
                     f"================Input a fd_read string: {out_chars}=================")
             # set num_bytes_read_addr to bytes_read_cnt
-            logging.info(f'{char_read_cnt} chars read.')
+            logging.info(f"{char_read_cnt} chars read.")
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
 
             # append a 0 as return value, means success
@@ -383,9 +383,9 @@ class WASIImportFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         else:
-            logging.error(self.name)
-            logging.error(state.symbolic_stack)
-            logging.error(state.symbolic_memory)
+            logging.error(f"{self.name}")
+            logging.error(f"{state.symbolic_stack}")
+            logging.error(f"{state.symbolic_memory}")
             exit()
 
         if return_str:
