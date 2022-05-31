@@ -26,11 +26,11 @@ class BitwiseInstructions:
         if is_bool(arg1):
             arg1 = BitVec(str(arg1), helper_map[instr_type])
             logging.warning(
-                "[!] In `BitwiseInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
+                f"[!] In `BitwiseInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
         if is_bool(arg2):
             arg2 = BitVec(str(arg2), helper_map[instr_type])
             logging.warning(
-                "[!] In `BitwiseInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
+                f"[!] In `BitwiseInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
         assert arg1.size(
         ) == helper_map[instr_type], f'arg1 size is {arg1.size()} instead of {helper_map[instr_type]} in do_emulate_bitwise_instruction'

@@ -1,18 +1,22 @@
 import copy
+import logging
 import re
-import sys
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
-                                          ProcSuccessTermination)
+from eunomia.arch.wasm.exceptions import DSLParseError
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
                                      branch_choose_info, my_int_to_bytes,
                                      readable_internal_func_name,
                                      state_choose_info)
-from z3 import sat, unsat
+from z3 import unsat
+
+# if a state belongs to one of these functions, it means that
+# the state is returned normally / unexpectedly.
+# we should output these states to the 'result' folder
+VALUABLE_FUNC_STATE_SET = {'main'}
 
 
 class ClassPropertyDescriptor:
@@ -603,18 +607,18 @@ class Graph:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
                 # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
-                print(
+                logging.warning(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
                 if len(avail_br) == 1:
-                    print(
+                    logging.warning(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
                     br_idx = ask_user_input(
                         emul_states, isbr=True, onlyone=True,
                         branches=avail_br)
                 else:
-                    print(
+                    logging.warning(
                         f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-                    print(
+                    logging.warning(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
                     br_idx = ask_user_input(
                         emul_states, isbr=True, branches=avail_br)
@@ -658,14 +662,14 @@ class Graph:
             for item in emul_states:
                 if readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
-                        item.current_func_name) == '_Exit':
-                    # `_Exit` is a specifal function that indicates the end of a path
+                        item.current_func_name) in VALUABLE_FUNC_STATE_SET:
+                    # these functions correspond to end of path
                     pass
                 elif readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+                with open(f'./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
                     fp.write("-----------------------------\n")
                     if item.symbolic_stack:
                         fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
@@ -678,6 +682,7 @@ class Graph:
                     m = s.model()
                     for k in m:
                         fp.write(f"\t{k}: {my_int_to_bytes(m[k].as_long())}\n")
+                    fp.write("\n")
                     fp.write("Output to stdout:\n")
                     item.stdout_buffer = [str(i) for i in item.stdout_buffer]
                     fp.write(f'{"".join(item.stdout_buffer)}' + "\n")
@@ -715,7 +720,6 @@ class Graph:
         for name in cls.aes_func[blk]:
             _name, id = name.split('$')
             if id == '1':
-                print('Hit')
                 new_lvar['checker_halt'] = True
                 new_lvar['prior'] = -1
             if id == '2':
@@ -739,11 +743,5 @@ class Graph:
                     que.append(v)
         nds = set()
         for edge in edges:
-            print(edge[0], edge[1])
             nds.add(edge[0])
             nds.add(edge[1])
-        for nd in nds:
-            print(nd + ':', end='')
-            for inst in cls.bb_to_instructions[nd]:
-                print(inst, end=' ')
-            print()

@@ -72,11 +72,11 @@ class ArithmeticInstructions:
                 if is_bool(arg1):
                     arg1 = BitVec(str(arg1), helper_map[instr_type])
                     logging.warning(
-                        "[!] In `ArithmeticInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
+                        f"[!] In `ArithmeticInstructions.py`, arg1 is BoolRef, translated to BitVec which may lead to some information loss")
                 if is_bool(arg2):
                     arg2 = BitVec(str(arg2), helper_map[instr_type])
                     logging.warning(
-                        "[!] In `ArithmeticInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
+                        f"[!] In `ArithmeticInstructions.py`, arg2 is BoolRef, translated to BitVec which may lead to some information loss")
 
                 assert arg1.size(
                 ) == helper_map[instr_type], f"in arithmetic instruction, arg1 size is {arg1.size()} instead of {helper_map[instr_type]}"
@@ -109,14 +109,14 @@ class ArithmeticInstructions:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         logging.warning(
-                            f'{bcolors.WARNING}Overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+                            f"{bcolors.WARNING}Overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
                 if div_zero_flag:
                     divzeroed = div_zero_laser.fire(result, state.constraints)
                     if divzeroed:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         logging.warning(
-                            f'{bcolors.WARNING}Div-zero! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
+                            f"{bcolors.WARNING}Div-zero! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 

@@ -148,8 +148,8 @@ def get_func_DIE_by_addr(dwarf_info, addr):
                     elif highpc_attr_class == 'constant':
                         highpc = lowpc + highpc_attr.value
                     else:
-                        print('Error: invalid DW_AT_high_pc class:',
-                              highpc_attr_class)
+                        logging.warning(
+                            f"Error: invalid DW_AT_high_pc class: {highpc_attr_class}")
                         continue
 
                     if lowpc <= addr < highpc:
@@ -211,7 +211,7 @@ def get_size_by_type(die):
     elif die.tag == 'DW_TAG_typedef':
         return get_size_by_type(die.get_DIE_from_attribute('DW_AT_type'))
     else:
-        logging.error("Unknown type tag: ", die.tag)
+        logging.error(f"Unknown type tag: {die.tag}")
         return 4
 
 
@@ -220,7 +220,6 @@ def get_value(func_DIE, ana, state):
     fb_loc = parse_expr(ana.dwarf_info, fb_expr)
     assert fb_loc[1].op_name == 'DW_OP_stack_value'
     fb_loc = fb_loc[0]  # type: DWARFExprOp
-    print(fb_loc)
     if fb_loc.op_name == 'wasm-local':
         fb_value = state.local_var[fb_loc.args[0]].as_long()
     elif fb_loc.op_name == 'wasm-global':

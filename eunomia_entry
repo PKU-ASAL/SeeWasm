@@ -54,8 +54,9 @@ def main():
 
     features = parser.add_argument_group('Features')
     features.add_argument(
-        '-v', '--verbose', action='store_true',
-        help='switch the logging to debug level')
+        '-v', '--verbose', default='warning', const='warning', nargs='?',
+        choices=['warning', 'info', 'debug'],
+        help='set the logging level. debug is instruction level, info is function level')
     features.add_argument(
         '-y', '--analytic', action='store_true',
         help='print Functions instructions analytics')
@@ -193,7 +194,7 @@ def main():
         elif args.sym_stdin:
             Configuration.set_stdin_buffer(args.sym_stdin)
 
-        with open(f'./result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
+        with open(f'./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
             fp.write("Running command:\n")
             fp.write(" ".join(sys.argv) + "\n")
 
@@ -218,13 +219,13 @@ def main():
 if __name__ == '__main__':
     job_start_time = datetime.now()
     current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Start to analyze: {current_time_start}")
+    print(f"Start to analyze: {current_time_start}", flush=True)
     Configuration.set_start_time(current_time_start)
 
     main()
 
     job_end_time = datetime.now()
     current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"End of analyze: {current_time_end}")
+    print(f"End of analyze: {current_time_end}", flush=True)
     elapsed_time = job_end_time - job_start_time
-    print(f"Time elapsed: {elapsed_time}")
+    print(f"Time elapsed: {elapsed_time}", flush=True)

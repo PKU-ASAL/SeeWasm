@@ -95,7 +95,7 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
     #   1. the concrete number is not limited by any interval
     #   2. no concrete number at all
     dup_symbolic_memory = deepcopy(symbolic_memory)
-    logging.warning(f"Encounter a symbolic pointer: {dest}")
+    logging.info(f"Encounter a symbolic pointer: {dest}")
 
     def _big_construct_ite(symbolic_memory, dest, length):
         """

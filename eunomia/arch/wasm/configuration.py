@@ -10,7 +10,7 @@ class Configuration:
     _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
     _algo = 'dfs'       # the traverse algorithm, default is dfs, we also have 'interval'
     _concrete_globals = False   # init the global with the declaration in global sections
-    _verbose_flag = False    # if user set -v flag, the debugging info would be printed
+    _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
     # the backend SMT solver, may integrate our lab's own backend in the future
     _solver = 'z3'
     # the stdin buffer

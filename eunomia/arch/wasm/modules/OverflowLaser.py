@@ -62,7 +62,7 @@ class OverflowLaser:
                 break
         if free_variable:
             logging.warning(
-                f'{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free, which may result in overflow!{bcolors.ENDC}')
+                f"{bcolors.WARNING}op1 ({op1}) or op2 ({op2}) is free, which may result in overflow!{bcolors.ENDC}")
             overflowed = True
 
         # step 3:
@@ -77,32 +77,32 @@ class OverflowLaser:
             if self._check(new_cond):
                 if is_signed:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}")
                 else:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvadd of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}")
                 overflowed = True
         elif op_name == 'bvsub':
             new_cond += [Not(BVSubNoUnderflow(op1, op2, is_signed))]
             if self._check(new_cond):
                 if is_signed:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (signed){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (signed){bcolors.ENDC}")
                 else:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (unsigned){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvsub of op1 ({op1}) and op2 ({op2}) may underflow (unsigned){bcolors.ENDC}")
                 overflowed = True
         elif op_name == 'bvmul':
             new_cond += [Not(BVMulNoOverflow(op1, op2, is_signed))]
             if self._check(new_cond):
                 if is_signed:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (signed){bcolors.ENDC}")
                 else:
                     logging.warning(
-                        f'{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}')
+                        f"{bcolors.WARNING}The bvmul of op1 ({op1}) and op2 ({op2}) may overflow (unsigned){bcolors.ENDC}")
                 overflowed = True
         if overflowed:
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f"Current Time: {datetime.datetime.now()}")
         return overflowed

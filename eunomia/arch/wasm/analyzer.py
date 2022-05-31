@@ -192,8 +192,7 @@ class WasmModuleAnalyzer(object):
                                          entry.type.mutability)
                 import_list.append((entry.kind, module_str, field_str, gbl))
             else:
-                logging.error('unknown %d %s %s', entry.kind,
-                              module_str, field_str)
+                logging.error(f"unknown {entry.kind} {module_str} {field_str}")
         return (import_list, import_func_list)
 
     def __decode_function_section(self, function_section):

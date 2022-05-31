@@ -6,9 +6,8 @@ from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.internalFunctions import (PANIC_FUNCTIONS,
-                                                 CPredefinedFunction,
-                                                 GoPredefinedFunction)
+from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
+from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (getConcreteBitVec,
@@ -16,11 +15,10 @@ from eunomia.arch.wasm.utils import (getConcreteBitVec,
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
-# TODO ensure the correctness of malloc, realloc, and free
 C_LIBRARY_FUNCS = {
-    '__small_printf', 'abs', 'atof', 'atoi', 'ceil', 'exp', 'floor', 'getchar',
-    'iprintf', 'putchar', 'puts', 'scanf', 'sqrt', 'swap',
-    'system'}
+    '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
+    'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
+    'system', 'emscripten_resize_heap', 'fopen', 'vfprintf'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
@@ -34,6 +32,15 @@ NEED_STEP_IN_GO = {
     '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', '_*sync.Pool_.Get',
     'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
 NEED_STEP_IN_C = {}
+PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
+                   'runtime.lookupPanic': 'index out of range',
+                   'runtime.slicePanic': 'slice out of range',
+                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
+                   'runtime.divideByZeroPanic': 'divide by zero',
+                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
+                   'runtime.chanMakePanic': 'new channel is too big',
+                   'runtime.negativeShiftPanic': 'negative shift',
+                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
 
 # we heuristically define that if a func is start with the pre-defined substring, it is a library function
 
@@ -106,38 +113,38 @@ class ControlInstructions:
             internal_function_name)
 
         new_states = []
-        # if the callee is imported by WASI
-        if readable_name in [i[1] for i in analyzer.imports_func]:
-            func = WASIImportFunction(readable_name, state.current_func_name)
-            logging.warning(
-                f"Invoked a WASI import function: {readable_name}")
-            func.emul(state, param_str, return_str, data_section)
-            logging.warning(f'End of a import function: {readable_name}')
         # if the callee is a C library function
-        elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
+        if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
-            exit("Currently, we don't allow external function's model")
-            logging.warning(
+            # exit("Currently, we don't allow external function's model")
+            logging.info(
                 f"Invoked a C library function: {readable_name}")
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.warning(f'End of a C library function: {readable_name}')
+            logging.info(f"End of a C library function: {readable_name}")
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
-            logging.warning(
+            logging.info(
                 f"Invoked a Go library function: {readable_name}")
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.warning(f'End of a Go library function: {readable_name}')
+            logging.info(f"End of a Go library function: {readable_name}")
             # terminate panic related functions. eg: runtime.divideByZeroPanic
             if readable_name in TERMINATED_FUNCS:
-                logging.warning(
+                logging.info(
                     f"Terminated function invoked (Golang): {readable_name} ")
                 # TODO terminate state, but normally there will be `unreachable` instruction after the call
+        # if the callee is the imported
+        elif readable_name in [i[1] for i in analyzer.imports_func]:
+            func = WASIImportFunction(readable_name, state.current_func_name)
+            logging.info(
+                f"Invoked a WASI import function: {readable_name}")
+            func.emul(state, param_str, return_str, data_section)
+            logging.info(f"End of a import function: {readable_name}")
         elif readable_name in TERMINATED_FUNCS:
-            logging.warning(
+            logging.info(
                 f"Terminated function invoked: {readable_name} ")
             return [state]
         else:
@@ -145,7 +152,7 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning(
+            logging.info(
                 f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
@@ -194,9 +201,10 @@ class ControlInstructions:
                 new_state.args = return_constraint_tuple[1].args
                 new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
                 new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
+                new_state.fd = return_constraint_tuple[1].fd
 
                 new_states.append(new_state)
-            logging.warning(f'End of function: {readable_name}')
+            logging.info(f"End of function: {readable_name}")
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
@@ -274,10 +282,10 @@ class ControlInstructions:
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
-                print(op)
-                print(possible_callee)
-                print(offset)
-                print(state)
+                logging.error(f"{op}")
+                logging.error(f"{possible_callee}")
+                logging.error(f"{offset}")
+                logging.error(f"{state}")
                 exit("call indirect error")
             return states
         elif self.instr_name == 'br_table':
@@ -318,5 +326,4 @@ class ControlInstructions:
             return self.deal_with_call(
                 state, f_offset, has_ret, data_section, analyzer)
         else:
-            print(self.instr_name)
             raise UnsupportInstructionError
