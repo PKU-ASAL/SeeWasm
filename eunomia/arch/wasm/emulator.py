@@ -30,10 +30,12 @@ from z3 import BitVec, BitVecVal, BoolRef
 
 sys.setrecursionlimit(4096)
 
-if Configuration.get_verbose_flag():
+if 'debug' == Configuration.get_verbose_flag():
     logging.basicConfig(level=logging.DEBUG)
-else:
+elif 'info' == Configuration.get_verbose_flag():
     logging.basicConfig(level=logging.INFO)
+else:
+    logging.basicConfig(level=logging.WARNING)
 
 
 # =======================================
@@ -106,7 +108,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     self.total_instructions += len(f.instructions)
                     break
 
-        logging.warning(f'total instructions: {self.total_instructions}')
+        logging.info(f'total instructions: {self.total_instructions}')
 
     def get_signature(self, func_name):
         """

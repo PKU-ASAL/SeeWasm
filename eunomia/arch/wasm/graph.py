@@ -1,4 +1,5 @@
 import copy
+import logging
 import re
 from collections import defaultdict, deque
 from queue import PriorityQueue
@@ -606,18 +607,18 @@ class Graph:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
                 # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
-                print(
+                logging.warning(
                     f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
                 if len(avail_br) == 1:
-                    print(
+                    logging.warning(
                         f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
                     br_idx = ask_user_input(
                         emul_states, isbr=True, onlyone=True,
                         branches=avail_br)
                 else:
-                    print(
+                    logging.warning(
                         f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-                    print(
+                    logging.warning(
                         f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
                     br_idx = ask_user_input(
                         emul_states, isbr=True, branches=avail_br)
@@ -719,7 +720,6 @@ class Graph:
         for name in cls.aes_func[blk]:
             _name, id = name.split('$')
             if id == '1':
-                print('Hit')
                 new_lvar['checker_halt'] = True
                 new_lvar['prior'] = -1
             if id == '2':
@@ -743,11 +743,5 @@ class Graph:
                     que.append(v)
         nds = set()
         for edge in edges:
-            print(edge[0], edge[1])
             nds.add(edge[0])
             nds.add(edge[1])
-        for nd in nds:
-            print(nd + ':', end='')
-            for inst in cls.bb_to_instructions[nd]:
-                print(inst, end=' ')
-            print()

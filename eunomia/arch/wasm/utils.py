@@ -1,12 +1,13 @@
 # This file gives some practical functions that will be adopted by other files
 
+import logging
 import re
 import struct
 from codecs import decode
 from enum import Enum
 
 from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
-from z3 import FP, BitVec, Float32, Float64, is_bv_value, is_bv
+from z3 import FP, BitVec, Float32, Float64, is_bv, is_bv_value
 
 
 class Enable_Lasers(Enum):
@@ -121,15 +122,15 @@ Stack:\t\t{info.symbolic_stack}
 Local Var:\t{info.local_var}
 Global Var:\t{info.globals}
 Memory:\t\t{info.symbolic_memory}
-Constraints:\t{info.constraints[:-1]}\n''')
+Constraints:\t{info.constraints[:-1]}\n''', flush=True)
 
 
 def show_branch_info(branch, branches, state):
     bb_name = branches[branch]
     if branch in ['conditional_true', 'conditional_false']:
-        print(
+        logging.warning(
             f'[!] The constraint: {bcolors.WARNING}"{state[branch].constraints[-1]}"{bcolors.ENDC} will be appended')
-    print(
+    logging.warning(
         f'[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}')
     # commented, TODO, need revise, uncomment if neccessary
     # print(f'[!] Its instruction begins at offset {cls.bb_to_instructions[bb_name][0].offset}')
@@ -142,17 +143,17 @@ def show_branch_info(branch, branches, state):
 
 
 def state_choose_info(emul_states):
-    print(
+    logging.warning(
         f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
     if len(emul_states) == 1:
-        print(
+        logging.warning(
             f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
         state_index = ask_user_input(
             emul_states, isbr=False, onlyone=True)
     else:
-        print(
+        logging.warning(
             f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-        print(
+        logging.warning(
             f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
         state_index = ask_user_input(
             emul_states, isbr=False)  # 0 for state, is a flag
@@ -162,10 +163,10 @@ def state_choose_info(emul_states):
 
 
 def branch_choose_info(avail_br, branches, emul_state_item, emul_states):
-    print(
+    logging.warning(
         f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
     if len(avail_br) == 1:
-        print(
+        logging.warning(
             f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
         avail_br = [
             ask_user_input(
@@ -173,9 +174,9 @@ def branch_choose_info(avail_br, branches, emul_state_item, emul_states):
                 branches=branches,
                 emul_state_item=emul_state_item)]
     else:
-        print(
+        logging.warning(
             f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-        print(
+        logging.warning(
             f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
         avail_br = [
             ask_user_input(
@@ -226,9 +227,8 @@ def ask_user_input(
                 show_branch_info(concerned_variable, branches, state_item)
             else:
                 show_state_info(concerned_variable, emul_states)
-            print('')
         except Exception:
-            print(
+            logging.warning(
                 f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
 
     return concerned_variable

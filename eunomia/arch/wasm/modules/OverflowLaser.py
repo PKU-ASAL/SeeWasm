@@ -104,5 +104,5 @@ class OverflowLaser:
                 overflowed = True
         if overflowed:
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
         return overflowed

@@ -31,7 +31,7 @@ class BufferOverflowLaser:
 
         if buffer_overflowed:
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             logging.warning(

@@ -66,7 +66,7 @@ class CPredefinedFunction:
 
         the_string = pattern
 
-        logging.warning(
+        logging.info(
             f"================Output a string: {the_string.encode()}=================")
         state.stdout_buffer += the_string
         string_length = BitVecVal(len(the_string), 32)
@@ -121,7 +121,7 @@ class CPredefinedFunction:
                     if cur_pattern[-1] == 's':
                         # TODO we insert a `abc` here, maybe we should insert a symbol
                         _storeN(state, middle_p, 6513249, 4)
-                        logging.warning(
+                        logging.info(
                             "================Initiated an scanf string: abc=================")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
@@ -133,7 +133,7 @@ class CPredefinedFunction:
                             C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
                         _storeN(state, middle_p, inserted_variable,
                                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
-                        logging.warning(
+                        logging.info(
                             f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}============")
                     else:
                         exit("$scanf error")
@@ -150,7 +150,7 @@ class CPredefinedFunction:
             the_other_mem = _loadN(state, {}, the_other, 1)
             _storeN(state, the_one, the_other_mem, 1)
             _storeN(state, the_other, the_one_mem, 1)
-            logging.warning(
+            logging.info(
                 "================$swap! Swap the two: %s and %s=================\n",
                 the_one_mem, the_other_mem)
         elif self.name == 'exp':
@@ -177,12 +177,12 @@ class CPredefinedFunction:
             the_char, = _extract_params(param_str, state)
 
             if isinstance(the_char, int):
-                logging.warning(
+                logging.info(
                     f"================Output a string: {chr(the_char).encode()}=================")
                 state.stdout_buffer += chr(the_char)
                 the_char = BitVecVal(the_char, 32)
             elif is_bv(the_char):
-                logging.warning(
+                logging.info(
                     f"================Output a string: {str(the_char).encode()}=================")
                 state.stdout_buffer += str(the_char)
             state.symbolic_stack.append(the_char)
@@ -205,7 +205,7 @@ class CPredefinedFunction:
             the_string = C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state)
             # the '\n' is added according to semantic of puts
-            logging.warning(
+            logging.info(
                 f"================Output a string: {the_string.encode()}=================")
             state.stdout_buffer += the_string
             state.symbolic_stack.append(BitVecVal(1, 32))

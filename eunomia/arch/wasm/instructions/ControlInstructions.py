@@ -117,34 +117,34 @@ class ControlInstructions:
         if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_C:
             # exit("Currently, we don't allow external function's model")
-            logging.warning(
+            logging.info(
                 f"Invoked a C library function: {readable_name}")
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.warning(f'End of a C library function: {readable_name}')
+            logging.info(f'End of a C library function: {readable_name}')
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
-            logging.warning(
+            logging.info(
                 f"Invoked a Go library function: {readable_name}")
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.warning(f'End of a Go library function: {readable_name}')
+            logging.info(f'End of a Go library function: {readable_name}')
             # terminate panic related functions. eg: runtime.divideByZeroPanic
             if readable_name in TERMINATED_FUNCS:
-                logging.warning(
+                logging.info(
                     f"Terminated function invoked (Golang): {readable_name} ")
                 # TODO terminate state, but normally there will be `unreachable` instruction after the call
         # if the callee is the imported
         elif readable_name in [i[1] for i in analyzer.imports_func]:
             func = WASIImportFunction(readable_name, state.current_func_name)
-            logging.warning(
+            logging.info(
                 f"Invoked a WASI import function: {readable_name}")
             func.emul(state, param_str, return_str, data_section)
-            logging.warning(f'End of a import function: {readable_name}')
+            logging.info(f'End of a import function: {readable_name}')
         elif readable_name in TERMINATED_FUNCS:
-            logging.warning(
+            logging.info(
                 f"Terminated function invoked: {readable_name} ")
             return [state]
         else:
@@ -152,7 +152,7 @@ class ControlInstructions:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
-            logging.warning(
+            logging.info(
                 f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
@@ -204,7 +204,7 @@ class ControlInstructions:
                 new_state.fd = return_constraint_tuple[1].fd
 
                 new_states.append(new_state)
-            logging.warning(f'End of function: {readable_name}')
+            logging.info(f'End of function: {readable_name}')
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
@@ -217,10 +217,6 @@ class ControlInstructions:
             return None
 
         if self.instr_name == 'br_if':
-            if readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(),
-                    state.current_func_name) == '__wasilibc_find_abspath':
-                print('here')
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
@@ -286,10 +282,10 @@ class ControlInstructions:
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
-                print(op)
-                print(possible_callee)
-                print(offset)
-                print(state)
+                logging.error(op)
+                logging.error(possible_callee)
+                logging.error(offset)
+                logging.error(state)
                 exit("call indirect error")
             return states
         elif self.instr_name == 'br_table':
@@ -330,5 +326,4 @@ class ControlInstructions:
             return self.deal_with_call(
                 state, f_offset, has_ret, data_section, analyzer)
         else:
-            print(self.instr_name)
             raise UnsupportInstructionError

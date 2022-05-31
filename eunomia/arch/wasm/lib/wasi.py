@@ -91,7 +91,7 @@ class WASIImportFunction:
         elif self.name == 'fd_advise':
             # ref: https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
             advice, length, offset, fd = _extract_params(param_str, state)
-            print(
+            logging.info(
                 f"Encounter fd_advise, fd: {fd}, offset: {offset}, length: {length}, advice: {advice}")
 
             # append a 0 as return value, means success
@@ -138,7 +138,7 @@ class WASIImportFunction:
             _storeN(state, fd_stat_addr + 8, 0, 8)
             _storeN(state, fd_stat_addr + 16, 0, 8)
 
-            print(
+            logging.info(
                 f"Encounter fd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
 
             # append a 0 as return value, means success
@@ -189,7 +189,7 @@ class WASIImportFunction:
                 state.symbolic_stack.append(BitVecVal(0, 32))
                 return
 
-            logging.warning(
+            logging.info(
                 f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
             # assert fd == 0, 'only support stdin now'
 
@@ -248,13 +248,13 @@ class WASIImportFunction:
                     break
             if all_char:
                 out_chars = [ele.encode() for ele in out_chars]
-                logging.warning(
+                logging.info(
                     f"================Input a fd_read string: {b''.join(out_chars)}=================")
             else:
-                logging.warning(
+                logging.info(
                     f"================Input a fd_read string: {out_chars}=================")
             # set num_bytes_read_addr to bytes_read_cnt
-            logging.warning(f'{char_read_cnt} chars read.')
+            logging.info(f'{char_read_cnt} chars read.')
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
 
             # append a 0 as return value, means success
@@ -266,13 +266,13 @@ class WASIImportFunction:
                 param_str,
                 state)
 
-            logging.warning(
+            logging.info(
                 f"fd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
 
             if fd == 2:
-                logging.warning(f"fd_write to stderr")
+                logging.info(f"fd_write to stderr")
             elif fd == 1:
-                logging.warning(f"fd_write to stdout")
+                logging.info(f"fd_write to stdout")
 
             bytes_written_cnt = 0
             for i in range(num_iovs):
@@ -316,10 +316,10 @@ class WASIImportFunction:
                         break
                 if all_char:
                     out_str = [ele.encode() for ele in out_str]
-                    logging.warning(
+                    logging.info(
                         f"================Output a fd_write string: {b''.join(out_str)}=================")
                 else:
-                    logging.warning(
+                    logging.info(
                         f"================Output a fd_write string: {out_str}=================")
                 bytes_written_cnt += data_len
 
@@ -347,7 +347,7 @@ class WASIImportFunction:
                 state.symbolic_stack.append(BitVecVal(8, 32))
                 return
 
-            print(
+            logging.info(
                 f"Encounter fd_prestat_get, fd: {fd}, prestat_addr: {prestat_addr}")
             # the first byte means '__WASI_PREOPENTYPE_DIR', the other three are for align
             _storeN(state, prestat_addr, 0, 4)
@@ -360,7 +360,7 @@ class WASIImportFunction:
         elif self.name == 'fd_prestat_dir_name':
             buffer_len, buffer_addr, fd = _extract_params(
                 param_str, state)
-            print(
+            logging.info(
                 f"Encounter fd_prestat_dir_name, fd: {fd}, buffer_addr: {buffer_addr}, buffer_len: {buffer_len}")
 
             # copy the file path into the buffer
@@ -375,7 +375,7 @@ class WASIImportFunction:
             fd_addr, _, _, _, _, _, _, _, dir_fd = _extract_params(
                 param_str,
                 state)
-            print(f"Encounter path_open, fd: {dir_fd}")
+            logging.info(f"Encounter path_open, fd: {dir_fd}")
 
             _storeN(state, fd_addr, dir_fd, 4)
 
@@ -383,10 +383,9 @@ class WASIImportFunction:
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
         else:
-            print('here')
-            print(self.name)
-            print(state.symbolic_stack)
-            print(state.symbolic_memory)
+            logging.error(self.name)
+            logging.error(state.symbolic_stack)
+            logging.error(state.symbolic_memory)
             exit()
 
         if return_str:

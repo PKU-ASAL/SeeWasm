@@ -39,5 +39,5 @@ class DivZeroLaser:
                 divzeroed = True
         if divzeroed:
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
         return divzeroed

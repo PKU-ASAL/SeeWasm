@@ -170,7 +170,7 @@ class GoPredefinedFunction:
                         state.symbolic_memory, param_interface_ptr,
                         C_TYPE_TO_LENGTH[cur_pattern[-1]],
                         inserted_variable)
-                    logging.warning(
+                    logging.info(
                         f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{param_interface_ptr}============")
                     num_scanned += 1
             store32(pret, num_scanned)
@@ -218,8 +218,8 @@ class GoPredefinedFunction:
                     data = param_interface_ptr
                     out_bytes += str(data).encode()
             out_bytes += format_str[parsed_ind:].encode()
-            logging.warning("fmt.printf:" + repr(format_str))
-            logging.warning(out_bytes)
+            logging.info("fmt.printf:" + repr(format_str))
+            logging.info(out_bytes)
             store32(pret, len(out_bytes))
             store32(pret + 4, 0)
             manually_constructed = True
@@ -247,7 +247,7 @@ class GoPredefinedFunction:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}Div-zero! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             if divisor is not None:
@@ -258,7 +258,7 @@ class GoPredefinedFunction:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}{self.name} is possible! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             manually_constructed = True
@@ -266,7 +266,7 @@ class GoPredefinedFunction:
             func_ind = get_func_index_from_state(analyzer, state)
             func_offset = state.instr.offset
             import datetime
-            logging.warning(f'Current Time: {datetime.datetime.now()}')
+            logging.info(f'Current Time: {datetime.datetime.now()}')
             logging.warning(
                 f'{bcolors.WARNING}{PANIC_FUNCTIONS[self.name]}! In {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}')
             manually_constructed = True
@@ -348,7 +348,6 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.putchar':
             ch = param_list[0]
             print(chr(ch.as_long()), end='')
-
         else:
             print(param_list)
 
