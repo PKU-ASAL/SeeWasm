@@ -118,34 +118,34 @@ class ControlInstructions:
                 readable_name) and readable_name not in NEED_STEP_IN_C:
             # exit("Currently, we don't allow external function's model")
             logging.info(
-                f"Invoked a C library function: {readable_name}")
+                f"Call: {readable_name} (C library)")
             func = CPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"End of a C library function: {readable_name}")
+            logging.info(f"Return: {readable_name} (C library)")
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_name) and readable_name not in NEED_STEP_IN_GO:
             logging.info(
-                f"Invoked a Go library function: {readable_name}")
+                f"Call: {readable_name} (Go library)")
             func = GoPredefinedFunction(
                 readable_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"End of a Go library function: {readable_name}")
+            logging.info(f"Return: {readable_name} (Go library)")
             # terminate panic related functions. eg: runtime.divideByZeroPanic
             if readable_name in TERMINATED_FUNCS:
                 logging.info(
-                    f"Terminated function invoked (Golang): {readable_name} ")
+                    f"Termination:: {readable_name} (Go library)")
                 # TODO terminate state, but normally there will be `unreachable` instruction after the call
         # if the callee is the imported
         elif readable_name in [i[1] for i in analyzer.imports_func]:
             func = WASIImportFunction(readable_name, state.current_func_name)
             logging.info(
-                f"Invoked a WASI import function: {readable_name}")
+                f"Call: {readable_name} (import)")
             func.emul(state, param_str, return_str, data_section)
-            logging.info(f"End of a import function: {readable_name}")
+            logging.info(f"Return: {readable_name} (import)")
         elif readable_name in TERMINATED_FUNCS:
             logging.info(
-                f"Terminated function invoked: {readable_name} ")
+                f"Termination: {readable_name}")
             return [state]
         else:
             # if the callee takes NO symbols as input:
@@ -153,7 +153,7 @@ class ControlInstructions:
             # 2. the params are all non-symbol [TODO]
             # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
             logging.info(
-                f"From: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}, invoke: {readable_name}")
+                f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {readable_name}")
             new_state, new_has_ret = self.init_state_before_call(
                 param_str, return_str, has_ret, state)
             possible_states = Graph.traverse_one(
@@ -204,7 +204,7 @@ class ControlInstructions:
                 new_state.fd = return_constraint_tuple[1].fd
 
                 new_states.append(new_state)
-            logging.info(f"End of function: {readable_name}")
+            logging.info(f"Return: {readable_name}")
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
