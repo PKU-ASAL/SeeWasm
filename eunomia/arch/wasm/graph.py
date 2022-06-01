@@ -1,7 +1,10 @@
 import copy
+import json
 import logging
 import re
 from collections import defaultdict, deque
+from datetime import datetime
+from os import makedirs, path
 from queue import PriorityQueue
 
 from eunomia.arch.wasm.configuration import Configuration
@@ -669,41 +672,52 @@ class Graph:
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                with open(f'./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
-                    fp.write("-----------------------------\n")
+                file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.0f}.json"
+                makedirs(path.dirname(file_name), exist_ok=True)
+                state_result = {}
+                with open(file_name, 'w') as fp:
+                    # return value
                     if item.symbolic_stack:
-                        fp.write(f"Return with: {item.symbolic_stack[-1]}\n")
+                        state_result["Return"] = str(item.symbolic_stack[-1])
                     else:
-                        fp.write(f"No return value\n")
-                    fp.write("Solution of symbol(s):\n")
+                        state_result["Return"] = None
+
+                    # solution of constraints
+                    state_result["Solution"] = {}
                     s = SMTSolver(Configuration.get_solver())
                     s += item.constraints
                     s.check()
                     m = s.model()
                     for k in m:
-                        fp.write(f"\t{k}: {my_int_to_bytes(m[k].as_long())}\n")
-                    fp.write("\n")
-                    fp.write("Output to stdout:\n")
+                        # the decode is weird, we just want to convert unprintable characters
+                        # into printable chars
+                        # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
+                        state_result["Solution"][
+                            str(k)] = my_int_to_bytes(
+                            m[k].as_long()).decode('unicode_escape')
+
+                    # stdout buffer
                     item.stdout_buffer = [str(i) for i in item.stdout_buffer]
-                    fp.write(f'{"".join(item.stdout_buffer)}' + "\n")
-                    fp.write("Output to stderr:\n")
+                    state_result["stdout"] = f'{"".join(item.stdout_buffer)}'
+
+                    # stderr buffer
                     item.stderr_buffer = [str(i) for i in item.stderr_buffer]
-                    fp.write(f'{"".join(item.stderr_buffer)}' + "\n")
-                    fp.write("-----------------------------")
-                    fp.write("\n")
+                    state_result["stderr"] = f'{"".join(item.stderr_buffer)}'
+
+                    json.dump(state_result, fp, indent=4)
 
             final_states['return'].extend(emul_states)
             if halt_flag:
                 break
         return final_states
 
-    @classmethod
+    @ classmethod
     def sat_cut(cls, constraints):
         solver = SMTSolver(Configuration.get_solver())
         solver.add(*constraints)
         return unsat == solver.check()
 
-    @classmethod
+    @ classmethod
     def can_cut(cls, edge_type, state, lvar):
         """
         The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
@@ -713,7 +727,7 @@ class Graph:
                 'conditional_') else state
         return cls.sat_cut(state.constraints)
 
-    @classmethod
+    @ classmethod
     def aes_run_local(cls, lvar, blk):
         new_lvar = copy.deepcopy(lvar)
         new_lvar['cons'] = True
@@ -730,7 +744,7 @@ class Graph:
                 # lvar['has_one'] = True
         return new_lvar
 
-    @classmethod
+    @ classmethod
     def extract_edges(cls, entry):
         edges = set()
         que = deque([entry])

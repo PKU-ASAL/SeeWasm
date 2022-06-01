@@ -5,7 +5,7 @@ import argparse
 import json
 import sys
 from datetime import datetime
-from os import path
+from os import makedirs, path
 
 import sh
 
@@ -194,9 +194,10 @@ def main():
         elif args.sym_stdin:
             Configuration.set_stdin_buffer(args.sym_stdin)
 
-        with open(f'./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
-            fp.write("Running command:\n")
-            fp.write(" ".join(sys.argv) + "\n")
+        command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
+        makedirs(path.dirname(command_file_name), exist_ok=True)
+        with open(command_file_name, 'w') as fp:
+            json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
 
         # --args and --sym_args can exist simultaneously
         # --args is usually used as argv[0], and --sym_args are the following argv
