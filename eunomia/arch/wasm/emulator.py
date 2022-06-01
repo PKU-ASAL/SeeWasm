@@ -30,18 +30,19 @@ from z3 import BitVec, BitVecVal, BoolRef
 
 sys.setrecursionlimit(4096)
 
+# config the logger
+logging_config = {
+    'filename': f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+    'filemode': 'w',
+    'format': '%(asctime)s | %(levelname)s | %(message)s',
+}
 if 'debug' == Configuration.get_verbose_flag():
-    logging.basicConfig(
-        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
-        filemode='w', level=logging.DEBUG)
+    logging_config['level'] = logging.DEBUG
 elif 'info' == Configuration.get_verbose_flag():
-    logging.basicConfig(
-        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
-        filemode='w', level=logging.INFO)
+    logging_config['level'] = logging.INFO
 else:
-    logging.basicConfig(
-        filename=f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
-        filemode='w', level=logging.WARNING)
+    logging_config['level'] = logging.WARNING
+logging.basicConfig(**logging_config)
 
 
 # =======================================

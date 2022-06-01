@@ -27,6 +27,8 @@ class WASIImportFunction:
         # and jump over the process in which it append a symbol according to the signature of the function
         if self.name == 'args_sizes_get':
             arg_buf_size_addr, argc_addr = _extract_params(param_str, state)
+            logging.info(
+                f"\targs_sizes_get, argc_addr: {argc_addr}, arg_buf_size_addr: {arg_buf_size_addr}")
 
             # insert the `argc` into the corresponding addr
             argc = len(state.args)
@@ -49,6 +51,8 @@ class WASIImportFunction:
             # this is not the complete version
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
             arg_buf_addr, argv_addr = _extract_params(param_str, state)
+            logging.info(
+                f"\targs_get, argv_addr: {argv_addr}, arg_buf_addr: {arg_buf_addr}")
 
             # emulate the official implementation
             args = state.args
@@ -82,6 +86,8 @@ class WASIImportFunction:
         elif self.name == 'environ_sizes_get':
             env_buf_size_addr, env_count_addr = _extract_params(
                 param_str, state)
+            logging.info(
+                f"\tenviron_sizes_get, env_count_addr: {env_count_addr}, env_buf_size_addr: {env_buf_size_addr}")
 
             _storeN(state, env_count_addr, 0, 4)
             _storeN(state, env_buf_size_addr, 0, 4)
@@ -92,7 +98,7 @@ class WASIImportFunction:
             # ref: https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
             advice, length, offset, fd = _extract_params(param_str, state)
             logging.info(
-                f"Encounter fd_advise, fd: {fd}, offset: {offset}, length: {length}, advice: {advice}")
+                f"\tfd_advise, fd: {fd}, offset: {offset}, length: {length}, advice: {advice}")
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -100,6 +106,8 @@ class WASIImportFunction:
         elif self.name == 'fd_fdstat_get':
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L717
             fd_stat_addr, fd = _extract_params(param_str, state)
+            logging.info(
+                f"\tfd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
             # fs_filetype is 1 byte, possible 0-7
             # fs_filetype = BitVec(
             #     f'fs_filetype_{datetime.timestamp(datetime.now()):.0f}', 8)
@@ -138,9 +146,6 @@ class WASIImportFunction:
             _storeN(state, fd_stat_addr + 8, 0, 8)
             _storeN(state, fd_stat_addr + 16, 0, 8)
 
-            logging.info(
-                f"Encounter fd_fdstat_get, fd: {fd}, fd_stat_addr: {fd_stat_addr}")
-
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
             return
@@ -148,6 +153,8 @@ class WASIImportFunction:
             # TODO, do not precisely emulate this function, just insert 0 temporarily
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L695
             offset_addr, fd = _extract_params(param_str, state)
+            logging.info(
+                f"\tfd_tell, fd: {fd}, offset_addr: {offset_addr}")
             fd_tell_var = BitVec(
                 f"fd_tell_{datetime.timestamp(datetime.now()):.0f}", 32)
             _storeN(state, offset_addr, fd_tell_var, 4)
@@ -160,6 +167,8 @@ class WASIImportFunction:
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L657
             new_offset_addr, whence, offset, fd = _extract_params(
                 param_str, state)
+            logging.info(
+                f"\tfd_seek, fd: {fd}, offset: {offset}, whence: {whence}, new_offset_addr: {new_offset_addr}")
             fd_seek_var = BitVec(
                 f"fd_seek_{datetime.timestamp(datetime.now()):.0f}", 32)
             _storeN(state, new_offset_addr, fd_seek_var, 4)
@@ -171,6 +180,8 @@ class WASIImportFunction:
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd, = _extract_params(param_str, state)
+            logging.info(
+                f"\tfd_close, fd: {fd}")
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -180,6 +191,8 @@ class WASIImportFunction:
             num_bytes_read_addr, num_iovs, iovs_addr, fd = _extract_params(
                 param_str,
                 state)
+            logging.info(
+                f"\tfd_tell, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
 
             # if there is no stdin chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
@@ -188,10 +201,6 @@ class WASIImportFunction:
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
                 return
-
-            logging.info(
-                f"fd_read. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
-            # assert fd == 0, 'only support stdin now'
 
             char_read_cnt = 0
             out_chars = []
@@ -249,12 +258,12 @@ class WASIImportFunction:
             if all_char:
                 out_chars = [ele.encode() for ele in out_chars]
                 logging.info(
-                    f"================Input a fd_read string: {b''.join(out_chars)}=================")
+                    f"\tInput a fd_read string: {b''.join(out_chars)}")
             else:
                 logging.info(
-                    f"================Input a fd_read string: {out_chars}=================")
+                    f"\tInput a fd_read string: {out_chars}")
             # set num_bytes_read_addr to bytes_read_cnt
-            logging.info(f"{char_read_cnt} chars read.")
+            logging.info(f"\t{char_read_cnt} chars read")
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
 
             # append a 0 as return value, means success
@@ -265,14 +274,13 @@ class WASIImportFunction:
             num_bytes_written_addr, num_iovs, iovs_addr, fd = _extract_params(
                 param_str,
                 state)
-
             logging.info(
-                f"fd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
+                f"\tfd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
 
             if fd == 2:
-                logging.info(f"fd_write to stderr")
+                logging.info(f"\tfd_write to stderr")
             elif fd == 1:
-                logging.info(f"fd_write to stdout")
+                logging.info(f"\tfd_write to stdout")
 
             bytes_written_cnt = 0
             for i in range(num_iovs):
@@ -317,10 +325,10 @@ class WASIImportFunction:
                 if all_char:
                     out_str = [ele.encode() for ele in out_str]
                     logging.info(
-                        f"================Output a fd_write string: {b''.join(out_str)}=================")
+                        f"\tOutput a fd_write string: {b''.join(out_str)}")
                 else:
                     logging.info(
-                        f"================Output a fd_write string: {out_str}=================")
+                        f"\tOutput a fd_write string: {out_str}")
                 bytes_written_cnt += data_len
 
             _storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)
@@ -330,6 +338,8 @@ class WASIImportFunction:
             return
         elif self.name == 'proc_exit':
             return_val, = _extract_params(param_str, state)
+            logging.info(
+                f"\tproc_exit: return_val: {return_val}")
 
             proc_exit = BitVec('proc_exit', 32)
             state.constraints.append(proc_exit == return_val)
@@ -340,6 +350,8 @@ class WASIImportFunction:
             #     raise ProcFailTermination(return_val)
         elif self.name == 'fd_prestat_get':
             prestat_addr, fd = _extract_params(param_str, state)
+            logging.info(
+                f"\tfd_prestat_get: fd: {fd}, prestat_addr: {prestat_addr}")
 
             # we assume there are only two input files, like "demo.wasm a.txt b.txt"
             # if we do not return 8, the loop in `__wasilibc_populate_preopens` will never end
@@ -347,8 +359,6 @@ class WASIImportFunction:
                 state.symbolic_stack.append(BitVecVal(8, 32))
                 return
 
-            logging.info(
-                f"Encounter fd_prestat_get, fd: {fd}, prestat_addr: {prestat_addr}")
             # the first byte means '__WASI_PREOPENTYPE_DIR', the other three are for align
             _storeN(state, prestat_addr, 0, 4)
             # store the length of file's path in 4 bytes, like 'a.txt' is 5 bytes
@@ -361,7 +371,7 @@ class WASIImportFunction:
             buffer_len, buffer_addr, fd = _extract_params(
                 param_str, state)
             logging.info(
-                f"Encounter fd_prestat_dir_name, fd: {fd}, buffer_addr: {buffer_addr}, buffer_len: {buffer_len}")
+                f"\tfd_prestat_dir_name, fd: {fd}, buffer_addr: {buffer_addr}, buffer_len: {buffer_len}")
 
             # copy the file path into the buffer
             _storeN(
@@ -375,7 +385,7 @@ class WASIImportFunction:
             fd_addr, _, _, _, _, _, _, _, dir_fd = _extract_params(
                 param_str,
                 state)
-            logging.info(f"Encounter path_open, fd: {dir_fd}")
+            logging.info(f"\tpath_open, fd: {dir_fd}")
 
             _storeN(state, fd_addr, dir_fd, 4)
 

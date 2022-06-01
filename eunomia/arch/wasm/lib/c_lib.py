@@ -67,7 +67,7 @@ class CPredefinedFunction:
         the_string = pattern
 
         logging.info(
-            f"================Output a string: {the_string.encode()}=================")
+            f"\tOutput a printf string: {the_string.encode()}")
         state.stdout_buffer += the_string
         string_length = BitVecVal(len(the_string), 32)
         state.symbolic_stack.append(string_length)
@@ -75,10 +75,14 @@ class CPredefinedFunction:
     def emul(self, state, param_str, return_str, data_section, analyzer):
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
             param_p, pattern_p = _extract_params(param_str, state)
+            logging.info(
+                f"\tprintf, pattern_p: {pattern_p}, param_p: {param_p}")
             self.output_pattern_string(param_p, pattern_p, state, data_section)
 
         elif self.name == 'vfprintf':
             param_p, pattern_p, stream_p = _extract_params(param_str, state)
+            logging.info(
+                f"\tvfprintf, stream_p: {stream_p}, pattern_p: {pattern_p}, param_p: {param_p}")
             stream = _loadN(state, data_section, stream_p, 4)
 
             possible_callee = analyzer.elements[0]['elems']
@@ -94,6 +98,8 @@ class CPredefinedFunction:
             self.output_pattern_string(param_p, pattern_p, state, data_section)
         elif self.name == 'scanf':
             param_p, pattern_p = _extract_params(param_str, state)
+            logging.info(
+                f"\tscanf, pattern_p: {pattern_p}, param_p: {param_p}")
 
             # parse the scanf's argument's type
             # get addr of vararg 0.
@@ -122,7 +128,7 @@ class CPredefinedFunction:
                         # TODO we insert a `abc` here, maybe we should insert a symbol
                         _storeN(state, middle_p, 6513249, 4)
                         logging.info(
-                            f"================Initiated an scanf string: abc=================")
+                            f"\tInput a scanf string: abc (hard-encoded)")
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
@@ -134,7 +140,7 @@ class CPredefinedFunction:
                         _storeN(state, middle_p, inserted_variable,
                                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
                         logging.info(
-                            f"============Initiated an scanf integer: scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}============")
+                            f"\tInput a scanf integer: {inserted_variable}")
                     else:
                         exit("$scanf error")
 
@@ -146,15 +152,14 @@ class CPredefinedFunction:
             state.symbolic_stack.append(BitVecVal(len(parsed_pattern), 32))
         elif self.name == 'swap':
             the_one, the_other = _extract_params(param_str, state)
+            logging.info(f"\tswap, the_one: {the_one}, the_other: {the_other}")
             the_one_mem = _loadN(state, {}, the_one, 1)
             the_other_mem = _loadN(state, {}, the_other, 1)
             _storeN(state, the_one, the_other_mem, 1)
             _storeN(state, the_other, the_one_mem, 1)
-            logging.info(
-                f"================$swap! Swap the two: %s and %s=================\n",
-                the_one_mem, the_other_mem)
         elif self.name == 'exp':
             exponent, = _extract_params(param_str, state)
+            logging.info(f"\texp, exponent: {exponent}")
             if isinstance(exponent, FPNumRef):
                 # we have to adopt this trick to convert it to a float number
                 exponent = simplify(fpToReal(exponent)).as_string()
@@ -172,22 +177,24 @@ class CPredefinedFunction:
             ret = getConcreteBitVec(
                 return_str,
                 f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
+            logging.info(f"\tInput a getchar char: {ret}")
             state.symbolic_stack.append(ret)
         elif self.name == 'putchar':
             the_char, = _extract_params(param_str, state)
 
             if isinstance(the_char, int):
                 logging.info(
-                    f"================Output a string: {chr(the_char).encode()}=================")
+                    f"\tOutput a putchar char: {chr(the_char).encode()}")
                 state.stdout_buffer += chr(the_char)
                 the_char = BitVecVal(the_char, 32)
             elif is_bv(the_char):
                 logging.info(
-                    f"================Output a string: {str(the_char).encode()}=================")
+                    f"\tOutput a putchar char: {str(the_char).encode()}")
                 state.stdout_buffer += str(the_char)
             state.symbolic_stack.append(the_char)
         elif self.name == 'abs':
             candidate_num, = _extract_params(param_str, state)
+            logging.info(f"\tabs, candidate_num: {candidate_num}")
             abs_num = simplify(If(candidate_num > 0, BitVecVal(
                 candidate_num, 32), BitVecVal(-candidate_num, 32)))
             state.symbolic_stack.append(abs_num)
@@ -199,18 +206,21 @@ class CPredefinedFunction:
             I have to return 0 to indicate the memory growth is forbidden
             '''
             # TODO better emulate this function
+            logging.info(f"\temscripten_resize_heap, just pass")
             state.symbolic_stack.append(BitVecVal(0, 32))
         elif self.name == 'puts':
             mem_pointer, = _extract_params(param_str, state)
+            logging.info(f"\tputs, mem_pointer: {mem_pointer}")
             the_string = C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state)
             # the '\n' is added according to semantic of puts
             logging.info(
-                f"================Output a string: {the_string.encode()}=================")
+                f"\tOutput a puts string: {the_string.encode()}")
             state.stdout_buffer += the_string
             state.symbolic_stack.append(BitVecVal(1, 32))
         elif self.name == 'atof':
             str_p, = _extract_params(param_str, state)
+            logging.info(f"\tatof, str_p: {str_p}")
             number_string = C_extract_string_by_mem_pointer(
                 str_p, data_section, state, 8)
 
@@ -231,6 +241,7 @@ class CPredefinedFunction:
             state.symbolic_stack.append(the_number)
         elif self.name == 'atoi':
             str_p, = _extract_params(param_str, state)
+            logging.info(f"\tatoi, str_p: {str_p}")
             number_string = C_extract_string_by_mem_pointer(
                 str_p, data_section, state, 4)
 
@@ -250,9 +261,12 @@ class CPredefinedFunction:
             # append into stack
             state.symbolic_stack.append(the_number)
         elif self.name == 'system':
+            logging.info(f"\tsystem, just pass")
             state.symbolic_stack.append(BitVec("cmd_system", 32))
         elif self.name == 'fopen':
             mode_ptr, filename_ptr = _extract_params(param_str, state)
+            logging.info(
+                f"\tfopen, filename_ptr: {filename_ptr}, mode_ptr: {mode_ptr}")
 
             # mode = C_extract_string_by_mem_pointer(
             #     mode_ptr, data_section, state)
