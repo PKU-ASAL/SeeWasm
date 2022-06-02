@@ -7,6 +7,7 @@ import re
 import sys
 from collections import defaultdict
 from datetime import datetime
+from queue import Queue
 
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.cfg import WasmCFG
@@ -78,6 +79,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.instruction_coverage = defaultdict(list)
         self.total_instructions = 0
         self.coverage_output_last_timestamp = datetime(1996, 12, 24)
+        self.concerned_funcs = dict()
 
         # whether enable the coverage calculation
         if Configuration.get_coverage():
@@ -91,29 +93,37 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         func = readable_internal_func_name(
             Configuration.get_func_index_to_func_name(),
             Configuration.get_entry())
-        _, edges = self.cfg.get_functions_call_edges(self.ana)
-        queue = [func]
+        queue = Queue()
         visited = set()
 
-        while queue:
-            ele = queue.pop(0)
-            visited.add(ele)
-            for edge in edges:
-                if readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(), edge.node_from) == ele and readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(), edge.node_to) not in visited and readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(), edge.node_to) not in C_LIBRARY_FUNCS:
-                    queue.append(
-                        readable_internal_func_name(
-                            Configuration.get_func_index_to_func_name(),
-                            edge.node_to))
-            # add the instruction number
-            for f in self.cfg.functions:
-                if readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(),
-                        f.name) == ele:
-                    self.total_instructions += len(f.instructions)
-                    break
+        # build call graph
+        self.cfg.build_call_graph(self.ana)
+
+        # put the entry func
+        queue.put(func)
+        # put all elem funcs
+        for elem in self.ana.elements[0]["elems"]:
+            queue.put(
+                readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    "$func" + str(elem)))
+
+        while not queue.empty():
+            caller = queue.get()
+            visited.add(caller)
+
+            callees = self.cfg.call_graph.get(caller, {})
+            for callee in callees:
+                if callee not in visited:
+                    queue.put(callee)
+
+        # add the instruction number
+        for f in self.cfg.functions:
+            concerned_func = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(), f.name)
+            if concerned_func in visited:
+                self.total_instructions += len(f.instructions)
+                self.concerned_funcs[concerned_func] = len(f.instructions)
 
         logging.info(f"total instructions: {self.total_instructions}")
 
@@ -241,6 +251,16 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr_obj.emulate(state, self.data_section)
             return None
         elif instr.group == 'Control':
+            # if the instr is 'call c_lib_func', which is modeled
+            # we calculate its coverage in advance
+            if instr.name == 'call' and Configuration.get_coverage():
+                instr_operand = instr.operand_interpretation.split(" ")[1]
+                func_name = readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    "$func" + instr_operand)
+                if func_name in C_LIBRARY_FUNCS:
+                    self.calculate_coverage(instr, func_name)
+
             return instr_obj.emulate(
                 state, has_ret, self.data_section, self.ana)
         elif instr.group == 'Parametric':
@@ -256,28 +276,56 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         """
         Calculate the instruction coverage
         """
-        # update coverage bitmap
-        if func_name not in self.instruction_coverage_bitmap:
-            for func in self.cfg.functions:
-                if readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(),
-                        func.name) == func_name:
-                    self.instruction_coverage_bitmap[func_name] = [
-                        False] * len(func.instructions)
-                    self.instruction_coverage[func_name] = [
-                        0, len(func.instructions)]
-                    break
-        self.instruction_coverage_bitmap[func_name][instr.nature_offset] = True
+        assert func_name in self.concerned_funcs, f"{func_name} is not covered by coverage calculation"
 
-        # the visted number of instruction
-        self.instruction_coverage[func_name][0] = self.instruction_coverage_bitmap[func_name].count(
-            True)
+        # init coverage bitmap
+        if func_name not in self.instruction_coverage_bitmap:
+            self.instruction_coverage_bitmap[func_name] = [
+                False] * self.concerned_funcs[func_name]
+            self.instruction_coverage[func_name] = [
+                0, self.concerned_funcs[func_name]]
+
+        if func_name in C_LIBRARY_FUNCS:
+            # extract all its callees
+            queue = Queue()
+            queue.put(func_name)
+            visited = set()
+            while not queue.empty():
+                ele = queue.get()
+                visited.add(ele)
+                callees = self.cfg.call_graph[func_name]
+                for callee in callees:
+                    if callee not in visited:
+                        queue.put(callee)
+
+            # set all instrs of these callees as True
+            for callee in visited:
+                assert callee in self.concerned_funcs, f"{callee} is not covered by coverage calculation"
+
+                # init
+                if callee not in self.instruction_coverage_bitmap:
+                    self.instruction_coverage_bitmap[callee] = [
+                        False] * self.concerned_funcs[callee]
+                    self.instruction_coverage[callee] = [
+                        0, self.concerned_funcs[callee]]
+
+                self.instruction_coverage_bitmap[callee] = [
+                    True for _ in self.instruction_coverage_bitmap[callee]]
+                self.instruction_coverage[callee][0] = self.instruction_coverage_bitmap[callee].count(
+                    True)
+        else:
+            self.instruction_coverage_bitmap[func_name][
+                instr.nature_offset] = True
+            # the visted number of instruction
+            self.instruction_coverage[func_name][0] = self.instruction_coverage_bitmap[func_name].count(
+                True)
 
         # the ratio of total coverage
         current_visited_instrs = sum([v[0]
                                       for v in
                                       self.instruction_coverage.values()])
 
+        # output the coverage info
         current_timestamp = datetime.now()
         if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 1:
             # output here

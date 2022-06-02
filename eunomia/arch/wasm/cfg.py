@@ -1,6 +1,7 @@
 # This file is written by Octopus
 # Its purpose is to generate the CFG and visualize it
 
+from collections import defaultdict
 from logging import getLogger
 
 from eunomia.analysis.cfg import CFG
@@ -325,6 +326,7 @@ class WasmCFG(CFG):
         self.functions = list()
         self.basicblocks = list()
         self.edges = list()
+        self.call_graph = dict()
 
         self.run_static_analysis()
 
@@ -400,6 +402,21 @@ class WasmCFG(CFG):
             graph.view_functions(simplify=simplify, ssa=ssa)
         else:
             graph.view(simplify=simplify, ssa=ssa)
+
+    def build_call_graph(self, analyzer):
+        _, edges = self.get_functions_call_edges(analyzer)
+
+        self.call_graph = defaultdict(set)
+        for edge in edges:
+            e_from = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                edge.node_from)
+            e_to = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                edge.node_to)
+            self.call_graph[e_from].add(e_to)
+
+        self.call_graph = {k: list(v) for k, v in self.call_graph.items()}
 
     def visualize_call_flow(
             self, filename="wasm_call_graph_octopus.gv", format_fname=False):
