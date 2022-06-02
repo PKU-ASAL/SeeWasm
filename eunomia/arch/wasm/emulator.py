@@ -272,18 +272,22 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr_obj.emulate(state)
             return None
 
-    def calculate_coverage(self, instr, func_name):
+    def init_coverage_bitmap(self, func_name):
         """
-        Calculate the instruction coverage
+        Init the necessary data structure
         """
-        assert func_name in self.concerned_funcs, f"{func_name} is not covered by coverage calculation"
-
-        # init coverage bitmap
         if func_name not in self.instruction_coverage_bitmap:
             self.instruction_coverage_bitmap[func_name] = [
                 False] * self.concerned_funcs[func_name]
             self.instruction_coverage[func_name] = [
                 0, self.concerned_funcs[func_name]]
+
+    def calculate_coverage(self, instr, func_name):
+        """
+        Calculate the instruction coverage
+        """
+        assert func_name in self.concerned_funcs, f"{func_name} is not covered by coverage calculation"
+        self.init_coverage_bitmap(func_name)
 
         if func_name in C_LIBRARY_FUNCS:
             # extract all its callees
@@ -301,13 +305,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # set all instrs of these callees as True
             for callee in visited:
                 assert callee in self.concerned_funcs, f"{callee} is not covered by coverage calculation"
-
-                # init
-                if callee not in self.instruction_coverage_bitmap:
-                    self.instruction_coverage_bitmap[callee] = [
-                        False] * self.concerned_funcs[callee]
-                    self.instruction_coverage[callee] = [
-                        0, self.concerned_funcs[callee]]
+                self.init_coverage_bitmap(callee)
 
                 self.instruction_coverage_bitmap[callee] = [
                     True for _ in self.instruction_coverage_bitmap[callee]]
@@ -320,7 +318,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             self.instruction_coverage[func_name][0] = self.instruction_coverage_bitmap[func_name].count(
                 True)
 
-        # the ratio of total coverage
+        # how many instructions are been visited
         current_visited_instrs = sum([v[0]
                                       for v in
                                       self.instruction_coverage.values()])
