@@ -161,8 +161,7 @@ def main():
         octo_cfg = WasmCFG(octo_bytecode)
 
         if args.call:
-            octo_cfg.visualize_call_flow(
-                Configuration.get_func_index_to_func_name())
+            octo_cfg.visualize_call_flow()
         if args.analytic:
             octo_cfg.visualize_instrs_per_funcs()
 
