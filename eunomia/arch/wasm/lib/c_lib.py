@@ -276,6 +276,8 @@ class CPredefinedFunction:
             if filename not in state.fd:
                 filename_fd = max(state.fd.values()) + 1
                 state.fd[filename] = filename_fd
+                # each fd has its unique base address
+                base_addr = filename_fd * 100 + 100000000
             else:
                 exit(f"the file: {filename} is opened already")
             logging.info(
@@ -283,17 +285,17 @@ class CPredefinedFunction:
 
             # each FILE * is 60 bytes long
             # the last 4 bytes are the fd
-            _storeN(state, 100000000, 0, 60)
-            _storeN(state, 100000056, filename_fd, 4)
+            _storeN(state, base_addr, 0, 60)
+            _storeN(state, base_addr + 56, filename_fd, 4)
             # these are the offset of __stdio_read and __stdio_close
             stdio_read_index = find_elem_index('__stdio_read', analyzer)
-            _storeN(state, 100000028, stdio_read_index, 4)
+            _storeN(state, base_addr + 28, stdio_read_index, 4)
             stdio_close_index = find_elem_index('__stdio_close', analyzer)
-            _storeN(state, 100000012, stdio_close_index, 4)
+            _storeN(state, base_addr + 12, stdio_close_index, 4)
             stdout_write_index = find_elem_index('__stdout_write', analyzer)
-            _storeN(state, 100000032, stdout_write_index, 4)
+            _storeN(state, base_addr + 32, stdout_write_index, 4)
             # return the FILE *
-            state.symbolic_stack.append(BitVecVal(100000000, 32))
+            state.symbolic_stack.append(BitVecVal(base_addr, 32))
         else:
             raise UnsupportExternalFuncError
 
