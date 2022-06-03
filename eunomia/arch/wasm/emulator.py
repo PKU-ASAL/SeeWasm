@@ -297,7 +297,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             while not queue.empty():
                 ele = queue.get()
                 visited.add(ele)
-                callees = self.cfg.call_graph[func_name]
+                callees = self.cfg.call_graph.get(func_name, [])
                 for callee in callees:
                     if callee not in visited:
                         queue.put(callee)
