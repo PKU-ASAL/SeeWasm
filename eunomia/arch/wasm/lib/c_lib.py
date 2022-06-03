@@ -90,7 +90,7 @@ class CPredefinedFunction:
             fp_func = '$func' + str(possible_callee[stream - offset])
             fp_func = readable_internal_func_name(
                 Configuration.get_func_index_to_func_name(), fp_func)
-            if fp_func == '__stdio_write':
+            if fp_func == '__stdio_write' or fp_func == '__stdout_write':
                 pass
             else:
                 exit(f'the vfprintf stream func is: {fp_func}')
@@ -278,19 +278,38 @@ class CPredefinedFunction:
                 state.fd[filename] = filename_fd
             else:
                 exit(f"the file: {filename} is opened already")
+            logging.info(
+                f"\topen file: {filename} with fd as {filename_fd}")
 
             # each FILE * is 60 bytes long
             # the last 4 bytes are the fd
             _storeN(state, 100000000, 0, 60)
             _storeN(state, 100000056, filename_fd, 4)
-            # these two are the offset of __stdio_read and __stdio_close
-            # TODO may dynamically adjust
-            _storeN(state, 100000028, 6, 4)
-            _storeN(state, 100000012, 7, 4)
+            # these are the offset of __stdio_read and __stdio_close
+            stdio_read_index = find_elem_index('__stdio_read', analyzer)
+            _storeN(state, 100000028, stdio_read_index, 4)
+            stdio_close_index = find_elem_index('__stdio_close', analyzer)
+            _storeN(state, 100000012, stdio_close_index, 4)
+            stdout_write_index = find_elem_index('__stdout_write', analyzer)
+            _storeN(state, 100000032, stdout_write_index, 4)
             # return the FILE *
             state.symbolic_stack.append(BitVecVal(100000000, 32))
         else:
             raise UnsupportExternalFuncError
+
+
+def find_elem_index(func_name, ana):
+    """
+    Find the elem index by the given func_name
+    """
+    offset = ana.elements[0]['offset']
+    for i, elem in enumerate(ana.elements[0]["elems"]):
+        if func_name == readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                "$func" + str(elem)):
+            return i + offset
+    exit(
+        f"Cannot find the {func_name} in dealing with fopen call indirect index")
 
 
 def C_extract_string_by_mem_pointer(

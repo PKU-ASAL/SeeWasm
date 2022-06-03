@@ -282,9 +282,9 @@ class ControlInstructions:
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
-                logging.error(f"{op}")
-                logging.error(f"{possible_callee}")
-                logging.error(f"{offset}")
+                logging.error(f"op: {op}")
+                logging.error(f"possible_callee: {possible_callee}")
+                logging.error(f"offset: {offset}")
                 logging.error(f"{state}")
                 exit("call indirect error")
             return states
