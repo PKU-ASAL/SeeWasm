@@ -192,11 +192,11 @@ class WASIImportFunction:
                 param_str,
                 state)
             logging.info(
-                f"\tfd_tell, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
+                f"\tfd_read, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
 
             # if there is no stdin chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if (isinstance(state.stdin_buffer, str) and not state.stdin_buffer) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() < 8):
+            if (isinstance(state.stdin_buffer, bytes) and not state.stdin_buffer) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() < 8):
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
@@ -211,15 +211,15 @@ class WASIImportFunction:
                 buffer_len = _loadN(state, data_section,
                                     iovs_addr + (8 * i + 4), 4)
 
-                assert isinstance(state.stdin_buffer, str) ^ is_bv(
+                assert isinstance(state.stdin_buffer, bytes) ^ is_bv(
                     state.stdin_buffer), "The stdin type is wrong, please recheck"
-                if isinstance(state.stdin_buffer, str):
+                if isinstance(state.stdin_buffer, bytes):
                     stdin_length = len(state.stdin_buffer)
                 else:
                     stdin_length = state.stdin_buffer.size() // 8
 
                 for j in range(min(stdin_length, buffer_len)):
-                    if isinstance(state.stdin_buffer, str):
+                    if isinstance(state.stdin_buffer, bytes):
                         data_to_read = state.stdin_buffer[0]
                         state.stdin_buffer = state.stdin_buffer[1:]
                     else:
@@ -235,28 +235,22 @@ class WASIImportFunction:
 
                     out_chars.append(data_to_read)
                     char_read_cnt += 1
-                    if isinstance(state.stdin_buffer, str):
-                        _storeN(
-                            state, buffer_ptr + j,
-                            str_to_little_endian_int(data_to_read),
-                            len(data_to_read))
-                    else:
-                        _storeN(state, buffer_ptr + j, data_to_read, 1)
+                    _storeN(state, buffer_ptr + j, data_to_read, 1)
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if (isinstance(state.stdin_buffer, str) and len(state.stdin_buffer) > 0) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() > 1):
+                if (isinstance(state.stdin_buffer, bytes) and len(state.stdin_buffer) > 0) or (is_bv(state.stdin_buffer) and state.stdin_buffer.size() > 1):
                     continue
                 else:
                     # or the stdin buffer is drained out, break out
                     break
             all_char = True
             for ele in out_chars:
-                if not isinstance(ele, str):
+                if not isinstance(ele, int):
                     all_char = False
                     break
             if all_char:
-                out_chars = [ele.encode() for ele in out_chars]
+                out_chars = [chr(i).encode() for i in out_chars]
                 logging.info(
                     f"\tInput a fd_read string: {b''.join(out_chars)}")
             else:

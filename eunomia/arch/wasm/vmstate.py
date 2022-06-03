@@ -9,7 +9,7 @@ from z3 import BitVecVal
 
 
 class WasmVMstate(VMstate):
-    def __init__(self, stdin_buffer='', args=''):
+    def __init__(self, stdin_buffer=b'', args=''):
         # data structure:
         def local_default():
             return BitVecVal(0, 32)

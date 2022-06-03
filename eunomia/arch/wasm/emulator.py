@@ -161,7 +161,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.globals[i] = op_val
 
     def init_state(
-            self, func_name, param_str, return_str, has_ret, stdin_buffer='',
+            self, func_name, param_str, return_str, has_ret, stdin_buffer=b'',
             args=''):
         state = WasmVMstate(stdin_buffer=stdin_buffer, args=args)
         if param_str != '':

@@ -14,7 +14,7 @@ class Configuration:
     # the backend SMT solver, may integrate our lab's own backend in the future
     _solver = 'z3'
     # the stdin buffer
-    _stdin_buffer = ''
+    _stdin_buffer = b''
     # the command to run the to be analyzed program, like ['base64', a]
     # where 'a' is a symbol
     _args = []
@@ -95,8 +95,10 @@ class Configuration:
         2. [int]: the stdin is given with designated length, like [3]
         """
         if isinstance(stdin_buffer, str):
-            Configuration._stdin_buffer = stdin_buffer
+            # the replace is neccessary
+            Configuration._stdin_buffer = stdin_buffer.encode().replace(b'\\n', b'\n')
         elif isinstance(stdin_buffer, list):
+            # TODO multiple sym_stdin
             length = stdin_buffer[0]
             Configuration._stdin_buffer = BitVec("sym_stdin", 8 * length)
 
