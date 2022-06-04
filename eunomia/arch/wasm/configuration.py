@@ -98,7 +98,6 @@ class Configuration:
             # the replace is neccessary
             Configuration._stdin_buffer = stdin_buffer.encode().replace(b'\\n', b'\n')
         elif isinstance(stdin_buffer, list):
-            # TODO multiple sym_stdin
             length = stdin_buffer[0]
             Configuration._stdin_buffer = BitVec("sym_stdin", 8 * length)
 

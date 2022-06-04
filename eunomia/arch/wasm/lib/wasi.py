@@ -223,15 +223,13 @@ class WASIImportFunction:
                         data_to_read = state.stdin_buffer[0]
                         state.stdin_buffer = state.stdin_buffer[1:]
                     else:
-                        data_to_read = simplify(Extract(8 * (stdin_length - char_read_cnt) - 1, 8 * (
-                            stdin_length - char_read_cnt) - 8, state.stdin_buffer))
+                        data_to_read = simplify(
+                            Extract(7, 0, state.stdin_buffer))
                         if (stdin_length - char_read_cnt) == 1:
                             state.stdin_buffer = BitVec('dummy', 1)
                         else:
                             state.stdin_buffer = simplify(
-                                Extract(
-                                    8 * (stdin_length - char_read_cnt) - 9, 0,
-                                    state.stdin_buffer))
+                                Extract(state.stdin_buffer.size() - 1, 8, state.stdin_buffer))
 
                     out_chars.append(data_to_read)
                     char_read_cnt += 1
