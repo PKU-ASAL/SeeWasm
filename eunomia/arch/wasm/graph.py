@@ -672,7 +672,7 @@ class Graph:
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.0f}.json"
+                file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
                 makedirs(path.dirname(file_name), exist_ok=True)
                 state_result = {}
                 with open(file_name, 'w') as fp:
