@@ -170,3 +170,24 @@ python3 eunomia_entry -f /Users/ningyuhe/Downloads/wasm-lavam/base64-14.wasm -s 
 
 The output of these two can prove the equivalence of these two solutions.
 
+#### Example: sym_file
+
+We also support symbolic files right now! The tested sample is in `Wasm-samples/c_samples.nosync/wasi/test_sym_files.wasm`.
+
+If we run the command like:
+```
+python3 -u eunomia_entry -f ./Wasm-samples/c_samples.nosync/wasi/test_sym_files.wasm -s --onlyfunc __original_main --concrete_globals --sym_args 5 --sym_files 1 10 -v info
+```
+
+The result output will be (in `result` folder):
+```
+{
+    "Return": "0",
+    "Solution": {
+        "file_A": "hello",
+        "sym_args_1": "A"
+    },
+    "stdout": "Password found in sym_args_1\n",
+    "stderr": ""
+}
+```

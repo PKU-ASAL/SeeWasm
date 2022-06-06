@@ -29,6 +29,10 @@ class Configuration:
     _func_index_to_func_name = None
     # if enable the instruction-level coverage calculation
     _coverage = False
+    # the file name with its fd
+    _fd_table = dict()
+    # the fd with its file content, represented in BitVec
+    _content_table = dict()
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -169,3 +173,35 @@ class Configuration:
     @staticmethod
     def set_coverage(coverage):
         Configuration._coverage = coverage
+
+    @staticmethod
+    def set_sym_files(sym_files):
+        """
+        the sym files take two arguments:
+        the first is how many files will be opened;
+        the second is how many btyes are in each of them.
+
+        So, we store these two information in two separate table
+        """
+        sym_file_num, sym_file_length = sym_files
+
+        # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
+        assert sym_file_num <= 26, f"The sym_file_num is {sym_file_num}, greater than 26"
+        for i in range(sym_file_num):
+            Configuration._fd_table[chr(i + 65)] = i + 3
+
+        for k, v in Configuration._fd_table.items():
+            Configuration._content_table[v] = BitVec(
+                f"file_{k}", sym_file_length * 8)
+
+    @staticmethod
+    def get_fd():
+        for k, v in Configuration._fd_table.items():
+            yield k, v
+        # assert file_name in Configuration._fd_table, f"{file_name} is not maintained in the fd table"
+        # return Configuration._fd_table.get(file_name)
+
+    @staticmethod
+    def get_content(fd):
+        assert fd in Configuration._content_table, f"fd {fd} is not maintained in the content table"
+        return Configuration._content_table.get(fd)

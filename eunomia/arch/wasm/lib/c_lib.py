@@ -1,3 +1,4 @@
+from json import load
 import logging
 import math
 
@@ -263,6 +264,31 @@ class CPredefinedFunction:
         elif self.name == 'system':
             logging.info(f"\tsystem, just pass")
             state.symbolic_stack.append(BitVec("cmd_system", 32))
+        elif self.name == 'open':
+            mode, flag, filename_ptr = _extract_params(param_str, state)
+            logging.info(
+                f"\topen, mode: {mode}, flag: {hex(flag)}, filename_ptr: {filename_ptr}")
+            filename = C_extract_string_by_mem_pointer(
+                filename_ptr, data_section, state)
+            if filename.startswith('sym_arg'):
+                filename = C_extract_bv_by_mem_pointer(
+                    filename_ptr, data_section, state)
+
+            if is_bv(filename):
+                # open sym file
+                for tmp_file_name, tmp_fd in Configuration.get_fd():
+                    if tmp_file_name not in state.fd:
+                        state.fd[tmp_file_name] = tmp_fd
+                        state.constraints.append(
+                            filename == ord(tmp_file_name))
+                        state.files_buffer[tmp_fd] = Configuration.get_content(
+                            tmp_fd)
+                        break
+            else:
+                # open true file
+                pass
+
+            state.symbolic_stack.append(BitVecVal(tmp_fd, 32))
         elif self.name == 'fopen':
             mode_ptr, filename_ptr = _extract_params(param_str, state)
             logging.info(
@@ -335,8 +361,30 @@ def C_extract_string_by_mem_pointer(
     if isinstance(loaded_data, int):
         loaded_string = my_int_to_bytes(loaded_data).decode()
     elif is_bv(loaded_data):
-        loaded_string = str(loaded_data).encode()
+        loaded_string = str(loaded_data)
     else:
         UnexpectedDataType
 
     return loaded_string
+
+
+def C_extract_bv_by_mem_pointer(
+        mem_pointer, data_section, state, default_len=None):
+    """
+    Extract bitvec by the memory pointer from data section or symbolic memory
+    """
+    if default_len:
+        loaded_data = _loadN(state, data_section, mem_pointer, default_len)
+    else:
+        i = 1
+        while True:
+            loaded_data = _loadN(state, data_section, mem_pointer + i, 1)
+            if isinstance(loaded_data, int) and loaded_data == 0:
+                break
+            i += 1
+        loaded_data = _loadN(state, data_section, mem_pointer, i)
+
+    assert is_bv(
+        loaded_data), f"loaded_data type is: {type(loaded_data)} in C_extract_bv_by_mem_pointer"
+
+    return loaded_data

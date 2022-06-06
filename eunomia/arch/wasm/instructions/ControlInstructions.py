@@ -18,7 +18,7 @@ from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
     'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
-    'system', 'emscripten_resize_heap', 'fopen', 'vfprintf'}
+    'system', 'emscripten_resize_heap', 'fopen', 'vfprintf', 'open'}
 # 'runtime.alloc' temporary disabled for some bug
 GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
@@ -202,6 +202,7 @@ class ControlInstructions:
                 new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
                 new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
                 new_state.fd = return_constraint_tuple[1].fd
+                new_state.files_buffer = return_constraint_tuple[1].files_buffer
 
                 new_states.append(new_state)
             logging.info(f"Return: {readable_name}")
