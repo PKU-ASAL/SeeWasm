@@ -32,6 +32,7 @@ class WASIImportFunction:
 
             # insert the `argc` into the corresponding addr
             argc = len(state.args)
+            assert argc >= 1, f"the analyzed program has 0 argument"
 
             _storeN(state, argc_addr, argc, 4)
             # the length of `argv` into the corresponding addr

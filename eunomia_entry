@@ -51,6 +51,9 @@ def main():
     inputs.add_argument(
         '--sym_args', type=int, nargs='+',
         help="Replace the argument by a symbolic argument with length N")
+    inputs.add_argument(
+        '--sym_files', type=int, nargs=2,
+        help="Create multiple symbolic files")
 
     features = parser.add_argument_group('Features')
     features.add_argument(
@@ -76,10 +79,6 @@ def main():
         '--algo', default='interval', const='interval', nargs='?',
         choices=['dfs', 'interval'],
         help='choose an algorithm to traverse, default is dfs')
-    features.add_argument(
-        '--stdin_file', type=argparse.FileType('rb'),
-        help='file to be read adopts fd_read wasi syscall',
-        metavar='STDIN_FILE')
     features.add_argument(
         '--coverage', action='store_true',
         help='calculate the instruction coverage')
@@ -149,10 +148,6 @@ def main():
         with open(args.dsl + ".json") as fp:
             user_dsl = json.load(fp)
 
-    if args.stdin_file:
-        import eunomia.arch.wasm.vmstate
-        eunomia.arch.wasm.vmstate.STDIN_BYTES = args.stdin_file.read()
-
     # Control Flow Analysis & Call flow Analysis
     if args.cfg or args.call or args.analytic:
         from eunomia.analysis.graph import CFGGraph
@@ -199,9 +194,14 @@ def main():
             json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
 
         # --args and --sym_args can exist simultaneously
-        # --args is usually used as argv[0], and --sym_args are the following argv
         # their order are fixed, i.e., --args is in front of --sym_args
-        Configuration.set_args(args.args, args.sym_args)
+        # the file_name is always the argv[0]
+        Configuration.set_args(
+            Configuration.get_file_name(),
+            args.args, args.sym_args)
+
+        if args.sym_files:
+            Configuration.set_sym_files(args.sym_files)
 
         wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
         # run the emulator for SSA

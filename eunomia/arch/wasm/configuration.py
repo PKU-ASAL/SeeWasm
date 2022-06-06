@@ -106,13 +106,16 @@ class Configuration:
         return Configuration._args
 
     @staticmethod
-    def set_args(args, sym_args):
+    def set_args(filename, args, sym_args):
         """
         Parse the given args and symbolic args into the _args
 
         args: str: typically is the argv[0] and is given concretely, like "base64"
         sym_args: [int, ...]: each symbolic arg is given with designated length, like [1, 2]
         """
+        # the filename is argv[0]
+        Configuration._args += [filename]
+
         if args:
             Configuration._args += args.split(" ")
 
