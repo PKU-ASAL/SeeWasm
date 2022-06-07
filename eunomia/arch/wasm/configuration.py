@@ -13,8 +13,6 @@ class Configuration:
     _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
     # the backend SMT solver, may integrate our lab's own backend in the future
     _solver = 'z3'
-    # the stdin buffer
-    _stdin_buffer = b''
     # the command to run the to be analyzed program, like ['base64', a]
     # where 'a' is a symbol
     _args = []
@@ -88,24 +86,6 @@ class Configuration:
         Configuration._solver = solver
 
     @staticmethod
-    def get_stdin_buffer():
-        return Configuration._stdin_buffer
-
-    @staticmethod
-    def set_stdin_buffer(stdin_buffer):
-        """
-        The `stdin_buffer` can by two types:
-        1. str: the stdin is given concretely, like "123"
-        2. [int]: the stdin is given with designated length, like [3]
-        """
-        if isinstance(stdin_buffer, str):
-            # the replace is neccessary
-            Configuration._stdin_buffer = stdin_buffer.encode().replace(b'\\n', b'\n')
-        elif isinstance(stdin_buffer, list):
-            length = stdin_buffer[0]
-            Configuration._stdin_buffer = BitVec("sym_stdin", 8 * length)
-
-    @staticmethod
     def get_args():
         return Configuration._args
 
@@ -175,29 +155,43 @@ class Configuration:
         Configuration._coverage = coverage
 
     @staticmethod
-    def set_sym_files(sym_files):
+    def set_files_buffer(stdin, sym_stdin, sym_files):
         """
         the sym files take two arguments:
         the first is how many files will be opened;
         the second is how many btyes are in each of them.
 
         So, we store these two information in two separate table
+
+        Also, the stdin is given concretely, like "123"; but the sym_stdin is given with designated length, like [3]
         """
-        sym_file_num, sym_file_length = sym_files
+        if stdin:
+            Configuration._fd_table['stdin'] = 0
+            # the replace is neccessary
+            Configuration._content_table[0] = stdin.encode().replace(
+                b'\\n', b'\n')
 
-        # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
-        assert sym_file_num <= 26, f"The sym_file_num is {sym_file_num}, greater than 26"
-        for i in range(sym_file_num):
-            Configuration._fd_table[chr(i + 65)] = i + 3
+        if sym_stdin:
+            length = sym_stdin[0]
+            Configuration._fd_table['stdin'] = 0
+            Configuration._content_table[0] = BitVec("sym_stdin", 8 * length)
 
-        for k, v in Configuration._fd_table.items():
-            Configuration._content_table[v] = BitVec(
-                f"file_{k}", sym_file_length * 8)
+        if sym_files:
+            sym_file_num, sym_file_length = sym_files
+
+            # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
+            assert sym_file_num <= 26, f"The sym_file_num is {sym_file_num}, greater than 26"
+            for i in range(sym_file_num):
+                Configuration._fd_table[chr(i + 65)] = i + 3
+
+            for k, v in Configuration._fd_table.items():
+                Configuration._content_table[v] = BitVec(
+                    f"file_{k}", sym_file_length * 8)
 
     @staticmethod
     def get_fd():
-        for k, v in Configuration._fd_table.items():
-            yield k, v
+        for file, fd in Configuration._fd_table.items():
+            yield file, fd
         # assert file_name in Configuration._fd_table, f"{file_name} is not maintained in the fd table"
         # return Configuration._fd_table.get(file_name)
 

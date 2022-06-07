@@ -195,14 +195,13 @@ class WASIImportFunction:
             logging.info(
                 f"\tfd_read, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
 
-            # if the fd is 0, and there is no stdin chars
+            if fd not in state.files_buffer:
+                exit(
+                    f"fd: {fd} does not exist in files buffer, please check if you open enough sym files")
+
+            # if there is no input chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if fd == 0 and ((
-                    isinstance(state.stdin_buffer, bytes)
-                    and not state.stdin_buffer)
-                    or (
-                    is_bv(state.stdin_buffer)
-                    and state.stdin_buffer.size() < 8)):
+            if (isinstance(state.files_buffer[fd], bytes) and not state.files_buffer[fd]) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() < 8):
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
@@ -217,27 +216,15 @@ class WASIImportFunction:
                 buffer_len = _loadN(state, data_section,
                                     iovs_addr + (8 * i + 4), 4)
 
-                if fd == 0:
-                    if isinstance(state.stdin_buffer, bytes):
-                        stdin_length = len(state.stdin_buffer)
-                    else:
-                        stdin_length = state.stdin_buffer.size() // 8
+                if isinstance(state.files_buffer[fd], bytes):
+                    stdin_length = len(state.files_buffer[fd])
                 else:
                     stdin_length = state.files_buffer[fd].size() // 8
 
                 for j in range(min(stdin_length, buffer_len)):
-                    if fd == 0:
-                        if isinstance(state.stdin_buffer, bytes):
-                            data_to_read = state.stdin_buffer[0]
-                            state.stdin_buffer = state.stdin_buffer[1:]
-                        else:
-                            data_to_read = simplify(
-                                Extract(7, 0, state.stdin_buffer))
-                            if (stdin_length - char_read_cnt) == 1:
-                                state.stdin_buffer = BitVec('dummy', 1)
-                            else:
-                                state.stdin_buffer = simplify(
-                                    Extract(state.stdin_buffer.size() - 1, 8, state.stdin_buffer))
+                    if isinstance(state.files_buffer[fd], bytes):
+                        data_to_read = state.files_buffer[fd][0]
+                        state.files_buffer[fd] = state.files_buffer[fd][1:]
                     else:
                         data_to_read = simplify(
                             Extract(7, 0, state.files_buffer[fd]))
@@ -253,14 +240,7 @@ class WASIImportFunction:
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if fd == 0 and ((
-                        isinstance(state.stdin_buffer, bytes)
-                        and len(state.stdin_buffer) > 0)
-                        or (
-                        is_bv(state.stdin_buffer)
-                        and state.stdin_buffer.size() > 1)):
-                    continue
-                elif fd >= 3 and (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() > 1):
+                if (isinstance(state.files_buffer[fd], bytes) and len(state.files_buffer[fd]) > 0) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() > 1):
                     continue
                 else:
                     # or the stdin buffer is drained out, break out

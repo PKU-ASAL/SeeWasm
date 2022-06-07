@@ -298,6 +298,7 @@ class CPredefinedFunction:
             #     mode_ptr, data_section, state)
             filename = C_extract_string_by_mem_pointer(
                 filename_ptr, data_section, state)
+            logging.info(f"\topen file: {filename}")
 
             if filename not in state.fd:
                 filename_fd = max(state.fd.values()) + 1

@@ -183,10 +183,8 @@ def main():
         if args.stdin and args.sym_stdin:
             raise Exception(
                 "The --stdin and --sym_stdin cannot exist at the same time")
-        if args.stdin:
-            Configuration.set_stdin_buffer(args.stdin)
-        elif args.sym_stdin:
-            Configuration.set_stdin_buffer(args.sym_stdin)
+        Configuration.set_files_buffer(
+            args.stdin, args.sym_stdin, args.sym_files)
 
         command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)
@@ -199,9 +197,6 @@ def main():
         Configuration.set_args(
             Configuration.get_file_name(),
             args.args, args.sym_args)
-
-        if args.sym_files:
-            Configuration.set_sym_files(args.sym_files)
 
         wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
         # run the emulator for SSA

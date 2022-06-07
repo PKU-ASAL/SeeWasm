@@ -396,9 +396,12 @@ class Graph:
             func = func_index_name
 
         if state is None:
+            files_buffer = {}
+            for _, fd in Configuration.get_fd():
+                files_buffer[fd] = Configuration.get_content(fd)
+
             state, has_ret = cls.wasmVM.init_state(
-                func, param_str, return_str, [],
-                stdin_buffer=Configuration.get_stdin_buffer(),
+                func, param_str, return_str, [], files_buffer=files_buffer,
                 args=Configuration.get_args())
 
         # switch the state from caller to callee

@@ -161,9 +161,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.globals[i] = op_val
 
     def init_state(
-            self, func_name, param_str, return_str, has_ret, stdin_buffer=b'',
+            self, func_name, param_str, return_str, has_ret, files_buffer={},
             args=''):
-        state = WasmVMstate(stdin_buffer=stdin_buffer, args=args)
+        state = WasmVMstate(files_buffer=files_buffer, args=args)
         if param_str != '':
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(

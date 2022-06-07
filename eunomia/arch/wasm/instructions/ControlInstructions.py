@@ -197,7 +197,6 @@ class ControlInstructions:
                     new_state.constraints = constraint
                     new_state.symbolic_memory = state_symbolic_memory
                     new_state.globals = current_globals
-                new_state.stdin_buffer = return_constraint_tuple[1].stdin_buffer
                 new_state.args = return_constraint_tuple[1].args
                 new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
                 new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
