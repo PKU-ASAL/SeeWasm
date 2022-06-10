@@ -147,6 +147,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 sorted(
                     func_basic_blocks,
                     key=lambda x: int(x.name.split('_')[2], 16)))
+
+            # write back
+            func.basicblocks = func_basic_blocks
             self.cfg.basicblocks += func_basic_blocks
 
     def count_instrs(self):

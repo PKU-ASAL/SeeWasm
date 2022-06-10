@@ -6,14 +6,18 @@ from collections import defaultdict, deque
 from datetime import datetime
 from os import makedirs, path
 from queue import PriorityQueue
+from typing import DefaultDict
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import DSLParseError
+from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
                                      branch_choose_info, my_int_to_bytes,
                                      readable_internal_func_name,
                                      state_choose_info)
+from eunomia.core.basicblock import BasicBlock
+from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
 from z3 import unsat
 
 # if a state belongs to one of these functions, it means that
@@ -145,7 +149,7 @@ class Graph:
             # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
             # TODO quite a huge overhead, try another way
             edges = sorted(edges, key=lambda x: (
-                x.node_from, int(x.node_to[x.node_to.rfind('_') + 1:], 16)))
+                x.node_from, int(x.node_to.split('_')[2], 16)))
 
             type_ids = defaultdict(lambda: defaultdict(int))
             type_rev_ids = defaultdict(lambda: defaultdict(int))
@@ -205,11 +209,80 @@ class Graph:
                         if len(readable_name.split('$')) == 2:
                             cls.aes_func[bb.name].add(readable_name)
 
+        def init_dummy_blocks(cfg):
+            """
+            Insert dummy entry and end before and aftr each function's cfg.
+            Refer to: https://github.com/HNYuuu/Wasm-SE/issues/70
+
+            Also update basicblocks in cfg, and class variables: bbs_graph, rev_bbs_graph and bb_to_instructions
+            """
+            # extract node with zero indegree and outdegree
+            for func_name, bbs in cls.func_to_bbs.items():
+                zero_indegree, zero_outdegree, queue, visited = set(bbs), set(bbs), [
+                    bbs[0]], set()
+                while queue:
+                    ele = queue.pop(0)
+                    visited.add(ele)
+                    succs = list(cls.bbs_graph[ele].values())
+                    if succs:
+                        zero_outdegree.discard(ele)
+                        for succ in succs:
+                            zero_indegree.discard(succ)
+                            if succ not in visited:
+                                queue.append(succ)
+
+                assert zero_indegree and zero_outdegree, "a function should have at least entry point and an exit point"
+
+                func_index = ele.split('_')[1]
+                # construct two dummy blocks
+                dummy_entry = BasicBlock()
+                end_ins = WasmInstruction(
+                    11, 'end', None, 0, b'\x0b', 0, 0, 'dummy entry')
+                dummy_entry.instructions = [end_ins]
+                dummy_entry.start_offset = 0
+                dummy_entry.start_instr = end_ins
+                dummy_entry.name = f"block_{func_index}_entry"
+                dummy_entry.end_instr = end_ins
+                dummy_entry.end_offset = end_ins.offset_end
+
+                dummy_end = copy.deepcopy(dummy_entry)
+                dummy_end.name = f"block_{func_index}_end"
+
+                # insert dummy blocks into cfg
+                for func in cfg.functions:
+                    if func.name == func_name:
+                        func.basicblocks += [dummy_entry, dummy_end]
+                        break
+                cfg.basicblocks += [dummy_entry, dummy_end]
+
+                # construct edges between dummy blocks and entry and exit points
+                # and update class variables
+                for i, entry in enumerate(zero_indegree):
+                    cfg.edges.append(
+                        Edge(dummy_entry.name, entry, EDGE_FALLTHROUGH))
+                    cls.bbs_graph[dummy_entry.name][f"{EDGE_FALLTHROUGH}_{i}"] = entry
+                    cls.rev_bbs_graph[entry][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_entry.name
+                for i, exit in enumerate(zero_outdegree):
+                    cfg.edges.append(
+                        Edge(
+                            exit, dummy_end.name,
+                            EDGE_FALLTHROUGH))
+                    cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_end.name
+                    cls.rev_bbs_graph[dummy_end.name][
+                        f"{EDGE_FALLTHROUGH}_{i}"] = exit
+
+                cls.bbs_graph[dummy_end.name] = defaultdict(str)
+                cls.rev_bbs_graph[dummy_entry.name] = defaultdict(str)
+                cls.bb_to_instructions[dummy_entry.name] = dummy_entry.instructions
+                cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
+
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
         init_bbs_graph(cfg)
         init_bb_to_instr(cfg)
         init_aes_func(cfg)
+        init_dummy_blocks(cfg)
+        exit()
 
     @classmethod
     def parse_dsl(cls, user_dsl):
