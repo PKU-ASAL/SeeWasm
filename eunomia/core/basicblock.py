@@ -9,10 +9,10 @@ class BasicBlock(object):
         The properties of basic blocks
 
         Properties:
-            start_offset: the offset of the first instruction on function level
+            start_offset: the `offset` of the first instruction
             start_instr: the first instruction of the current basic block
             name: the name of the basic block, whose naming style is "block_[func_index]_[start_offset]"
-            end_offset: the offset_ned of the last instruction
+            end_offset: the `offset_end` of the last instruction
             end_instr: the last instruction
 
         Below are properties may be deprecated in the future

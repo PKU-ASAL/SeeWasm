@@ -26,6 +26,8 @@ from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from eunomia.arch.wasm.utils import (getConcreteBitVec,
                                      readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
+from eunomia.core.basicblock import BasicBlock
+from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
 from eunomia.engine.emulator import EmulatorEngine
 from z3 import BitVec, BitVecVal, BoolRef
 
@@ -56,6 +58,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
+        # split basic blocks by call and call_indirect instrucitons
+        self.split_bbs()
+
         # be inited in `graph.py`
         self.user_dsl = None
 
@@ -84,6 +89,65 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # whether enable the coverage calculation
         if Configuration.get_coverage():
             self.count_instrs()
+
+    def split_bbs(self):
+        """
+        Split basic blocks by call and call_indirect instructions
+        """
+        # reinit
+        self.cfg.basicblocks = []
+        for func in self.cfg.functions:
+            func_basic_blocks = func.basicblocks
+
+            i = 0
+            while i < len(func_basic_blocks):
+                bb = func_basic_blocks[i]
+
+                _, func_index, _ = bb.name.split('_')
+                for ins_i, instruction in enumerate(bb.instructions):
+                    # we should split the basic block after these two instructions, if they are not the last instruction
+                    if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
+                        first_part_ins, second_part_ins = bb.instructions[
+                            : ins_i + 1], bb.instructions[ins_i + 1:]
+                        next_ins = bb.instructions[ins_i + 1]
+
+                        # change the current basic block
+                        bb.end_offset = instruction.offset_end
+                        bb.end_instr = instruction
+                        bb.instructions = first_part_ins
+
+                        # init a new basic block
+                        new_bb = BasicBlock()
+                        new_bb.instructions = second_part_ins
+                        new_bb.start_offset = next_ins.offset
+                        new_bb.start_instr = next_ins
+                        new_bb.name = f"block_{func_index}_{hex(new_bb.start_offset)[2:]}"
+                        new_bb.end_instr = second_part_ins[-1]
+                        new_bb.end_offset = new_bb.end_instr.offset_end
+
+                        # if there are edges start from bb, make them start from new_bb
+                        for edge in self.cfg.edges:
+                            if edge.node_from == bb.name:
+                                edge.node_from = new_bb.name
+
+                        # append the new basic block, add a new edge
+                        func_basic_blocks.append(new_bb)
+                        new_edge = Edge(bb.name, new_bb.name, EDGE_FALLTHROUGH)
+                        self.cfg.edges.append(new_edge)
+
+                        break
+
+                i += 1
+
+            # assert there are no dup blocks, and sort them by both func index and bb index
+            block_len = len(func_basic_blocks)
+            assert len({bb.name for bb in func_basic_blocks}
+                       ) == block_len, "dup block exist"
+            func_basic_blocks = list(
+                sorted(
+                    func_basic_blocks,
+                    key=lambda x: int(x.name.split('_')[2], 16)))
+            self.cfg.basicblocks += func_basic_blocks
 
     def count_instrs(self):
         """
