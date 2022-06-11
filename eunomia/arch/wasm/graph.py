@@ -252,6 +252,10 @@ class Graph:
                 for func in cfg.functions:
                     if func.name == func_name:
                         func.basicblocks += [dummy_entry, dummy_end]
+                        cls.func_to_bbs[func_name].insert(0, dummy_entry.name)
+                        cls.func_to_bbs[func_name].append(dummy_end.name)
+                        cls.bb_to_instructions[dummy_entry] = dummy_entry.instructions
+                        cls.bb_to_instructions[dummy_end] = dummy_end.instructions
                         break
                 cfg.basicblocks += [dummy_entry, dummy_end]
 
@@ -276,12 +280,72 @@ class Graph:
                 cls.bb_to_instructions[dummy_entry.name] = dummy_entry.instructions
                 cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
 
+        def link_dummy_blocks(cfg):
+            """
+            Remove edges after call, directly link it to the callee's dummy entry.
+            Also link the dummy end to the next instruction of the call.
+            Update edges in cfg, and bbs_graph and rev_bbs_graph in class
+            """
+            for bb in cfg.basicblocks:
+                last_ins = bb.instructions[-1]
+                bb_name = bb.name
+                if last_ins.name == 'call':
+                    assert len(
+                        cls.bbs_graph[bb_name]) == 1, f"{bb_name} has more than 1 successive blocks after call"
+
+                    # find the dummy blocks' name
+                    # if the callee is imported in, do nothing and continue
+                    callee_op = last_ins.operand_interpretation.split(' ')[1]
+                    try:
+                        callee_op = int(callee_op)
+                    except ValueError:
+                        callee_op = int(callee_op, 16)
+                    # if the callee is the import function
+                    if f"$func{callee_op}" not in cls.func_to_bbs.keys():
+                        continue
+                    dummy_entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
+                    dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
+
+                    # remove the edge whose node_from is bb_name, and node_to is callee_bb_name
+                    callee_bb_name = list(
+                        cls.bbs_graph[bb_name].values())[0]
+                    cfg.edges = [e for e in cfg.edges if (
+                        e.node_from != bb_name or e.node_to != callee_bb_name)]
+
+                    # insert two edges into cfg.edges
+                    call_edge = Edge(
+                        bb_name, dummy_entry_name, EDGE_FALLTHROUGH)
+                    return_edge = Edge(
+                        dummy_end_name, callee_bb_name, EDGE_FALLTHROUGH)
+                    cfg.edges += [call_edge, return_edge]
+
+                    assert len([k for k in cls.bbs_graph[bb_name]
+                                if k.startswith('fall')]) <= 1
+                    assert len([k for k in cls.bbs_graph[dummy_end_name]
+                                if k.startswith('fall')]) <= 1
+                    assert len([k for k in cls.rev_bbs_graph[dummy_entry_name]
+                                if k.startswith('fall')]) <= 1
+                    assert len([k for k in cls.rev_bbs_graph[callee_bb_name]
+                                if k.startswith('fall')]) <= 1
+
+                    # update bbs_graph
+                    cls.bbs_graph[bb_name]['fallthrough_0'] = dummy_entry_name
+                    cls.bbs_graph[dummy_end_name]['fallthrough_0'] = callee_bb_name
+                    # update rev_bbs_graph
+                    cls.rev_bbs_graph[dummy_entry_name]['fallthrough_0'] = bb_name
+                    cls.rev_bbs_graph[callee_bb_name]['fallthrough_0'] = dummy_end_name
+                elif last_ins.name == 'call_indirect':
+                    # print("call_indirect")
+                    pass
+            pass
+
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
         init_bbs_graph(cfg)
         init_bb_to_instr(cfg)
         init_aes_func(cfg)
         init_dummy_blocks(cfg)
+        link_dummy_blocks(cfg)
         exit()
 
     @classmethod
