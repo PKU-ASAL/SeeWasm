@@ -280,6 +280,41 @@ class Graph:
                 cls.bb_to_instructions[dummy_entry.name] = dummy_entry.instructions
                 cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
 
+        def _update_edges(
+                cfg, bb_name, callee_bb_name, dummy_entry_name, dummy_end_name,
+                edge_count):
+            """
+            Insert two edges: bb_name to dummy_entry_name, dummy_end_name to callee_bb_name
+            Update corresponding variables in bbs_graph and rev_bbs_graph
+            """
+            # insert two edges into cfg.edges
+            call_edge = Edge(
+                bb_name, dummy_entry_name, EDGE_FALLTHROUGH)
+            return_edge = Edge(
+                dummy_end_name, callee_bb_name, EDGE_FALLTHROUGH)
+            cfg.edges += [call_edge, return_edge]
+
+            # update bbs_graph
+            cls.bbs_graph[bb_name][f"fallthrough_{edge_count}"] = dummy_entry_name
+            cls.bbs_graph[dummy_end_name][f"fallthrough_{edge_count}"] = callee_bb_name
+            # update rev_bbs_graph
+            cls.rev_bbs_graph[dummy_entry_name][
+                f"fallthrough_{edge_count}"] = bb_name
+            cls.rev_bbs_graph[callee_bb_name][f"fallthrough_{edge_count}"] = dummy_end_name
+
+        def _remove_original_edge(cfg, bb_name):
+            """
+            Extract the successive block of bb_name, and return it.
+            Also, remove the edge.
+            """
+            callee_bb_name = list(
+                cls.bbs_graph[bb_name].values())[0]
+            # remove the edge: (bb_name, callee_bb_name)
+            cfg.edges = [e for e in cfg.edges if (
+                e.node_from != bb_name or e.node_to != callee_bb_name)]
+
+            return callee_bb_name
+
         def link_dummy_blocks(cfg):
             """
             Remove edges after call, directly link it to the callee's dummy entry.
@@ -290,9 +325,6 @@ class Graph:
                 last_ins = bb.instructions[-1]
                 bb_name = bb.name
                 if last_ins.name == 'call':
-                    assert len(
-                        cls.bbs_graph[bb_name]) == 1, f"{bb_name} has more than 1 successive blocks after call"
-
                     # find the dummy blocks' name
                     # if the callee is imported in, do nothing and continue
                     callee_op = last_ins.operand_interpretation.split(' ')[1]
@@ -306,38 +338,28 @@ class Graph:
                     dummy_entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
-                    # remove the edge whose node_from is bb_name, and node_to is callee_bb_name
-                    callee_bb_name = list(
-                        cls.bbs_graph[bb_name].values())[0]
-                    cfg.edges = [e for e in cfg.edges if (
-                        e.node_from != bb_name or e.node_to != callee_bb_name)]
-
-                    # insert two edges into cfg.edges
-                    call_edge = Edge(
-                        bb_name, dummy_entry_name, EDGE_FALLTHROUGH)
-                    return_edge = Edge(
-                        dummy_end_name, callee_bb_name, EDGE_FALLTHROUGH)
-                    cfg.edges += [call_edge, return_edge]
-
-                    assert len([k for k in cls.bbs_graph[bb_name]
-                                if k.startswith('fall')]) <= 1
-                    assert len([k for k in cls.bbs_graph[dummy_end_name]
-                                if k.startswith('fall')]) <= 1
-                    assert len([k for k in cls.rev_bbs_graph[dummy_entry_name]
-                                if k.startswith('fall')]) <= 1
-                    assert len([k for k in cls.rev_bbs_graph[callee_bb_name]
-                                if k.startswith('fall')]) <= 1
-
-                    # update bbs_graph
-                    cls.bbs_graph[bb_name]['fallthrough_0'] = dummy_entry_name
-                    cls.bbs_graph[dummy_end_name]['fallthrough_0'] = callee_bb_name
-                    # update rev_bbs_graph
-                    cls.rev_bbs_graph[dummy_entry_name]['fallthrough_0'] = bb_name
-                    cls.rev_bbs_graph[callee_bb_name]['fallthrough_0'] = dummy_end_name
+                    callee_bb_name = _remove_original_edge(cfg, bb_name)
+                    _update_edges(cfg, bb_name, callee_bb_name,
+                                  dummy_entry_name, dummy_end_name, 0)
                 elif last_ins.name == 'call_indirect':
-                    # print("call_indirect")
-                    pass
-            pass
+                    # find all possible callees
+                    # refer to call_indirect in `ControlInstructions.py`
+                    # store all dummy blocks in pair
+                    dummy_blocks = []
+                    possible_callees = cls.wasmVM.ana.elements[0]['elems']
+                    for possible_callee in possible_callees:
+                        # if the callee is the import function
+                        if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
+                            continue
+                        dummy_entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
+                        dummy_end_name = cls.func_to_bbs[f"$func{possible_callee}"][-1]
+                        dummy_blocks.append((dummy_entry_name, dummy_end_name))
+
+                    callee_bb_name = _remove_original_edge(cfg, bb_name)
+                    for i, (dummy_entry_name, dummy_end_name) in enumerate(
+                            dummy_blocks):
+                        _update_edges(cfg, bb_name, callee_bb_name,
+                                      dummy_entry_name, dummy_end_name, i)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
@@ -346,7 +368,8 @@ class Graph:
         init_aes_func(cfg)
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
-        exit()
+        # we temporarily exit the process as it cannot be executed normally
+        raise Exception("Build graph normally, please continue")
 
     @classmethod
     def parse_dsl(cls, user_dsl):
