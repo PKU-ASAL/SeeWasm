@@ -404,8 +404,6 @@ class Graph:
                 func, param_str, return_str, [], files_buffer=files_buffer,
                 args=Configuration.get_args())
 
-        # switch the state from caller to callee
-        caller_func_name = state.current_func_name
         state.current_func_name = func
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -418,8 +416,7 @@ class Graph:
             final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
         else:
             raise Exception("There is no traversing algorithm you required.")
-        # restore the caller func
-        state.current_func_name = caller_func_name
+
         return final_states
 
     @classmethod
