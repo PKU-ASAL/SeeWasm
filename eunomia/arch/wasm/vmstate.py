@@ -9,7 +9,7 @@ from z3 import BitVecVal
 
 
 class WasmVMstate(VMstate):
-    def __init__(self, files_buffer={}, args=''):
+    def __init__(self):
         # data structure:
         def local_default():
             return BitVecVal(0, 32)
@@ -25,8 +25,8 @@ class WasmVMstate(VMstate):
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
 
-        self.args = args
-        self.files_buffer = files_buffer
+        self.args = ""
+        self.files_buffer = {}
         self.stdout_buffer = []
         self.stderr_buffer = []
         self.fd = {'stdin': 0, 'stdout': 1, 'stderr': 2}

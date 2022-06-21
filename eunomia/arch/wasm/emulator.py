@@ -227,14 +227,23 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 raise UnsupportGlobalTypeError
             state.globals[i] = op_val
 
-    def init_state(
-            self, func_name, param_str, return_str, has_ret, files_buffer={},
-            args=''):
-        state = WasmVMstate(files_buffer=files_buffer, args=args)
+    def init_state(self, func_name, param_str, return_str, has_ret):
+        files_buffer = {}
+        for _, fd in Configuration.get_fd():
+            files_buffer[fd] = Configuration.get_content(fd)
+
+        args = Configuration.get_args()
+
+        state = WasmVMstate()
+        state.files_buffer = files_buffer
+        state.args = args
+
         if param_str != '':
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(
                     local, func_name + '_loc_' + str(i) + '_' + local)
+
+        state.current_func_name = func_name
 
         # deal with the globals
         # if the entry function is not exported, make them as symbols
@@ -265,17 +274,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
-                ret = self.emulate_one_instruction(
-                    instruction, state, 0, has_ret, 0)
-                if ret is not None:
-                    next_states.extend(ret)
+                ret_state = self.emulate_one_instruction(
+                    instruction, state, has_ret)
+
+                if ret_state is not None:
+                    next_states.extend(ret_state)
                 else:
                     next_states.append(copy.deepcopy(state))
             states = next_states
         return states
 
-    def emulate_one_instruction(
-            self, instr, state, depth, has_ret, call_depth):
+    def emulate_one_instruction(self, instr, state, has_ret):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -315,8 +324,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':
-            instr_obj.emulate(state, self.data_section)
-            return None
+            ret_states = instr_obj.emulate(state, self.data_section)
         elif instr.group == 'Control':
             # if the instr is 'call c_lib_func', which is modeled
             # we calculate its coverage in advance
@@ -328,16 +336,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if func_name in C_LIBRARY_FUNCS:
                     self.calculate_coverage(instr, func_name)
 
-            return instr_obj.emulate(
+            ret_states = instr_obj.emulate(
                 state, has_ret, self.data_section, self.ana)
-        elif instr.group == 'Parametric':
-            return instr_obj.emulate(state, depth, has_ret, call_depth)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
-            instr_obj.emulate(state, self.ana)
-            return None
+            ret_states = instr_obj.emulate(state, self.ana)
         else:
-            instr_obj.emulate(state)
-            return None
+            ret_states = instr_obj.emulate(state)
+        return ret_states
 
     def init_coverage_bitmap(self, func_name):
         """

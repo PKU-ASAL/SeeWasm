@@ -67,4 +67,4 @@ class BitwiseInstructions:
 
         state.symbolic_stack.append(result)
 
-        return False
+        return None

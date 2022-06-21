@@ -94,7 +94,7 @@ class LogicalInstructions:
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
-            return False
+            return None
 
         def do_emulate_logical_float_instruction(state):
             arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
@@ -125,7 +125,7 @@ class LogicalInstructions:
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
-            return False
+            return None
 
         op_type = self.instr_name[:1]
         if op_type == 'i':

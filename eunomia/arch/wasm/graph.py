@@ -529,14 +529,6 @@ class Graph:
         """
         entry_func = self.entry
         self.final_states[entry_func] = self.traverse_one(entry_func)
-        # try:
-        #     self.final_states[entry_func] = self.traverse_one(entry_func)
-        # except ProcSuccessTermination as pst:
-        #     print(f"The process terminated with code: {pst}")
-        #     sys.exit()
-        # except ProcFailTermination as pft:
-        #     print(f"The process unexpectedly terminated with code: {pft}")
-        #     sys.exit()
 
     @classmethod
     def traverse_one(cls, func, state=None, has_ret=list()):
@@ -558,17 +550,9 @@ class Graph:
             func = func_index_name
 
         if state is None:
-            files_buffer = {}
-            for _, fd in Configuration.get_fd():
-                files_buffer[fd] = Configuration.get_content(fd)
-
             state, has_ret = cls.wasmVM.init_state(
-                func, param_str, return_str, [], files_buffer=files_buffer,
-                args=Configuration.get_args())
+                func, param_str, return_str, has_ret=[])
 
-        # switch the state from caller to callee
-        caller_func_name = state.current_func_name
-        state.current_func_name = func
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
@@ -580,8 +564,7 @@ class Graph:
             final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
         else:
             raise Exception("There is no traversing algorithm you required.")
-        # restore the caller func
-        state.current_func_name = caller_func_name
+
         return final_states
 
     @classmethod
@@ -695,9 +678,8 @@ class Graph:
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         # a mapping from a node to its corresponding interval's head
         heads = {v: head for head in intervals for v in intervals[head]}
-        # TODO do we need to keep function `extract_edges`? @zzhzz
-        # cls.extract_edges(entry)
         heads['return'] = 'return'
+
         final_states = cls.visit_interval(
             [state], has_ret, entry, heads, cls.manual_guide, "return")
         return final_states["return"]

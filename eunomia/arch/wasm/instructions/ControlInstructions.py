@@ -10,8 +10,7 @@ from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (getConcreteBitVec,
-                                     readable_internal_func_name)
+from eunomia.arch.wasm.utils import readable_internal_func_name
 from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
                 simplify, unsat)
 
@@ -61,36 +60,26 @@ class ControlInstructions:
         self.skip_command = {'loop', 'end', 'br', 'else', 'nop', 'block'}
         self.term_command = {'unreachable', 'return'}
 
-    def init_state_before_call(self, param_str, return_str, has_ret, state):
+    def update_state_before_call(self, param_str, return_str, has_ret, state):
+        """
+        Duplicate a new state from the existing state.
+        And update the new_state with new stack and local variable.
+        """
         num_arg = 0
-        # this flag indicates whether the caller executes and returns properly
-        # if the caller terminates in advance, which results in the imbalance of stack
-        # we should use this flag to reallocate the arguments for callee
-        need_to_reset = False
+        # dup new state and had_ret
+        new_state = copy.deepcopy(state)
+        new_has_ret = copy.deepcopy(has_ret)
 
         if param_str:
             num_arg = len(param_str.split(' '))
-            try:
-                arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
-            except IndexError:
-                need_to_reset = True
+            arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
+            for x in range(num_arg):
+                new_state.local_var[num_arg - 1 - x] = arg[x]
 
         if return_str:
             has_ret.append(True)
         else:
             has_ret.append(False)
-
-        # init state of internal call
-        new_state = copy.deepcopy(state)
-        new_has_ret = copy.deepcopy(has_ret)
-
-        if need_to_reset:
-            for i, local in enumerate(param_str.split(' ')):
-                new_state.local_var[i] = getConcreteBitVec(
-                    local, state.current_func_name + '_loc_' + str(i) + '_' + local)
-        else:
-            for x in range(num_arg):
-                new_state.local_var[num_arg - 1 - x] = arg[x]
 
         # set the remaining local vars as None
         for x in range(num_arg, len(new_state.local_var)):
@@ -106,58 +95,63 @@ class ControlInstructions:
     def deal_with_call(self, state, f_offset, has_ret, data_section, analyzer):
         # get the callee's function signature
         target_func = analyzer.func_prototypes[f_offset]
-        internal_function_name, param_str, return_str, _ = target_func
+        callee_func_name, param_str, return_str, _ = target_func
 
-        readable_name = readable_internal_func_name(
+        readable_callee_func_name = readable_internal_func_name(
             Configuration.get_func_index_to_func_name(),
-            internal_function_name)
+            callee_func_name)
 
         new_states = []
         # if the callee is a C library function
         if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
-                readable_name) and readable_name not in NEED_STEP_IN_C:
+                readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_C:
             # exit("Currently, we don't allow external function's model")
             logging.info(
-                f"Call: {readable_name} (C library)")
+                f"Call: {readable_callee_func_name} (C library)")
             func = CPredefinedFunction(
-                readable_name, state.current_func_name)
+                readable_callee_func_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"Return: {readable_name} (C library)")
+            logging.info(f"Return: {readable_callee_func_name} (C library)")
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
-                readable_name) and readable_name not in NEED_STEP_IN_GO:
+                readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_GO:
             logging.info(
-                f"Call: {readable_name} (Go library)")
+                f"Call: {readable_callee_func_name} (Go library)")
             func = GoPredefinedFunction(
-                readable_name, state.current_func_name)
+                readable_callee_func_name, state.current_func_name)
             func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"Return: {readable_name} (Go library)")
+            logging.info(f"Return: {readable_callee_func_name} (Go library)")
             # terminate panic related functions. eg: runtime.divideByZeroPanic
-            if readable_name in TERMINATED_FUNCS:
+            if readable_callee_func_name in TERMINATED_FUNCS:
                 logging.info(
-                    f"Termination:: {readable_name} (Go library)")
+                    f"Termination:: {readable_callee_func_name} (Go library)")
                 # TODO terminate state, but normally there will be `unreachable` instruction after the call
         # if the callee is the imported
-        elif readable_name in [i[1] for i in analyzer.imports_func]:
-            func = WASIImportFunction(readable_name, state.current_func_name)
+        elif readable_callee_func_name in [i[1] for i in analyzer.imports_func]:
+            func = WASIImportFunction(
+                readable_callee_func_name, state.current_func_name)
             logging.info(
-                f"Call: {readable_name} (import)")
+                f"Call: {readable_callee_func_name} (import)")
             func.emul(state, param_str, return_str, data_section)
-            logging.info(f"Return: {readable_name} (import)")
-        elif readable_name in TERMINATED_FUNCS:
+            logging.info(f"Return: {readable_callee_func_name} (import)")
+        elif readable_callee_func_name in TERMINATED_FUNCS:
             logging.info(
-                f"Termination: {readable_name}")
+                f"Termination: {readable_callee_func_name}")
             return [state]
         else:
             # if the callee takes NO symbols as input:
             # 1. the param_str is empty [Doing]
             # 2. the params are all non-symbol [TODO]
-            # logging.warning(f'invoke: {readable_name} with {internal_function_name}')
+            # logging.warning(f'invoke: {readable_callee_func_name} with {callee_func_name}')
             logging.info(
-                f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {readable_name}")
-            new_state, new_has_ret = self.init_state_before_call(
+                f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {readable_callee_func_name}")
+            # duplicate new_state and new_has_ret
+            # update the local and the stack
+            new_state, new_has_ret = self.update_state_before_call(
                 param_str, return_str, has_ret, state)
+            # traverse the callee
             possible_states = Graph.traverse_one(
-                internal_function_name, new_state, new_has_ret)
+                callee_func_name, new_state, new_has_ret)
+
             possible_call_results = []
             for pstate in possible_states:
                 to_be_returned = None
@@ -176,35 +170,25 @@ class ControlInstructions:
             # for stack balance
             outer_need_ret = has_ret.pop()
 
-            for i, return_constraint_tuple in enumerate(possible_call_results):
+            for (return_value, rstate) in possible_call_results:
                 new_state = copy.deepcopy(state)
-                return_value, constraint, state_symbolic_memory, current_globals = return_constraint_tuple[0], \
-                    return_constraint_tuple[
-                    1].constraints, \
-                    return_constraint_tuple[
-                    1].symbolic_memory, \
-                    return_constraint_tuple[1].globals
 
                 # if have outer_need_ret but no return_value, means the callee's this branch is failed
                 if outer_need_ret and return_value is None:
                     continue
                 elif outer_need_ret and return_value is not None:
                     new_state.symbolic_stack.append(return_value)
-                    new_state.constraints = constraint
-                    new_state.symbolic_memory = state_symbolic_memory
-                    new_state.globals = current_globals
-                else:
-                    new_state.constraints = constraint
-                    new_state.symbolic_memory = state_symbolic_memory
-                    new_state.globals = current_globals
-                new_state.args = return_constraint_tuple[1].args
-                new_state.stdout_buffer = return_constraint_tuple[1].stdout_buffer
-                new_state.stderr_buffer = return_constraint_tuple[1].stderr_buffer
-                new_state.fd = return_constraint_tuple[1].fd
-                new_state.files_buffer = return_constraint_tuple[1].files_buffer
+                new_state.symbolic_memory = rstate.symbolic_memory
+                new_state.globals = rstate.globals
+                new_state.constraints = rstate.constraints
+                new_state.args = rstate.args
+                new_state.files_buffer = rstate.files_buffer
+                new_state.stdout_buffer = rstate.stdout_buffer
+                new_state.stderr_buffer = rstate.stderr_buffer
+                new_state.fd = rstate.fd
 
                 new_states.append(new_state)
-            logging.info(f"Return: {readable_name}")
+            logging.info(f"Return: {readable_callee_func_name}")
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
