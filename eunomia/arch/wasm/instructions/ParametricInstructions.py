@@ -9,7 +9,7 @@ class ParametricInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    def emulate(self, state, depth, has_ret, call_depth):
+    def emulate(self, state):
         if self.instr_name == 'drop':
             state.symbolic_stack.pop()
             return None
