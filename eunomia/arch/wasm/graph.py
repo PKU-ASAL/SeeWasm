@@ -231,41 +231,46 @@ class Graph:
                             if succ not in visited:
                                 queue.append(succ)
 
-                assert zero_indegree and zero_outdegree, "a function should have at least entry point and an exit point"
+                assert len(
+                    zero_indegree) == 1, "a function can only have exactly one entry point"
+                assert zero_outdegree, "a function should have at least one exit point"
+
+                dummy_end_block_offset = -1
+                dummy_end_block_nature_offset = -1
+                for bb in cfg.basicblocks:
+                    if bb.name in zero_outdegree:
+                        dummy_end_block_offset = max(
+                            dummy_end_block_offset, bb.end_offset + 1)
+                        dummy_end_block_nature_offset = max(
+                            dummy_end_block_nature_offset, bb.end_instr.nature_offset + 1)
+                dummy_end_block_offset_hex = str(
+                    hex(dummy_end_block_offset)[2:])
 
                 func_index = ele.split('_')[1]
-                # construct two dummy blocks
-                dummy_entry = BasicBlock()
+                # construct dummy end
+                dummy_end = BasicBlock()
                 end_ins = WasmInstruction(
-                    11, 'end', None, 0, b'\x0b', 0, 0, 'dummy entry')
-                dummy_entry.instructions = [end_ins]
-                dummy_entry.start_offset = 0
-                dummy_entry.start_instr = end_ins
-                dummy_entry.name = f"block_{func_index}_entry"
-                dummy_entry.end_instr = end_ins
-                dummy_entry.end_offset = end_ins.offset_end
-
-                dummy_end = copy.deepcopy(dummy_entry)
-                dummy_end.name = f"block_{func_index}_end"
+                    11, 'end', None, 0, b'\x0b', 0, 0, 'dummy end',
+                    offset=dummy_end_block_offset,
+                    nature_offset=dummy_end_block_nature_offset)
+                dummy_end.instructions = [end_ins]
+                dummy_end.start_offset = dummy_end_block_offset
+                dummy_end.start_instr = end_ins
+                dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
+                dummy_end.end_instr = end_ins
+                dummy_end.end_offset = end_ins.offset_end
 
                 # insert dummy blocks into cfg
                 for func in cfg.functions:
                     if func.name == func_name:
-                        func.basicblocks += [dummy_entry, dummy_end]
-                        cls.func_to_bbs[func_name].insert(0, dummy_entry.name)
+                        func.basicblocks += [dummy_end]
                         cls.func_to_bbs[func_name].append(dummy_end.name)
-                        cls.bb_to_instructions[dummy_entry] = dummy_entry.instructions
-                        cls.bb_to_instructions[dummy_end] = dummy_end.instructions
+                        cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
                         break
-                cfg.basicblocks += [dummy_entry, dummy_end]
+                cfg.basicblocks += [dummy_end]
 
-                # construct edges between dummy blocks and entry and exit points
+                # construct edges from original exit points to the dummy end block
                 # and update class variables
-                for i, entry in enumerate(zero_indegree):
-                    cfg.edges.append(
-                        Edge(dummy_entry.name, entry, EDGE_FALLTHROUGH))
-                    cls.bbs_graph[dummy_entry.name][f"{EDGE_FALLTHROUGH}_{i}"] = entry
-                    cls.rev_bbs_graph[entry][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_entry.name
                 for i, exit in enumerate(zero_outdegree):
                     cfg.edges.append(
                         Edge(
@@ -274,31 +279,27 @@ class Graph:
                     cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_end.name
                     cls.rev_bbs_graph[dummy_end.name][
                         f"{EDGE_FALLTHROUGH}_{i}"] = exit
-
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
-                cls.rev_bbs_graph[dummy_entry.name] = defaultdict(str)
-                cls.bb_to_instructions[dummy_entry.name] = dummy_entry.instructions
-                cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
 
         def _update_edges(
-                cfg, bb_name, callee_bb_name, dummy_entry_name, dummy_end_name,
+                cfg, bb_name, callee_bb_name, entry_name, dummy_end_name,
                 edge_count):
             """
-            Insert two edges: bb_name to dummy_entry_name, dummy_end_name to callee_bb_name
+            Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
             Update corresponding variables in bbs_graph and rev_bbs_graph
             """
             # insert two edges into cfg.edges
             call_edge = Edge(
-                bb_name, dummy_entry_name, EDGE_FALLTHROUGH)
+                bb_name, entry_name, EDGE_FALLTHROUGH)
             return_edge = Edge(
                 dummy_end_name, callee_bb_name, EDGE_FALLTHROUGH)
             cfg.edges += [call_edge, return_edge]
 
             # update bbs_graph
-            cls.bbs_graph[bb_name][f"fallthrough_{edge_count}"] = dummy_entry_name
+            cls.bbs_graph[bb_name][f"fallthrough_{edge_count}"] = entry_name
             cls.bbs_graph[dummy_end_name][f"fallthrough_{edge_count}"] = callee_bb_name
             # update rev_bbs_graph
-            cls.rev_bbs_graph[dummy_entry_name][
+            cls.rev_bbs_graph[entry_name][
                 f"fallthrough_{edge_count}"] = bb_name
             cls.rev_bbs_graph[callee_bb_name][f"fallthrough_{edge_count}"] = dummy_end_name
 
@@ -335,12 +336,12 @@ class Graph:
                     # if the callee is the import function
                     if f"$func{callee_op}" not in cls.func_to_bbs.keys():
                         continue
-                    dummy_entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
+                    entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
                     callee_bb_name = _remove_original_edge(cfg, bb_name)
                     _update_edges(cfg, bb_name, callee_bb_name,
-                                  dummy_entry_name, dummy_end_name, 0)
+                                  entry_name, dummy_end_name, 0)
                 elif last_ins.name == 'call_indirect':
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
@@ -351,15 +352,16 @@ class Graph:
                         # if the callee is the import function
                         if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
                             continue
-                        dummy_entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
+                        entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
                         dummy_end_name = cls.func_to_bbs[f"$func{possible_callee}"][-1]
-                        dummy_blocks.append((dummy_entry_name, dummy_end_name))
+                        dummy_blocks.append((entry_name, dummy_end_name))
 
                     callee_bb_name = _remove_original_edge(cfg, bb_name)
-                    for i, (dummy_entry_name, dummy_end_name) in enumerate(
+                    for i, (entry_name, dummy_end_name) in enumerate(
                             dummy_blocks):
-                        _update_edges(cfg, bb_name, callee_bb_name,
-                                      dummy_entry_name, dummy_end_name, i)
+                        _update_edges(
+                            cfg, bb_name, callee_bb_name, entry_name,
+                            dummy_end_name, i)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
