@@ -57,40 +57,78 @@ class ControlInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
         self.instr_string = instr_string
-        self.skip_command = {'loop', 'end', 'br', 'else', 'nop', 'block'}
+        self.skip_command = {'loop', 'end', 'br', 'else', 'block'}
         self.term_command = {'unreachable', 'return'}
 
-    def update_state_before_call(self, param_str, return_str, has_ret, state):
+    def store_context(
+            self, param_str, return_str, has_ret, state, callee_func_name):
         """
-        Duplicate a new state from the existing state.
-        And update the new_state with new stack and local variable.
+        Store the context of current stack and local.
+        The sequence is:
+        1. pop specific number of elements from stack, which will be used by callee
+        2. store the current context, including (current_func_name, stack, local, require_return)
+        3. assign popped elements in step 1 in local, change the current_func_name
         """
+        logging.info(
+            f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {callee_func_name}")
+        # step 1
         num_arg = 0
-        # dup new state and had_ret
-        new_state = copy.deepcopy(state)
-        new_has_ret = copy.deepcopy(has_ret)
-
         if param_str:
             num_arg = len(param_str.split(' '))
             arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
-            for x in range(num_arg):
-                new_state.local_var[num_arg - 1 - x] = arg[x]
 
-        if return_str:
-            has_ret.append(True)
-        else:
-            has_ret.append(False)
+        # step 2
+        state.context_stack.append((state.current_func_name, copy.deepcopy(
+            state.symbolic_stack),
+            copy.deepcopy(state.local_var),
+            True if return_str else False))
 
+        # step 3
+        for x in range(num_arg):
+            state.local_var[num_arg - 1 - x] = arg[x]
         # set the remaining local vars as None
-        for x in range(num_arg, len(new_state.local_var)):
+        for x in range(num_arg, len(state.local_var)):
             try:
-                new_state.local_var.pop(x)
+                state.local_var.pop(x)
             except KeyError:
                 # if some of the local var is unused during the caller
                 # there is no need to pop it, thus continue the loop
                 continue
 
-        return new_state, new_has_ret
+        state.current_func_name = callee_func_name
+        # if return_str:
+        #     has_ret.append(True)
+        # else:
+        #     has_ret.append(False)
+
+    def restore_context(self, state):
+        """
+        Restore context.
+
+        1. pop an element from stack if require return
+        2. restore the context
+        3. push the element in step 1 into stack
+        """
+        try:
+            caller_func_name, stack, local, require_return = state.context_stack.pop()
+        except IndexError:
+            exit()
+
+        logging.info(
+            f"Return: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}")
+
+        # step 1
+        if require_return:
+            return_val = state.symbolic_stack.pop()
+
+        # step 2
+        state.current_func_name = caller_func_name
+        state.symbolic_stack = stack
+        state.local_var = local
+
+        # step 3
+        if require_return:
+            state.symbolic_stack.append(return_val)
 
     def deal_with_call(self, state, f_offset, has_ret, data_section, analyzer):
         # get the callee's function signature
@@ -138,16 +176,9 @@ class ControlInstructions:
                 f"Termination: {readable_callee_func_name}")
             return [state]
         else:
-            # if the callee takes NO symbols as input:
-            # 1. the param_str is empty [Doing]
-            # 2. the params are all non-symbol [TODO]
-            # logging.warning(f'invoke: {readable_callee_func_name} with {callee_func_name}')
-            logging.info(
-                f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {readable_callee_func_name}")
-            # duplicate new_state and new_has_ret
-            # update the local and the stack
-            new_state, new_has_ret = self.update_state_before_call(
-                param_str, return_str, has_ret, state)
+            self.store_context(param_str, return_str,
+                               has_ret, state, readable_callee_func_name)
+            return None
             # traverse the callee
             possible_states = Graph.traverse_one(
                 callee_func_name, new_state, new_has_ret)
@@ -200,7 +231,11 @@ class ControlInstructions:
         if self.instr_name in self.term_command:
             return None
 
-        if self.instr_name == 'br_if':
+        if self.instr_name == 'nop':
+            if state.instr.xref:
+                self.restore_context(state)
+            return None
+        elif self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
                 op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"

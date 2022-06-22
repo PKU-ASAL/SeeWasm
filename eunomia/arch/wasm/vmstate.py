@@ -24,6 +24,10 @@ class WasmVMstate(VMstate):
         self.current_func_name = 'none'
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
+        # context stack
+        # whose element is 4-tuple: (func_name, stack, local, require_return)
+        # TODO files buffer may need to maintained in context
+        self.context_stack = []
 
         self.args = ""
         self.files_buffer = {}

@@ -250,7 +250,7 @@ class Graph:
                 # construct dummy end
                 dummy_end = BasicBlock()
                 end_ins = WasmInstruction(
-                    11, 'end', None, 0, b'\x0b', 0, 0, 'dummy end',
+                    1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
                     offset=dummy_end_block_offset,
                     nature_offset=dummy_end_block_nature_offset)
                 dummy_end.instructions = [end_ins]
@@ -282,7 +282,7 @@ class Graph:
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
 
         def _update_edges(
-                cfg, bb_name, callee_bb_name, entry_name, dummy_end_name,
+                cfg, bb_name, succ_bb_name, entry_name, dummy_end_name,
                 edge_count):
             """
             Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
@@ -292,29 +292,36 @@ class Graph:
             call_edge = Edge(
                 bb_name, entry_name, EDGE_FALLTHROUGH)
             return_edge = Edge(
-                dummy_end_name, callee_bb_name, EDGE_FALLTHROUGH)
+                dummy_end_name, succ_bb_name, EDGE_FALLTHROUGH)
             cfg.edges += [call_edge, return_edge]
 
             # update bbs_graph
             cls.bbs_graph[bb_name][f"fallthrough_{edge_count}"] = entry_name
-            cls.bbs_graph[dummy_end_name][f"fallthrough_{edge_count}"] = callee_bb_name
+            cls.bbs_graph[dummy_end_name][f"fallthrough_{edge_count}"] = succ_bb_name
             # update rev_bbs_graph
             cls.rev_bbs_graph[entry_name][
                 f"fallthrough_{edge_count}"] = bb_name
-            cls.rev_bbs_graph[callee_bb_name][f"fallthrough_{edge_count}"] = dummy_end_name
+            cls.rev_bbs_graph[succ_bb_name][f"fallthrough_{edge_count}"] = dummy_end_name
 
         def _remove_original_edge(cfg, bb_name):
             """
             Extract the successive block of bb_name, and return it.
             Also, remove the edge.
             """
-            callee_bb_name = list(
+            succ_bb_name = list(
                 cls.bbs_graph[bb_name].values())[0]
             # remove the edge: (bb_name, callee_bb_name)
             cfg.edges = [e for e in cfg.edges if (
-                e.node_from != bb_name or e.node_to != callee_bb_name)]
+                e.node_from != bb_name or e.node_to != succ_bb_name)]
 
-            return callee_bb_name
+            return succ_bb_name
+
+        def _update_xref(cfg, dummy_end_name, succ_bb_name):
+            for bb in cfg.basicblocks:
+                if bb.name == dummy_end_name:
+                    assert bb.end_instr.name == 'nop', f"{bb.name} does not end by 'nop'"
+                    bb.end_instr.xref.append(succ_bb_name)
+                    break
 
         def link_dummy_blocks(cfg):
             """
@@ -339,9 +346,10 @@ class Graph:
                     entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
-                    callee_bb_name = _remove_original_edge(cfg, bb_name)
-                    _update_edges(cfg, bb_name, callee_bb_name,
+                    succ_bb_name = _remove_original_edge(cfg, bb_name)
+                    _update_edges(cfg, bb_name, succ_bb_name,
                                   entry_name, dummy_end_name, 0)
+                    _update_xref(cfg, dummy_end_name, succ_bb_name)
                 elif last_ins.name == 'call_indirect':
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
@@ -362,6 +370,7 @@ class Graph:
                         _update_edges(
                             cfg, bb_name, callee_bb_name, entry_name,
                             dummy_end_name, i)
+                        _update_xref(cfg, dummy_end_name, succ_bb_name)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
@@ -371,7 +380,7 @@ class Graph:
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
         # we temporarily exit the process as it cannot be executed normally
-        raise Exception("Build graph normally, please continue")
+        # raise Exception("Build graph normally, please continue")
 
     @classmethod
     def parse_dsl(cls, user_dsl):
