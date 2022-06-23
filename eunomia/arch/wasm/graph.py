@@ -378,8 +378,6 @@ class Graph:
         init_aes_func(cfg)
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
-        # we temporarily exit the process as it cannot be executed normally
-        # raise Exception("Build graph normally, please continue")
 
     @classmethod
     def parse_dsl(cls, user_dsl):
