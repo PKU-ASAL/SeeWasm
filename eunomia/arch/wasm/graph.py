@@ -6,7 +6,6 @@ from collections import defaultdict, deque
 from datetime import datetime
 from os import makedirs, path
 from queue import PriorityQueue
-from typing import DefaultDict
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import DSLParseError
@@ -18,6 +17,8 @@ from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
                                      state_choose_info)
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
+from eunomia.arch.wasm.exceptions import ProcFailTermination
+from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from z3 import unsat
 
 # if a state belongs to one of these functions, it means that
@@ -218,21 +219,14 @@ class Graph:
             """
             # extract node with zero indegree and outdegree
             for func_name, bbs in cls.func_to_bbs.items():
-                zero_indegree, zero_outdegree, queue, visited = set(bbs), set(bbs), [
-                    bbs[0]], set()
-                while queue:
-                    ele = queue.pop(0)
-                    visited.add(ele)
-                    succs = list(cls.bbs_graph[ele].values())
-                    if succs:
-                        zero_outdegree.discard(ele)
-                        for succ in succs:
-                            zero_indegree.discard(succ)
-                            if succ not in visited:
-                                queue.append(succ)
+                out_degree = {b: 0 for b in bbs}
+                zero_outdegree = set()
+                for b in bbs:
+                    out_degree[b] += len(cls.bbs_graph[b])
+                for b in bbs:
+                    if out_degree[b] == 0:
+                        zero_outdegree.add(b)
 
-                assert len(
-                    zero_indegree) == 1, "a function can only have exactly one entry point"
                 assert zero_outdegree, "a function should have at least one exit point"
 
                 dummy_end_block_offset = -1
@@ -246,7 +240,7 @@ class Graph:
                 dummy_end_block_offset_hex = str(
                     hex(dummy_end_block_offset)[2:])
 
-                func_index = ele.split('_')[1]
+                func_index = b.split('_')[1]
                 # construct dummy end
                 dummy_end = BasicBlock()
                 end_ins = WasmInstruction(
@@ -342,6 +336,11 @@ class Graph:
                         callee_op = int(callee_op, 16)
                     # if the callee is the import function
                     if f"$func{callee_op}" not in cls.func_to_bbs.keys():
+                        continue
+                    # if the callee is emulated as C library funcs
+                    if readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(),
+                            f"$func{callee_op}") in C_LIBRARY_FUNCS:
                         continue
                     entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
@@ -566,7 +565,10 @@ class Graph:
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
-        blks = entry_func_bbs
+        blks = []
+        for _, bbs in cls.func_to_bbs.items():
+            blks += bbs
+
         if Configuration.get_algo() == 'dfs':
             final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
         elif Configuration.get_algo() == 'interval':
@@ -753,8 +755,11 @@ class Graph:
             succs_list = cls.bbs_graph[current_block].items()
             halt_flag = False
             # adopt DFS to traverse two intervals
-            emul_states = cls.wasmVM.emulate_basic_block(
-                state, has_ret, cls.bb_to_instructions[current_block])
+            try:
+                emul_states = cls.wasmVM.emulate_basic_block(
+                    state, has_ret, cls.bb_to_instructions[current_block])
+            except ProcFailTermination:
+                return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
                 return halt_flag, emul_states

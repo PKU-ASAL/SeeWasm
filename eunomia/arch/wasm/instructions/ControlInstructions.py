@@ -3,16 +3,14 @@ import logging
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import (NotDeterminedRetValError,
+from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           UnsupportInstructionError)
-from eunomia.arch.wasm.graph import Graph
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import readable_internal_func_name
-from z3 import (BitVecVal, Not, Or, is_bool, is_bv, is_false, is_true,
-                simplify, unsat)
+from z3 import Not, Or, is_bool, is_bv, is_false, is_true, simplify, unsat
 
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar',
@@ -109,10 +107,10 @@ class ControlInstructions:
         2. restore the context
         3. push the element in step 1 into stack
         """
-        try:
-            caller_func_name, stack, local, require_return = state.context_stack.pop()
-        except IndexError:
-            exit()
+        if len(state.context_stack) == 0:
+            raise ProcFailTermination(0)
+
+        caller_func_name, stack, local, require_return = state.context_stack.pop()
 
         logging.info(
             f"Return: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}")
@@ -178,48 +176,7 @@ class ControlInstructions:
         else:
             self.store_context(param_str, return_str,
                                has_ret, state, readable_callee_func_name)
-            return None
-            # traverse the callee
-            possible_states = Graph.traverse_one(
-                callee_func_name, new_state, new_has_ret)
 
-            possible_call_results = []
-            for pstate in possible_states:
-                to_be_returned = None
-                if has_ret and has_ret[-1]:
-                    to_be_returned = pstate.symbolic_stack.pop()
-                    if is_bool(to_be_returned):
-                        if is_false(to_be_returned):
-                            to_be_returned = BitVecVal(0, 32)
-                        elif is_true(to_be_returned):
-                            to_be_returned = BitVecVal(1, 32)
-                        else:
-                            raise NotDeterminedRetValError
-                possible_call_results.append(
-                    (to_be_returned, copy.deepcopy(pstate)))
-
-            # for stack balance
-            outer_need_ret = has_ret.pop()
-
-            for (return_value, rstate) in possible_call_results:
-                new_state = copy.deepcopy(state)
-
-                # if have outer_need_ret but no return_value, means the callee's this branch is failed
-                if outer_need_ret and return_value is None:
-                    continue
-                elif outer_need_ret and return_value is not None:
-                    new_state.symbolic_stack.append(return_value)
-                new_state.symbolic_memory = rstate.symbolic_memory
-                new_state.globals = rstate.globals
-                new_state.constraints = rstate.constraints
-                new_state.args = rstate.args
-                new_state.files_buffer = rstate.files_buffer
-                new_state.stdout_buffer = rstate.stdout_buffer
-                new_state.stderr_buffer = rstate.stderr_buffer
-                new_state.fd = rstate.fd
-
-                new_states.append(new_state)
-            logging.info(f"Return: {readable_callee_func_name}")
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
