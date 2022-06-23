@@ -1,32 +1,17 @@
 # This file gives some practical functions that will be adopted by other files
 
+import json
 import logging
 import re
 import struct
 from codecs import decode
-from enum import Enum
+from datetime import datetime
+from os import makedirs, path
 
+from eunomia.arch.wasm.configuration import Configuration, bcolors
 from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
+from eunomia.arch.wasm.solver import SMTSolver
 from z3 import FP, BitVec, Float32, Float64, is_bv, is_bv_value
-
-
-class Enable_Lasers(Enum):
-    OVERFLOW = 1
-    DIVZERO = 2
-    BUFFER = 4
-    ANOTHER = 8
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 # this is a mapping, which maps the data type to the corresponding BitVec
@@ -241,6 +226,8 @@ def bin_to_float(b):
 
 
 def my_int_to_bytes(x: int):
+    if x == 0:
+        return b'\x00'
     return x.to_bytes((x.bit_length() + 7) // 8, "little")
 
 
@@ -323,3 +310,42 @@ def str_to_little_endian_int(string):
     For example, "abc" is 6513249
     """
     return int.from_bytes(str.encode(string), "little")
+
+
+def write_result(state, exit=False):
+    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
+    makedirs(path.dirname(file_name), exist_ok=True)
+    state_result = {}
+    with open(file_name, 'w') as fp:
+        if exit:
+            state_result["Status"] = f"Exit with status code {state.symbolic_stack[-1]}"
+        else:
+            # return value
+            if state.symbolic_stack:
+                state_result["Return"] = str(state.symbolic_stack[-1])
+            else:
+                state_result["Return"] = None
+
+        # solution of constraints
+        state_result["Solution"] = {}
+        s = SMTSolver(Configuration.get_solver())
+        s += state.constraints
+        s.check()
+        m = s.model()
+        for k in m:
+            # the decode is weird, we just want to convert unprintable characters
+            # into printable chars
+            # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
+            state_result["Solution"][
+                str(k)] = my_int_to_bytes(
+                m[k].as_long()).decode('unicode_escape')
+
+        # stdout buffer
+        state.stdout_buffer = [str(i) for i in state.stdout_buffer]
+        state_result["stdout"] = f'{"".join(state.stdout_buffer)}'
+
+        # stderr buffer
+        state.stderr_buffer = [str(i) for i in state.stderr_buffer]
+        state_result["stderr"] = f'{"".join(state.stderr_buffer)}'
+
+        json.dump(state_result, fp, indent=4)

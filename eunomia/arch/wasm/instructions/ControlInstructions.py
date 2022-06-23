@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (ProcFailTermination,
+                                          ProcSuccessTermination,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
@@ -108,7 +109,7 @@ class ControlInstructions:
         3. push the element in step 1 into stack
         """
         if len(state.context_stack) == 0:
-            raise ProcFailTermination(0)
+            raise ProcSuccessTermination(0)
 
         caller_func_name, stack, local, require_return = state.context_stack.pop()
 

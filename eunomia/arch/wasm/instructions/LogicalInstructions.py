@@ -1,8 +1,7 @@
 # emulate the logical related instructions
 
-from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.configuration import Configuration, Enable_Lasers
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from eunomia.arch.wasm.utils import Enable_Lasers
 from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
                 fpLT, fpNEQ, is_bool, is_bv, is_bv_value, simplify)
 

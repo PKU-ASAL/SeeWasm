@@ -1,24 +1,20 @@
 import copy
-import json
 import logging
 import re
 from collections import defaultdict, deque
-from datetime import datetime
-from os import makedirs, path
 from queue import PriorityQueue
 
-from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import DSLParseError
+from eunomia.arch.wasm.configuration import Configuration, bcolors
+from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
+                                          ProcSuccessTermination)
 from eunomia.arch.wasm.instruction import WasmInstruction
+from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
-                                     branch_choose_info, my_int_to_bytes,
+from eunomia.arch.wasm.utils import (ask_user_input, branch_choose_info,
                                      readable_internal_func_name,
-                                     state_choose_info)
+                                     state_choose_info, write_result)
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
-from eunomia.arch.wasm.exceptions import ProcFailTermination
-from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from z3 import unsat
 
 # if a state belongs to one of these functions, it means that
@@ -756,7 +752,12 @@ class Graph:
             try:
                 emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])
+            except ProcSuccessTermination:
+                # end of path
+                return False, state
             except ProcFailTermination:
+                # trigger exit()
+                write_result(state[0], exit=True)
                 return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
@@ -831,39 +832,7 @@ class Graph:
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
-                makedirs(path.dirname(file_name), exist_ok=True)
-                state_result = {}
-                with open(file_name, 'w') as fp:
-                    # return value
-                    if item.symbolic_stack:
-                        state_result["Return"] = str(item.symbolic_stack[-1])
-                    else:
-                        state_result["Return"] = None
-
-                    # solution of constraints
-                    state_result["Solution"] = {}
-                    s = SMTSolver(Configuration.get_solver())
-                    s += item.constraints
-                    s.check()
-                    m = s.model()
-                    for k in m:
-                        # the decode is weird, we just want to convert unprintable characters
-                        # into printable chars
-                        # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
-                        state_result["Solution"][
-                            str(k)] = my_int_to_bytes(
-                            m[k].as_long()).decode('unicode_escape')
-
-                    # stdout buffer
-                    item.stdout_buffer = [str(i) for i in item.stdout_buffer]
-                    state_result["stdout"] = f'{"".join(item.stdout_buffer)}'
-
-                    # stderr buffer
-                    item.stderr_buffer = [str(i) for i in item.stderr_buffer]
-                    state_result["stderr"] = f'{"".join(item.stderr_buffer)}'
-
-                    json.dump(state_result, fp, indent=4)
+                write_result(item)
 
             final_states['return'].extend(emul_states)
             if halt_flag:
