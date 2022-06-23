@@ -272,8 +272,7 @@ class Graph:
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
 
         def _update_edges(
-                cfg, bb_name, succ_bb_name, entry_name, dummy_end_name,
-                edge_count):
+                cfg, bb_name, succ_bb_name, entry_name, dummy_end_name):
             """
             Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
             Update corresponding variables in bbs_graph and rev_bbs_graph
@@ -285,32 +284,59 @@ class Graph:
                 dummy_end_name, succ_bb_name, EDGE_FALLTHROUGH)
             cfg.edges += [call_edge, return_edge]
 
+            def find_max_fallthrough_edge_count(nested_dict, bb_name):
+                edge_count = -1
+                for e in nested_dict[bb_name].keys():
+                    if e.startswith('fall'):
+                        edge_count = max(edge_count, int(e.split('_')[1]))
+                return edge_count + 1
+
             # update bbs_graph
-            cls.bbs_graph[bb_name][f"fallthrough_{edge_count}"] = entry_name
-            cls.bbs_graph[dummy_end_name][f"fallthrough_{edge_count}"] = succ_bb_name
+            cls.bbs_graph[bb_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, bb_name)}"] = entry_name
+            cls.bbs_graph[dummy_end_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, dummy_end_name)}"] = succ_bb_name
             # update rev_bbs_graph
             cls.rev_bbs_graph[entry_name][
-                f"fallthrough_{edge_count}"] = bb_name
-            cls.rev_bbs_graph[succ_bb_name][f"fallthrough_{edge_count}"] = dummy_end_name
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, entry_name)}"] = bb_name
+            cls.rev_bbs_graph[succ_bb_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, succ_bb_name)}"] = dummy_end_name
 
         def _remove_original_edge(cfg, bb_name):
             """
             Extract the successive block of bb_name, and return it.
-            Also, remove the edge.
+            Also, remove the edge in edges, bbs_graph and rev_bbs_graph.
             """
             succ_bb_name = list(
                 cls.bbs_graph[bb_name].values())[0]
             # remove the edge: (bb_name, callee_bb_name)
             cfg.edges = [e for e in cfg.edges if (
                 e.node_from != bb_name or e.node_to != succ_bb_name)]
+            # update the bbs_graph and rev_bbs_graph
+            cls.bbs_graph = {bb: {e: callee_bb for e, callee_bb in cls.bbs_graph[bb].items(
+            ) if (callee_bb != succ_bb_name or bb != bb_name)} for bb in cls.bbs_graph}
+            cls.rev_bbs_graph = {callee_bb: {e: bb for e, bb in cls.rev_bbs_graph[callee_bb].items(
+            ) if (bb != bb_name or callee_bb != succ_bb_name)} for callee_bb in cls.rev_bbs_graph}
+
+            # convert these two as original data type
+            cls.bbs_graph = defaultdict(
+                lambda: defaultdict(str),
+                cls.bbs_graph)
+            cls.rev_bbs_graph = defaultdict(
+                lambda: defaultdict(str),
+                cls.rev_bbs_graph)
 
             return succ_bb_name
 
-        def _update_xref(cfg, dummy_end_name, succ_bb_name):
+        def _update_xref(cfg, dummy_end_name, succ_bb_name, callee_op):
+            """
+            Append a tuple in the xref of the `nop` instruction who locates in dummy end.
+            The tuple consists of: the next block's name, and its belonging function's name
+            """
             for bb in cfg.basicblocks:
                 if bb.name == dummy_end_name:
                     assert bb.end_instr.name == 'nop', f"{bb.name} does not end by 'nop'"
-                    bb.end_instr.xref.append(succ_bb_name)
+                    bb.end_instr.xref.append((succ_bb_name, callee_op))
                     break
 
         def link_dummy_blocks(cfg):
@@ -343,8 +369,8 @@ class Graph:
 
                     succ_bb_name = _remove_original_edge(cfg, bb_name)
                     _update_edges(cfg, bb_name, succ_bb_name,
-                                  entry_name, dummy_end_name, 0)
-                    _update_xref(cfg, dummy_end_name, succ_bb_name)
+                                  entry_name, dummy_end_name)
+                    _update_xref(cfg, dummy_end_name, succ_bb_name, callee_op)
                 elif last_ins.name == 'call_indirect':
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
@@ -355,17 +381,23 @@ class Graph:
                         # if the callee is the import function
                         if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
                             continue
+                        # if the callee is emulated as C library funcs
+                        if readable_internal_func_name(
+                                Configuration.get_func_index_to_func_name(),
+                                f"$func{possible_callee}") in C_LIBRARY_FUNCS:
+                            continue
                         entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
                         dummy_end_name = cls.func_to_bbs[f"$func{possible_callee}"][-1]
-                        dummy_blocks.append((entry_name, dummy_end_name))
+                        dummy_blocks.append(
+                            (entry_name, dummy_end_name, possible_callee))
 
                     callee_bb_name = _remove_original_edge(cfg, bb_name)
-                    for i, (entry_name, dummy_end_name) in enumerate(
-                            dummy_blocks):
+                    for entry_name, dummy_end_name, possible_callee in dummy_blocks:
                         _update_edges(
                             cfg, bb_name, callee_bb_name, entry_name,
-                            dummy_end_name, i)
-                        _update_xref(cfg, dummy_end_name, succ_bb_name)
+                            dummy_end_name)
+                        _update_xref(cfg, dummy_end_name,
+                                     succ_bb_name, possible_callee)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
@@ -374,6 +406,7 @@ class Graph:
         init_aes_func(cfg)
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
+        pass
 
     @classmethod
     def parse_dsl(cls, user_dsl):
@@ -750,6 +783,7 @@ class Graph:
             halt_flag = False
             # adopt DFS to traverse two intervals
             try:
+                print(current_block)
                 emul_states = cls.wasmVM.emulate_basic_block(
                     state, has_ret, cls.bb_to_instructions[current_block])
             except ProcSuccessTermination:
