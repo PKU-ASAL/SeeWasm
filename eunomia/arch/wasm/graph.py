@@ -799,7 +799,7 @@ class Graph:
             avail_br = {}
             for edge_type, next_block in succs_list:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
-                    lambda s: not cls.can_cut(edge_type, s, lvar[cur_head]), emul_states)))
+                    lambda s: not cls.can_cut(edge_type, next_block, s, lvar[cur_head]), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
             if guided:
@@ -880,14 +880,24 @@ class Graph:
         return unsat == solver.check()
 
     @ classmethod
-    def can_cut(cls, edge_type, state, lvar):
+    def can_cut(cls, edge_type, next_block, state, lvar):
         """
         The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
         """
         if isinstance(state, dict):
             state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
                 'conditional_') else state
-        return cls.sat_cut(state.constraints)
+
+        current_func = state.current_func_name
+        for func_name, blks in cls.func_to_bbs.items():
+            if next_block in blks:
+                break
+        not_same_func = readable_internal_func_name(
+            Configuration.get_func_index_to_func_name(),
+            current_func) != readable_internal_func_name(
+            Configuration.get_func_index_to_func_name(),
+            func_name)
+        return cls.sat_cut(state.constraints) or not_same_func
 
     @ classmethod
     def aes_run_local(cls, lvar, blk):
