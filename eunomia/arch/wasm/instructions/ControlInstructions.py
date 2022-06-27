@@ -3,8 +3,7 @@ import logging
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import (ProcFailTermination,
-                                          ProcSuccessTermination,
+from eunomia.arch.wasm.exceptions import (ProcSuccessTermination,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
@@ -64,7 +63,7 @@ class ControlInstructions:
         Store the context of current stack and local.
         The sequence is:
         1. pop specific number of elements from stack, which will be used by callee
-        2. store the current context, including (current_func_name, stack, local, require_return)
+        2. store the current context, including (current_func, current_block, stack, local, require_return)
         3. assign popped elements in step 1 in local, change the current_func_name
         """
         logging.info(
@@ -238,7 +237,7 @@ class ControlInstructions:
             call_indirect_func_type = int(self.instr_string.split(' ')[1][:-1])
             import_funcs_num = len(analyzer.imports_func)
 
-            states = []
+            state_func_offset_tuples = []
             solver = SMTSolver(Configuration.get_solver())
             for i, possible_func_offset in enumerate(possible_callee):
                 # if the type is not suitable, just jump over
@@ -246,22 +245,22 @@ class ControlInstructions:
                     continue
 
                 i = i + offset
-                new_state = copy.deepcopy(state)
                 solver.reset()
                 solver.add(simplify(op == i))
                 if unsat == solver.check():
                     continue
-                after_calls = self.deal_with_call(
-                    new_state, possible_func_offset, data_section, analyzer)
-                states.extend(after_calls)
-                # try each of them, like what you do after line 167
-            if len(states) == 0:
-                logging.error(f"op: {op}")
-                logging.error(f"possible_callee: {possible_callee}")
-                logging.error(f"offset: {offset}")
-                logging.error(f"{state}")
-                exit("call indirect error")
-            return states
+
+                state_func_offset_tuples.append(
+                    (copy.deepcopy(state), possible_func_offset))
+
+            if not state_func_offset_tuples:
+                exit("no valid callee in call_direct")
+            elif len(state_func_offset_tuples) > 1:
+                exit("multiple possible callees in call_indirect")
+            else:
+                state, func_offset = state_func_offset_tuples[0]
+                return self.deal_with_call(
+                    state, func_offset, data_section, analyzer)
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             op = state.symbolic_stack.pop()

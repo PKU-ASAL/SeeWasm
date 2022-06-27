@@ -639,10 +639,20 @@ class Graph:
                 'conditional_') else state
 
         if state.current_bb_name == '':
-            # normal situation
-            return cls.sat_cut(state.constraints)
+            # normal situation, check the current_func_name
+            cur_func = state.current_func_name
+            for func, blks in cls.func_to_bbs.items():
+                if next_block in blks:
+                    break
+            not_same_func = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                cur_func) != readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                func)
+
+            return cls.sat_cut(state.constraints) or not_same_func
         else:
-            # after restore_context
+            # after restore_context, check the current_bb_name
             cur_bb = state.current_bb_name
             for _, blks in cls.func_to_bbs.items():
                 try:
