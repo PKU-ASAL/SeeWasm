@@ -61,9 +61,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # split basic blocks by call and call_indirect instrucitons
         self.split_bbs()
 
-        # be inited in `graph.py`
-        self.user_dsl = None
-
         # all the exports function's name
         self.exported_func_names = [i["field_str"]
                                     for i in self.ana.exports if i["kind"] == 0]

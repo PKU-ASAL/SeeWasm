@@ -18,7 +18,6 @@ class BasicBlock(object):
         Below are properties may be deprecated in the future
             states: not clear
             function_name: its corresponding function's name
-            dsl: the user given constraints written in DSL (this is corresponding to the previous version's DSL)
         """
         self.start_offset = start_offset
         self.start_instr = start_instr
@@ -30,7 +29,6 @@ class BasicBlock(object):
         # may be deprecated in the future
         self.states = []
         self.function_name = "unknown"
-        self.dsl = []
 
     @property
     def size(self):
@@ -45,7 +43,6 @@ class BasicBlock(object):
         line += 'end_offset = ' + str(self.end_offset) + '\n'
         line += 'end_instr = ' + str(self.end_instr.name) + '\n'
         line += 'function_name = ' + str(self.function_name) + '\n'
-        line += 'dsl = ' + str(self.dsl) + '\n'
         out += line + '\n\n'
         return out
 
