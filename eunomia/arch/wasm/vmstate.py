@@ -21,7 +21,9 @@ class WasmVMstate(VMstate):
         # instruction
         self.instr = "end"
         # current function name
-        self.current_func_name = 'none'
+        self.current_func_name = ''
+        # current basic block's name, used in recursive process
+        self.current_bb_name = ''
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
         # context stack

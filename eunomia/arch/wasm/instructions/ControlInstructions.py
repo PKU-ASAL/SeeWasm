@@ -70,6 +70,7 @@ class ControlInstructions:
         """
         logging.info(
             f"Call: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)} -> {callee_func_name}")
+
         # step 1
         num_arg = 0
         if param_str:
@@ -77,10 +78,11 @@ class ControlInstructions:
             arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
 
         # step 2
-        state.context_stack.append((state.current_func_name, copy.deepcopy(
-            state.symbolic_stack),
-            copy.deepcopy(state.local_var),
-            True if return_str else False))
+        state.context_stack.append((state.current_func_name,
+                                    state.instr.cur_bb,
+                                    copy.deepcopy(state.symbolic_stack),
+                                    copy.deepcopy(state.local_var),
+                                    True if return_str else False))
 
         # step 3
         for x in range(num_arg):
@@ -111,7 +113,7 @@ class ControlInstructions:
         if len(state.context_stack) == 0:
             raise ProcSuccessTermination(0)
 
-        caller_func_name, stack, local, require_return = state.context_stack.pop()
+        caller_func_name, cur_bb, stack, local, require_return = state.context_stack.pop()
 
         logging.info(
             f"Return: {readable_internal_func_name(Configuration.get_func_index_to_func_name(), state.current_func_name)}")
@@ -122,6 +124,7 @@ class ControlInstructions:
 
         # step 2
         state.current_func_name = caller_func_name
+        state.current_bb_name = cur_bb
         state.symbolic_stack = stack
         state.local_var = local
 

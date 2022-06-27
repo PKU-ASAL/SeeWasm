@@ -35,6 +35,8 @@ class WasmInstruction(Instruction):
         self.imm_struct = imm_struct
         self.xref = list()
         self.ssa = None
+        # which basic block locates in
+        self.cur_bb = ''
 
     def __eq__(self, other):
         """ Instructions are equal if all features match  """

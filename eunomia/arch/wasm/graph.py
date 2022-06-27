@@ -399,6 +399,15 @@ class Graph:
                         _update_xref(cfg, dummy_end_name,
                                      succ_bb_name, possible_callee)
 
+        def update_instr_cur_bb(cfg):
+            """
+            Update the `cur_bb` fielf for each instruction in cfg.basicblocks
+            """
+            for bb in cfg.basicblocks:
+                bb_name = bb.name
+                for i in bb.instructions:
+                    i.cur_bb = bb_name
+
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
         init_bbs_graph(cfg)
@@ -406,6 +415,7 @@ class Graph:
         init_aes_func(cfg)
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
+        update_instr_cur_bb(cfg)
         pass
 
     @classmethod
@@ -796,12 +806,18 @@ class Graph:
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
                 return halt_flag, emul_states
+
             avail_br = {}
             for edge_type, next_block in succs_list:
                 valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
                     lambda s: not cls.can_cut(edge_type, next_block, s, lvar[cur_head]), emul_states)))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
+            # empty the current_bb_name, as it is only set in store_context and restore_context
+            for valid_state in avail_br.values():
+                for s in valid_state:
+                    s.current_bb_name = ''
+
             if guided:
                 # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
                 logging.warning(
@@ -888,16 +904,23 @@ class Graph:
             state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
                 'conditional_') else state
 
-        current_func = state.current_func_name
-        for func_name, blks in cls.func_to_bbs.items():
-            if next_block in blks:
+        if state.current_bb_name == '':
+            # normal situation
+            return cls.sat_cut(state.constraints)
+        else:
+            # after restore_context
+            cur_bb = state.current_bb_name
+            for _, blks in cls.func_to_bbs.items():
+                try:
+                    cur_bb_index = blks.index(cur_bb)
+                except ValueError:
+                    continue
+
+                succ_block = blks[cur_bb_index + 1]
                 break
-        not_same_func = readable_internal_func_name(
-            Configuration.get_func_index_to_func_name(),
-            current_func) != readable_internal_func_name(
-            Configuration.get_func_index_to_func_name(),
-            func_name)
-        return cls.sat_cut(state.constraints) or not_same_func
+
+            not_same_bb = succ_block != next_block
+            return cls.sat_cut(state.constraints) or not_same_bb
 
     @ classmethod
     def aes_run_local(cls, lvar, blk):
