@@ -77,8 +77,8 @@ def main():
         help='concretize values for globals despite the function is exported')
     features.add_argument(
         '--algo', default='interval', const='interval', nargs='?',
-        choices=['dfs', 'interval'],
-        help='choose an algorithm to traverse, default is dfs')
+        choices=['interval'],
+        help='choose an algorithm to traverse, default is interval')
     features.add_argument(
         '--coverage', action='store_true',
         help='calculate the instruction coverage')

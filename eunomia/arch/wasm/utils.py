@@ -147,29 +147,6 @@ def state_choose_info(emul_states):
     return emul_states
 
 
-def branch_choose_info(avail_br, branches, emul_state_item, emul_states):
-    logging.warning(
-        f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
-    if len(avail_br) == 1:
-        logging.warning(
-            f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-        avail_br = [
-            ask_user_input(
-                emul_states, isbr=True, onlyone=True,
-                branches=branches,
-                emul_state_item=emul_state_item)]
-    else:
-        logging.warning(
-            f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-        logging.warning(
-            f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-        avail_br = [
-            ask_user_input(
-                emul_states, isbr=True, branches=branches,
-                emul_state_item=emul_state_item)]
-    return avail_br
-
-
 def ask_user_input(
         emul_states, isbr, onlyone=False, branches=None, state_item=None):
     # `concerned_variable` is state_index or branch, depends on the flag value

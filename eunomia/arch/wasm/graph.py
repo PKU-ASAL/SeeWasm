@@ -10,7 +10,7 @@ from eunomia.arch.wasm.exceptions import (DSLParseError, ProcFailTermination,
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (ask_user_input, branch_choose_info,
+from eunomia.arch.wasm.utils import (ask_user_input,
                                      readable_internal_func_name,
                                      state_choose_info, write_result)
 from eunomia.core.basicblock import BasicBlock
@@ -416,7 +416,6 @@ class Graph:
         init_dummy_blocks(cfg)
         link_dummy_blocks(cfg)
         update_instr_cur_bb(cfg)
-        pass
 
     @classmethod
     def parse_dsl(cls, user_dsl):
@@ -603,115 +602,12 @@ class Graph:
         for _, bbs in cls.func_to_bbs.items():
             blks += bbs
 
-        if Configuration.get_algo() == 'dfs':
-            final_states = cls.algo_dfs(entry_bb, state, blks)
-        elif Configuration.get_algo() == 'interval':
+        if Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, blks)
         else:
             raise Exception("There is no traversing algorithm you required.")
 
         return final_states
-
-    @classmethod
-    def algo_dfs(cls, entry, state, blks=None):
-        """
-        Traverse the CFG according to DFS order
-        """
-        circles = set()
-        # calculate circle in this function, and update the outside `circles`
-        # TODO, I think this is ugly, we should use circles = cls.calc_circle() instead @zzhzz
-        cls.calc_circle(entry, defaultdict(int), circles)
-
-        # initialize the vis
-        vis = defaultdict(int)
-        final_states = cls.visit(
-            [state],
-            entry, vis, circles, cls.manual_guide)
-        return final_states
-
-    @classmethod
-    def calc_circle(cls, blk, vis, circles):
-        """
-        determine if there is a circle in CFG, add the circle's entry block into the `circles`
-        """
-        if vis[blk] == 1 and len(
-                cls.bbs_graph[blk]) >= 2:  # br_if and has visited
-            circles.add(blk)
-            return
-        vis[blk] = 1
-        for edge_type in cls.bbs_graph[blk]:
-            cls.calc_circle(cls.bbs_graph[blk][edge_type], vis, circles)
-        vis[blk] = 0
-
-    @classmethod
-    def visit(cls, states, blk, vis, circles, guided, prev=None, branches=None):
-        """
-        visit the CFG according to DFS order
-        """
-        if prev is not None:
-            vis[prev] += 1
-
-        # filter out a mapping, branch type to its targeting block
-        specify_branch = (branches is not None)
-        succ_branches_to_bb = cls.bbs_graph[blk]
-        if branches:
-            branches = {br: target_bb for br,
-                        target_bb in succ_branches_to_bb.items()
-                        if br.startswith(branches[0])}
-        if not branches:
-            branches = cls.bbs_graph[blk]
-
-        # emulate the given block, and obtain the final states
-        emul_states = cls.wasmVM.emulate_basic_block(
-            states, cls.bb_to_instructions[blk])
-        if guided:
-            emul_states = state_choose_info(emul_states)
-
-        final_states = []
-        for emul_state_item in emul_states:
-            avail_br = []
-            # filter out the satisfied branches
-            for edge_type in branches.keys():
-                if not cls.can_cut(edge_type, emul_state_item):
-                    avail_br.append(edge_type)
-            if guided:
-                avail_br = branch_choose_info(
-                    avail_br, branches, emul_state_item, emul_states)
-
-            for edge_type in avail_br:
-                nxt_blk = branches[edge_type]
-                state = emul_state_item[edge_type] if isinstance(
-                    emul_state_item, dict) else emul_state_item
-                if guided:
-                    final_states.extend(
-                        cls.visit(
-                            [copy.deepcopy(state)],
-                            nxt_blk, vis, circles, guided, blk))
-                else:
-                    if vis[nxt_blk] > 0:
-                        final_states.append(state)
-                        continue
-                    if nxt_blk in circles:
-                        enter_states = [copy.deepcopy(state)]
-                        for _ in range(cls.loop_maximum_rounds):
-                            final_states.extend(cls.visit(
-                                enter_states, nxt_blk, vis, circles,
-                                guided, blk, ['conditional_true']))
-                            enter_states = cls.visit(
-                                enter_states, nxt_blk, vis, circles,
-                                guided, blk, ['conditional_false'])
-                        final_states.extend(cls.visit(
-                            enter_states, nxt_blk, vis, circles,
-                            guided, blk, ['conditional_true']))
-                    else:
-                        final_states.extend(
-                            cls.visit(
-                                [copy.deepcopy(state)],
-                                nxt_blk, vis, circles, guided, blk))
-        vis[prev] -= 1
-        # TODO: Fix the Bug : may return a dict state, which is illegal.
-        # TODO Is this return statement problematic? @zzhzz
-        return final_states if specify_branch else emul_states
 
     @classmethod
     def algo_interval(cls, entry, state, blks):
@@ -934,19 +830,3 @@ class Graph:
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar
-
-    @ classmethod
-    def extract_edges(cls, entry):
-        edges = set()
-        que = deque([entry])
-        while que:
-            u = que.popleft()
-            for br in cls.bbs_graph[u]:
-                v = cls.bbs_graph[u][br]
-                if (u, v) not in edges:
-                    edges.add((u, v))
-                    que.append(v)
-        nds = set()
-        for edge in edges:
-            nds.add(edge[0])
-            nds.add(edge[1])
