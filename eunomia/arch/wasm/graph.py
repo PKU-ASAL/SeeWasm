@@ -576,27 +576,24 @@ class Graph:
         self.final_states[entry_func] = self.traverse_one(entry_func)
 
     @classmethod
-    def traverse_one(cls, func, state=None, has_ret=list()):
+    def traverse_one(cls, func, state=None):
         """
         Symbolically executing the given function
 
         Args:
             func (str): The to be analyzed function's name
             state (VMstate, optional): From which the execution will begin. Defaults to None.
-            has_ret (list(bool), optional): Indicate if the function in the calling stack has return. Defaults to None.
 
         Returns:
             list(VMstate): A list of states
         """
         # func_index_name is like $func16
-        func_index_name, param_str, return_str, _ = cls.wasmVM.get_signature(
-            func)
+        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func)
         if func not in cls.func_to_bbs:
             func = func_index_name
 
         if state is None:
-            state, has_ret = cls.wasmVM.init_state(
-                func, param_str, return_str, has_ret=[])
+            state = cls.wasmVM.init_state(func, param_str)
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -607,16 +604,16 @@ class Graph:
             blks += bbs
 
         if Configuration.get_algo() == 'dfs':
-            final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
+            final_states = cls.algo_dfs(entry_bb, state, blks)
         elif Configuration.get_algo() == 'interval':
-            final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
+            final_states = cls.algo_interval(entry_bb, state, blks)
         else:
             raise Exception("There is no traversing algorithm you required.")
 
         return final_states
 
     @classmethod
-    def algo_dfs(cls, entry, state, has_ret, blks=None):
+    def algo_dfs(cls, entry, state, blks=None):
         """
         Traverse the CFG according to DFS order
         """
@@ -628,7 +625,8 @@ class Graph:
         # initialize the vis
         vis = defaultdict(int)
         final_states = cls.visit(
-            [state], has_ret, entry, vis, circles, cls.manual_guide)
+            [state],
+            entry, vis, circles, cls.manual_guide)
         return final_states
 
     @classmethod
@@ -646,9 +644,7 @@ class Graph:
         vis[blk] = 0
 
     @classmethod
-    def visit(
-            cls, states, has_ret, blk, vis, circles, guided, prev=None,
-            branches=None):
+    def visit(cls, states, blk, vis, circles, guided, prev=None, branches=None):
         """
         visit the CFG according to DFS order
         """
@@ -667,7 +663,7 @@ class Graph:
 
         # emulate the given block, and obtain the final states
         emul_states = cls.wasmVM.emulate_basic_block(
-            states, has_ret, cls.bb_to_instructions[blk])
+            states, cls.bb_to_instructions[blk])
         if guided:
             emul_states = state_choose_info(emul_states)
 
@@ -690,7 +686,7 @@ class Graph:
                     final_states.extend(
                         cls.visit(
                             [copy.deepcopy(state)],
-                            has_ret, nxt_blk, vis, circles, guided, blk))
+                            nxt_blk, vis, circles, guided, blk))
                 else:
                     if vis[nxt_blk] > 0:
                         final_states.append(state)
@@ -699,25 +695,26 @@ class Graph:
                         enter_states = [copy.deepcopy(state)]
                         for _ in range(cls.loop_maximum_rounds):
                             final_states.extend(cls.visit(
-                                enter_states, has_ret, nxt_blk, vis, circles,
+                                enter_states, nxt_blk, vis, circles,
                                 guided, blk, ['conditional_true']))
                             enter_states = cls.visit(
-                                enter_states, has_ret, nxt_blk, vis, circles,
+                                enter_states, nxt_blk, vis, circles,
                                 guided, blk, ['conditional_false'])
                         final_states.extend(cls.visit(
-                            enter_states, has_ret, nxt_blk, vis, circles,
+                            enter_states, nxt_blk, vis, circles,
                             guided, blk, ['conditional_true']))
                     else:
-                        final_states.extend(cls.visit(
-                            [copy.deepcopy(state)],
-                            has_ret, nxt_blk, vis, circles, guided, blk))
+                        final_states.extend(
+                            cls.visit(
+                                [copy.deepcopy(state)],
+                                nxt_blk, vis, circles, guided, blk))
         vis[prev] -= 1
         # TODO: Fix the Bug : may return a dict state, which is illegal.
         # TODO Is this return statement problematic? @zzhzz
         return final_states if specify_branch else emul_states
 
     @classmethod
-    def algo_interval(cls, entry, state, has_ret, blks):
+    def algo_interval(cls, entry, state, blks):
         """
         Traverse the CFG according to intervals.
         See our paper for more details
@@ -729,7 +726,7 @@ class Graph:
         heads['return'] = 'return'
 
         final_states = cls.visit_interval(
-            [state], has_ret, entry, heads, cls.manual_guide, "return")
+            [state], entry, heads, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
@@ -768,8 +765,7 @@ class Graph:
         return intervals
 
     @classmethod
-    def visit_interval(
-            cls, states, has_ret, blk, heads, guided=False, prev=None):
+    def visit_interval(cls, states, blk, heads, guided=False, prev=None):
         """
         Performing interval traversal, see our paper for more details
 
@@ -795,7 +791,7 @@ class Graph:
             try:
                 print(current_block)
                 emul_states = cls.wasmVM.emulate_basic_block(
-                    state, has_ret, cls.bb_to_instructions[current_block])
+                    state, cls.bb_to_instructions[current_block])
             except ProcSuccessTermination:
                 # end of path
                 return False, state

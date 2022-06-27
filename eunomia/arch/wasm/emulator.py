@@ -227,7 +227,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 raise UnsupportGlobalTypeError
             state.globals[i] = op_val
 
-    def init_state(self, func_name, param_str, return_str, has_ret):
+    def init_state(self, func_name, param_str):
         files_buffer = {}
         for _, fd in Configuration.get_fd():
             files_buffer[fd] = Configuration.get_content(fd)
@@ -254,28 +254,21 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             is_exported = True
         self.init_globals(state, is_exported)
 
-        if return_str:
-            has_ret.append(True)
-        else:
-            has_ret.append(False)
+        return state
 
-        return state, has_ret
-
-    def emulate_basic_block(self, states, has_ret, instructions):
+    def emulate_basic_block(self, states, instructions):
         """
         Symbolically execute the instructions from each of state in states
 
         Args:
             states (list(VMstate)): From which the symbolic execution begin;
-            has_ret (list(bool)): Whether the functions in calling stack returns;
             instructions (list(Instruction)): A list of instruction objects
         """
         for instruction in instructions:
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
-                ret_state = self.emulate_one_instruction(
-                    instruction, state, has_ret)
+                ret_state = self.emulate_one_instruction(instruction, state)
 
                 if ret_state is not None:
                     next_states.extend(ret_state)
@@ -284,7 +277,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return states
 
-    def emulate_one_instruction(self, instr, state, has_ret):
+    def emulate_one_instruction(self, instr, state):
         instruction_map = {
             'Control': ControlInstructions,
             'Constant': ConstantInstructions,
@@ -336,8 +329,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if func_name in C_LIBRARY_FUNCS:
                     self.calculate_coverage(instr, func_name)
 
-            ret_states = instr_obj.emulate(
-                state, has_ret, self.data_section, self.ana)
+            ret_states = instr_obj.emulate(state, self.data_section, self.ana)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
             ret_states = instr_obj.emulate(state, self.ana)
         else:

@@ -59,8 +59,7 @@ class ControlInstructions:
         self.skip_command = {'loop', 'end', 'br', 'else', 'block'}
         self.term_command = {'unreachable', 'return'}
 
-    def store_context(
-            self, param_str, return_str, has_ret, state, callee_func_name):
+    def store_context(self, param_str, return_str, state, callee_func_name):
         """
         Store the context of current stack and local.
         The sequence is:
@@ -97,10 +96,6 @@ class ControlInstructions:
                 continue
 
         state.current_func_name = callee_func_name
-        # if return_str:
-        #     has_ret.append(True)
-        # else:
-        #     has_ret.append(False)
 
     def restore_context(self, state):
         """
@@ -132,7 +127,7 @@ class ControlInstructions:
         if require_return:
             state.symbolic_stack.append(return_val)
 
-    def deal_with_call(self, state, f_offset, has_ret, data_section, analyzer):
+    def deal_with_call(self, state, f_offset, data_section, analyzer):
         # get the callee's function signature
         target_func = analyzer.func_prototypes[f_offset]
         callee_func_name, param_str, return_str, _ = target_func
@@ -178,15 +173,14 @@ class ControlInstructions:
                 f"Termination: {readable_callee_func_name}")
             return [state]
         else:
-            self.store_context(param_str, return_str,
-                               has_ret, state, readable_callee_func_name)
+            self.store_context(param_str, return_str, state,
+                               readable_callee_func_name)
 
         if len(new_states) == 0:
             new_states.append(state)
         return new_states
 
-    def emulate(
-            self, state, has_ret, data_section, analyzer):
+    def emulate(self, state, data_section, analyzer):
         if self.instr_name in self.skip_command:
             return None
         if self.instr_name in self.term_command:
@@ -258,7 +252,7 @@ class ControlInstructions:
                 if unsat == solver.check():
                     continue
                 after_calls = self.deal_with_call(
-                    new_state, possible_func_offset, has_ret, data_section, analyzer)
+                    new_state, possible_func_offset, data_section, analyzer)
                 states.extend(after_calls)
                 # try each of them, like what you do after line 167
             if len(states) == 0:
@@ -303,7 +297,6 @@ class ControlInstructions:
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
-            return self.deal_with_call(
-                state, f_offset, has_ret, data_section, analyzer)
+            return self.deal_with_call(state, f_offset, data_section, analyzer)
         else:
             raise UnsupportInstructionError
