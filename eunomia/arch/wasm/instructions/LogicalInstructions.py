@@ -35,10 +35,6 @@ class LogicalInstructions:
                 result = simplify(arg0 == 0)
             else:
                 arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
-                # [call 4] [tee_local 5] [i32.const 0] [i32.lt_s] [br_if]
-                # if arg2.__str__() == 'db_find_i64_i32' and arg1.__str__() == '0':
-                #     state.symbolic_stack.append(BitVecVal(0, 32))
-                #     return False
 
                 assert is_bv(arg1) and is_bv(
                     arg2), f"in `logical` instruction, arg1 or arg2 type is wrong instead of BitVec"
@@ -93,7 +89,7 @@ class LogicalInstructions:
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
-            return None
+            return [state]
 
         def do_emulate_logical_float_instruction(state):
             arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
@@ -124,10 +120,11 @@ class LogicalInstructions:
             state.symbolic_stack.append(
                 simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
 
-            return None
+            return [state]
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_logical_int_instruction(state, overflow_check_flag)
+            return do_emulate_logical_int_instruction(
+                state, overflow_check_flag)
         else:
-            do_emulate_logical_float_instruction(state)
+            return do_emulate_logical_float_instruction(state)

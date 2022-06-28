@@ -295,7 +295,10 @@ def write_result(state, exit=False):
     state_result = {}
     with open(file_name, 'w') as fp:
         if exit:
-            state_result["Status"] = f"Exit with status code {state.symbolic_stack[-1]}"
+            if state.symbolic_stack:
+                state_result["Status"] = f"Exit with status code {state.symbolic_stack[-1]}"
+            else:
+                state_result["Status"] = f"Exit"
         else:
             # return value
             if state.symbolic_stack:

@@ -12,7 +12,7 @@ class ParametricInstructions:
     def emulate(self, state):
         if self.instr_name == 'drop':
             state.symbolic_stack.pop()
-            return None
+            return [state]
         elif self.instr_name == 'select':  # select instruction
             arg0, arg1, arg2 = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop()

@@ -58,4 +58,4 @@ class ConstantInstructions:
         else:
             raise UnsupportInstructionError
 
-        return None
+        return [state]

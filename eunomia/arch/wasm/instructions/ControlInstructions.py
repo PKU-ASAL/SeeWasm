@@ -135,7 +135,6 @@ class ControlInstructions:
             Configuration.get_func_index_to_func_name(),
             callee_func_name)
 
-        new_states = []
         # if the callee is a C library function
         if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_C:
@@ -170,25 +169,22 @@ class ControlInstructions:
         elif readable_callee_func_name in TERMINATED_FUNCS:
             logging.info(
                 f"Termination: {readable_callee_func_name}")
-            return [state]
         else:
             self.store_context(param_str, return_str, state,
                                readable_callee_func_name)
 
-        if len(new_states) == 0:
-            new_states.append(state)
-        return new_states
+        return [state]
 
     def emulate(self, state, data_section, analyzer):
         if self.instr_name in self.skip_command:
-            return None
+            return [state]
         if self.instr_name in self.term_command:
-            return None
+            return [state]
 
         if self.instr_name == 'nop':
             if state.instr.xref:
                 self.restore_context(state)
-            return None
+            return [state]
         elif self.instr_name == 'br_if':
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(

@@ -34,7 +34,7 @@ class MemoryInstructions:
         else:
             raise UnsupportInstructionError
 
-        return None
+        return [state]
 
 
 def load_instr(instr, state, data_section):

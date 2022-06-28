@@ -265,33 +265,29 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
-                ret_state = self.emulate_one_instruction(instruction, state)
-
-                if ret_state is not None:
-                    next_states.extend(ret_state)
-                else:
-                    next_states.append(copy.deepcopy(state))
+                next_states.extend(self.emulate_one_instruction(
+                    instruction, state))
             states = next_states
         return states
 
     def emulate_one_instruction(self, instr, state):
         instruction_map = {
-            'Control': ControlInstructions,
-            'Constant': ConstantInstructions,
-            'Conversion': ConversionInstructions,
-            'Memory': MemoryInstructions,
-            'Parametric': ParametricInstructions,
-            'Variable': VariableInstructions,
-            'Logical_i32': LogicalInstructions,
-            'Logical_i64': LogicalInstructions,
-            'Logical_f32': LogicalInstructions,
-            'Logical_f64': LogicalInstructions,
             'Arithmetic_i32': ArithmeticInstructions,
             'Arithmetic_i64': ArithmeticInstructions,
             'Arithmetic_f32': ArithmeticInstructions,
             'Arithmetic_f64': ArithmeticInstructions,
             'Bitwise_i32': BitwiseInstructions,
-            'Bitwise_i64': BitwiseInstructions
+            'Bitwise_i64': BitwiseInstructions,
+            'Constant': ConstantInstructions,
+            'Control': ControlInstructions,
+            'Conversion': ConversionInstructions,
+            'Logical_i32': LogicalInstructions,
+            'Logical_i64': LogicalInstructions,
+            'Logical_f32': LogicalInstructions,
+            'Logical_f64': LogicalInstructions,
+            'Memory': MemoryInstructions,
+            'Parametric': ParametricInstructions,
+            'Variable': VariableInstructions,
         }
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name

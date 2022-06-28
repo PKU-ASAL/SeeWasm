@@ -184,4 +184,4 @@ class ConversionInstructions:
 
         state.symbolic_stack.append(result)
 
-        return None
+        return [state]

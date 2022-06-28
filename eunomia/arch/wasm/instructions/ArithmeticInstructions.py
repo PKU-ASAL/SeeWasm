@@ -120,7 +120,7 @@ class ArithmeticInstructions:
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 
-            return None
+            return [state]
 
         def do_emulate_arithmetic_float_instruction(state, flags, laser_objs):
             # TODO need to be clarified
@@ -203,7 +203,7 @@ class ArithmeticInstructions:
             result = simplify(result)
             state.symbolic_stack.append(result)
 
-            return None
+            return [state]
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
