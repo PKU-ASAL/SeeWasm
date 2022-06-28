@@ -36,6 +36,9 @@ class WasmVMstate(VMstate):
         self.stderr_buffer = []
         self.fd = {'stdin': 0, 'stdout': 1, 'stderr': 2}
 
+        # used by br_if instruction
+        self.edge_type = ''
+
     def __str__(self):
         return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}

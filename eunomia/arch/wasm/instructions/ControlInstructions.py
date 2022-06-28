@@ -78,8 +78,8 @@ class ControlInstructions:
         # step 2
         state.context_stack.append((state.current_func_name,
                                     state.instr.cur_bb,
-                                    copy.deepcopy(state.symbolic_stack),
-                                    copy.deepcopy(state.local_var),
+                                    [e for e in state.symbolic_stack],
+                                    copy.copy(state.local_var),
                                     True if return_str else False))
 
         # step 3
@@ -185,41 +185,41 @@ class ControlInstructions:
             if state.instr.xref:
                 self.restore_context(state)
             return [state]
-        elif self.instr_name == 'br_if':
+        elif self.instr_name == 'br_if' or self.instr_name == 'if':
             op = state.symbolic_stack.pop()
             assert is_bv(op) or is_bool(
-                op), f"the type of op popped from stack in `br_if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true_0': copy.deepcopy(
-                state), 'conditional_false_0': copy.deepcopy(state)}
+                op), f"the type of op popped from stack in `br_if`/`if` is {type(op)} instead of bv or bool"
+            states = []
             if is_bv(op):
                 op = simplify(op != 0)
 
-            if not is_true(op):
-                # op is False, or a BoolRef that cannot be determined
-                states['conditional_true_0'].constraints.append(op)
-            if not is_false(op):
-                # op is True, or a BoolRef that cannot be determined
-                states['conditional_false_0'].constraints.append(
-                    simplify(Not(op)))
+            # | op      | branch              |
+            # | ------- | ------------------- |
+            # | False   | conditional_false_0 |
+            # | True    | conditional_true_0  |
+            # | BoolRef | both                |
 
-            return [states]
-        elif self.instr_name == 'if':
-            op = state.symbolic_stack.pop()
-            assert is_bv(op) or is_bool(
-                op), f"the type of op popped from stack in `if` is {type(op)} instead of bv or bool"
-            states = {'conditional_true_0': copy.deepcopy(
-                state), 'conditional_false_0': copy.deepcopy(state)}
-            if is_bv(op):
-                cond = simplify(op != 0)
+            if is_true(op):
+                state.edge_type = 'conditional_true_0'
+                states.append(state)
+            elif is_false(op):
+                state.edge_type = 'conditional_false_0'
+                states.append(state)
+            elif not is_true(op) and not is_false(op):
+                new_state = copy.deepcopy(state)
+                # conditional_true
+                state.edge_type = 'conditional_true_0'
+                state.constraints.append(op)
+                # conditional_false
+                new_state.edge_type = 'conditional_false_0'
+                new_state.constraints.append(simplify(Not(op)))
+                # append
+                states.append(state)
+                states.append(new_state)
+            else:
+                exit(f"br_if/if instruction error. op is {op}")
 
-            # similar as br_if
-            if not is_true(cond):
-                states['conditional_true_0'].constraints.append(cond)
-            if not is_false(cond):
-                states['conditional_false_0'].constraints.append(
-                    simplify(Not(cond)))
-
-            return [states]
+            return states
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
             # this instruction will pop an element out of the stack, and use this as an index in the table, i.e., elem section in Wasm module, to dynamically determine which fucntion will be invoked
@@ -259,6 +259,7 @@ class ControlInstructions:
                     state, func_offset, data_section, analyzer)
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
+            # TODO examine br_table
             op = state.symbolic_stack.pop()
 
             # operands of br_table instruction
@@ -269,21 +270,28 @@ class ControlInstructions:
             target_branch2index = defaultdict(list)
             for index, target in enumerate(br_lis):
                 target_branch2index[target].append(index)
-            states = {}
+
+            # construct possible state
+            states = []
             for target, index_list in target_branch2index.items():
-                new_state = copy.deepcopy(state)
                 index_list = [simplify(op == i) for i in index_list]
                 cond = simplify(Or(index_list))
-                if not is_true(cond):
-                    new_state.constraints.append(cond)
-                states['conditional_true_' + str(target)] = new_state
-            false_state = copy.deepcopy(state)
-            cond = simplify(op >= n_br)
-            if not is_true(cond):
-                false_state.constraints.append(cond)
-            states['conditional_false_0'] = false_state
+                if is_false(cond):
+                    continue
+                new_state = copy.deepcopy(state)
+                new_state.constraints.append(cond)
+                new_state.edge_type = f"conditional_true_{target}"
+                states.append(new_state)
 
-            return [states]
+            cond = simplify(op >= n_br)
+            if is_false(cond):
+                return states
+            else:
+                state.constraints.append(cond)
+                state.edge_type = "conditional_false_0"
+                states.append(state)
+
+                return states
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
             # get the callee's function signature

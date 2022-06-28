@@ -543,14 +543,21 @@ class Graph:
 
             avail_br = {}
             for edge_type, next_block in succs_list:
-                valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
-                    lambda s: not cls.can_cut(edge_type, next_block, s, lvar[cur_head]), emul_states)))
+                valid_state = list(
+                    filter(
+                        lambda s: not cls.can_cut(
+                            edge_type, next_block, s,
+                            lvar[cur_head]),
+                        emul_states))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
-            # empty the current_bb_name, as it is only set in store_context and restore_context
+            # rest:
+            # current_bb_name, it is only set in store_context and restore_context
+            # edge_type, it is only set in br_if, if and br_table
             for valid_state in avail_br.values():
                 for s in valid_state:
                     s.current_bb_name = ''
+                    s.edge_type = ''
 
             if guided:
                 # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
@@ -634,9 +641,9 @@ class Graph:
         """
         The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
         """
-        if isinstance(state, dict):
-            state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
-                'conditional_') else state
+        if state.edge_type:
+            not_same_edge = state.edge_type != edge_type
+            return cls.sat_cut(state.constraints) or not_same_edge
 
         if state.current_bb_name == '':
             # normal situation, check the current_func_name
