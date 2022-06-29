@@ -173,15 +173,17 @@ class Graph:
             """
             bbs = cfg.basicblocks
             for bb in bbs:
+                # Update the `cur_bb` fielf for each instruction
+                for ins in bb.instructions:
+                    ins.cur_bb = bb.name
                 cls.bb_to_instructions[bb.name] = bb.instructions
 
-        def init_aes_func(cfg):
+        def init_aes_func():
             """
             initialize the aes_func
             """
-            bbs = cfg.basicblocks
-            for bb in bbs:
-                for instr in bb.instructions:
+            for bb_name, instructions in cls.bb_to_instructions.items():
+                for instr in instructions:
                     if instr.name == 'call':  # aes rules will be regarded as instrumented function calls
                         instr_operand = instr.operand_interpretation.split(' ')[
                             1]
@@ -195,9 +197,9 @@ class Graph:
                             Configuration.get_func_index_to_func_name(), func_name)
                         # aes function's name is generated in "name$index" format.
                         if len(readable_name.split('$')) == 2:
-                            cls.aes_func[bb.name].add(readable_name)
+                            cls.aes_func[bb_name].add(readable_name)
 
-        def init_dummy_blocks(cfg):
+        def init_dummy_blocks():
             """
             Insert dummy entry and end before and aftr each function's cfg.
             Refer to: https://github.com/HNYuuu/Wasm-SE/issues/70
@@ -218,63 +220,54 @@ class Graph:
 
                 dummy_end_block_offset = -1
                 dummy_end_block_nature_offset = -1
-                for bb in cfg.basicblocks:
-                    if bb.name in zero_outdegree:
-                        dummy_end_block_offset = max(
-                            dummy_end_block_offset, bb.end_offset + 1)
-                        dummy_end_block_nature_offset = max(
-                            dummy_end_block_nature_offset, bb.end_instr.nature_offset + 1)
+                for zero_outdegree_bb in zero_outdegree:
+                    # the bb's end_offset is its last instruction's offset_end
+                    bb_end_offset = cls.bb_to_instructions[zero_outdegree_bb][
+                        -1].offset_end
+                    bb_end_instr_nature_offset = cls.bb_to_instructions[
+                        zero_outdegree_bb][-1].nature_offset
+                    dummy_end_block_offset = max(
+                        dummy_end_block_offset, bb_end_offset + 1)
+                    dummy_end_block_nature_offset = max(
+                        dummy_end_block_nature_offset,
+                        bb_end_instr_nature_offset + 1)
                 dummy_end_block_offset_hex = str(
                     hex(dummy_end_block_offset)[2:])
 
                 func_index = b.split('_')[1]
                 # construct dummy end
                 dummy_end = BasicBlock()
+                dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
+
                 end_ins = WasmInstruction(
                     1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
                     offset=dummy_end_block_offset,
                     nature_offset=dummy_end_block_nature_offset)
-                dummy_end.instructions = [end_ins]
+                end_ins.cur_bb = dummy_end.name
+
                 dummy_end.start_offset = dummy_end_block_offset
                 dummy_end.start_instr = end_ins
-                dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
+                dummy_end.instructions = [end_ins]
                 dummy_end.end_instr = end_ins
                 dummy_end.end_offset = end_ins.offset_end
 
-                # insert dummy blocks into cfg
-                for func in cfg.functions:
-                    if func.name == func_name:
-                        func.basicblocks += [dummy_end]
-                        cls.func_to_bbs[func_name].append(dummy_end.name)
-                        cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
-                        break
-                cfg.basicblocks += [dummy_end]
+                # insert dummy blocks
+                cls.func_to_bbs[func_name].append(dummy_end.name)
+                cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
 
                 # construct edges from original exit points to the dummy end block
                 # and update class variables
                 for i, exit in enumerate(zero_outdegree):
-                    cfg.edges.append(
-                        Edge(
-                            exit, dummy_end.name,
-                            EDGE_FALLTHROUGH))
                     cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_end.name
                     cls.rev_bbs_graph[dummy_end.name][
                         f"{EDGE_FALLTHROUGH}_{i}"] = exit
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
 
-        def _update_edges(
-                cfg, bb_name, succ_bb_name, entry_name, dummy_end_name):
+        def _update_edges(bb_name, succ_bb_name, entry_name, dummy_end_name):
             """
             Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
             Update corresponding variables in bbs_graph and rev_bbs_graph
             """
-            # insert two edges into cfg.edges
-            call_edge = Edge(
-                bb_name, entry_name, EDGE_FALLTHROUGH)
-            return_edge = Edge(
-                dummy_end_name, succ_bb_name, EDGE_FALLTHROUGH)
-            cfg.edges += [call_edge, return_edge]
-
             def find_max_fallthrough_edge_count(nested_dict, bb_name):
                 edge_count = -1
                 for e in nested_dict[bb_name].keys():
@@ -293,16 +286,12 @@ class Graph:
             cls.rev_bbs_graph[succ_bb_name][
                 f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, succ_bb_name)}"] = dummy_end_name
 
-        def _remove_original_edge(cfg, bb_name):
+        def _remove_original_edge(bb_name):
             """
             Extract the successive block of bb_name, and return it.
             Also, remove the edge in edges, bbs_graph and rev_bbs_graph.
             """
-            succ_bb_name = list(
-                cls.bbs_graph[bb_name].values())[0]
-            # remove the edge: (bb_name, callee_bb_name)
-            cfg.edges = [e for e in cfg.edges if (
-                e.node_from != bb_name or e.node_to != succ_bb_name)]
+            succ_bb_name = list(cls.bbs_graph[bb_name].values())[0]
             # update the bbs_graph and rev_bbs_graph
             cls.bbs_graph = {bb: {e: callee_bb for e, callee_bb in cls.bbs_graph[bb].items(
             ) if (callee_bb != succ_bb_name or bb != bb_name)} for bb in cls.bbs_graph}
@@ -319,26 +308,24 @@ class Graph:
 
             return succ_bb_name
 
-        def _update_xref(cfg, dummy_end_name, succ_bb_name, callee_op):
+        def _update_xref(dummy_end_name, succ_bb_name, callee_op):
             """
             Append a tuple in the xref of the `nop` instruction who locates in dummy end.
             The tuple consists of: the next block's name, and its belonging function's name
             """
-            for bb in cfg.basicblocks:
-                if bb.name == dummy_end_name:
-                    assert bb.end_instr.name == 'nop', f"{bb.name} does not end by 'nop'"
-                    bb.end_instr.xref.append((succ_bb_name, callee_op))
-                    break
+            dummy_end_bb_instrs = cls.bb_to_instructions[dummy_end_name]
+            assert len(
+                dummy_end_bb_instrs) == 1, f"{dummy_end_name} consists of more than 1 instructions: {dummy_end_bb_instrs}"
+            dummy_end_bb_instrs[0].xref.append((succ_bb_name, callee_op))
 
-        def link_dummy_blocks(cfg):
+        def link_dummy_blocks():
             """
             Remove edges after call, directly link it to the callee's dummy entry.
             Also link the dummy end to the next instruction of the call.
             Update edges in cfg, and bbs_graph and rev_bbs_graph in class
             """
-            for bb in cfg.basicblocks:
-                last_ins = bb.instructions[-1]
-                bb_name = bb.name
+            for bb_name, instructions in cls.bb_to_instructions.items():
+                last_ins = instructions[-1]
                 if last_ins.name == 'call':
                     # find the dummy blocks' name
                     # if the callee is imported in, do nothing and continue
@@ -358,10 +345,10 @@ class Graph:
                     entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
-                    succ_bb_name = _remove_original_edge(cfg, bb_name)
-                    _update_edges(cfg, bb_name, succ_bb_name,
+                    succ_bb_name = _remove_original_edge(bb_name)
+                    _update_edges(bb_name, succ_bb_name,
                                   entry_name, dummy_end_name)
-                    _update_xref(cfg, dummy_end_name, succ_bb_name, callee_op)
+                    _update_xref(dummy_end_name, succ_bb_name, callee_op)
                 elif last_ins.name == 'call_indirect':
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
@@ -382,31 +369,20 @@ class Graph:
                         dummy_blocks.append(
                             (entry_name, dummy_end_name, possible_callee))
 
-                    callee_bb_name = _remove_original_edge(cfg, bb_name)
+                    callee_bb_name = _remove_original_edge(bb_name)
                     for entry_name, dummy_end_name, possible_callee in dummy_blocks:
-                        _update_edges(
-                            cfg, bb_name, callee_bb_name, entry_name,
-                            dummy_end_name)
-                        _update_xref(cfg, dummy_end_name,
+                        _update_edges(bb_name, callee_bb_name,
+                                      entry_name, dummy_end_name)
+                        _update_xref(dummy_end_name,
                                      succ_bb_name, possible_callee)
-
-        def update_instr_cur_bb(cfg):
-            """
-            Update the `cur_bb` fielf for each instruction in cfg.basicblocks
-            """
-            for bb in cfg.basicblocks:
-                bb_name = bb.name
-                for i in bb.instructions:
-                    i.cur_bb = bb_name
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
         init_bbs_graph(cfg)
         init_bb_to_instr(cfg)
-        init_aes_func(cfg)
-        init_dummy_blocks(cfg)
-        link_dummy_blocks(cfg)
-        update_instr_cur_bb(cfg)
+        init_aes_func()
+        init_dummy_blocks()
+        link_dummy_blocks()
 
     def traverse(self):
         """
@@ -527,7 +503,7 @@ class Graph:
             halt_flag = False
             # adopt DFS to traverse two intervals
             try:
-                print(current_block)
+                # print(current_block)
                 emul_states = cls.wasmVM.emulate_basic_block(
                     state, cls.bb_to_instructions[current_block])
             except ProcSuccessTermination:
