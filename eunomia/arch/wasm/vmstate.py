@@ -1,5 +1,4 @@
 # This file defines the `state` that will be passed within Wasm-SE
-import copy
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
@@ -21,9 +20,15 @@ class WasmVMstate(VMstate):
         # instruction
         self.instr = "end"
         # current function name
-        self.current_func_name = 'none'
+        self.current_func_name = ''
+        # current basic block's name, used in recursive process
+        self.current_bb_name = ''
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
+        # context stack
+        # whose element is 4-tuple: (func_name, stack, local, require_return)
+        # TODO files buffer may need to maintained in context
+        self.context_stack = []
 
         self.args = ""
         self.files_buffer = {}
@@ -31,18 +36,8 @@ class WasmVMstate(VMstate):
         self.stderr_buffer = []
         self.fd = {'stdin': 0, 'stdout': 1, 'stderr': 2}
 
-    def translate(self, ctx):
-        state = WasmVMstate()
-        for v in self.symbolic_stack:
-            state.symbolic_stack.append(copy.deepcopy(v).translate(ctx))
-        for k, v in self.symbolic_memory.items():
-            state.symbolic_memory[k] = copy.deepcopy(v).translate(ctx)
-        for k, v in self.local_var.items():
-            state.local_var[k] = copy.deepcopy(v).translate(ctx)
-        for k, v in self.globals.items():
-            state.globals[k] = copy.deepcopy(v).translate(ctx)
-        for c in self.constraints:
-            state.constraints.append(copy.deepcopy(c).translate(ctx))
+        # used by br_if instruction
+        self.edge_type = ''
 
     def __str__(self):
         return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}

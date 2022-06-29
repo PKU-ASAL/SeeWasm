@@ -27,10 +27,6 @@ def main():
         '--source_type', default='c', const='c', nargs='?', choices=['c',
                                                                      'go'],
         help='type of source file, used by library function emulator')
-    inputs.add_argument('--dsl',
-                        action='store',
-                        type=str,
-                        help='The path of your DSL file')
     inputs.add_argument('--solver',
                         default='z3',
                         const='z3',
@@ -77,8 +73,8 @@ def main():
         help='concretize values for globals despite the function is exported')
     features.add_argument(
         '--algo', default='interval', const='interval', nargs='?',
-        choices=['dfs', 'interval'],
-        help='choose an algorithm to traverse, default is dfs')
+        choices=['interval'],
+        help='choose an algorithm to traverse, default is interval')
     features.add_argument(
         '--coverage', action='store_true',
         help='calculate the instruction coverage')
@@ -136,18 +132,6 @@ def main():
     Configuration.set_file(args.file.name)
     octo_bytecode = args.file.read()
 
-    # if user pass the dsl file path
-    user_dsl = []
-    if args.dsl:
-        assert path.exists(args.dsl), f"DSL file ({args.dsl}) does not exist"
-        python_cmd = sh.Command('python3')
-        cmd = ['./DSL/parser.py', args.dsl]
-        python_cmd(cmd)
-
-        # after parse, load the json
-        with open(args.dsl + ".json") as fp:
-            user_dsl = json.load(fp)
-
     # Control Flow Analysis & Call flow Analysis
     if args.cfg or args.call or args.analytic:
         from eunomia.analysis.graph import CFGGraph
@@ -203,7 +187,6 @@ def main():
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
         Graph.initialize()
-        Graph.parse_dsl(user_dsl)
         graph = Graph()
         graph.traverse()
 

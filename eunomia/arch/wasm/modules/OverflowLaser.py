@@ -3,9 +3,8 @@
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.configuration import Configuration, bcolors
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import bcolors
 from z3 import (BitVecNumRef, BVAddNoOverflow, BVMulNoOverflow,
                 BVSubNoUnderflow, Not, sat)
 

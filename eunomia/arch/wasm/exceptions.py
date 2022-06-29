@@ -69,13 +69,6 @@ class UnexpectedDataType(Exception):
     pass
 
 
-class DSLParseError(Exception):
-    """
-    Raising an error when parsing DSL
-    """
-    pass
-
-
 class ProcSuccessTermination(Exception):
     """
     Indicate the process is successfully terminated

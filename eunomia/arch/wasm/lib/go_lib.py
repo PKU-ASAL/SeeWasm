@@ -2,19 +2,17 @@
 
 import logging
 
-from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.configuration import Configuration, bcolors
 from eunomia.arch.wasm.dwarfParser import (get_func_index_from_state,
                                            get_source_location,
                                            get_source_location_string)
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.memory import (insert_symbolic_memory,
                                       lookup_symbolic_memory_data_section)
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bcolors,
-                                     getConcreteBitVec,
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, getConcreteBitVec,
                                      parse_printf_formatting)
 from z3 import (Z3_OP_ITE, BitVec, BitVecVal, BoolVal, Extract, is_bv_value,
                 is_const, is_eq, is_expr, is_not, simplify)
-
 
 _values = {
     0: BitVec("NaN", 32),

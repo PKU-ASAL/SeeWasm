@@ -9,16 +9,15 @@ class BasicBlock(object):
         The properties of basic blocks
 
         Properties:
-            start_offset: the offset of the first instruction on function level
+            start_offset: the `offset` of the first instruction
             start_instr: the first instruction of the current basic block
             name: the name of the basic block, whose naming style is "block_[func_index]_[start_offset]"
-            end_offset: the offset_ned of the last instruction
+            end_offset: the `offset_end` of the last instruction
             end_instr: the last instruction
 
         Below are properties may be deprecated in the future
             states: not clear
             function_name: its corresponding function's name
-            dsl: the user given constraints written in DSL (this is corresponding to the previous version's DSL)
         """
         self.start_offset = start_offset
         self.start_instr = start_instr
@@ -30,7 +29,6 @@ class BasicBlock(object):
         # may be deprecated in the future
         self.states = []
         self.function_name = "unknown"
-        self.dsl = []
 
     @property
     def size(self):
@@ -45,7 +43,6 @@ class BasicBlock(object):
         line += 'end_offset = ' + str(self.end_offset) + '\n'
         line += 'end_instr = ' + str(self.end_instr.name) + '\n'
         line += 'function_name = ' + str(self.function_name) + '\n'
-        line += 'dsl = ' + str(self.dsl) + '\n'
         out += line + '\n\n'
         return out
 

@@ -1,4 +1,3 @@
-from json import load
 import logging
 import math
 
@@ -6,7 +5,8 @@ from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
                                            get_source_location)
-from eunomia.arch.wasm.exceptions import (UnexpectedDataType,
+from eunomia.arch.wasm.exceptions import (ProcFailTermination,
+                                          UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
@@ -79,7 +79,6 @@ class CPredefinedFunction:
             logging.info(
                 f"\tprintf, pattern_p: {pattern_p}, param_p: {param_p}")
             self.output_pattern_string(param_p, pattern_p, state, data_section)
-
         elif self.name == 'vfprintf':
             param_p, pattern_p, stream_p = _extract_params(param_str, state)
             logging.info(
@@ -151,6 +150,10 @@ class CPredefinedFunction:
 
             # the scanf returns how many items are inputted
             state.symbolic_stack.append(BitVecVal(len(parsed_pattern), 32))
+        elif self.name == 'exit':
+            status, = _extract_params(param_str, state)
+            logging.info(f"\texit, status: {status}")
+            raise ProcFailTermination(status)
         elif self.name == 'swap':
             the_one, the_other = _extract_params(param_str, state)
             logging.info(f"\tswap, the_one: {the_one}, the_other: {the_other}")

@@ -2,13 +2,13 @@
 
 import logging
 
-from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.configuration import (Configuration, Enable_Lasers,
+                                             bcolors)
 from eunomia.arch.wasm.dwarfParser import (get_func_index_from_state,
                                            get_source_location_string)
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
 from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser
 from eunomia.arch.wasm.modules.OverflowLaser import OverflowLaser
-from eunomia.arch.wasm.utils import Enable_Lasers, bcolors
 from z3 import (RNE, RTN, RTP, RTZ, BitVec, BitVecVal, Float32, Float64, SRem,
                 UDiv, URem, fpAbs, fpAdd, fpDiv, fpMax, fpMin, fpMul, fpNeg,
                 fpRoundToIntegral, fpSqrt, fpSub, is_bool, simplify)
@@ -120,7 +120,7 @@ class ArithmeticInstructions:
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 
-            return False
+            return [state]
 
         def do_emulate_arithmetic_float_instruction(state, flags, laser_objs):
             # TODO need to be clarified
@@ -203,11 +203,12 @@ class ArithmeticInstructions:
             result = simplify(result)
             state.symbolic_stack.append(result)
 
-            return False
+            return [state]
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            do_emulate_arithmetic_int_instruction(
+            return do_emulate_arithmetic_int_instruction(
                 state, flags, laser_objs, analyzer)
         else:
-            do_emulate_arithmetic_float_instruction(state, flags, laser_objs)
+            return do_emulate_arithmetic_float_instruction(
+                state, flags, laser_objs)

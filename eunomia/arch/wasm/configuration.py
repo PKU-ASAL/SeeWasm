@@ -1,5 +1,25 @@
-from eunomia.arch.wasm.utils import Enable_Lasers
+from enum import Enum
+
 from z3 import BitVec
+
+
+class Enable_Lasers(Enum):
+    OVERFLOW = 1
+    DIVZERO = 2
+    BUFFER = 4
+    ANOTHER = 8
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 class Configuration:
@@ -8,7 +28,7 @@ class Configuration:
     """
     _user_asked_lasers = 0
     _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
-    _algo = 'dfs'       # the traverse algorithm, default is dfs, we also have 'interval'
+    _algo = 'interval'       # the traverse algorithm, default is interval
     _concrete_globals = False   # init the global with the declaration in global sections
     _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
     # the backend SMT solver, may integrate our lab's own backend in the future

@@ -48,4 +48,4 @@ class VariableInstructions:
             state.local_var[op] = var
         else:
             raise UnsupportInstructionError
-        return None
+        return [state]

@@ -12,7 +12,7 @@ class ParametricInstructions:
     def emulate(self, state):
         if self.instr_name == 'drop':
             state.symbolic_stack.pop()
-            return None
+            return [state]
         elif self.instr_name == 'select':  # select instruction
             arg0, arg1, arg2 = state.symbolic_stack.pop(
             ), state.symbolic_stack.pop(), state.symbolic_stack.pop()
@@ -23,12 +23,12 @@ class ParametricInstructions:
                 state.symbolic_stack.append(arg1 if arg0 == 0 else arg2)
                 return [state]
             else:
-                state1 = copy.deepcopy(state)
-                state1.constraints.append(simplify(arg0 != 0))
-                state1.symbolic_stack.append(arg1)
-                state2 = copy.deepcopy(state)
-                state2.constraints.append(simplify(arg0 == 0))
-                state2.symbolic_stack.append(arg2)
-                return [state1, state2]
+                new_state = copy.deepcopy(state)
+                new_state.constraints.append(simplify(arg0 != 0))
+                new_state.symbolic_stack.append(arg1)
+
+                state.constraints.append(simplify(arg0 == 0))
+                state.symbolic_stack.append(arg2)
+                return [state, new_state]
         else:
             raise UnsupportInstructionError

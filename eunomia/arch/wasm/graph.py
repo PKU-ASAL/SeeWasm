@@ -1,19 +1,19 @@
 import copy
-import json
 import logging
-import re
 from collections import defaultdict, deque
-from datetime import datetime
-from os import makedirs, path
 from queue import PriorityQueue
 
-from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import DSLParseError
+from eunomia.arch.wasm.configuration import Configuration, bcolors
+from eunomia.arch.wasm.exceptions import (ProcFailTermination,
+                                          ProcSuccessTermination)
+from eunomia.arch.wasm.instruction import WasmInstruction
+from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (ask_user_input, bcolors,
-                                     branch_choose_info, my_int_to_bytes,
+from eunomia.arch.wasm.utils import (ask_user_input,
                                      readable_internal_func_name,
-                                     state_choose_info)
+                                     state_choose_info, write_result)
+from eunomia.core.basicblock import BasicBlock
+from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
 from z3 import unsat
 
 # if a state belongs to one of these functions, it means that
@@ -63,13 +63,11 @@ class Graph:
     Properties:
         _func_to_bbs: a mapping, from function's name to its included basic blocks (wrapped in a list);
         _bb_to_instructions: a mappming, from basic block's name to its included instruction objects (wrapped in a list);
-        _bb_to_dsl: a mapping, from basic block's name to its corresponding DSL constraints (wrapped in a list);
         _aes_func: a mapping, not clear;
         _bbs_graph: a mapping, from basic block's name to a mapping, from edge type to its corresponding pointed to basic block's name;
         _rev_bbs_graph: same as above, but its reversed;
         _workers: reserved, for multi-processing;
         manual_guide: indicate if the path finding is guided by user manually;
-        _user_dsl: not clear;
     """
     _func_to_bbs = defaultdict(list)
     _bb_to_instructions = defaultdict(list)
@@ -77,11 +75,9 @@ class Graph:
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
 
-    _bb_to_dsl = defaultdict(list)
     _workers = 2
     _wasmVM = None
     manual_guide = False
-    _user_dsl = None
 
     def __init__(self):
         self.entry = Configuration.get_entry()
@@ -106,10 +102,6 @@ class Graph:
     @classproperty
     def bb_to_instructions(cls):
         return cls._bb_to_instructions
-
-    @classproperty
-    def bb_to_dsl(cls):
-        return cls._bb_to_dsl
 
     @classproperty
     def wasmVM(cls):
@@ -145,7 +137,7 @@ class Graph:
             # or the order of br_table branches will be random, the true_0 will not corrspond to the nearest block
             # TODO quite a huge overhead, try another way
             edges = sorted(edges, key=lambda x: (
-                x.node_from, int(x.node_to[x.node_to.rfind('_') + 1:], 16)))
+                x.node_from, int(x.node_to.split('_')[2], 16)))
 
             type_ids = defaultdict(lambda: defaultdict(int))
             type_rev_ids = defaultdict(lambda: defaultdict(int))
@@ -181,15 +173,17 @@ class Graph:
             """
             bbs = cfg.basicblocks
             for bb in bbs:
+                # Update the `cur_bb` fielf for each instruction
+                for ins in bb.instructions:
+                    ins.cur_bb = bb.name
                 cls.bb_to_instructions[bb.name] = bb.instructions
 
-        def init_aes_func(cfg):
+        def init_aes_func():
             """
             initialize the aes_func
             """
-            bbs = cfg.basicblocks
-            for bb in bbs:
-                for instr in bb.instructions:
+            for bb_name, instructions in cls.bb_to_instructions.items():
+                for instr in instructions:
                     if instr.name == 'call':  # aes rules will be regarded as instrumented function calls
                         instr_operand = instr.operand_interpretation.split(' ')[
                             1]
@@ -203,162 +197,192 @@ class Graph:
                             Configuration.get_func_index_to_func_name(), func_name)
                         # aes function's name is generated in "name$index" format.
                         if len(readable_name.split('$')) == 2:
-                            cls.aes_func[bb.name].add(readable_name)
+                            cls.aes_func[bb_name].add(readable_name)
+
+        def init_dummy_blocks():
+            """
+            Insert dummy entry and end before and aftr each function's cfg.
+            Refer to: https://github.com/HNYuuu/Wasm-SE/issues/70
+
+            Also update basicblocks in cfg, and class variables: bbs_graph, rev_bbs_graph and bb_to_instructions
+            """
+            # extract node with zero indegree and outdegree
+            for func_name, bbs in cls.func_to_bbs.items():
+                out_degree = {b: 0 for b in bbs}
+                zero_outdegree = set()
+                for b in bbs:
+                    out_degree[b] += len(cls.bbs_graph[b])
+                for b in bbs:
+                    if out_degree[b] == 0:
+                        zero_outdegree.add(b)
+
+                assert zero_outdegree, "a function should have at least one exit point"
+
+                dummy_end_block_offset = -1
+                dummy_end_block_nature_offset = -1
+                for zero_outdegree_bb in zero_outdegree:
+                    # the bb's end_offset is its last instruction's offset_end
+                    bb_end_offset = cls.bb_to_instructions[zero_outdegree_bb][
+                        -1].offset_end
+                    bb_end_instr_nature_offset = cls.bb_to_instructions[
+                        zero_outdegree_bb][-1].nature_offset
+                    dummy_end_block_offset = max(
+                        dummy_end_block_offset, bb_end_offset + 1)
+                    dummy_end_block_nature_offset = max(
+                        dummy_end_block_nature_offset,
+                        bb_end_instr_nature_offset + 1)
+                dummy_end_block_offset_hex = str(
+                    hex(dummy_end_block_offset)[2:])
+
+                func_index = b.split('_')[1]
+                # construct dummy end
+                dummy_end = BasicBlock()
+                dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
+
+                end_ins = WasmInstruction(
+                    1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
+                    offset=dummy_end_block_offset,
+                    nature_offset=dummy_end_block_nature_offset)
+                end_ins.cur_bb = dummy_end.name
+
+                dummy_end.start_offset = dummy_end_block_offset
+                dummy_end.start_instr = end_ins
+                dummy_end.instructions = [end_ins]
+                dummy_end.end_instr = end_ins
+                dummy_end.end_offset = end_ins.offset_end
+
+                # insert dummy blocks
+                cls.func_to_bbs[func_name].append(dummy_end.name)
+                cls.bb_to_instructions[dummy_end.name] = dummy_end.instructions
+
+                # construct edges from original exit points to the dummy end block
+                # and update class variables
+                for i, exit in enumerate(zero_outdegree):
+                    cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_end.name
+                    cls.rev_bbs_graph[dummy_end.name][
+                        f"{EDGE_FALLTHROUGH}_{i}"] = exit
+                cls.bbs_graph[dummy_end.name] = defaultdict(str)
+
+        def _update_edges(bb_name, succ_bb_name, entry_name, dummy_end_name):
+            """
+            Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
+            Update corresponding variables in bbs_graph and rev_bbs_graph
+            """
+            def find_max_fallthrough_edge_count(nested_dict, bb_name):
+                edge_count = -1
+                for e in nested_dict[bb_name].keys():
+                    if e.startswith('fall'):
+                        edge_count = max(edge_count, int(e.split('_')[1]))
+                return edge_count + 1
+
+            # update bbs_graph
+            cls.bbs_graph[bb_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, bb_name)}"] = entry_name
+            cls.bbs_graph[dummy_end_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, dummy_end_name)}"] = succ_bb_name
+            # update rev_bbs_graph
+            cls.rev_bbs_graph[entry_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, entry_name)}"] = bb_name
+            cls.rev_bbs_graph[succ_bb_name][
+                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, succ_bb_name)}"] = dummy_end_name
+
+        def _remove_original_edge(bb_name):
+            """
+            Extract the successive block of bb_name, and return it.
+            Also, remove the edge in edges, bbs_graph and rev_bbs_graph.
+            """
+            succ_bb_name = list(cls.bbs_graph[bb_name].values())[0]
+            # update the bbs_graph and rev_bbs_graph
+            cls.bbs_graph = {bb: {e: callee_bb for e, callee_bb in cls.bbs_graph[bb].items(
+            ) if (callee_bb != succ_bb_name or bb != bb_name)} for bb in cls.bbs_graph}
+            cls.rev_bbs_graph = {callee_bb: {e: bb for e, bb in cls.rev_bbs_graph[callee_bb].items(
+            ) if (bb != bb_name or callee_bb != succ_bb_name)} for callee_bb in cls.rev_bbs_graph}
+
+            # convert these two as original data type
+            cls.bbs_graph = defaultdict(
+                lambda: defaultdict(str),
+                cls.bbs_graph)
+            cls.rev_bbs_graph = defaultdict(
+                lambda: defaultdict(str),
+                cls.rev_bbs_graph)
+
+            return succ_bb_name
+
+        def _update_xref(dummy_end_name, succ_bb_name, callee_op):
+            """
+            Append a tuple in the xref of the `nop` instruction who locates in dummy end.
+            The tuple consists of: the next block's name, and its belonging function's name
+            """
+            dummy_end_bb_instrs = cls.bb_to_instructions[dummy_end_name]
+            assert len(
+                dummy_end_bb_instrs) == 1, f"{dummy_end_name} consists of more than 1 instructions: {dummy_end_bb_instrs}"
+            dummy_end_bb_instrs[0].xref.append((succ_bb_name, callee_op))
+
+        def link_dummy_blocks():
+            """
+            Remove edges after call, directly link it to the callee's dummy entry.
+            Also link the dummy end to the next instruction of the call.
+            Update edges in cfg, and bbs_graph and rev_bbs_graph in class
+            """
+            for bb_name, instructions in cls.bb_to_instructions.items():
+                last_ins = instructions[-1]
+                if last_ins.name == 'call':
+                    # find the dummy blocks' name
+                    # if the callee is imported in, do nothing and continue
+                    callee_op = last_ins.operand_interpretation.split(' ')[1]
+                    try:
+                        callee_op = int(callee_op)
+                    except ValueError:
+                        callee_op = int(callee_op, 16)
+                    # if the callee is the import function
+                    if f"$func{callee_op}" not in cls.func_to_bbs.keys():
+                        continue
+                    # if the callee is emulated as C library funcs
+                    if readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(),
+                            f"$func{callee_op}") in C_LIBRARY_FUNCS:
+                        continue
+                    entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
+                    dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
+
+                    succ_bb_name = _remove_original_edge(bb_name)
+                    _update_edges(bb_name, succ_bb_name,
+                                  entry_name, dummy_end_name)
+                    _update_xref(dummy_end_name, succ_bb_name, callee_op)
+                elif last_ins.name == 'call_indirect':
+                    # find all possible callees
+                    # refer to call_indirect in `ControlInstructions.py`
+                    # store all dummy blocks in pair
+                    dummy_blocks = []
+                    possible_callees = cls.wasmVM.ana.elements[0]['elems']
+                    for possible_callee in possible_callees:
+                        # if the callee is the import function
+                        if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
+                            continue
+                        # if the callee is emulated as C library funcs
+                        if readable_internal_func_name(
+                                Configuration.get_func_index_to_func_name(),
+                                f"$func{possible_callee}") in C_LIBRARY_FUNCS:
+                            continue
+                        entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
+                        dummy_end_name = cls.func_to_bbs[f"$func{possible_callee}"][-1]
+                        dummy_blocks.append(
+                            (entry_name, dummy_end_name, possible_callee))
+
+                    callee_bb_name = _remove_original_edge(bb_name)
+                    for entry_name, dummy_end_name, possible_callee in dummy_blocks:
+                        _update_edges(bb_name, callee_bb_name,
+                                      entry_name, dummy_end_name)
+                        _update_xref(dummy_end_name,
+                                     succ_bb_name, possible_callee)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
         init_bbs_graph(cfg)
         init_bb_to_instr(cfg)
-        init_aes_func(cfg)
-
-    @classmethod
-    def parse_dsl(cls, user_dsl):
-        """
-        This function is used to parse user-given dsl:
-        step 1: extract relevant blocks and insert into a json file;
-        step 2: insert the DSL into corresponding block
-        """
-
-        def _extract_blocks_by_funcname(target_func_name):
-            target_blocks = cls.func_to_bbs.get(target_func_name, None)
-            if not target_blocks:
-                # if it cannot be accessed by name directly
-                for func_offset, func_name in Configuration.get_func_index_to_func_name().items():
-                    if target_func_name == func_name:
-                        # if func_name is target_func_name, extract the blocks
-                        target_blocks = cls.func_to_bbs[f"$func{str(func_offset)}"]
-                        break
-            return target_blocks
-
-        def all_descendant(node):
-            visited = set()
-            q = deque([node])
-            while q:
-                tmp = q.popleft()
-                if tmp in visited:
-                    continue
-                visited.add(tmp)
-                for edge_type, direct_descendant in cls.bbs_graph[tmp].items():
-                    if edge_type == "unconditional_0" and direct_descendant not in visited:
-                        visited.add(direct_descendant)
-                        continue
-                    q.append(direct_descendant)
-            return visited
-
-        def nearest_common(node1, node2):
-            node1_descendant = all_descendant(node1)
-            node2_descendant = all_descendant(node2)
-            intersected = node1_descendant.intersection(node2_descendant)
-            if not intersected:
-                return None
-            else:
-                # sort
-                intersected = list(intersected)
-                intersected = [int(i[i.rfind('_') + 1:], 16)
-                               for i in intersected]
-                intersected.sort()
-                intersected = [hex(i)[2:] for i in intersected]
-                return intersected[0]
-
-        def _analyze_nesting(head, depth):
-            if len(counter) < depth:
-                counter.append(0)
-            q = deque()
-            q.append(head)
-            while q:
-                tmp = q.popleft()
-                if tmp in main_branch:
-                    return
-                main_branch.add(tmp)
-                if len(cls.bbs_graph[tmp]) == 0:
-                    return
-                elif len(cls.bbs_graph[tmp]) == 1:
-                    q.append(list(cls.bbs_graph[tmp].values())[0])
-                elif len(cls.bbs_graph[tmp]) == 2:
-                    false_node, true_node = cls.bbs_graph[tmp][
-                        'conditional_false_0'], cls.bbs_graph[tmp][
-                        'conditional_true_0']
-                    nc = nearest_common(false_node, true_node)
-                    if nc:  # if then structure
-                        nc = head[:head.rfind('_')] + '_' + nc
-                        result[false_node] = '_'.join(
-                            [str(i) for i in counter])
-                        counter[depth - 1] += 1
-                        result[true_node] = '_'.join([str(i) for i in counter])
-                        counter[depth - 1] += 1
-                        q.append(nc)
-                        need_run.append(false_node)
-                        need_run.append(true_node)
-                    else:  # loop structure
-                        result[false_node] = '_'.join(
-                            [str(i) for i in counter])
-                        counter[depth - 1] += 1
-                        q.append(true_node)
-                        need_run.append(false_node)
-                else:
-                    raise DSLParseError
-
-        # step 1
-        for dsl_item in user_dsl:
-            dsl_item["blocks"] = list()
-            # if user use regex
-            scope_is_regex = dsl_item.get('regex', False)
-            if scope_is_regex:
-                target_func_name_re = dsl_item["scope"]
-                r = re.compile(target_func_name_re)
-                target_func_names = list(
-                    filter(r.match, Configuration.get_func_index_to_func_name().values()))
-            else:
-                target_func_names = [dsl_item["scope"]]
-
-            for target_func_name in target_func_names:
-                target_blocks = _extract_blocks_by_funcname(
-                    target_func_name)
-                if target_blocks:
-                    if "nesting" in dsl_item.keys():
-                        # initialize for each function
-                        counter = []  # depth indicator
-                        result = dict()
-                        main_branch = set()  # used to terminate recursive _analyze_nesting
-                        need_run = deque()
-
-                        # we need run the current func's first block
-                        need_run.append(target_blocks[0])
-                        while need_run:
-                            tmp = need_run.popleft()
-                            if tmp in result:
-                                counter = [int(i)
-                                           for i in result[tmp].split('_')]
-                            _analyze_nesting(tmp, len(counter) + 1)
-
-                        # parse the result
-                        concerned_dsl = '_'.join(
-                            [str(i) for i in dsl_item["nesting"]])
-                        for tmp_block, extracted_dsl in result.items():
-                            if extracted_dsl == concerned_dsl:
-                                dsl_item["blocks"].append([tmp_block])
-                                break
-                    else:
-                        dsl_item["blocks"].append(target_blocks)
-
-        cls.wasmVM.user_dsl = user_dsl
-
-        # step 2
-        for dsl_item in user_dsl:
-            # if there is regex, there may be more than one matched funcs
-            # i.e., more than one set of blocks
-            for func_blocks in dsl_item['blocks']:
-                # we insert the dsl to the first block
-                target_block = func_blocks[0]
-                # iterate the cfg to find the target block and insert the dsl
-                for cfg_block in cls.wasmVM.cfg.basicblocks:
-                    if cfg_block.name == target_block:
-                        tmp_dsl_item = copy.deepcopy(dsl_item)
-                        # remove 'blocks' field
-                        tmp_dsl_item.pop('blocks')
-                        cfg_block.dsl.append(tmp_dsl_item)
-                        cls.bb_to_dsl[cfg_block.name].append(tmp_dsl_item)
-                        break
+        init_aes_func()
+        init_dummy_blocks()
+        link_dummy_blocks()
 
     def traverse(self):
         """
@@ -369,145 +393,42 @@ class Graph:
         self.final_states[entry_func] = self.traverse_one(entry_func)
 
     @classmethod
-    def traverse_one(cls, func, state=None, has_ret=list()):
+    def traverse_one(cls, func, state=None):
         """
         Symbolically executing the given function
 
         Args:
             func (str): The to be analyzed function's name
             state (VMstate, optional): From which the execution will begin. Defaults to None.
-            has_ret (list(bool), optional): Indicate if the function in the calling stack has return. Defaults to None.
 
         Returns:
             list(VMstate): A list of states
         """
         # func_index_name is like $func16
-        func_index_name, param_str, return_str, _ = cls.wasmVM.get_signature(
-            func)
+        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func)
         if func not in cls.func_to_bbs:
             func = func_index_name
 
         if state is None:
-            state, has_ret = cls.wasmVM.init_state(
-                func, param_str, return_str, has_ret=[])
+            state = cls.wasmVM.init_state(func, param_str)
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
         # filter out the entry basic block and corresponding instructions
         entry_bb = list(filter(lambda bb: bb[-2:] == '_0', entry_func_bbs))[0]
-        blks = entry_func_bbs
-        if Configuration.get_algo() == 'dfs':
-            final_states = cls.algo_dfs(entry_bb, state, has_ret, blks)
-        elif Configuration.get_algo() == 'interval':
-            final_states = cls.algo_interval(entry_bb, state, has_ret, blks)
+        blks = []
+        for _, bbs in cls.func_to_bbs.items():
+            blks += bbs
+
+        if Configuration.get_algo() == 'interval':
+            final_states = cls.algo_interval(entry_bb, state, blks)
         else:
             raise Exception("There is no traversing algorithm you required.")
 
         return final_states
 
     @classmethod
-    def algo_dfs(cls, entry, state, has_ret, blks=None):
-        """
-        Traverse the CFG according to DFS order
-        """
-        circles = set()
-        # calculate circle in this function, and update the outside `circles`
-        # TODO, I think this is ugly, we should use circles = cls.calc_circle() instead @zzhzz
-        cls.calc_circle(entry, defaultdict(int), circles)
-
-        # initialize the vis
-        vis = defaultdict(int)
-        final_states = cls.visit(
-            [state], has_ret, entry, vis, circles, cls.manual_guide)
-        return final_states
-
-    @classmethod
-    def calc_circle(cls, blk, vis, circles):
-        """
-        determine if there is a circle in CFG, add the circle's entry block into the `circles`
-        """
-        if vis[blk] == 1 and len(
-                cls.bbs_graph[blk]) >= 2:  # br_if and has visited
-            circles.add(blk)
-            return
-        vis[blk] = 1
-        for edge_type in cls.bbs_graph[blk]:
-            cls.calc_circle(cls.bbs_graph[blk][edge_type], vis, circles)
-        vis[blk] = 0
-
-    @classmethod
-    def visit(
-            cls, states, has_ret, blk, vis, circles, guided, prev=None,
-            branches=None):
-        """
-        visit the CFG according to DFS order
-        """
-        if prev is not None:
-            vis[prev] += 1
-
-        # filter out a mapping, branch type to its targeting block
-        specify_branch = (branches is not None)
-        succ_branches_to_bb = cls.bbs_graph[blk]
-        if branches:
-            branches = {br: target_bb for br,
-                        target_bb in succ_branches_to_bb.items()
-                        if br.startswith(branches[0])}
-        if not branches:
-            branches = cls.bbs_graph[blk]
-
-        # emulate the given block, and obtain the final states
-        emul_states = cls.wasmVM.emulate_basic_block(
-            states, has_ret, cls.bb_to_instructions[blk])
-        if guided:
-            emul_states = state_choose_info(emul_states)
-
-        final_states = []
-        for emul_state_item in emul_states:
-            avail_br = []
-            # filter out the satisfied branches
-            for edge_type in branches.keys():
-                if not cls.can_cut(edge_type, emul_state_item):
-                    avail_br.append(edge_type)
-            if guided:
-                avail_br = branch_choose_info(
-                    avail_br, branches, emul_state_item, emul_states)
-
-            for edge_type in avail_br:
-                nxt_blk = branches[edge_type]
-                state = emul_state_item[edge_type] if isinstance(
-                    emul_state_item, dict) else emul_state_item
-                if guided:
-                    final_states.extend(
-                        cls.visit(
-                            [copy.deepcopy(state)],
-                            has_ret, nxt_blk, vis, circles, guided, blk))
-                else:
-                    if vis[nxt_blk] > 0:
-                        final_states.append(state)
-                        continue
-                    if nxt_blk in circles:
-                        enter_states = [copy.deepcopy(state)]
-                        for _ in range(cls.loop_maximum_rounds):
-                            final_states.extend(cls.visit(
-                                enter_states, has_ret, nxt_blk, vis, circles,
-                                guided, blk, ['conditional_true']))
-                            enter_states = cls.visit(
-                                enter_states, has_ret, nxt_blk, vis, circles,
-                                guided, blk, ['conditional_false'])
-                        final_states.extend(cls.visit(
-                            enter_states, has_ret, nxt_blk, vis, circles,
-                            guided, blk, ['conditional_true']))
-                    else:
-                        final_states.extend(cls.visit(
-                            [copy.deepcopy(state)],
-                            has_ret, nxt_blk, vis, circles, guided, blk))
-        vis[prev] -= 1
-        # TODO: Fix the Bug : may return a dict state, which is illegal.
-        # TODO Is this return statement problematic? @zzhzz
-        return final_states if specify_branch else emul_states
-
-    @classmethod
-    def algo_interval(cls, entry, state, has_ret, blks):
+    def algo_interval(cls, entry, state, blks):
         """
         Traverse the CFG according to intervals.
         See our paper for more details
@@ -519,7 +440,7 @@ class Graph:
         heads['return'] = 'return'
 
         final_states = cls.visit_interval(
-            [state], has_ret, entry, heads, cls.manual_guide, "return")
+            [state], entry, heads, cls.manual_guide, "return")
         return final_states["return"]
 
     @classmethod
@@ -558,8 +479,7 @@ class Graph:
         return intervals
 
     @classmethod
-    def visit_interval(
-            cls, states, has_ret, blk, heads, guided=False, prev=None):
+    def visit_interval(cls, states, blk, heads, guided=False, prev=None):
         """
         Performing interval traversal, see our paper for more details
 
@@ -582,17 +502,39 @@ class Graph:
             succs_list = cls.bbs_graph[current_block].items()
             halt_flag = False
             # adopt DFS to traverse two intervals
-            emul_states = cls.wasmVM.emulate_basic_block(
-                state, has_ret, cls.bb_to_instructions[current_block])
+            try:
+                # print(current_block)
+                emul_states = cls.wasmVM.emulate_basic_block(
+                    state, cls.bb_to_instructions[current_block])
+            except ProcSuccessTermination:
+                # end of path
+                return False, state
+            except ProcFailTermination:
+                # trigger exit()
+                write_result(state[0], exit=True)
+                return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
                 return halt_flag, emul_states
+
             avail_br = {}
             for edge_type, next_block in succs_list:
-                valid_state = list(map(lambda s: s[edge_type] if isinstance(s, dict) else s, filter(
-                    lambda s: not cls.can_cut(edge_type, s, lvar[cur_head]), emul_states)))
+                valid_state = list(
+                    filter(
+                        lambda s: not cls.can_cut(
+                            edge_type, next_block, s,
+                            lvar[cur_head]),
+                        emul_states))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
+            # rest:
+            # current_bb_name, it is only set in store_context and restore_context
+            # edge_type, it is only set in br_if, if and br_table
+            for valid_state in avail_br.values():
+                for s in valid_state:
+                    s.current_bb_name = ''
+                    s.edge_type = ''
+
             if guided:
                 # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
                 logging.warning(
@@ -657,39 +599,7 @@ class Graph:
                         Configuration.get_func_index_to_func_name(),
                         item.current_func_name) != Configuration.get_entry():
                     continue
-                file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
-                makedirs(path.dirname(file_name), exist_ok=True)
-                state_result = {}
-                with open(file_name, 'w') as fp:
-                    # return value
-                    if item.symbolic_stack:
-                        state_result["Return"] = str(item.symbolic_stack[-1])
-                    else:
-                        state_result["Return"] = None
-
-                    # solution of constraints
-                    state_result["Solution"] = {}
-                    s = SMTSolver(Configuration.get_solver())
-                    s += item.constraints
-                    s.check()
-                    m = s.model()
-                    for k in m:
-                        # the decode is weird, we just want to convert unprintable characters
-                        # into printable chars
-                        # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
-                        state_result["Solution"][
-                            str(k)] = my_int_to_bytes(
-                            m[k].as_long()).decode('unicode_escape')
-
-                    # stdout buffer
-                    item.stdout_buffer = [str(i) for i in item.stdout_buffer]
-                    state_result["stdout"] = f'{"".join(item.stdout_buffer)}'
-
-                    # stderr buffer
-                    item.stderr_buffer = [str(i) for i in item.stderr_buffer]
-                    state_result["stderr"] = f'{"".join(item.stderr_buffer)}'
-
-                    json.dump(state_result, fp, indent=4)
+                write_result(item)
 
             final_states['return'].extend(emul_states)
             if halt_flag:
@@ -703,14 +613,41 @@ class Graph:
         return unsat == solver.check()
 
     @ classmethod
-    def can_cut(cls, edge_type, state, lvar):
+    def can_cut(cls, edge_type, next_block, state, lvar):
         """
         The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
         """
-        if isinstance(state, dict):
-            state = None if edge_type not in state else state[edge_type] if edge_type.startswith(
-                'conditional_') else state
-        return cls.sat_cut(state.constraints)
+        if state.edge_type:
+            not_same_edge = state.edge_type != edge_type
+            return cls.sat_cut(state.constraints) or not_same_edge
+
+        if state.current_bb_name == '':
+            # normal situation, check the current_func_name
+            cur_func = state.current_func_name
+            for func, blks in cls.func_to_bbs.items():
+                if next_block in blks:
+                    break
+            not_same_func = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                cur_func) != readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                func)
+
+            return cls.sat_cut(state.constraints) or not_same_func
+        else:
+            # after restore_context, check the current_bb_name
+            cur_bb = state.current_bb_name
+            for _, blks in cls.func_to_bbs.items():
+                try:
+                    cur_bb_index = blks.index(cur_bb)
+                except ValueError:
+                    continue
+
+                succ_block = blks[cur_bb_index + 1]
+                break
+
+            not_same_bb = succ_block != next_block
+            return cls.sat_cut(state.constraints) or not_same_bb
 
     @ classmethod
     def aes_run_local(cls, lvar, blk):
@@ -728,19 +665,3 @@ class Graph:
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar
-
-    @ classmethod
-    def extract_edges(cls, entry):
-        edges = set()
-        que = deque([entry])
-        while que:
-            u = que.popleft()
-            for br in cls.bbs_graph[u]:
-                v = cls.bbs_graph[u][br]
-                if (u, v) not in edges:
-                    edges.add((u, v))
-                    que.append(v)
-        nds = set()
-        for edge in edges:
-            nds.add(edge[0])
-            nds.add(edge[1])
