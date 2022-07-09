@@ -428,14 +428,50 @@ class Graph:
         return final_states
 
     @classmethod
+    def has_cycle(cls, u, g, nodes, vis):
+        vis.add(u)
+        for t in g[u]:
+            if g[u][t] in nodes and (g[u][t] in vis or cls.has_cycle(g[u][t], g, nodes, vis)):
+                return True
+        vis.remove(u)
+        return False
+
+    @classmethod
     def algo_interval(cls, entry, state, blks):
         """
         Traverse the CFG according to intervals.
         See our paper for more details
         """
-        intervals = cls.intervals_gen(
-            entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        rg, g, ninterval = cls.rev_bbs_graph, cls.bbs_graph, 0
+        while True:
+            intervals = cls.intervals_gen(entry, blks, rg, g)
+            if len(intervals) == ninterval:
+                break
+            ninterval = len(intervals)
+            no_cycle_nodes = {}
+            c = 0
+            for h in intervals:
+                if not cls.has_cycle(h, g, intervals[h], set()):
+                    for v in intervals[h]:
+                        no_cycle_nodes[v] = {v}
+                else:
+                    no_cycle_nodes[h] = intervals[h]
+            heads = {v: head for head in no_cycle_nodes for v in no_cycle_nodes[head]}
+            nrg, ng = defaultdict(lambda: defaultdict(str)), defaultdict(lambda: defaultdict(str))
+            for v in g:
+                if v in heads:
+                    for t in g[v]:
+                        if g[v][t] in heads:
+                            ng[heads[v]][t] = heads[g[v][t]]
+            for v in rg:
+                if v in heads:
+                    for t in rg[v]:
+                        if rg[v][t] in heads:
+                            nrg[heads[v]][t] = heads[rg[v][t]]
+            rg, g = nrg, ng
+        print(ninterval)
         # a mapping from a node to its corresponding interval's head
+        intervals = cls.intervals_gen(entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
         heads['return'] = 'return'
 
