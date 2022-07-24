@@ -431,7 +431,9 @@ class Graph:
     def has_cycle(cls, u, g, nodes, vis):
         vis.add(u)
         for t in g[u]:
-            if g[u][t] in nodes and (g[u][t] in vis or cls.has_cycle(g[u][t], g, nodes, vis)):
+            if g[u][t] in nodes and (
+                g[u][t] in vis or cls.has_cycle(g[u][t],
+                                                g, nodes, vis)):
                 return True
         vis.remove(u)
         return False
@@ -456,8 +458,12 @@ class Graph:
                         no_cycle_nodes[v] = {v}
                 else:
                     no_cycle_nodes[h] = intervals[h]
-            heads = {v: head for head in no_cycle_nodes for v in no_cycle_nodes[head]}
-            nrg, ng = defaultdict(lambda: defaultdict(str)), defaultdict(lambda: defaultdict(str))
+            heads = {v: head
+                     for head in no_cycle_nodes for v in no_cycle_nodes
+                     [head]}
+            nrg, ng = defaultdict(
+                lambda: defaultdict(str)), defaultdict(
+                lambda: defaultdict(str))
             for v in g:
                 if v in heads:
                     for t in g[v]:
@@ -471,7 +477,8 @@ class Graph:
             rg, g = nrg, ng
         print(ninterval)
         # a mapping from a node to its corresponding interval's head
-        intervals = cls.intervals_gen(entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
+        intervals = cls.intervals_gen(
+            entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
         heads = {v: head for head in intervals for v in intervals[head]}
         heads['return'] = 'return'
 

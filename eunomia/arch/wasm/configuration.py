@@ -219,3 +219,11 @@ class Configuration:
     def get_content(fd):
         assert fd in Configuration._content_table, f"fd {fd} is not maintained in the content table"
         return Configuration._content_table.get(fd)
+
+    @staticmethod
+    def get_visualize():
+        return Configuration._visualize_flag
+
+    @staticmethod
+    def set_visualize(visualize_flag):
+        Configuration._visualize_flag = visualize_flag
