@@ -31,21 +31,18 @@ def visualize(Graph, filename="wasm_ICFG.gv"):
         visited.add(bb)
         if bb in Graph.bbs_graph:
             for edge_type, succ_bb in Graph.bbs_graph[bb].items():
-                if (succ_bb not in visited) or ((bb, succ_bb, edge_type) not in edges_set and succ_bb not in caller_bbs):
+                if succ_bb not in visited:
                     edges_set.add((bb, succ_bb, edge_type))
                     stack.append(succ_bb)
+                elif (bb, succ_bb, edge_type) not in edges_set and succ_bb not in caller_bbs:
+                    edges_set.add((bb, succ_bb, edge_type))
 
     with g.subgraph(name='global') as c:
-        # default style value
-        fillcolor = "white"
-        shape = "ellipse"
-        style = "filled"
-
         # construct the graph
         for edge in edges_set:
             node_from, node_to, _ = edge
-            c.node(node_from, fillcolor=fillcolor, shape=shape, style=style)
-            c.node(node_to, fillcolor=fillcolor, shape=shape, style=style)
+            c.node(node_from)
+            c.node(node_to)
             c.edge(node_from, node_to)
 
     g.render(filename, view=True)
