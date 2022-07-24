@@ -12,6 +12,7 @@ import sh
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.graph import Graph
 from eunomia.arch.wasm.utils import extract_mapping
+from eunomia.arch.wasm.visualizator import visualize
 
 
 def main():
@@ -65,6 +66,9 @@ def main():
     features.add_argument(
         '-c', '--call', action='store_true',
         help='generate the call flow graph (function level)')
+    features.add_argument(
+        '--visualize', action='store_true',
+        help='visualize the ICFG on basic blocks level')
     features.add_argument(
         '--manual_guide', action='store_true',
         help='allow users to manually guide the control flow')
@@ -158,6 +162,7 @@ def main():
     if args.symbolic:
         Configuration.set_entry(args.onlyfunc)
         Configuration.set_coverage(args.coverage)
+        Configuration.set_visualize(args.visualize)
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
         Configuration.set_algo(args.algo)
@@ -187,6 +192,13 @@ def main():
         Graph.wasmVM = wasmVM
         Graph.manual_guide = args.manual_guide
         Graph.initialize()
+        # draw the ICFG on basic block level, and exit
+        if Configuration.get_visualize():
+            # draw here
+            visualize(Graph)
+
+            print(f"The visualization of ICFG is done.")
+            return
         graph = Graph()
         graph.traverse()
 
