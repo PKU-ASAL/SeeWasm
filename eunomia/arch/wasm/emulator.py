@@ -56,7 +56,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
 
+        # build call graph
+        self.cfg.build_call_graph(self.ana)
+
+        # remove functions has no relationship with entry
+        self.remove_unrelated_funcs()
+
         # split basic blocks by call and call_indirect instrucitons
+        # for generating ICFG
         self.split_bbs()
 
         # all the exports function's name
@@ -84,6 +91,61 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # whether enable the coverage calculation
         if Configuration.get_coverage():
             self.count_instrs()
+
+    def remove_unrelated_funcs(self):
+        """
+        Remove such functions that cannot be regarded as callees from entry
+        """
+        # extract functions that can be regarded as callee of call_indirect
+        elem_callees = self.ana.elements[0]['elems']
+        elem_funcs = set()
+        for elem_callee_op in elem_callees:
+            elem_funcs.add(
+                readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(),
+                    f"$func{elem_callee_op}"))
+
+        # init entry as entry_func and all elem functions
+        entry_callees = set()
+        visited = set()
+        stack = list()
+
+        entry_func = Configuration.get_entry()
+        entry_callees.add(entry_func)
+        entry_callees.update(elem_funcs)
+
+        # traverse from all entries to extract all possible callees
+        stack.append(entry_func)
+        stack += list(elem_funcs)
+        while stack:
+            item_func = stack.pop()
+            visited.add(item_func)
+            item_func_callees = self.cfg.call_graph.get(item_func, [])
+            for item_func_callee in item_func_callees:
+                if item_func_callee not in visited:
+                    # if the func is emulated in c_lib.py or wasi.py, jump over
+                    if item_func_callee in C_LIBRARY_FUNCS or item_func_callee in [i[1] for i in self.ana.imports_func]:
+                        continue
+                    elif item_func_callee not in entry_callees:
+                        entry_callees.add(item_func_callee)
+                        stack.append(item_func_callee)
+
+        # remove unrelated functions from self.cfg.functions
+        i = 0
+        count = 0
+        all_func = len(self.cfg.functions)
+        while i < len(self.cfg.functions):
+            func_name = readable_internal_func_name(
+                Configuration.get_func_index_to_func_name(),
+                self.cfg.functions[i].name)
+            if func_name not in entry_callees:
+                # remove this
+                count += 1
+                self.cfg.functions.pop(i)
+            else:
+                i += 1
+        logging.warning(
+            f"Totally remove {count} unrelated functions, around {count*100/all_func:<.3f}% of all functions")
 
     def split_bbs(self):
         """
@@ -157,9 +219,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             Configuration.get_entry())
         queue = Queue()
         visited = set()
-
-        # build call graph
-        self.cfg.build_call_graph(self.ana)
 
         # put the entry func
         queue.put(func)
