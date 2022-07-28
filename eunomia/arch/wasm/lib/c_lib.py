@@ -326,6 +326,20 @@ class CPredefinedFunction:
             _storeN(state, base_addr + 32, stdout_write_index, 4)
             # return the FILE *
             state.symbolic_stack.append(BitVecVal(base_addr, 32))
+        elif self.name == 'setlocale':
+            locale_ptr, category = _extract_params(param_str, state)
+            logging.info(
+                f"\tsetlocale, category: {category}, locale_ptr: {locale_ptr}")
+
+            # for base64, the return pointer points to a string: b'C.UTF-8;C;C;C;C;C\x00' (int: 22877692121332503319371995581278433128003)
+            state.symbolic_stack.append(BitVec("locale_return_string", 32))
+        # elif self.name == 'rpl_fclose':
+        #     stream_ptr, = _extract_params(param_str, state)
+        #     logging.info(f"\trpl_fclose, stream_ptr: {stream_ptr}")
+
+        #     print(lookup_symbolic_memory_data_section(
+        #         state.symbolic_memory, dict(), stream_ptr, 4))
+        #     state.symbolic_stack.append(BitVecVal(0, 32))
         else:
             raise UnsupportExternalFuncError
 
