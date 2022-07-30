@@ -333,6 +333,12 @@ class CPredefinedFunction:
 
             # for base64, the return pointer points to a string: b'C.UTF-8;C;C;C;C;C\x00' (int: 22877692121332503319371995581278433128003)
             state.symbolic_stack.append(BitVec("locale_return_string", 32))
+        elif self.name == 'hard_locale':
+            category, = _extract_params(param_str, state)
+            logging.info(f"\thard_locale, category: {category}")
+
+            # maybe we can directly return a false, ref: https://github.com/coreutils/gnulib/blob/master/lib/hard-locale.h
+            state.symbolic_stack.append(BitVecVal(0, 32))
         # elif self.name == 'rpl_fclose':
         #     stream_ptr, = _extract_params(param_str, state)
         #     logging.info(f"\trpl_fclose, stream_ptr: {stream_ptr}")
