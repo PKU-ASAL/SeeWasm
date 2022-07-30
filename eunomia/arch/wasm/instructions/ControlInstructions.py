@@ -278,20 +278,33 @@ class ControlInstructions:
                 cond = simplify(Or(index_list))
                 if is_false(cond):
                     continue
-                new_state = copy.deepcopy(state)
-                new_state.constraints.append(cond)
-                new_state.edge_type = f"conditional_true_{target}"
-                states.append(new_state)
+                elif is_true(cond):
+                    # we can omit the "True" apppended into the constraint
+                    new_state = copy.deepcopy(state)
+                    new_state.edge_type = f"conditional_true_{target}"
+                    states.append(new_state)
+                else:
+                    # we have to query z3
+                    new_state = copy.deepcopy(state)
+                    new_state.constraints.append(cond)
+                    new_state.edge_type = f"conditional_true_{target}"
+                    states.append(new_state)
 
-            cond = simplify(op >= n_br)
+            # determine if we need the default branch
+            cond = simplify(Or(op >= n_br, op < 0))
             if is_false(cond):
-                return states
+                # we don't need it
+                pass
+            elif is_true(cond):
+                state.edge_type = "conditional_false_0"
+                states.append(state)
             else:
                 state.constraints.append(cond)
                 state.edge_type = "conditional_false_0"
                 states.append(state)
 
-                return states
+            assert len(states) != 0, f"in br_table, no branch is selected"
+            return states
         elif self.instr_name == 'call':
             self.instr_operand = self.instr_string.split(' ')[1]
             # get the callee's function signature
