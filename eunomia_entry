@@ -38,9 +38,6 @@ def main():
                         action='store',
                         type=str,
                         help='The stream of stdin')
-    inputs.add_argument(
-        '--sym_stdin', type=int, nargs=1,
-        help="The stream of stdin with N chars")
     inputs.add_argument('--args',
                         action='store',
                         type=str,
@@ -168,12 +165,7 @@ def main():
         Configuration.set_algo(args.algo)
         Configuration.set_concrete_globals(args.concrete_globals)
         Configuration.set_solver(args.solver)
-        # --stdin and --sym_stdin cannot exist at the same time
-        if args.stdin and args.sym_stdin:
-            raise Exception(
-                "The --stdin and --sym_stdin cannot exist at the same time")
-        Configuration.set_files_buffer(
-            args.stdin, args.sym_stdin, args.sym_files)
+        Configuration.set_files_buffer(args.stdin, args.sym_files)
 
         command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)

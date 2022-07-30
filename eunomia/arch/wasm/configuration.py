@@ -175,38 +175,44 @@ class Configuration:
         Configuration._coverage = coverage
 
     @staticmethod
-    def set_files_buffer(stdin, sym_stdin, sym_files):
+    def set_files_buffer(stdin, sym_files):
         """
         the sym files take two arguments:
         the first is how many files will be opened;
         the second is how many btyes are in each of them.
 
         So, we store these two information in two separate table
-
-        Also, the stdin is given concretely, like "123"; but the sym_stdin is given with designated length, like [3]
         """
+        if stdin and not sym_files:
+            exit("Please give at least 1 sym_files if you input a string via stdin")
+        elif not stdin and not sym_files:
+            return
+
+        assert sym_files, f"Please input sym_files"
+        sym_file_num, sym_file_length = sym_files
+
+        # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
+        assert 1 <= sym_file_num <= 27, f"The sym_file_num is {sym_file_num}, please give a number between 1 -- 27"
+        # init fd_table, the first is stdin, the others are A to Z
+        Configuration._fd_table['stdin'] = 0
+        for i in range(sym_file_num - 1):
+            Configuration._fd_table[chr(i + 65)] = i + 3
+
         if stdin:
-            Configuration._fd_table['stdin'] = 0
-            # the replace is neccessary
-            Configuration._content_table[0] = stdin.encode().replace(
-                b'\\n', b'\n')
+            # the encode is necessary
+            stdin_encoded = stdin.encode().replace(b'\\n', b'\n')
+            assert len(
+                stdin_encoded) <= sym_file_length, f"The given stdin ({stdin}) is longer than the limit (sym_file_length)"
+            Configuration._content_table[0] = stdin_encoded
+        else:
+            Configuration._content_table[0] = BitVec(
+                "sym_stdin", 8 * sym_file_length)
 
-        if sym_stdin:
-            length = sym_stdin[0]
-            Configuration._fd_table['stdin'] = 0
-            Configuration._content_table[0] = BitVec("sym_stdin", 8 * length)
-
-        if sym_files:
-            sym_file_num, sym_file_length = sym_files
-
-            # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
-            assert sym_file_num <= 26, f"The sym_file_num is {sym_file_num}, greater than 26"
-            for i in range(sym_file_num):
-                Configuration._fd_table[chr(i + 65)] = i + 3
-
-            for k, v in Configuration._fd_table.items():
-                Configuration._content_table[v] = BitVec(
-                    f"file_{k}", sym_file_length * 8)
+        for k, v in Configuration._fd_table.items():
+            if k == 'stdin':
+                continue
+            Configuration._content_table[v] = BitVec(
+                f"file_{k}", sym_file_length * 8)
 
     @staticmethod
     def get_fd():
