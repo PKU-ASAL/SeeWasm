@@ -85,15 +85,23 @@ class CPredefinedFunction:
                 f"\tvfprintf, stream_p: {stream_p}, pattern_p: {pattern_p}, param_p: {param_p}")
             stream = _loadN(state, data_section, stream_p, 4)
 
-            possible_callee = analyzer.elements[0]['elems']
-            offset = analyzer.elements[0]['offset']
-            fp_func = '$func' + str(possible_callee[stream - offset])
-            fp_func = readable_internal_func_name(
-                Configuration.get_func_index_to_func_name(), fp_func)
-            if fp_func == '__stdio_write' or fp_func == '__stdout_write':
-                pass
-            else:
-                exit(f'the vfprintf stream func is: {fp_func}')
+            try:
+                possible_callee = analyzer.elements[0]['elems']
+                offset = analyzer.elements[0]['offset']
+                fp_func = '$func' + str(possible_callee[stream - offset])
+                fp_func = readable_internal_func_name(
+                    Configuration.get_func_index_to_func_name(), fp_func)
+                if fp_func == '__stdio_write' or fp_func == '__stdout_write':
+                    logging.info(f"\tthe vfprintf points to {fp_func}")
+                else:
+                    logging.warning(
+                        f"\tin vfprintf, the stream is supposed to point to __stdio_write or __stdout_write")
+                    logging.warning(f"\tbut here is {fp_func} instead")
+                    logging.warning(f"\tjust omit this error and continue")
+            except IndexError:
+                logging.warning(
+                    f"\tthe stream is {stream}, bigger than size of elem ({len(possible_callee)})")
+                logging.warning(f"\tjust jump over the error and continue")
 
             self.output_pattern_string(param_p, pattern_p, state, data_section)
         elif self.name == 'scanf':
