@@ -286,28 +286,6 @@ class Graph:
             cls.rev_bbs_graph[succ_bb_name][
                 f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, succ_bb_name)}"] = dummy_end_name
 
-        def _remove_original_edge(bb_name):
-            """
-            Extract the successive block of bb_name, and return it.
-            Also, remove the edge in edges, bbs_graph and rev_bbs_graph.
-            """
-            succ_bb_name = list(cls.bbs_graph[bb_name].values())[0]
-            # update the bbs_graph and rev_bbs_graph
-            cls.bbs_graph = {bb: {e: callee_bb for e, callee_bb in cls.bbs_graph[bb].items(
-            ) if (callee_bb != succ_bb_name or bb != bb_name)} for bb in cls.bbs_graph}
-            cls.rev_bbs_graph = {callee_bb: {e: bb for e, bb in cls.rev_bbs_graph[callee_bb].items(
-            ) if (bb != bb_name or callee_bb != succ_bb_name)} for callee_bb in cls.rev_bbs_graph}
-
-            # convert these two as original data type
-            cls.bbs_graph = defaultdict(
-                lambda: defaultdict(str),
-                cls.bbs_graph)
-            cls.rev_bbs_graph = defaultdict(
-                lambda: defaultdict(str),
-                cls.rev_bbs_graph)
-
-            return succ_bb_name
-
         def _update_xref(dummy_end_name, succ_bb_name, callee_op):
             """
             Append a tuple in the xref of the `nop` instruction who locates in dummy end.
@@ -345,7 +323,7 @@ class Graph:
                     entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
                     dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
-                    succ_bb_name = _remove_original_edge(bb_name)
+                    succ_bb_name = list(cls.bbs_graph[bb_name].values())[0]
                     _update_edges(bb_name, succ_bb_name,
                                   entry_name, dummy_end_name)
                     _update_xref(dummy_end_name, succ_bb_name, callee_op)
@@ -444,38 +422,38 @@ class Graph:
         Traverse the CFG according to intervals.
         See our paper for more details
         """
-        rg, g, ninterval = cls.rev_bbs_graph, cls.bbs_graph, 0
-        while True:
-            intervals = cls.intervals_gen(entry, blks, rg, g)
-            if len(intervals) == ninterval:
-                break
-            ninterval = len(intervals)
-            no_cycle_nodes = {}
-            c = 0
-            for h in intervals:
-                if not cls.has_cycle(h, g, intervals[h], set()):
-                    for v in intervals[h]:
-                        no_cycle_nodes[v] = {v}
-                else:
-                    no_cycle_nodes[h] = intervals[h]
-            heads = {v: head
-                     for head in no_cycle_nodes for v in no_cycle_nodes
-                     [head]}
-            nrg, ng = defaultdict(
-                lambda: defaultdict(str)), defaultdict(
-                lambda: defaultdict(str))
-            for v in g:
-                if v in heads:
-                    for t in g[v]:
-                        if g[v][t] in heads:
-                            ng[heads[v]][t] = heads[g[v][t]]
-            for v in rg:
-                if v in heads:
-                    for t in rg[v]:
-                        if rg[v][t] in heads:
-                            nrg[heads[v]][t] = heads[rg[v][t]]
-            rg, g = nrg, ng
-        print(ninterval)
+        # rg, g, ninterval = cls.rev_bbs_graph, cls.bbs_graph, 0
+        # while True:
+        #     intervals = cls.intervals_gen(entry, blks, rg, g)
+        #     if len(intervals) == ninterval:
+        #         break
+        #     ninterval = len(intervals)
+        #     no_cycle_nodes = {}
+        #     c = 0
+        #     for h in intervals:
+        #         if not cls.has_cycle(h, g, intervals[h], set()):
+        #             for v in intervals[h]:
+        #                 no_cycle_nodes[v] = {v}
+        #         else:
+        #             no_cycle_nodes[h] = intervals[h]
+        #     heads = {v: head
+        #              for head in no_cycle_nodes for v in no_cycle_nodes
+        #              [head]}
+        #     nrg, ng = defaultdict(
+        #         lambda: defaultdict(str)), defaultdict(
+        #         lambda: defaultdict(str))
+        #     for v in g:
+        #         if v in heads:
+        #             for t in g[v]:
+        #                 if g[v][t] in heads:
+        #                     ng[heads[v]][t] = heads[g[v][t]]
+        #     for v in rg:
+        #         if v in heads:
+        #             for t in rg[v]:
+        #                 if rg[v][t] in heads:
+        #                     nrg[heads[v]][t] = heads[rg[v][t]]
+        #     rg, g = nrg, ng
+        # print(ninterval)
         # a mapping from a node to its corresponding interval's head
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)

@@ -189,7 +189,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
                         # append the new basic block, add a new edge
                         func_basic_blocks.append(new_bb)
-                        new_edge = Edge(bb.name, new_bb.name, EDGE_FALLTHROUGH)
+                        new_edge = Edge(bb.name, new_bb.name, f"call_{bb.name[6:]}_{new_bb.name[6:]}")
                         self.cfg.edges.append(new_edge)
 
                         break
