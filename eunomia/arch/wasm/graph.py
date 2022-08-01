@@ -13,13 +13,8 @@ from eunomia.arch.wasm.utils import (ask_user_input,
                                      readable_internal_func_name,
                                      state_choose_info, write_result)
 from eunomia.core.basicblock import BasicBlock
-from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
+from eunomia.core.edge import EDGE_FALLTHROUGH
 from z3 import unsat
-
-# if a state belongs to one of these functions, it means that
-# the state is returned normally / unexpectedly.
-# we should output these states to the 'result' folder
-VALUABLE_FUNC_STATE_SET = {'main'}
 
 
 class ClassPropertyDescriptor:
@@ -444,38 +439,38 @@ class Graph:
         Traverse the CFG according to intervals.
         See our paper for more details
         """
-        rg, g, ninterval = cls.rev_bbs_graph, cls.bbs_graph, 0
-        while True:
-            intervals = cls.intervals_gen(entry, blks, rg, g)
-            if len(intervals) == ninterval:
-                break
-            ninterval = len(intervals)
-            no_cycle_nodes = {}
-            c = 0
-            for h in intervals:
-                if not cls.has_cycle(h, g, intervals[h], set()):
-                    for v in intervals[h]:
-                        no_cycle_nodes[v] = {v}
-                else:
-                    no_cycle_nodes[h] = intervals[h]
-            heads = {v: head
-                     for head in no_cycle_nodes for v in no_cycle_nodes
-                     [head]}
-            nrg, ng = defaultdict(
-                lambda: defaultdict(str)), defaultdict(
-                lambda: defaultdict(str))
-            for v in g:
-                if v in heads:
-                    for t in g[v]:
-                        if g[v][t] in heads:
-                            ng[heads[v]][t] = heads[g[v][t]]
-            for v in rg:
-                if v in heads:
-                    for t in rg[v]:
-                        if rg[v][t] in heads:
-                            nrg[heads[v]][t] = heads[rg[v][t]]
-            rg, g = nrg, ng
-        print(ninterval)
+        # rg, g, ninterval = cls.rev_bbs_graph, cls.bbs_graph, 0
+        # while True:
+        #     intervals = cls.intervals_gen(entry, blks, rg, g)
+        #     if len(intervals) == ninterval:
+        #         break
+        #     ninterval = len(intervals)
+        #     no_cycle_nodes = {}
+        #     c = 0
+        #     for h in intervals:
+        #         if not cls.has_cycle(h, g, intervals[h], set()):
+        #             for v in intervals[h]:
+        #                 no_cycle_nodes[v] = {v}
+        #         else:
+        #             no_cycle_nodes[h] = intervals[h]
+        #     heads = {v: head
+        #              for head in no_cycle_nodes for v in no_cycle_nodes
+        #              [head]}
+        #     nrg, ng = defaultdict(
+        #         lambda: defaultdict(str)), defaultdict(
+        #         lambda: defaultdict(str))
+        #     for v in g:
+        #         if v in heads:
+        #             for t in g[v]:
+        #                 if g[v][t] in heads:
+        #                     ng[heads[v]][t] = heads[g[v][t]]
+        #     for v in rg:
+        #         if v in heads:
+        #             for t in rg[v]:
+        #                 if rg[v][t] in heads:
+        #                     nrg[heads[v]][t] = heads[rg[v][t]]
+        #     rg, g = nrg, ng
+        # print(ninterval)
         # a mapping from a node to its corresponding interval's head
         intervals = cls.intervals_gen(
             entry, blks, cls.rev_bbs_graph, cls.bbs_graph)
@@ -630,19 +625,13 @@ class Graph:
         for item in producer():
             halt_flag, emul_states = consumer(item)
 
-            # each item in emul_states indicates the end of path
-            # solve the constraint and output to the log file
             for item in emul_states:
+                # only the block that locates at the end of the entry function
+                # can be regarded as end of path
                 if readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
-                        item.current_func_name) in VALUABLE_FUNC_STATE_SET:
-                    # these functions correspond to end of path
-                    pass
-                elif readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(),
-                        item.current_func_name) != Configuration.get_entry():
-                    continue
-                write_result(item)
+                        item.current_func_name) == Configuration.get_entry():
+                    write_result(item)
 
             final_states['return'].extend(emul_states)
             if halt_flag:
