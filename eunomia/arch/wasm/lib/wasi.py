@@ -8,7 +8,8 @@ from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import getConcreteBitVec, str_to_little_endian_int
-from z3 import (BitVec, BitVecVal, Concat, Extract, is_bv, sat, simplify)
+from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv, sat,
+                simplify)
 
 
 class WASIImportFunction:
@@ -30,10 +31,15 @@ class WASIImportFunction:
             logging.info(
                 f"\targs_sizes_get, argc_addr: {argc_addr}, arg_buf_size_addr: {arg_buf_size_addr}")
 
-            # insert the `argc` into the corresponding addr
-            argc = len(state.args)
-            assert argc >= 1, f"the analyzed program has 0 argument"
+            def _iterate_sym_args(args_list):
+                if not args_list:
+                    return BitVecVal(len(state.args), 32)
+                return If(And([i == 0 for i in args_list]),
+                          BitVecVal(len(state.args) - len(args_list), 32),
+                          _iterate_sym_args(args_list[1:]))
+            argc = _iterate_sym_args(state.args[1:])
 
+            # insert the `argc` into the corresponding addr
             _storeN(state, argc_addr, argc, 4)
             # the length of `argv` into the corresponding addr
             # the `+ 1` is defined in the source code
