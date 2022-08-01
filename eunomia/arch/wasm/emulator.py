@@ -97,13 +97,17 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         Remove such functions that cannot be regarded as callees from entry
         """
         # extract functions that can be regarded as callee of call_indirect
-        elem_callees = self.ana.elements[0]['elems']
-        elem_funcs = set()
-        for elem_callee_op in elem_callees:
-            elem_funcs.add(
-                readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(),
-                    f"$func{elem_callee_op}"))
+        try:
+            elem_callees = self.ana.elements[0]['elems']
+            elem_funcs = set()
+            for elem_callee_op in elem_callees:
+                elem_funcs.add(
+                    readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        f"$func{elem_callee_op}"))
+        except IndexError:
+            # there is no elem section in the to-be-analyzed program
+            elem_funcs = set()
 
         # init entry as entry_func and all elem functions
         entry_callees = set()
