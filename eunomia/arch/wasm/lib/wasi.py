@@ -187,8 +187,11 @@ class WASIImportFunction:
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd, = _extract_params(param_str, state)
-            logging.info(
-                f"\tfd_close, fd: {fd}")
+            logging.info(f"\tfd_close, fd: {fd}")
+            state.file_sys[fd]["name"] = ""
+            state.file_sys[fd]["status"] = False
+            state.file_sys[fd]["flag"] = ""
+            state.file_sys[fd]["content"] = []
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -201,13 +204,13 @@ class WASIImportFunction:
             logging.info(
                 f"\tfd_read, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
 
-            if fd not in state.files_buffer:
-                exit(
-                    f"fd: {fd} does not exist in files buffer, please check if you open enough sym files")
+            if fd not in state.file_sys:
+                exit(f"fd ({fd}) not in file_sys, please give more sym files")
+            assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet, can't be read"
 
             # if there is no input chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if (isinstance(state.files_buffer[fd], bytes) and not state.files_buffer[fd]) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() < 8):
+            if (isinstance(state.file_sys[fd]["content"], bytes) and not state.file_sys[fd]["content"]) or (is_bv(state.file_sys[fd]["content"]) and state.file_sys[fd]["content"].size() < 8):
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
@@ -222,23 +225,28 @@ class WASIImportFunction:
                 buffer_len = _loadN(state, data_section,
                                     iovs_addr + (8 * i + 4), 4)
 
-                if isinstance(state.files_buffer[fd], bytes):
-                    stdin_length = len(state.files_buffer[fd])
+                if isinstance(state.file_sys[fd]["content"], bytes):
+                    stdin_length = len(state.file_sys[fd]["content"])
                 else:
-                    stdin_length = state.files_buffer[fd].size() // 8
+                    stdin_length = state.file_sys[fd]["content"].size() // 8
 
                 for j in range(min(stdin_length, buffer_len)):
-                    if isinstance(state.files_buffer[fd], bytes):
-                        data_to_read = state.files_buffer[fd][0]
-                        state.files_buffer[fd] = state.files_buffer[fd][1:]
+                    if isinstance(state.file_sys[fd]["content"], bytes):
+                        data_to_read = state.file_sys[fd]["content"][0]
+                        state.file_sys[fd]["content"] = state.file_sys[fd][
+                            "content"][
+                            1:]
                     else:
                         data_to_read = simplify(
-                            Extract(7, 0, state.files_buffer[fd]))
+                            Extract(7, 0, state.file_sys[fd]["content"]))
                         if (stdin_length - char_read_cnt) == 1:
-                            state.files_buffer[fd] = BitVec('dummy', 1)
+                            state.file_sys[fd]["content"] = BitVec('dummy', 1)
                         else:
-                            state.files_buffer[fd] = simplify(
-                                Extract(state.files_buffer[fd].size() - 1, 8, state.files_buffer[fd]))
+                            state.file_sys[fd]["content"] = simplify(
+                                Extract(
+                                    state.file_sys[fd]["content"].size() - 1,
+                                    8,
+                                    state.file_sys[fd]["content"]))
 
                     out_chars.append(data_to_read)
                     char_read_cnt += 1
@@ -246,11 +254,12 @@ class WASIImportFunction:
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if (isinstance(state.files_buffer[fd], bytes) and len(state.files_buffer[fd]) > 0) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() > 1):
+                if (isinstance(state.file_sys[fd]["content"], bytes) and len(state.file_sys[fd]["content"]) > 0) or (is_bv(state.file_sys[fd]["content"]) and state.file_sys[fd]["content"].size() > 1):
                     continue
                 else:
                     # or the stdin buffer is drained out, break out
                     break
+
             all_char = True
             for ele in out_chars:
                 if not isinstance(ele, int):
@@ -277,11 +286,12 @@ class WASIImportFunction:
                 state)
             logging.info(
                 f"\tfd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
-
-            if fd == 2:
-                logging.info(f"\tfd_write to stderr")
-            elif fd == 1:
-                logging.info(f"\tfd_write to stdout")
+            assert fd in state.file_sys, f"fd ({fd}) not in file_sys"
+            assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet"
+            assert 'w' in state.file_sys[fd][
+                "flag"], f"fd ({fd}) mode is {state.file_sys[fd]['flag']}, can't be written"
+            assert isinstance(
+                state.file_sys[fd]["content"], list), f"fd ({fd}) content is not a list, please check the init process"
 
             bytes_written_cnt = 0
             for i in range(num_iovs):
@@ -313,10 +323,7 @@ class WASIImportFunction:
                             f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
 
-                if fd == 1:
-                    state.stdout_buffer += out_str
-                elif fd == 2:
-                    state.stderr_buffer += out_str
+                state.file_sys[fd]["content"] += out_str
 
                 all_char = True
                 for ele in out_str:

@@ -286,14 +286,18 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             state.globals[i] = op_val
 
     def init_state(self, func_name, param_str):
-        files_buffer = {}
-        for _, fd in Configuration.get_fd():
-            files_buffer[fd] = Configuration.get_content(fd)
+        state = WasmVMstate()
+
+        # update file sys
+        state.file_sys[0]["content"] = Configuration.get_stdin()
+        sym_file_limit, file_byte_limit = Configuration.get_sym_file_limits()
+        for i in range(sym_file_limit):
+            state.file_sys[i + 3] = {"name": "",
+                                     "status": False,
+                                     "flag": "",
+                                     "content": []}
 
         args = Configuration.get_args()
-
-        state = WasmVMstate()
-        state.files_buffer = files_buffer
         state.args = args
 
         if param_str != '':

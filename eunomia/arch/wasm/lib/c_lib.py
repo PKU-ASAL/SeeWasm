@@ -22,7 +22,8 @@ class CPredefinedFunction:
         self.name = name
         self.cur_func = cur_func_name
 
-    def output_pattern_string(self, param_p, pattern_p, state, data_section):
+    def output_pattern_string(
+            self, fp, param_p, pattern_p, state, data_section):
         pattern = C_extract_string_by_mem_pointer(
             pattern_p, data_section, state)
 
@@ -69,7 +70,7 @@ class CPredefinedFunction:
 
         logging.info(
             f"\tOutput a printf string: {the_string.encode()}")
-        state.stdout_buffer += the_string
+        state.file_sys[fp]["content"] += the_string
         string_length = BitVecVal(len(the_string), 32)
         state.symbolic_stack.append(string_length)
 
@@ -78,7 +79,8 @@ class CPredefinedFunction:
             param_p, pattern_p = _extract_params(param_str, state)
             logging.info(
                 f"\tprintf, pattern_p: {pattern_p}, param_p: {param_p}")
-            self.output_pattern_string(param_p, pattern_p, state, data_section)
+            self.output_pattern_string(
+                1, param_p, pattern_p, state, data_section)
         elif self.name == 'vfprintf':
             param_p, pattern_p, stream_p = _extract_params(param_str, state)
             logging.info(
@@ -91,8 +93,15 @@ class CPredefinedFunction:
                 fp_func = '$func' + str(possible_callee[stream - offset])
                 fp_func = readable_internal_func_name(
                     Configuration.get_func_index_to_func_name(), fp_func)
-                if fp_func == '__stdio_write' or fp_func == '__stdout_write':
+                if fp_func == '__stdio_write':
                     logging.info(f"\tthe vfprintf points to {fp_func}")
+                    fp = 1
+                elif fp_func == '__stdout_write':
+                    logging.info(f"\tthe vfprintf points to {fp_func}, a file")
+                    for fp in range(3, len(state.file_sys)):
+                        if state.file_sys[fp]["status"] and state.file_sys[fp][
+                                "flag"] in ["w+", "w"]:
+                            break
                 else:
                     logging.warning(
                         f"\tin vfprintf, the stream is supposed to point to __stdio_write or __stdout_write")
@@ -103,7 +112,8 @@ class CPredefinedFunction:
                     f"\tthe stream is {stream}, bigger than size of elem ({len(possible_callee)})")
                 logging.warning(f"\tjust jump over the error and continue")
 
-            self.output_pattern_string(param_p, pattern_p, state, data_section)
+            self.output_pattern_string(
+                fp, param_p, pattern_p, state, data_section)
         elif self.name == 'scanf':
             param_p, pattern_p = _extract_params(param_str, state)
             logging.info(
@@ -197,12 +207,12 @@ class CPredefinedFunction:
             if isinstance(the_char, int):
                 logging.info(
                     f"\tOutput a putchar char: {chr(the_char).encode()}")
-                state.stdout_buffer += chr(the_char)
+                state.file_sys[1]["content"] += chr(the_char)
                 the_char = BitVecVal(the_char, 32)
             elif is_bv(the_char):
                 logging.info(
                     f"\tOutput a putchar char: {str(the_char).encode()}")
-                state.stdout_buffer += str(the_char)
+                state.file_sys[1]["content"] += str(the_char)
             state.symbolic_stack.append(the_char)
         elif self.name == 'abs':
             candidate_num, = _extract_params(param_str, state)
@@ -228,7 +238,7 @@ class CPredefinedFunction:
             # the '\n' is added according to semantic of puts
             logging.info(
                 f"\tOutput a puts string: {the_string.encode()}")
-            state.stdout_buffer += the_string
+            state.file_sys[1]["content"] += the_string
             state.symbolic_stack.append(BitVecVal(1, 32))
         elif self.name == 'atof':
             str_p, = _extract_params(param_str, state)
@@ -281,23 +291,8 @@ class CPredefinedFunction:
                 f"\topen, mode: {mode}, flag: {hex(flag)}, filename_ptr: {filename_ptr}")
             filename = C_extract_string_by_mem_pointer(
                 filename_ptr, data_section, state)
-            if filename.startswith('sym_arg'):
-                filename = C_extract_bv_by_mem_pointer(
-                    filename_ptr, data_section, state)
-
-            if is_bv(filename):
-                # open sym file
-                for tmp_file_name, tmp_fd in Configuration.get_fd():
-                    if tmp_file_name not in state.fd:
-                        state.fd[tmp_file_name] = tmp_fd
-                        state.constraints.append(
-                            filename == ord(tmp_file_name))
-                        state.files_buffer[tmp_fd] = Configuration.get_content(
-                            tmp_fd)
-                        break
-            else:
-                # open true file
-                pass
+            exit(f"intend to open {filename} in `open`")
+            # TODO mimic fopen
 
             state.symbolic_stack.append(BitVecVal(tmp_fd, 32))
         elif self.name == 'fopen':
@@ -305,26 +300,43 @@ class CPredefinedFunction:
             logging.info(
                 f"\tfopen, filename_ptr: {filename_ptr}, mode_ptr: {mode_ptr}")
 
-            # mode = C_extract_string_by_mem_pointer(
-            #     mode_ptr, data_section, state)
+            mode = C_extract_string_by_mem_pointer(
+                mode_ptr, data_section, state)
             filename = C_extract_string_by_mem_pointer(
                 filename_ptr, data_section, state)
             logging.info(f"\topen file: {filename}")
 
-            if filename not in state.fd:
-                filename_fd = max(state.fd.values()) + 1
-                state.fd[filename] = filename_fd
-                # each fd has its unique base address
-                base_addr = filename_fd * 100 + 100000000
-            else:
-                exit(f"the file: {filename} is opened already")
-            logging.info(
-                f"\topen file: {filename} with fd as {filename_fd}")
+            # retrieve the first not opened fd
+            open_file_fd = -1
+            for fd, file_info in state.file_sys.items():
+                if not file_info["status"]:
+                    open_file_fd = fd
+                    break
 
+            if open_file_fd == -1:
+                exit(f"no enough sym file in `fopen`")
+            else:
+                # modify status for this file
+                state.file_sys[open_file_fd]["name"] = filename
+                state.file_sys[open_file_fd]["status"] = True
+                state.file_sys[open_file_fd]["flag"] = mode
+                if mode == 'r':
+                    content = BitVec(
+                        filename, Configuration.get_sym_file_limits()[1] * 8)
+                    state.file_sys[open_file_fd]["content"] = content
+                elif mode == 'w' or mode == 'w+':
+                    state.file_sys[open_file_fd]["content"] = []
+                else:
+                    exit(f"In fopen, the mode is {mode}, not support yet")
+                logging.info(
+                    f"\topen {filename} with fd ({open_file_fd}) and mode ({mode})")
+
+            # construct return value
+            base_addr = open_file_fd * 100 + 100000000
             # each FILE * is 60 bytes long
             # the last 4 bytes are the fd
             _storeN(state, base_addr, 0, 60)
-            _storeN(state, base_addr + 56, filename_fd, 4)
+            _storeN(state, base_addr + 56, open_file_fd, 4)
             # these are the offset of __stdio_read and __stdio_close
             stdio_read_index = find_elem_index('__stdio_read', analyzer)
             _storeN(state, base_addr + 28, stdio_read_index, 4)

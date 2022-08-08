@@ -31,16 +31,17 @@ class WasmVMstate(VMstate):
         self.context_stack = []
 
         self.args = ""
-        self.files_buffer = {}
-        self.stdout_buffer = []
-        self.stderr_buffer = []
-        self.fd = {'stdin': 0, 'stdout': 1, 'stderr': 2}
+
+        self.file_sys = {0: {"name": "stdin", "status": True, "flag": "r", "content": None},
+                         1: {"name": "stdout", "status": True, "flag": "w", "content": []},
+                         2: {"name": "stderr", "status": True, "flag": "w", "content": []}}
 
         # used by br_if instruction
         self.edge_type = ''
 
     def __str__(self):
-        return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
+        return f'''\b
+Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}

@@ -321,11 +321,13 @@ def write_result(state, exit=False):
                 m[k].as_long()).decode('unicode_escape')
 
         # stdout buffer
-        state.stdout_buffer = [str(i) for i in state.stdout_buffer]
-        state_result["stdout"] = f'{"".join(state.stdout_buffer)}'
+        state.file_sys[1]["content"] = [str(i)
+                                        for i in state.file_sys[1]["content"]]
+        state_result["stdout"] = f'{"".join(state.file_sys[1]["content"])}'
 
         # stderr buffer
-        state.stderr_buffer = [str(i) for i in state.stderr_buffer]
-        state_result["stderr"] = f'{"".join(state.stderr_buffer)}'
+        state.file_sys[2]["content"] = [str(i)
+                                        for i in state.file_sys[2]["content"]]
+        state_result["stderr"] = f'{"".join(state.file_sys[2]["content"])}'
 
         json.dump(state_result, fp, indent=4)
