@@ -11,7 +11,7 @@ from os import makedirs, path
 from eunomia.arch.wasm.configuration import Configuration, bcolors
 from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
 from eunomia.arch.wasm.solver import SMTSolver
-from z3 import FP, BitVec, Float32, Float64, is_bv, is_bv_value
+from z3 import FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value
 
 
 # this is a mapping, which maps the data type to the corresponding BitVec
@@ -320,12 +320,49 @@ def write_result(state, exit=False):
                 str(k)] = my_int_to_bytes(
                 m[k].as_long()).decode('unicode_escape')
 
-        # stdout buffer
-        state.stdout_buffer = [str(i) for i in state.stdout_buffer]
-        state_result["stdout"] = f'{"".join(state.stdout_buffer)}'
+        candidate_fds = []
+        # filter out all output buffer
+        for fd, file_info in state.file_sys.items():
+            if "w" in file_info["flag"]:
+                if isinstance(fd, int) or fd[0] == "-":
+                    candidate_fds.append(fd)
 
-        # stderr buffer
-        state.stderr_buffer = [str(i) for i in state.stderr_buffer]
-        state_result["stderr"] = f'{"".join(state.stderr_buffer)}'
+        state_result["Output"] = []
+        # stdout and stderr buffer
+        for fd in candidate_fds:
+            assert all(isinstance(x, (int, BitVecRef))
+                       for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
+            tmp_dict = {"name": None, "output": None, "output solution": None}
+            output_buffer = []
+            output_solve_buffer = []
+            for el in state.file_sys[fd]["content"]:
+                if isinstance(el, int):
+                    output_buffer.append(chr(el).encode())
+                    output_solve_buffer.append(chr(el).encode())
+                elif isinstance(el, BitVecRef):
+                    assert el.size() == 8, f"{el} size is not 8"
+                    output_buffer.append(str(el).encode())
+                    # if can solve a concrete number
+                    solve_char = m.evaluate(el)
+                    if is_bv_value(solve_char):
+                        output_solve_buffer.append(
+                            chr(solve_char.as_long()).encode())
+                    elif is_bv(solve_char):
+                        output_solve_buffer.append(b"`@`")
+                    else:
+                        exit(
+                            f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
+
+            tmp_dict["name"] = state.file_sys[fd]["name"]
+            tmp_dict["output"] = f'{b"".join(output_buffer)}'
+            tmp_dict["output solution"] = f'{b"".join(output_solve_buffer)}'
+            state_result["Output"].append(tmp_dict)
 
         json.dump(state_result, fp, indent=4)
+
+
+def init_file_for_file_sys():
+    """
+    The item for file_sys of state should be initialized here.
+    """
+    return {"name": "", "status": False, "flag": "", "content": []}

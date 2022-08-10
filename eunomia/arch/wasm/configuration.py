@@ -1,6 +1,6 @@
 from enum import Enum
 
-from z3 import BitVec
+from z3 import BitVec, Extract
 
 
 class Enable_Lasers(Enum):
@@ -47,10 +47,12 @@ class Configuration:
     _func_index_to_func_name = None
     # if enable the instruction-level coverage calculation
     _coverage = False
-    # the file name with its fd
-    _fd_table = dict()
-    # the fd with its file content, represented in BitVec
-    _content_table = dict()
+    # the stdin buffer, can be a list of char or symbols with length of 8 bits
+    _stdin_buffer = []
+    # how many files can be opened in total
+    _sym_file_limit = 0
+    # how many bytes a sym file can hold
+    _sym_file_byte_limit = 0
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -175,56 +177,53 @@ class Configuration:
         Configuration._coverage = coverage
 
     @staticmethod
-    def set_files_buffer(stdin, sym_files):
+    def set_stdin(stdin, sym_stdin):
+        """
+        Store stdin buffer into the `stdin_buffer`
+        """
+        if stdin and sym_stdin:
+            exit("Cannot set `stdin` and `sym_stdin` simultaneously")
+
+        if stdin:
+            # the encode is necessary
+            stdin_encoded = stdin.encode().replace(b'\\n', b'\n')
+            Configuration._stdin_buffer = list(stdin_encoded)
+        elif sym_stdin:
+            sym_stdin_len = sym_stdin[0]
+            raw_symbol = BitVec('sym_stdin', sym_stdin_len * 8)
+            # split by chars
+            for i in range(sym_stdin_len, 0, -1):
+                Configuration._stdin_buffer.append(
+                    Extract(i * 8 - 1, (i - 1) * 8, raw_symbol))
+        else:
+            # no stdin is given
+            pass
+
+    @staticmethod
+    def get_stdin():
+        """
+        return the stdin buffer
+        """
+        return Configuration._stdin_buffer
+
+    @staticmethod
+    def set_sym_files(sym_files):
         """
         the sym files take two arguments:
         the first is how many files will be opened;
         the second is how many btyes are in each of them.
 
-        So, we store these two information in two separate table
+        So, we store these two information
         """
-        if stdin and not sym_files:
-            exit("Please give at least 1 sym_files if you input a string via stdin")
-        elif not stdin and not sym_files:
+        if not sym_files:
             return
-
-        assert sym_files, f"Please input sym_files"
-        sym_file_num, sym_file_length = sym_files
-
-        # assert sym_file_num is no larger than 26, as we use 'A', 'B' as file names
-        assert 1 <= sym_file_num <= 27, f"The sym_file_num is {sym_file_num}, please give a number between 1 -- 27"
-        # init fd_table, the first is stdin, the others are A to Z
-        Configuration._fd_table['stdin'] = 0
-        for i in range(sym_file_num - 1):
-            Configuration._fd_table[chr(i + 65)] = i + 3
-
-        if stdin:
-            # the encode is necessary
-            stdin_encoded = stdin.encode().replace(b'\\n', b'\n')
-            assert len(
-                stdin_encoded) <= sym_file_length, f"The given stdin ({stdin}) is longer than the limit (sym_file_length)"
-            Configuration._content_table[0] = stdin_encoded
-        else:
-            Configuration._content_table[0] = BitVec(
-                "sym_stdin", 8 * sym_file_length)
-
-        for k, v in Configuration._fd_table.items():
-            if k == 'stdin':
-                continue
-            Configuration._content_table[v] = BitVec(
-                f"file_{k}", sym_file_length * 8)
+        sym_file_num, sym_file_byte = sym_files
+        Configuration._sym_file_limit = sym_file_num
+        Configuration._sym_file_byte_limit = sym_file_byte
 
     @staticmethod
-    def get_fd():
-        for file, fd in Configuration._fd_table.items():
-            yield file, fd
-        # assert file_name in Configuration._fd_table, f"{file_name} is not maintained in the fd table"
-        # return Configuration._fd_table.get(file_name)
-
-    @staticmethod
-    def get_content(fd):
-        assert fd in Configuration._content_table, f"fd {fd} is not maintained in the content table"
-        return Configuration._content_table.get(fd)
+    def get_sym_file_limits():
+        return Configuration._sym_file_limit, Configuration._sym_file_byte_limit
 
     @staticmethod
     def get_visualize():

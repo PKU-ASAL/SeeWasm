@@ -7,7 +7,7 @@ from datetime import datetime
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import getConcreteBitVec, str_to_little_endian_int
+from eunomia.arch.wasm.utils import getConcreteBitVec, init_file_for_file_sys, str_to_little_endian_int
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv, sat,
                 simplify)
 
@@ -187,8 +187,10 @@ class WASIImportFunction:
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd, = _extract_params(param_str, state)
-            logging.info(
-                f"\tfd_close, fd: {fd}")
+            logging.info(f"\tfd_close, fd: {fd}")
+            state.file_sys[f"-{fd}_{datetime.timestamp(datetime.now()):.0f}"] = state.file_sys[fd].copy(
+            )
+            state.file_sys[fd] = init_file_for_file_sys()
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
@@ -201,13 +203,14 @@ class WASIImportFunction:
             logging.info(
                 f"\tfd_read, fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_read_addr: {num_bytes_read_addr}")
 
-            if fd not in state.files_buffer:
-                exit(
-                    f"fd: {fd} does not exist in files buffer, please check if you open enough sym files")
+            if fd not in state.file_sys:
+                exit(f"fd ({fd}) not in file_sys, please give more sym files")
+            assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet, can't be read"
+            assert "r" in state.file_sys[fd]["flag"], f"fd ({fd})'s mode is not 'r', can't be read"
 
             # if there is no input chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if (isinstance(state.files_buffer[fd], bytes) and not state.files_buffer[fd]) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() < 8):
+            if not state.file_sys[fd]["content"]:
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
@@ -221,48 +224,23 @@ class WASIImportFunction:
                 # the buffer capacity
                 buffer_len = _loadN(state, data_section,
                                     iovs_addr + (8 * i + 4), 4)
-
-                if isinstance(state.files_buffer[fd], bytes):
-                    stdin_length = len(state.files_buffer[fd])
-                else:
-                    stdin_length = state.files_buffer[fd].size() // 8
+                stdin_length = len(state.file_sys[fd]["content"])
 
                 for j in range(min(stdin_length, buffer_len)):
-                    if isinstance(state.files_buffer[fd], bytes):
-                        data_to_read = state.files_buffer[fd][0]
-                        state.files_buffer[fd] = state.files_buffer[fd][1:]
-                    else:
-                        data_to_read = simplify(
-                            Extract(7, 0, state.files_buffer[fd]))
-                        if (stdin_length - char_read_cnt) == 1:
-                            state.files_buffer[fd] = BitVec('dummy', 1)
-                        else:
-                            state.files_buffer[fd] = simplify(
-                                Extract(state.files_buffer[fd].size() - 1, 8, state.files_buffer[fd]))
-
+                    data_to_read = state.file_sys[fd]["content"].pop(0)
                     out_chars.append(data_to_read)
                     char_read_cnt += 1
                     _storeN(state, buffer_ptr + j, data_to_read, 1)
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if (isinstance(state.files_buffer[fd], bytes) and len(state.files_buffer[fd]) > 0) or (is_bv(state.files_buffer[fd]) and state.files_buffer[fd].size() > 1):
+                if state.file_sys[fd]["content"]:
                     continue
                 else:
                     # or the stdin buffer is drained out, break out
                     break
-            all_char = True
-            for ele in out_chars:
-                if not isinstance(ele, int):
-                    all_char = False
-                    break
-            if all_char:
-                out_chars = [chr(i).encode() for i in out_chars]
-                logging.info(
-                    f"\tInput a fd_read string: {b''.join(out_chars)}")
-            else:
-                logging.info(
-                    f"\tInput a fd_read string: {out_chars}")
+
+            logging.info(f"\tInput a fd_read string: {out_chars}")
             # set num_bytes_read_addr to bytes_read_cnt
             logging.info(f"\t{char_read_cnt} chars read")
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
@@ -277,11 +255,10 @@ class WASIImportFunction:
                 state)
             logging.info(
                 f"\tfd_write. fd: {fd}, iovs_addr: {iovs_addr}, num_iovs: {num_iovs}, num_bytes_written_addr: {num_bytes_written_addr}")
-
-            if fd == 2:
-                logging.info(f"\tfd_write to stderr")
-            elif fd == 1:
-                logging.info(f"\tfd_write to stdout")
+            assert fd in state.file_sys, f"fd ({fd}) not in file_sys"
+            assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet"
+            assert 'w' in state.file_sys[fd][
+                "flag"], f"fd ({fd}) mode is {state.file_sys[fd]['flag']}, can't be written"
 
             bytes_written_cnt = 0
             for i in range(num_iovs):
@@ -304,32 +281,10 @@ class WASIImportFunction:
                 out_str = []
                 for j in range(data_len):
                     c = _loadN(state, data_section, data_ptr + j, 1)
-                    if isinstance(c, int):
-                        c = chr(c)
-                    elif is_bv(c):
-                        c = c
-                    else:
-                        raise Exception(
-                            f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
+                state.file_sys[fd]["content"] += out_str
 
-                if fd == 1:
-                    state.stdout_buffer += out_str
-                elif fd == 2:
-                    state.stderr_buffer += out_str
-
-                all_char = True
-                for ele in out_str:
-                    if not isinstance(ele, str):
-                        all_char = False
-                        break
-                if all_char:
-                    out_str = [ele.encode() for ele in out_str]
-                    logging.info(
-                        f"\tOutput a fd_write string: {b''.join(out_str)}")
-                else:
-                    logging.info(
-                        f"\tOutput a fd_write string: {out_str}")
+                logging.info(f"\tOutput a fd_write string: {out_str}")
                 bytes_written_cnt += data_len
 
             _storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)

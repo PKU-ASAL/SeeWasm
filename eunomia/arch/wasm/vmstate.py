@@ -2,7 +2,8 @@
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.utils import readable_internal_func_name
+from eunomia.arch.wasm.utils import (init_file_for_file_sys,
+                                     readable_internal_func_name)
 from eunomia.engine.engine import VMstate
 from z3 import BitVecVal
 
@@ -31,16 +32,27 @@ class WasmVMstate(VMstate):
         self.context_stack = []
 
         self.args = ""
-        self.files_buffer = {}
-        self.stdout_buffer = []
-        self.stderr_buffer = []
-        self.fd = {'stdin': 0, 'stdout': 1, 'stderr': 2}
+
+        # all items should be initialized by init_file_for_file_sys in utils
+        self.file_sys = {}
+        for fd in range(0, 3):
+            self.file_sys[fd] = init_file_for_file_sys()
+        self.file_sys[0]["name"] = "stdin"
+        self.file_sys[0]["status"] = True
+        self.file_sys[0]["flag"] = "r"
+        self.file_sys[1]["name"] = "stdout"
+        self.file_sys[1]["status"] = True
+        self.file_sys[1]["flag"] = "w"
+        self.file_sys[2]["name"] = "stderr"
+        self.file_sys[2]["status"] = True
+        self.file_sys[2]["flag"] = "w"
 
         # used by br_if instruction
         self.edge_type = ''
 
     def __str__(self):
-        return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
+        return f'''\b
+Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}
