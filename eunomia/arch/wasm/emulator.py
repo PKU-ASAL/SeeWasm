@@ -21,7 +21,7 @@ from eunomia.arch.wasm.instructions import (ArithmeticInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.utils import (getConcreteBitVec,
+from eunomia.arch.wasm.utils import (getConcreteBitVec, init_file_for_file_sys,
                                      readable_internal_func_name)
 from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.core.basicblock import BasicBlock
@@ -292,10 +292,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         state.file_sys[0]["content"] = Configuration.get_stdin()
         sym_file_limit, _ = Configuration.get_sym_file_limits()
         for i in range(sym_file_limit):
-            state.file_sys[i + 3] = {"name": "",
-                                     "status": False,
-                                     "flag": "",
-                                     "content": []}
+            state.file_sys[i + 3] = init_file_for_file_sys()
 
         args = Configuration.get_args()
         state.args = args

@@ -7,7 +7,7 @@ from datetime import datetime
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import getConcreteBitVec, str_to_little_endian_int
+from eunomia.arch.wasm.utils import getConcreteBitVec, init_file_for_file_sys, str_to_little_endian_int
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv, sat,
                 simplify)
 
@@ -188,10 +188,9 @@ class WASIImportFunction:
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
             fd, = _extract_params(param_str, state)
             logging.info(f"\tfd_close, fd: {fd}")
-            state.file_sys[fd]["name"] = ""
-            state.file_sys[fd]["status"] = False
-            state.file_sys[fd]["flag"] = ""
-            state.file_sys[fd]["content"] = []
+            state.file_sys[f"-{fd}_{datetime.timestamp(datetime.now()):.0f}"] = state.file_sys[fd].copy(
+            )
+            state.file_sys[fd] = init_file_for_file_sys()
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))

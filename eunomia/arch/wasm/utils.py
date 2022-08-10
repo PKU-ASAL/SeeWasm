@@ -320,10 +320,19 @@ def write_result(state, exit=False):
                 str(k)] = my_int_to_bytes(
                 m[k].as_long()).decode('unicode_escape')
 
+        candidate_fds = []
+        # filter out all output buffer
+        for fd, file_info in state.file_sys.items():
+            if "w" in file_info["flag"]:
+                if isinstance(fd, int) or fd[0] == "-":
+                    candidate_fds.append(fd)
+
+        state_result["Output"] = []
         # stdout and stderr buffer
-        for fd in [1, 2]:
+        for fd in candidate_fds:
             assert all(isinstance(x, (int, BitVecRef))
                        for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
+            tmp_dict = {"name": None, "output": None, "output solution": None}
             output_buffer = []
             output_solve_buffer = []
             for el in state.file_sys[fd]["content"]:
@@ -344,7 +353,16 @@ def write_result(state, exit=False):
                         exit(
                             f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
 
-            state_result[f"fd({fd}) output"] = f'{b"".join(output_buffer)}'
-            state_result[f"fd({fd}) output solution"] = f'{b"".join(output_solve_buffer)}'
+            tmp_dict["name"] = state.file_sys[fd]["name"]
+            tmp_dict["output"] = f'{b"".join(output_buffer)}'
+            tmp_dict["output solution"] = f'{b"".join(output_solve_buffer)}'
+            state_result["Output"].append(tmp_dict)
 
         json.dump(state_result, fp, indent=4)
+
+
+def init_file_for_file_sys():
+    """
+    The item for file_sys of state should be initialized here.
+    """
+    return {"name": "", "status": False, "flag": "", "content": []}
