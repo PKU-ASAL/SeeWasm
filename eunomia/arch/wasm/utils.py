@@ -325,12 +325,26 @@ def write_result(state, exit=False):
             assert all(isinstance(x, (int, BitVecRef))
                        for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
             output_buffer = []
+            output_solve_buffer = []
             for el in state.file_sys[fd]["content"]:
                 if isinstance(el, int):
                     output_buffer.append(chr(el).encode())
+                    output_solve_buffer.append(chr(el).encode())
                 elif isinstance(el, BitVecRef):
                     assert el.size() == 8, f"{el} size is not 8"
                     output_buffer.append(str(el).encode())
+                    # if can solve a concrete number
+                    solve_char = m.evaluate(el)
+                    if is_bv_value(solve_char):
+                        output_solve_buffer.append(
+                            chr(solve_char.as_long()).encode())
+                    elif is_bv(solve_char):
+                        output_solve_buffer.append(b"`@`")
+                    else:
+                        exit(
+                            f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
+
             state_result[f"fd({fd}) output"] = f'{b"".join(output_buffer)}'
+            state_result[f"fd({fd}) output solution"] = f'{b"".join(output_solve_buffer)}'
 
         json.dump(state_result, fp, indent=4)
