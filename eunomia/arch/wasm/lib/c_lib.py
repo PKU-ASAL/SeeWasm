@@ -13,8 +13,8 @@ from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
                                      my_int_to_bytes, parse_printf_formatting,
                                      readable_internal_func_name)
-from z3 import (BitVec, BitVecRef, BitVecVal, Float64, FPNumRef, FPVal, If,
-                fpBVToFP, fpToReal, is_bv, simplify)
+from z3 import (BitVec, BitVecRef, BitVecVal, Extract, Float64, FPNumRef,
+                FPVal, If, fpBVToFP, fpToReal, is_bv, simplify)
 
 
 class CPredefinedFunction:
@@ -27,7 +27,6 @@ class CPredefinedFunction:
         pattern = C_extract_string_by_mem_pointer(
             pattern_p, data_section, state)
 
-        the_string = ""
         parsed_pattern = parse_printf_formatting(pattern)
 
         # For memory align, e.g.,
@@ -66,11 +65,9 @@ class CPredefinedFunction:
                     x[2]] for x in parsed_pattern]
             i += 1
 
-        the_string = pattern
-
-        logging.info(
-            f"\tOutput a printf string: {the_string.encode()}")
-        state.file_sys[fp]["content"] += the_string
+        the_string = pattern.encode()
+        logging.info(f"\tOutput a string: {the_string}")
+        state.file_sys[fp]["content"] += list(the_string)
         string_length = BitVecVal(len(the_string), 32)
         state.symbolic_stack.append(string_length)
 
@@ -207,12 +204,15 @@ class CPredefinedFunction:
             if isinstance(the_char, int):
                 logging.info(
                     f"\tOutput a putchar char: {chr(the_char).encode()}")
-                state.file_sys[1]["content"] += chr(the_char)
+                state.file_sys[1]["content"].append(the_char)
                 the_char = BitVecVal(the_char, 32)
             elif is_bv(the_char):
                 logging.info(
                     f"\tOutput a putchar char: {str(the_char).encode()}")
-                state.file_sys[1]["content"] += str(the_char)
+                # we have to manually extract from 7 to 0
+                # because it is always 32 bit in wasm
+                state.file_sys[1]["content"].append(
+                    simplify(Extract(7, 0, the_char)))
             state.symbolic_stack.append(the_char)
         elif self.name == 'abs':
             candidate_num, = _extract_params(param_str, state)
@@ -234,11 +234,11 @@ class CPredefinedFunction:
             mem_pointer, = _extract_params(param_str, state)
             logging.info(f"\tputs, mem_pointer: {mem_pointer}")
             the_string = C_extract_string_by_mem_pointer(
-                mem_pointer, data_section, state)
+                mem_pointer, data_section, state).encode()
             # the '\n' is added according to semantic of puts
             logging.info(
-                f"\tOutput a puts string: {the_string.encode()}")
-            state.file_sys[1]["content"] += the_string
+                f"\tOutput a puts string: {the_string}")
+            state.file_sys[1]["content"] += list(the_string)
             state.symbolic_stack.append(BitVecVal(1, 32))
         elif self.name == 'atof':
             str_p, = _extract_params(param_str, state)
@@ -320,11 +320,13 @@ class CPredefinedFunction:
                 state.file_sys[open_file_fd]["name"] = filename
                 state.file_sys[open_file_fd]["status"] = True
                 state.file_sys[open_file_fd]["flag"] = mode
-                if mode == 'r':
-                    content = BitVec(
-                        filename, Configuration.get_sym_file_limits()[1] * 8)
-                    state.file_sys[open_file_fd]["content"] = content
-                elif mode == 'w' or mode == 'w+':
+                if 'r' in mode:
+                    _, length_limit = Configuration.get_sym_file_limits()
+                    content = BitVec(filename, length_limit * 8)
+                    state.file_sys[open_file_fd]["content"] = [
+                        Extract(i * 8 - 1, (i - 1) * 8, content)
+                        for i in range(length_limit, 0, -1)]
+                elif 'w' in mode:
                     state.file_sys[open_file_fd]["content"] = []
                 else:
                     exit(f"In fopen, the mode is {mode}, not support yet")

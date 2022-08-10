@@ -32,9 +32,10 @@ class WasmVMstate(VMstate):
 
         self.args = ""
 
-        self.file_sys = {0: {"name": "stdin", "status": True, "flag": "r", "content": None},
-                         1: {"name": "stdout", "status": True, "flag": "w", "content": []},
-                         2: {"name": "stderr", "status": True, "flag": "w", "content": []}}
+        self.file_sys = {
+            0: {"name": "stdin", "status": True, "flag": "r", "content": []},
+            1: {"name": "stdout", "status": True, "flag": "w", "content": []},
+            2: {"name": "stderr", "status": True, "flag": "w", "content": []}}
 
         # used by br_if instruction
         self.edge_type = ''

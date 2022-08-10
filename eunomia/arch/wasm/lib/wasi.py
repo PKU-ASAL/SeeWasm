@@ -207,10 +207,11 @@ class WASIImportFunction:
             if fd not in state.file_sys:
                 exit(f"fd ({fd}) not in file_sys, please give more sym files")
             assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet, can't be read"
+            assert "r" in state.file_sys[fd]["flag"], f"fd ({fd})'s mode is not 'r', can't be read"
 
             # if there is no input chars
             # just set the num_bytes_read_addr as 0 and return 0 immediately
-            if (isinstance(state.file_sys[fd]["content"], bytes) and not state.file_sys[fd]["content"]) or (is_bv(state.file_sys[fd]["content"]) and state.file_sys[fd]["content"].size() < 8):
+            if not state.file_sys[fd]["content"]:
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
@@ -224,54 +225,23 @@ class WASIImportFunction:
                 # the buffer capacity
                 buffer_len = _loadN(state, data_section,
                                     iovs_addr + (8 * i + 4), 4)
-
-                if isinstance(state.file_sys[fd]["content"], bytes):
-                    stdin_length = len(state.file_sys[fd]["content"])
-                else:
-                    stdin_length = state.file_sys[fd]["content"].size() // 8
+                stdin_length = len(state.file_sys[fd]["content"])
 
                 for j in range(min(stdin_length, buffer_len)):
-                    if isinstance(state.file_sys[fd]["content"], bytes):
-                        data_to_read = state.file_sys[fd]["content"][0]
-                        state.file_sys[fd]["content"] = state.file_sys[fd][
-                            "content"][
-                            1:]
-                    else:
-                        data_to_read = simplify(
-                            Extract(7, 0, state.file_sys[fd]["content"]))
-                        if (stdin_length - char_read_cnt) == 1:
-                            state.file_sys[fd]["content"] = BitVec('dummy', 1)
-                        else:
-                            state.file_sys[fd]["content"] = simplify(
-                                Extract(
-                                    state.file_sys[fd]["content"].size() - 1,
-                                    8,
-                                    state.file_sys[fd]["content"]))
-
+                    data_to_read = state.file_sys[fd]["content"].pop(0)
                     out_chars.append(data_to_read)
                     char_read_cnt += 1
                     _storeN(state, buffer_ptr + j, data_to_read, 1)
 
                 # if there are more bytes to read, and the buffer is filled
                 # update the cursor and move to the next buffer
-                if (isinstance(state.file_sys[fd]["content"], bytes) and len(state.file_sys[fd]["content"]) > 0) or (is_bv(state.file_sys[fd]["content"]) and state.file_sys[fd]["content"].size() > 1):
+                if state.file_sys[fd]["content"]:
                     continue
                 else:
                     # or the stdin buffer is drained out, break out
                     break
 
-            all_char = True
-            for ele in out_chars:
-                if not isinstance(ele, int):
-                    all_char = False
-                    break
-            if all_char:
-                out_chars = [chr(i).encode() for i in out_chars]
-                logging.info(
-                    f"\tInput a fd_read string: {b''.join(out_chars)}")
-            else:
-                logging.info(
-                    f"\tInput a fd_read string: {out_chars}")
+            logging.info(f"\tInput a fd_read string: {out_chars}")
             # set num_bytes_read_addr to bytes_read_cnt
             logging.info(f"\t{char_read_cnt} chars read")
             _storeN(state, num_bytes_read_addr, char_read_cnt, 4)
@@ -290,8 +260,6 @@ class WASIImportFunction:
             assert state.file_sys[fd]["status"], f"fd ({fd}) is not opened yet"
             assert 'w' in state.file_sys[fd][
                 "flag"], f"fd ({fd}) mode is {state.file_sys[fd]['flag']}, can't be written"
-            assert isinstance(
-                state.file_sys[fd]["content"], list), f"fd ({fd}) content is not a list, please check the init process"
 
             bytes_written_cnt = 0
             for i in range(num_iovs):
@@ -314,29 +282,10 @@ class WASIImportFunction:
                 out_str = []
                 for j in range(data_len):
                     c = _loadN(state, data_section, data_ptr + j, 1)
-                    if isinstance(c, int):
-                        c = chr(c)
-                    elif is_bv(c):
-                        c = c
-                    else:
-                        raise Exception(
-                            f"The loaded char: {c} is with type: {type(c)}")
                     out_str.append(c)
-
                 state.file_sys[fd]["content"] += out_str
 
-                all_char = True
-                for ele in out_str:
-                    if not isinstance(ele, str):
-                        all_char = False
-                        break
-                if all_char:
-                    out_str = [ele.encode() for ele in out_str]
-                    logging.info(
-                        f"\tOutput a fd_write string: {b''.join(out_str)}")
-                else:
-                    logging.info(
-                        f"\tOutput a fd_write string: {out_str}")
+                logging.info(f"\tOutput a fd_write string: {out_str}")
                 bytes_written_cnt += data_len
 
             _storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from z3 import BitVec
+from z3 import BitVec, Extract
 
 
 class Enable_Lasers(Enum):
@@ -47,8 +47,8 @@ class Configuration:
     _func_index_to_func_name = None
     # if enable the instruction-level coverage calculation
     _coverage = False
-    # the stdin buffer, can be a string or a bitvec
-    _stdin_buffer = None
+    # the stdin buffer, can be a list of char or symbols with length of 8 bits
+    _stdin_buffer = []
     # how many files can be opened in total
     _sym_file_limit = 0
     # how many bytes a sym file can hold
@@ -187,11 +187,14 @@ class Configuration:
         if stdin:
             # the encode is necessary
             stdin_encoded = stdin.encode().replace(b'\\n', b'\n')
-            Configuration._stdin_buffer = stdin_encoded
+            Configuration._stdin_buffer = list(stdin_encoded)
         elif sym_stdin:
             sym_stdin_len = sym_stdin[0]
-            Configuration._stdin_buffer = BitVec(
-                'sym_stdin', sym_stdin_len * 8)
+            raw_symbol = BitVec('sym_stdin', sym_stdin_len * 8)
+            # split by chars
+            for i in range(sym_stdin_len, 0, -1):
+                Configuration._stdin_buffer.append(
+                    Extract(i * 8 - 1, (i - 1) * 8, raw_symbol))
         else:
             # no stdin is given
             pass

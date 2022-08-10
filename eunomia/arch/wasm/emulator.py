@@ -290,7 +290,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         # update file sys
         state.file_sys[0]["content"] = Configuration.get_stdin()
-        sym_file_limit, file_byte_limit = Configuration.get_sym_file_limits()
+        sym_file_limit, _ = Configuration.get_sym_file_limits()
         for i in range(sym_file_limit):
             state.file_sys[i + 3] = {"name": "",
                                      "status": False,

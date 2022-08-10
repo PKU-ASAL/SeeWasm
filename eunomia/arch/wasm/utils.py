@@ -11,7 +11,7 @@ from os import makedirs, path
 from eunomia.arch.wasm.configuration import Configuration, bcolors
 from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
 from eunomia.arch.wasm.solver import SMTSolver
-from z3 import FP, BitVec, Float32, Float64, is_bv, is_bv_value
+from z3 import FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value
 
 
 # this is a mapping, which maps the data type to the corresponding BitVec
@@ -320,14 +320,17 @@ def write_result(state, exit=False):
                 str(k)] = my_int_to_bytes(
                 m[k].as_long()).decode('unicode_escape')
 
-        # stdout buffer
-        state.file_sys[1]["content"] = [str(i)
-                                        for i in state.file_sys[1]["content"]]
-        state_result["stdout"] = f'{"".join(state.file_sys[1]["content"])}'
-
-        # stderr buffer
-        state.file_sys[2]["content"] = [str(i)
-                                        for i in state.file_sys[2]["content"]]
-        state_result["stderr"] = f'{"".join(state.file_sys[2]["content"])}'
+        # stdout and stderr buffer
+        for fd in [1, 2]:
+            assert all(isinstance(x, (int, BitVecRef))
+                       for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
+            output_buffer = []
+            for el in state.file_sys[fd]["content"]:
+                if isinstance(el, int):
+                    output_buffer.append(chr(el).encode())
+                elif isinstance(el, BitVecRef):
+                    assert el.size() == 8, f"{el} size is not 8"
+                    output_buffer.append(str(el).encode())
+            state_result[f"fd({fd}) output"] = f'{b"".join(output_buffer)}'
 
         json.dump(state_result, fp, indent=4)
