@@ -81,6 +81,9 @@ def main():
     features.add_argument(
         '--coverage', action='store_true',
         help='calculate the instruction coverage')
+    features.add_argument(
+        '--workers', type=int, nargs=1,
+        help="enable how many workers to conduct multi-process")
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
@@ -167,6 +170,7 @@ def main():
         Configuration.set_solver(args.solver)
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
+        Configuration.set_workers(args.workers)
 
         command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)

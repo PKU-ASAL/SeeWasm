@@ -53,6 +53,8 @@ class Configuration:
     _sym_file_limit = 0
     # how many bytes a sym file can hold
     _sym_file_byte_limit = 0
+    # how many workers
+    _workers = 1
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -232,3 +234,15 @@ class Configuration:
     @staticmethod
     def set_visualize(visualize_flag):
         Configuration._visualize_flag = visualize_flag
+
+    @staticmethod
+    def set_workers(workers):
+        workers = workers[0]
+        if workers < 1:
+            exit(f"Please input a positive integer for configuring workers")
+
+        Configuration._workers = workers
+
+    @staticmethod
+    def get_workers():
+        return Configuration._workers
