@@ -1,15 +1,6 @@
-# Explorer
-requests>=2.18.4
-
 # CFG graphical view
 graphviz>=0.9
 
-# bytecode analytics
-matplotlib>=2.1.1
-numpy>=1.14.2
-
-# ETH
-# ethereum>=2.3.0
 z3-solver==4.8.12
 
 # WASM / EOS
@@ -21,7 +12,3 @@ pyelftools==0.27
 # for test.py
 pytest
 sh
-
-# for graph.py
-loky
-joblib

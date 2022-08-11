@@ -60,9 +60,6 @@ def main():
         choices=['warning', 'info', 'debug'],
         help='set the logging level. debug is instruction level, info is function level')
     features.add_argument(
-        '-y', '--analytic', action='store_true',
-        help='print Functions instructions analytics')
-    features.add_argument(
         '-g', '--cfg', action='store_true',
         help='generate the control flow graph (CFG) (instruction level)')
     features.add_argument(
@@ -139,7 +136,7 @@ def main():
     octo_bytecode = args.file.read()
 
     # Control Flow Analysis & Call flow Analysis
-    if args.cfg or args.call or args.analytic:
+    if args.cfg or args.call:
         from eunomia.analysis.graph import CFGGraph
         from eunomia.arch.wasm.cfg import WasmCFG
 
@@ -147,8 +144,6 @@ def main():
 
         if args.call:
             octo_cfg.visualize_call_flow()
-        if args.analytic:
-            octo_cfg.visualize_instrs_per_funcs()
 
         if args.cfg:
             octo_graph = CFGGraph(octo_cfg)
@@ -200,7 +195,7 @@ def main():
         graph = Graph()
         graph.traverse()
 
-    if not (args.symbolic or args.cfg or args.call or args.analytic):
+    if not (args.symbolic or args.cfg or args.call):
         parser.print_help()
 
 

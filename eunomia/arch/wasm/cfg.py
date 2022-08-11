@@ -11,7 +11,6 @@ from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.disassembler import WasmDisassembler
 from eunomia.arch.wasm.format import format_bb_name, format_func_name
 from eunomia.arch.wasm.utils import readable_internal_func_name
-from eunomia.arch.wasm.wasm import _groups
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
                                EDGE_CONDITIONAL_TRUE, EDGE_FALLTHROUGH,
@@ -505,64 +504,3 @@ class WasmCFG(CFG):
                     label=label)
 
         g.render(filename, view=True)
-
-    def visualize_instrs_per_funcs(self, show=True, save=True,
-                                   out_filename="wasm_func_analytic.png",
-                                   fontsize=8):
-        """Visualize the instructions repartitions per functions
-        """
-
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        final = list()
-        datas = list()
-
-        # legend x axis - name functions
-        group_names = tuple([func.name for func in self.functions])
-        # number of functions
-        ind = [x for x, _ in enumerate(self.functions)]
-
-        # list all groups
-        all_groups = [v for _, v in _groups.items()]
-
-        # list()
-        for func in self.functions:
-            data = list()
-            group = [i.group for i in func.instructions]
-            for g in all_groups:
-                data.append(group.count(g))
-            datas.append(tuple(data))
-
-        for idx in range(len(all_groups)):
-            final.append(tuple([x[idx] for x in datas]))
-
-        # choice color: https://matplotlib.org/users/colormaps.html
-        color = iter(plt.cm.gist_rainbow(np.linspace(0, 1, len(all_groups))))
-        stack = np.array([0 * len(all_groups)])
-        for idx in range(len(all_groups)):
-            if idx == 0:
-                # first bar
-                plt.barh(ind, final[idx], label=all_groups[idx],
-                         align='center', color=next(color))
-            else:
-                plt.barh(ind, final[idx], label=all_groups[idx], left=stack,
-                         align='center', color=next(color))
-
-            stack = stack + np.array(final[idx])
-
-        # Rotate x-labels on the x-axis
-        plt.yticks(fontsize=fontsize)
-        plt.ylim([0, len(self.functions)])
-        plt.yticks(ind, group_names)
-        plt.ylabel('Functions')
-        plt.xlabel('Instructions count')
-        plt.legend(loc="lower right")
-        plt.title('Instructions count by function and group')
-
-        # save
-        if save:
-            plt.savefig(out_filename)
-        # show
-        if show:
-            plt.show()

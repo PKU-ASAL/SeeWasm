@@ -11,7 +11,3 @@ class CFG(object):
     def visualize_call_flow(self):
         """ TODO """
         raise NotImplementedError
-
-    def visualize_instrs_per_funcs(self):
-        """ TODO """
-        raise NotImplementedError
