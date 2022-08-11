@@ -237,6 +237,9 @@ class Configuration:
 
     @staticmethod
     def set_workers(workers):
+        if not workers:
+            return
+
         workers = workers[0]
         if workers < 1:
             exit(f"Please input a positive integer for configuring workers")
