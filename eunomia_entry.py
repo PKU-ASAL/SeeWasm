@@ -207,6 +207,10 @@ if __name__ == '__main__':
 
     main()
 
+    Configuration._tmp_dict = {k:str(v) for k,v in Configuration._tmp_dict.items()}
+    with open('./constraints_result.json', 'w') as fp:
+        json.dump(Configuration._tmp_dict, fp, indent=4)
+
     job_end_time = datetime.now()
     current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"End of analyze: {current_time_end}", flush=True)

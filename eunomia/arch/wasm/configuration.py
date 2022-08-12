@@ -54,6 +54,8 @@ class Configuration:
     # how many bytes a sym file can hold
     _sym_file_byte_limit = 0
 
+    _tmp_dict = {}
+
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
         if overflow:

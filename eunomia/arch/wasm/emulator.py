@@ -362,8 +362,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     Configuration.get_func_index_to_func_name(),
                     state.current_func_name))
 
-        logging.debug(
-            f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
+        # logging.debug(
+        #     f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
         for c in state.constraints:
             if not isinstance(c, BoolRef):
