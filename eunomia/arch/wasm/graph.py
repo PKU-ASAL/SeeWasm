@@ -644,23 +644,12 @@ class Graph:
         solver.add(*constraints)
 
         cons_sexpr = solver.sexpr()
-        # # split by ')\n(' to get the first level sentences
-        # cons_sexpr = cons_sexpr.split(')\n(')
-        # # complete the removed parenthesises
-        # cons_sexpr = ["(" + i + ")" for i in cons_sexpr]
-        # # remove the left parenthesis for the first element, and the right parenthesis for the last one
-        # cons_sexpr[0] = cons_sexpr[0][1:]
-        # cons_sexpr[-1] = cons_sexpr[-1][:-1]
-        # # sort to eliminate the order problem
-        # cons_sexpr.sort()
-        # # join
-        # cons_sexpr = "".join(cons_sexpr)
 
-        if cons_sexpr not in Configuration._tmp_dict:
+        if cons_sexpr not in Configuration._z3_cache_dict:
             solver_check_result = solver.check()
-            Configuration._tmp_dict[cons_sexpr] = solver_check_result
+            Configuration._z3_cache_dict[cons_sexpr] = solver_check_result
         else:
-            solver_check_result = Configuration._tmp_dict[cons_sexpr]
+            solver_check_result = Configuration._z3_cache_dict[cons_sexpr]
 
         return unsat == solver_check_result
 
