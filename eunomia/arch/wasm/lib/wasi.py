@@ -7,8 +7,9 @@ from datetime import datetime
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import getConcreteBitVec, init_file_for_file_sys, str_to_little_endian_int
-from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv, sat,
+from eunomia.arch.wasm.utils import (getConcreteBitVec, init_file_for_file_sys,
+                                     str_to_little_endian_int)
+from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, Or, is_bv, sat,
                 simplify)
 
 
@@ -53,7 +54,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'args_get':
             # this is not the complete version
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
@@ -89,7 +89,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'environ_sizes_get':
             env_buf_size_addr, env_count_addr = _extract_params(
                 param_str, state)
@@ -100,7 +99,6 @@ class WASIImportFunction:
             _storeN(state, env_buf_size_addr, 0, 4)
 
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_advise':
             # ref: https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
             advice, length, offset, fd = _extract_params(param_str, state)
@@ -109,7 +107,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_fdstat_get':
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L717
             fd_stat_addr, fd = _extract_params(param_str, state)
@@ -155,7 +152,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_tell':
             # TODO, do not precisely emulate this function, just insert 0 temporarily
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L695
@@ -168,7 +164,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_seek':
             # TODO, similar to fd_tell, do not precisely emulate this function
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L657
@@ -182,7 +177,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_close':
             # I did not emulate the fdMap, just return the success flag here
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L322
@@ -194,7 +188,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_read':
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L554
             num_bytes_read_addr, num_iovs, iovs_addr, fd = _extract_params(
@@ -214,7 +207,7 @@ class WASIImportFunction:
                 _storeN(state, num_bytes_read_addr, 0, 4)
                 # append a 0 as return value, means success
                 state.symbolic_stack.append(BitVecVal(0, 32))
-                return
+                return [state]
 
             char_read_cnt = 0
             out_chars = []
@@ -247,7 +240,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_write':
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIFile.cpp#L583
             num_bytes_written_addr, num_iovs, iovs_addr, fd = _extract_params(
@@ -291,7 +283,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'proc_exit':
             return_val, = _extract_params(param_str, state)
             logging.info(
@@ -299,7 +290,6 @@ class WASIImportFunction:
 
             proc_exit = BitVec('proc_exit', 32)
             state.constraints.append(proc_exit == return_val)
-            return
             # if return_val == 0:
             #     raise ProcSuccessTermination(return_val)
             # else:
@@ -313,7 +303,7 @@ class WASIImportFunction:
             # if we do not return 8, the loop in `__wasilibc_populate_preopens` will never end
             if fd >= 5:
                 state.symbolic_stack.append(BitVecVal(8, 32))
-                return
+                return [state]
 
             # the first byte means '__WASI_PREOPENTYPE_DIR', the other three are for align
             _storeN(state, prestat_addr, 0, 4)
@@ -322,7 +312,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'fd_prestat_dir_name':
             buffer_len, buffer_addr, fd = _extract_params(
                 param_str, state)
@@ -336,7 +325,6 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         elif self.name == 'path_open':
             fd_addr, _, _, _, _, _, _, _, dir_fd = _extract_params(
                 param_str,
@@ -347,15 +335,10 @@ class WASIImportFunction:
 
             # append a 0 as return value, means success
             state.symbolic_stack.append(BitVecVal(0, 32))
-            return
         else:
             logging.error(f"{self.name}")
             logging.error(f"{state.symbolic_stack}")
             logging.error(f"{state.symbolic_memory}")
             exit()
 
-        if return_str:
-            tmp_bitvec = getConcreteBitVec(
-                return_str,
-                f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
-            state.symbolic_stack.append(tmp_bitvec)
+        return [state]

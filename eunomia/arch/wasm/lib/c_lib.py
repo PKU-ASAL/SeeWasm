@@ -371,6 +371,8 @@ class CPredefinedFunction:
         else:
             raise UnsupportExternalFuncError
 
+        return [state]
+
 
 def find_elem_index(func_name, ana):
     """

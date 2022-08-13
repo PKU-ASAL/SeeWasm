@@ -354,3 +354,5 @@ class GoPredefinedFunction:
                 return_str,
                 f'{self.name}_ret_{return_str}_{self.cur_func}_{str(state.instr.offset)}')
             state.symbolic_stack.append(tmp_bitvec)
+
+        return [state]

@@ -366,3 +366,17 @@ def init_file_for_file_sys():
     The item for file_sys of state should be initialized here.
     """
     return {"name": "", "status": False, "flag": "", "content": []}
+
+
+def log_in_out(func_name, directory):
+    """
+    A decorator to log before entering and after exiting call emulation
+    """
+    def decorator(f):
+        def wrapper(*args, **kw):
+            logging.info(f"Call: {func_name} ({directory})")
+            states = f(*args, **kw)
+            logging.info(f"Return: {func_name} ({directory})")
+            return states
+        return wrapper
+    return decorator

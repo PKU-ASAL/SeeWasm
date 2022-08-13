@@ -9,7 +9,7 @@ from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import readable_internal_func_name
+from eunomia.arch.wasm.utils import log_in_out, readable_internal_func_name
 from z3 import Not, Or, is_bool, is_bv, is_false, is_true, simplify, unsat
 
 C_LIBRARY_FUNCS = {
@@ -29,7 +29,6 @@ NEED_STEP_IN_GO = {
     '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
     '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', '_*sync.Pool_.Get',
     'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
-NEED_STEP_IN_C = {}
 PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
                    'runtime.lookupPanic': 'index out of range',
                    'runtime.slicePanic': 'slice out of range',
@@ -138,43 +137,37 @@ class ControlInstructions:
 
         # if the callee is a C library function
         if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
-                readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_C:
-            # exit("Currently, we don't allow external function's model")
-            logging.info(
-                f"Call: {readable_callee_func_name} (C library)")
+                readable_callee_func_name):
             func = CPredefinedFunction(
                 readable_callee_func_name, state.current_func_name)
-            func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"Return: {readable_callee_func_name} (C library)")
+            states = log_in_out(
+                readable_callee_func_name, "C Library")(
+                func.emul)(
+                state, param_str, return_str, data_section, analyzer)
         elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
                 readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_GO:
-            logging.info(
-                f"Call: {readable_callee_func_name} (Go library)")
             func = GoPredefinedFunction(
                 readable_callee_func_name, state.current_func_name)
-            func.emul(state, param_str, return_str, data_section, analyzer)
-            logging.info(f"Return: {readable_callee_func_name} (Go library)")
-            # terminate panic related functions. eg: runtime.divideByZeroPanic
-            if readable_callee_func_name in TERMINATED_FUNCS:
-                logging.info(
-                    f"Termination:: {readable_callee_func_name} (Go library)")
-                # TODO terminate state, but normally there will be `unreachable` instruction after the call
-        # if the callee is the imported
+            states = log_in_out(
+                readable_callee_func_name, "Go Library")(
+                func.emul)(
+                state, param_str, return_str, data_section, analyzer)
+        # if the callee is imported (WASI)
         elif readable_callee_func_name in [i[1] for i in analyzer.imports_func]:
             func = WASIImportFunction(
                 readable_callee_func_name, state.current_func_name)
-            logging.info(
-                f"Call: {readable_callee_func_name} (import)")
-            func.emul(state, param_str, return_str, data_section)
-            logging.info(f"Return: {readable_callee_func_name} (import)")
+            states = log_in_out(
+                readable_callee_func_name, "import")(
+                func.emul)(
+                state, param_str, return_str, data_section)
         elif readable_callee_func_name in TERMINATED_FUNCS:
-            logging.info(
-                f"Termination: {readable_callee_func_name}")
+            logging.info(f"Termination: {readable_callee_func_name}")
+            states = [state]
         else:
             self.store_context(param_str, return_str, state,
                                readable_callee_func_name)
-
-        return [state]
+            states = [state]
+        return states
 
     def emulate(self, state, data_section, analyzer):
         if self.instr_name in self.skip_command:
