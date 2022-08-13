@@ -53,6 +53,8 @@ class Configuration:
     _sym_file_limit = 0
     # how many bytes a sym file can hold
     _sym_file_byte_limit = 0
+    # keep z3 cache
+    _z3_cache_dict = {}
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):

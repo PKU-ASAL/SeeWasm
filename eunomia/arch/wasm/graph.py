@@ -642,7 +642,16 @@ class Graph:
     def sat_cut(cls, constraints):
         solver = SMTSolver(Configuration.get_solver())
         solver.add(*constraints)
-        return unsat == solver.check()
+
+        cons_sexpr = solver.sexpr()
+
+        if cons_sexpr not in Configuration._z3_cache_dict:
+            solver_check_result = solver.check()
+            Configuration._z3_cache_dict[cons_sexpr] = solver_check_result
+        else:
+            solver_check_result = Configuration._z3_cache_dict[cons_sexpr]
+
+        return unsat == solver_check_result
 
     @ classmethod
     def can_cut(cls, edge_type, next_block, state, lvar):
