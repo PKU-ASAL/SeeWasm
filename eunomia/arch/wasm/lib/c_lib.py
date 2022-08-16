@@ -71,6 +71,35 @@ class CPredefinedFunction:
         string_length = BitVecVal(len(the_string), 32)
         state.symbolic_stack.append(string_length)
 
+    def open_file(self, state, filename, mode):
+        # retrieve the first not opened fd
+        open_file_fd = -1
+        for fd, file_info in state.file_sys.items():
+            if not file_info["status"]:
+                open_file_fd = fd
+                break
+
+        if open_file_fd == -1:
+            exit(f"no enough sym file in `fopen`")
+        else:
+            # modify status for this file
+            state.file_sys[open_file_fd]["name"] = filename
+            state.file_sys[open_file_fd]["status"] = True
+            state.file_sys[open_file_fd]["flag"] = mode
+            if 'r' in mode:
+                _, length_limit = Configuration.get_sym_file_limits()
+                content = BitVec(filename, length_limit * 8)
+                state.file_sys[open_file_fd]["content"] = [
+                    Extract(i * 8 - 1, (i - 1) * 8, content)
+                    for i in range(length_limit, 0, -1)]
+            elif 'w' in mode:
+                state.file_sys[open_file_fd]["content"] = []
+            else:
+                exit(f"In fopen, the mode is {mode}, not support yet")
+            logging.info(
+                f"\topen {filename} with fd ({open_file_fd}) and mode ({mode})")
+        return open_file_fd
+
     def emul(self, state, param_str, return_str, data_section, analyzer):
         if self.name == 'printf' or self.name == 'iprintf' or self.name == '__small_printf':
             param_p, pattern_p = _extract_params(param_str, state)
@@ -286,15 +315,28 @@ class CPredefinedFunction:
             logging.info(f"\tsystem, just pass")
             state.symbolic_stack.append(BitVec("cmd_system", 32))
         elif self.name == 'open':
-            mode, flag, filename_ptr = _extract_params(param_str, state)
+            mode_ptr, flag, filename_ptr = _extract_params(param_str, state)
             logging.info(
-                f"\topen, mode: {mode}, flag: {hex(flag)}, filename_ptr: {filename_ptr}")
+                f"\topen, mode_ptr: {mode_ptr}, flag: {hex(flag)}, filename_ptr: {filename_ptr}")
+            mode = C_extract_string_by_mem_pointer(
+                mode_ptr, data_section, state)
+
+            # transfer the mode
+            if mode == '\x00':
+                mode = 'r'
+            elif mode == '\x01':
+                mode = 'w'
+            elif mode == '\x02':
+                mode = 'rw'
+            else:
+                exit(f"mode value is {mode}, which is unrecognized in `open`")
+
             filename = C_extract_string_by_mem_pointer(
                 filename_ptr, data_section, state)
-            exit(f"intend to open {filename} in `open`")
-            # TODO mimic fopen
 
-            state.symbolic_stack.append(BitVecVal(tmp_fd, 32))
+            open_file_fd = self.open_file(state, filename, mode)
+
+            state.symbolic_stack.append(BitVecVal(open_file_fd, 32))
         elif self.name == 'fopen':
             mode_ptr, filename_ptr = _extract_params(param_str, state)
             logging.info(
@@ -306,32 +348,7 @@ class CPredefinedFunction:
                 filename_ptr, data_section, state)
             logging.info(f"\topen file: {filename}")
 
-            # retrieve the first not opened fd
-            open_file_fd = -1
-            for fd, file_info in state.file_sys.items():
-                if not file_info["status"]:
-                    open_file_fd = fd
-                    break
-
-            if open_file_fd == -1:
-                exit(f"no enough sym file in `fopen`")
-            else:
-                # modify status for this file
-                state.file_sys[open_file_fd]["name"] = filename
-                state.file_sys[open_file_fd]["status"] = True
-                state.file_sys[open_file_fd]["flag"] = mode
-                if 'r' in mode:
-                    _, length_limit = Configuration.get_sym_file_limits()
-                    content = BitVec(filename, length_limit * 8)
-                    state.file_sys[open_file_fd]["content"] = [
-                        Extract(i * 8 - 1, (i - 1) * 8, content)
-                        for i in range(length_limit, 0, -1)]
-                elif 'w' in mode:
-                    state.file_sys[open_file_fd]["content"] = []
-                else:
-                    exit(f"In fopen, the mode is {mode}, not support yet")
-                logging.info(
-                    f"\topen {filename} with fd ({open_file_fd}) and mode ({mode})")
+            open_file_fd = self.open_file(state, filename, mode)
 
             # construct return value
             base_addr = open_file_fd * 100 + 100000000
