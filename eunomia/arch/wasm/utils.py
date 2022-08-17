@@ -312,6 +312,11 @@ def write_result(state, exit=False):
         s += state.constraints
         s.check()
         m = s.model()
+        # this check if there exist symbols with same name
+        # which may lead to the result overwriting
+        if len(set([k for k in m])) != len(m):
+            logging.warning(
+                f"the solving process found there exist symbols with identical name, please double check. ({[k for k in m]})")
         for k in m:
             # the decode is weird, we just want to convert unprintable characters
             # into printable chars
