@@ -72,6 +72,11 @@ class CPredefinedFunction:
         state.symbolic_stack.append(string_length)
 
     def open_file(self, state, filename, mode):
+        # if filename starts with 'sym_arg', means this sym_arg is used as filename
+        # change the name to distinguish
+        if filename.startswith("sym_arg"):
+            filename += "_as_file"
+
         # retrieve the first not opened fd
         open_file_fd = -1
         for fd, file_info in state.file_sys.items():

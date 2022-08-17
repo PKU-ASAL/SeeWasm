@@ -51,7 +51,7 @@ class WasmVMstate(VMstate):
         self.edge_type = ''
 
     def __str__(self):
-        return f'''\b
+        return f'''
 Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
