@@ -55,6 +55,12 @@ class Configuration:
     _sym_file_byte_limit = 0
     # keep z3 cache
     _z3_cache_dict = {}
+    # used by args_sizes_get in wasi.py
+    _argc_addr = None
+    _arg_buf_size_addr = None
+    # each element is a list, consisting of argc and size of each argv
+    # like (2, 4, 3) means there are 2 args, the first one is in 4 bytes, and the second is in 3 bytes
+    _argc_arg_buf_size = []
 
     @staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -130,7 +136,7 @@ class Configuration:
         if sym_args:
             for i, sym_len in enumerate(sym_args):
                 Configuration._args.append(
-                    BitVec(f"sym_args_{i + 1}", 8 * sym_len))
+                    BitVec(f"sym_arg_{i + 1}", 8 * sym_len))
 
     @staticmethod
     def get_file_name():

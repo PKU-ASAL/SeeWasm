@@ -2,15 +2,15 @@
 # we will emulate their behaviors
 
 import logging
+from copy import deepcopy
 from datetime import datetime
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (getConcreteBitVec, init_file_for_file_sys,
+from eunomia.arch.wasm.utils import (init_file_for_file_sys,
                                      str_to_little_endian_int)
-from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, Or, is_bv, sat,
-                simplify)
+from z3 import And, BitVec, BitVecVal, Extract, is_bv, sat
 
 
 class WASIImportFunction:
@@ -32,54 +32,107 @@ class WASIImportFunction:
             logging.info(
                 f"\targs_sizes_get, argc_addr: {argc_addr}, arg_buf_size_addr: {arg_buf_size_addr}")
 
-            def _iterate_sym_args(args_list):
-                if not args_list:
-                    return BitVecVal(len(state.args), 32)
-                return If(And([i == 0 for i in args_list]),
-                          BitVecVal(len(state.args) - len(args_list), 32),
-                          _iterate_sym_args(args_list[1:]))
-            argc = _iterate_sym_args(state.args[1:])
+            # stored in Configurator, will be fetched by args_get
+            Configuration._argc_addr = argc_addr
+            Configuration._arg_buf_size_addr = arg_buf_size_addr
 
-            # insert the `argc` into the corresponding addr
-            _storeN(state, argc_addr, argc, 4)
-            # the length of `argv` into the corresponding addr
-            # the `+ 1` is defined in the source code
-            argv_len = 0
-            for arg_i in state.args:
-                if isinstance(arg_i, str):
-                    argv_len += len(arg_i) + 1
-                elif is_bv(arg_i):
-                    argv_len += arg_i.size() // 8 + 1
-            _storeN(state, arg_buf_size_addr, argv_len, 4)
+            # record all symbol args' len in char
+            sym_args_len = []
+            no_sym_args_len = []
+            for i in state.args:
+                if is_bv(i):
+                    sym_args_len.append(i.size() // 8)
+                else:
+                    # these args are in string
+                    no_sym_args_len.append(len(i))
 
-            # append a 0 as return value, means success
-            state.symbolic_stack.append(BitVecVal(0, 32))
+            # keep all possible states
+            possible_states = []
+            # init, if all symbols are \x00
+            argc = len(no_sym_args_len)
+            argv_len = sum(no_sym_args_len) + argc
+            # store argc and argvs' len
+            Configuration._argc_arg_buf_size.append([argc] + no_sym_args_len)
+
+            new_state = deepcopy(state)
+            _storeN(new_state, argc_addr, argc, 4)
+            _storeN(new_state, arg_buf_size_addr, argv_len, 4)
+            new_state.symbolic_stack.append(BitVecVal(0, 32))
+            possible_states.append(new_state)
+
+            # traverse those possible combination for symbol args
+            for index, i in enumerate(sym_args_len):
+                argc += 1
+                argv_len += 1       # the trailing zero
+                for j in range(1, i + 1):
+                    argv_len += 1
+                    # store argc and argvs' len
+                    Configuration._argc_arg_buf_size.append(
+                        [argc] + no_sym_args_len + sym_args_len[:index] + [j])
+
+                    # copy and store
+                    new_state = deepcopy(state)
+                    _storeN(new_state, argc_addr, argc, 4)
+                    _storeN(new_state, arg_buf_size_addr, argv_len, 4)
+                    new_state.symbolic_stack.append(BitVecVal(0, 32))
+                    possible_states.append(new_state)
+
+            return possible_states
         elif self.name == 'args_get':
             # this is not the complete version
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
             arg_buf_addr, argv_addr = _extract_params(param_str, state)
             logging.info(
                 f"\targs_get, argv_addr: {argv_addr}, arg_buf_addr: {arg_buf_addr}")
+            # retrieve argc and arg_buf_size
+            argc = _loadN(state, data_section, Configuration._argc_addr, 4)
+            arg_buf_size = _loadN(state, data_section,
+                                  Configuration._arg_buf_size_addr, 4)
+            # find each elements length
+            for tuple in Configuration._argc_arg_buf_size:
+                if argc == tuple[0] and arg_buf_size == sum(tuple):
+                    break
+            argc = tuple[0]
+            arg_buf_sizes = tuple[1:]
+            logging.info(
+                f"\ttring to load {argc} args, with lenths as {arg_buf_sizes}")
 
             # emulate the official implementation
-            args = state.args
+            # only keep the first argc args
+            args = state.args[:argc]
             next_arg_buf_addr = arg_buf_addr
-            for arg_index in range(len(args)):
+            for arg_index in range(argc):
                 arg = args[arg_index]
+                arg_supposed_len = arg_buf_sizes[arg_index]
 
                 if isinstance(arg, str):
+                    assert arg_supposed_len == len(
+                        arg), f"the string format args are not equal, should be {arg_supposed_len} instead of {len(arg)}"
                     num_arg_bytes = len(arg) + 1
                     # insert the arg
                     _storeN(
                         state, next_arg_buf_addr,
-                        str_to_little_endian_int(arg),
+                        str_to_little_endian_int(arg + "\x00"),
                         num_arg_bytes)
 
                 elif is_bv(arg):
+                    if arg.size() // 8 != arg_supposed_len:
+                        # resize
+                        arg = BitVec(
+                            str(args[arg_index]),
+                            arg_supposed_len * 8)
+                        state.args[arg_index] = arg
+                    # limit the arg can only be printable chars
+                    for i in range(arg.size() // 8, 0, -1):
+                        the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
+                        state.constraints.append(
+                            And(the_char >= 33, the_char <= 126))
+
+                    state.constraints.append(arg != 0)
                     num_arg_bytes = arg.size() // 8 + 1
                     # insert the arg
-                    _storeN(state, next_arg_buf_addr, simplify(
-                        Concat(BitVecVal(0, 8), arg)), num_arg_bytes)
+                    _storeN(state, next_arg_buf_addr, arg, num_arg_bytes - 1)
+                    _storeN(state, next_arg_buf_addr + num_arg_bytes - 1, 0, 1)
 
                 # insert the next_arg_buf_addr
                 _storeN(state, argv_addr + 4 * arg_index,
