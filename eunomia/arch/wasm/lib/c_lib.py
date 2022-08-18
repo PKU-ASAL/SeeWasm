@@ -34,40 +34,65 @@ class CPredefinedFunction:
         # the memory align would occur at most once
         align_offset = calc_memory_align(parsed_pattern)
 
-        i = 0
-        while i < len(parsed_pattern):
-            index, cur_pattern = parsed_pattern[i][1], parsed_pattern[i][2]
+        the_string = []
+        start = 0
+        for i in range(len(parsed_pattern)):
+            # used to collect bv into bytes
+            parsed_parts = []
+
+            _, end, cur_pattern = parsed_pattern[i]
+            # insert the chars before the %x into the_string
+            the_string += list(pattern[start:end].encode())
 
             middle_p = _loadN(
                 state, data_section, param_p,
                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
+
             if is_bv(middle_p):
-                tmp_data = str(middle_p)
+                exit(f"\tencounter a symbolic pointer ({middle_p}) for printf")
+                parsed_part = str(middle_p)
             else:
                 if cur_pattern[-1] == 's':
-                    tmp_data = C_extract_string_by_mem_pointer(
-                        middle_p, data_section, state)
+                    # decide to load a bv or a string
+                    test_char = _loadN(state, data_section, middle_p, 1)
+                    if is_bv(test_char):
+                        parsed_part = C_extract_bv_by_mem_pointer(
+                            middle_p, data_section, state)
+                        # split into bytes
+                        for j in range(parsed_part.size() // 8, 0, -1):
+                            parsed_parts.append(
+                                Extract(
+                                    (j * 8) - 1, (j - 1) * 8,
+                                    parsed_part))
+                    else:
+                        parsed_part = C_extract_string_by_mem_pointer(
+                            middle_p, data_section, state)
                 elif cur_pattern[-1] == 'c':
-                    tmp_data = chr(middle_p)
+                    parsed_part = chr(middle_p)
                 elif cur_pattern[-1] == 'f':
-                    tmp_data = str(bin_to_float(bin(middle_p)))
+                    parsed_part = str(bin_to_float(bin(middle_p)))
                 elif cur_pattern[-1] in {'d', 'u', 'x'}:
-                    tmp_data = str(middle_p)
+                    parsed_part = str(middle_p)
+                else:
+                    exit(
+                        f"\tin printf, the pattern is {cur_pattern}, which is not supported")
 
+            # insert the parsed part into the_string
+            if parsed_parts:
+                the_string += parsed_parts
+            else:
+                the_string += list(parsed_part.encode())
+
+            start = end + len(cur_pattern)
+
+            # increase the pointer according to alignment
             param_p += align_offset[i]
 
-            pattern = pattern[:index] + tmp_data + \
-                pattern[index + len(cur_pattern):]
-            # update the following index
-            parsed_pattern = [
-                [x[0],
-                    x[1] + len(tmp_data) - len(cur_pattern),
-                    x[2]] for x in parsed_pattern]
-            i += 1
+        # insert the chars after the %x into the_string
+        the_string += list(pattern[start:].encode())
 
-        the_string = pattern.encode()
         logging.info(f"\tOutput a string: {the_string}")
-        state.file_sys[fp]["content"] += list(the_string)
+        state.file_sys[fp]["content"] += the_string
         string_length = BitVecVal(len(the_string), 32)
         state.symbolic_stack.append(string_length)
 
