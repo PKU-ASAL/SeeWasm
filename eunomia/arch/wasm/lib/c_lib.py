@@ -1,17 +1,17 @@
 import logging
 import math
+from json import load
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
                                            get_func_index_from_state,
                                            get_source_location)
 from eunomia.arch.wasm.exceptions import (ProcFailTermination,
-                                          UnexpectedDataType,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
                                      calc_memory_align, getConcreteBitVec,
-                                     my_int_to_bytes, parse_printf_formatting,
+                                     int_to_bytes, parse_printf_formatting,
                                      readable_internal_func_name)
 from z3 import (BitVec, BitVecRef, BitVecVal, Extract, Float64, FPNumRef,
                 FPVal, If, fpBVToFP, fpToReal, is_bv, simplify)
@@ -454,12 +454,12 @@ def C_extract_string_by_mem_pointer(
 
     # if loaded_data is int, transfer it to the string
     if isinstance(loaded_data, int):
-        loaded_string = my_int_to_bytes(loaded_data).decode()
+        loaded_string = int_to_bytes(loaded_data, i).decode()[::-1]
     elif is_bv(loaded_data):
         loaded_string = str(loaded_data)
     else:
-        UnexpectedDataType
-
+        exit(
+            f"in C_extract_string_by_mem_pointer, extract {type(loaded_data)} instead of int or bv")
     return loaded_string
 
 

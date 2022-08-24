@@ -202,12 +202,6 @@ def bin_to_float(b):
     return struct.unpack('>d', bf)[0]
 
 
-def my_int_to_bytes(x: int):
-    if x == 0:
-        return b'\x00'
-    return x.to_bytes((x.bit_length() + 7) // 8, "little")
-
-
 def int_to_bytes(n, length):  # Helper function
     """ Int/long to byte string.
 
@@ -321,9 +315,13 @@ def write_result(state, exit=False):
             # the decode is weird, we just want to convert unprintable characters
             # into printable chars
             # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
-            state_result["Solution"][
-                str(k)] = my_int_to_bytes(
-                m[k].as_long()).decode('unicode_escape')
+            solution_hex_str = hex(m[k].as_long())[2:]
+            if len(solution_hex_str) % 2 == 1:
+                solution_hex_str = "0" + solution_hex_str
+            solution = []
+            for i in range(0, len(solution_hex_str), 2):
+                solution.append(chr(int(solution_hex_str[i: i + 2], 16)))
+            state_result["Solution"][str(k)] = "".join(solution[::-1])
 
         candidate_fds = []
         # filter out all output buffer
@@ -343,7 +341,7 @@ def write_result(state, exit=False):
             for el in state.file_sys[fd]["content"]:
                 if isinstance(el, int):
                     # output_buffer.append(chr(el).encode())
-                    output_solve_buffer.append(chr(el).encode())
+                    output_solve_buffer.append(chr(el))
                 elif isinstance(el, BitVecRef):
                     assert el.size() == 8, f"{el} size is not 8"
                     # output_buffer.append(str(el).encode())
@@ -351,7 +349,7 @@ def write_result(state, exit=False):
                     solve_char = m.evaluate(el)
                     if is_bv_value(solve_char):
                         output_solve_buffer.append(
-                            chr(solve_char.as_long()).encode())
+                            chr(solve_char.as_long()))
                     elif is_bv(solve_char):
                         output_solve_buffer.append(b"`@`")
                     else:
@@ -360,7 +358,7 @@ def write_result(state, exit=False):
 
             tmp_dict["name"] = state.file_sys[fd]["name"]
             # tmp_dict["output"] = f'{b"".join(output_buffer)}'
-            tmp_dict["output"] = f'{b"".join(output_solve_buffer)}'
+            tmp_dict["output"] = "".join(output_solve_buffer)
             state_result["Output"].append(tmp_dict)
 
         json.dump(state_result, fp, indent=4)
