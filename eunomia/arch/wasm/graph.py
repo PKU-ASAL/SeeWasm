@@ -8,8 +8,7 @@ from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import (ask_user_input,
+from eunomia.arch.wasm.utils import (ask_user_input, cached_sat_or_unsat,
                                      readable_internal_func_name,
                                      state_choose_info, write_result)
 from eunomia.core.basicblock import BasicBlock
@@ -640,18 +639,7 @@ class Graph:
 
     @ classmethod
     def sat_cut(cls, constraints):
-        solver = SMTSolver(Configuration.get_solver())
-        solver.add(*constraints)
-
-        cons_sexpr = solver.sexpr()
-
-        if cons_sexpr not in Configuration._z3_cache_dict:
-            solver_check_result = solver.check()
-            Configuration._z3_cache_dict[cons_sexpr] = solver_check_result
-        else:
-            solver_check_result = Configuration._z3_cache_dict[cons_sexpr]
-
-        return unsat == solver_check_result
+        return unsat == cached_sat_or_unsat(constraints)
 
     @ classmethod
     def can_cut(cls, edge_type, next_block, state, lvar):

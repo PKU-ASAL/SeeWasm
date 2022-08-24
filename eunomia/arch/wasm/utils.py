@@ -383,3 +383,17 @@ def log_in_out(func_name, directory):
             return states
         return wrapper
     return decorator
+
+
+def cached_sat_or_unsat(constraints):
+    solver = SMTSolver(Configuration.get_solver())
+    solver.add(*constraints)
+
+    cons_sexpr = solver.sexpr()
+    if cons_sexpr not in Configuration._z3_cache_dict:
+        solver_check_result = solver.check()
+        Configuration._z3_cache_dict[cons_sexpr] = solver_check_result
+    else:
+        solver_check_result = Configuration._z3_cache_dict[cons_sexpr]
+
+    return solver_check_result
