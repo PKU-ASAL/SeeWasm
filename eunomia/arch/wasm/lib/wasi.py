@@ -314,9 +314,10 @@ class WASIImportFunction:
                 # data_len could be BitVec
                 # if it is, try to concretize it with the current constraints
                 if is_bv(data_len):
+                    tmp_data_len = BitVec('tmp_data_len', data_len.size())
+
                     s = SMTSolver(Configuration.get_solver())
                     s += state.constraints
-                    tmp_data_len = BitVec('tmp_data_len', data_len.size())
                     s.add(tmp_data_len == data_len)
                     if sat == s.check():
                         m = s.model()

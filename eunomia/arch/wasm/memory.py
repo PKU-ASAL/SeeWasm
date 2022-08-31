@@ -5,9 +5,7 @@
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import _extract_outermost_int
+from eunomia.arch.wasm.utils import _extract_outermost_int, cached_sat_or_unsat
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv,
                 is_bv_value, sat, simplify)
 
@@ -77,11 +75,9 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
             # if one of the bound_int is None, jump over it
             if lower_bound_int is None or higher_bound_int is None:
                 continue
-            s1, s2 = SMTSolver(Configuration.get_solver()), SMTSolver(
-                Configuration.get_solver())
-            s1.add(lower_bound_int <= chosen_num)
-            s2.add(chosen_num < higher_bound_int)
-            if sat == s1.check() and sat == s2.check():
+            if sat == cached_sat_or_unsat(
+                    [lower_bound_int <= chosen_num]) and sat == cached_sat_or_unsat(
+                    [chosen_num < higher_bound_int]):
                 # slice the dict
                 temp_symbolic_memory = {
                     (lower_bound, higher_bound): symbolic_memory[(lower_bound, higher_bound)]}
@@ -110,9 +106,7 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                     if length <= (h - l):
                         break
                 else:
-                    s = SMTSolver(Configuration.get_solver())
-                    s.add(length <= (h - l))
-                    if sat == s.check():
+                    if sat == cached_sat_or_unsat([length <= (h - l)]):
                         break
 
         except KeyError:
@@ -147,9 +141,8 @@ def _construct_ite(
     low = (offset) * 8
     # print(f"offset: {offset}, length: {length}, high: {high}, low: {low}")
 
-    s = SMTSolver(Configuration.get_solver())
-    s.add((offset + length) == (higher_bound - lower_bound))
-    if sat == s.check():
+    if sat == cached_sat_or_unsat(
+            [(offset + length) == (higher_bound - lower_bound)]):
         tmp_result = simplify(Extract(
             high, low, symbolic_memory[(lower_bound, higher_bound)]))
         # return _lookup_symbolic_memory(symbolic_memory, lower_bound, length)
