@@ -1,6 +1,7 @@
 import copy
 import logging
 from collections import defaultdict, deque
+import json
 from queue import PriorityQueue
 
 from eunomia.arch.wasm.configuration import Configuration, bcolors
@@ -124,7 +125,7 @@ class Graph:
 
         def init_bbs_graph(cfg):
             """
-            initialize the bbs_graph and rev_bbs_graph structure
+            initialize the bbs_graph
             """
             edges = cfg.edges
             # sort the edges, according to the edge.from and edge.to,
@@ -134,7 +135,6 @@ class Graph:
                 x.node_from, int(x.node_to.split('_')[2], 16)))
 
             type_ids = defaultdict(lambda: defaultdict(int))
-            type_rev_ids = defaultdict(lambda: defaultdict(int))
             for edge in edges:
                 node_from, node_to, edge_type = edge.node_from, edge.node_to, edge.type
                 # we append a number after the edge type, because the br_table may have multiple conditional_true branches. See eunomia/arch/wasm/cfg.py
@@ -142,24 +142,17 @@ class Graph:
                     # non-br_table case
                     numbered_edge_type = edge_type + '_' + \
                         str(type_ids[node_from][edge_type])
-                    numbered_rev_edge_type = edge_type + '_' + \
-                        str(type_rev_ids[node_to][edge_type])
                 else:
                     # br_table case
                     numbered_edge_type = edge_type
-                    numbered_rev_edge_type = edge_type
                 cls.bbs_graph[node_from][numbered_edge_type] = node_to
-                cls.rev_bbs_graph[node_to][numbered_rev_edge_type] = node_from
                 type_ids[node_from][edge_type] += 1
-                type_rev_ids[node_to][edge_type] += 1
 
-            # append single nodes into the bbs_graph and rev_bbs_graph
+            # append single nodes into the bbs_graph
             for bb in cfg.basicblocks:
                 bb_name = bb.name
                 if bb_name not in cls.bbs_graph:
                     cls.bbs_graph[bb_name] = defaultdict(str)
-                if bb_name not in cls.rev_bbs_graph:
-                    cls.rev_bbs_graph[bb_name] = defaultdict(str)
 
         def init_bb_to_instr(cfg):
             """
@@ -198,7 +191,7 @@ class Graph:
             Insert dummy entry and end before and aftr each function's cfg.
             Refer to: https://github.com/HNYuuu/Wasm-SE/issues/70
 
-            Also update basicblocks in cfg, and class variables: bbs_graph, rev_bbs_graph and bb_to_instructions
+            Also update basicblocks in cfg, and class variables, e.g., bbs_graph and bb_to_instructions
             """
             # extract node with zero indegree and outdegree
             for func_name, bbs in cls.func_to_bbs.items():
@@ -251,56 +244,48 @@ class Graph:
 
                 # construct edges from original exit points to the dummy end block
                 # and update class variables
-                for i, exit in enumerate(zero_outdegree):
-                    cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_{i}"] = dummy_end.name
-                    cls.rev_bbs_graph[dummy_end.name][
-                        f"{EDGE_FALLTHROUGH}_{i}"] = exit
+                for exit in zero_outdegree:
+                    cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_0"] = dummy_end.name
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
+
+        def _remove_original_edge(bb_names):
+            """
+            Extract the successive block of bb_name, and return it.
+            Also, remove the edge in bbs_graph
+            """
+            bb_to_succ_bb_mapping = dict()
+
+            # update bbs_graph
+            for bb, edge_callee_mapping in cls.bbs_graph.items():
+                if bb in bb_names:
+                    assert len(edge_callee_mapping) == 1
+                    # the succ bb is the first element of values
+                    # keep the bb and succ_bb relation
+                    bb_to_succ_bb_mapping[bb] = next(
+                        iter(edge_callee_mapping.values()))
+
+                    edge_callee_mapping["fallthrough_0"] = ""
+
+            return bb_to_succ_bb_mapping
+
+        def _find_max_fallthrough_edge_count(nested_dict, bb_name):
+            edge_count = -1
+            for e, callee in nested_dict[bb_name].items():
+                if e.startswith('fall') and callee != "":
+                    edge_count = max(edge_count, int(e.split('_')[1]))
+            return edge_count + 1
 
         def _update_edges(bb_name, succ_bb_name, entry_name, dummy_end_name):
             """
             Insert two edges: bb_name to entry_name, dummy_end_name to callee_bb_name
-            Update corresponding variables in bbs_graph and rev_bbs_graph
+            Update corresponding variables in bbs_graph
             """
-            def find_max_fallthrough_edge_count(nested_dict, bb_name):
-                edge_count = -1
-                for e in nested_dict[bb_name].keys():
-                    if e.startswith('fall'):
-                        edge_count = max(edge_count, int(e.split('_')[1]))
-                return edge_count + 1
 
             # update bbs_graph
             cls.bbs_graph[bb_name][
-                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, bb_name)}"] = entry_name
+                f"fallthrough_{_find_max_fallthrough_edge_count(cls.bbs_graph, bb_name)}"] = entry_name
             cls.bbs_graph[dummy_end_name][
-                f"fallthrough_{find_max_fallthrough_edge_count(cls.bbs_graph, dummy_end_name)}"] = succ_bb_name
-            # update rev_bbs_graph
-            cls.rev_bbs_graph[entry_name][
-                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, entry_name)}"] = bb_name
-            cls.rev_bbs_graph[succ_bb_name][
-                f"fallthrough_{find_max_fallthrough_edge_count(cls.rev_bbs_graph, succ_bb_name)}"] = dummy_end_name
-
-        def _remove_original_edge(bb_name):
-            """
-            Extract the successive block of bb_name, and return it.
-            Also, remove the edge in edges, bbs_graph and rev_bbs_graph.
-            """
-            succ_bb_name = list(cls.bbs_graph[bb_name].values())[0]
-            # update the bbs_graph and rev_bbs_graph
-            cls.bbs_graph = {bb: {e: callee_bb for e, callee_bb in cls.bbs_graph[bb].items(
-            ) if (callee_bb != succ_bb_name or bb != bb_name)} for bb in cls.bbs_graph}
-            cls.rev_bbs_graph = {callee_bb: {e: bb for e, bb in cls.rev_bbs_graph[callee_bb].items(
-            ) if (bb != bb_name or callee_bb != succ_bb_name)} for callee_bb in cls.rev_bbs_graph}
-
-            # convert these two as original data type
-            cls.bbs_graph = defaultdict(
-                lambda: defaultdict(str),
-                cls.bbs_graph)
-            cls.rev_bbs_graph = defaultdict(
-                lambda: defaultdict(str),
-                cls.rev_bbs_graph)
-
-            return succ_bb_name
+                f"fallthrough_{_find_max_fallthrough_edge_count(cls.bbs_graph, dummy_end_name)}"] = succ_bb_name
 
         def _update_xref(dummy_end_name, succ_bb_name, callee_op):
             """
@@ -316,8 +301,12 @@ class Graph:
             """
             Remove edges after call, directly link it to the callee's dummy entry.
             Also link the dummy end to the next instruction of the call.
-            Update edges in cfg, and bbs_graph and rev_bbs_graph in class
+            Update edges in cfg and bbs_graph in class
             """
+            # this list stores which block should be updated and the callee is its value
+            # each ele consists of the current bb and its callee's op
+            need_update_bb_info = list()
+
             for bb_name, instructions in cls.bb_to_instructions.items():
                 last_ins = instructions[-1]
                 if last_ins.name == 'call':
@@ -336,18 +325,12 @@ class Graph:
                             Configuration.get_func_index_to_func_name(),
                             f"$func{callee_op}") in C_LIBRARY_FUNCS:
                         continue
-                    entry_name = cls.func_to_bbs[f"$func{callee_op}"][0]
-                    dummy_end_name = cls.func_to_bbs[f"$func{callee_op}"][-1]
 
-                    succ_bb_name = _remove_original_edge(bb_name)
-                    _update_edges(bb_name, succ_bb_name,
-                                  entry_name, dummy_end_name)
-                    _update_xref(dummy_end_name, succ_bb_name, callee_op)
+                    need_update_bb_info.append([bb_name, callee_op])
                 elif last_ins.name == 'call_indirect':
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
-                    dummy_blocks = []
                     possible_callees = cls.wasmVM.ana.elements[0]['elems']
                     for possible_callee in possible_callees:
                         # if the callee is the import function
@@ -358,17 +341,38 @@ class Graph:
                                 Configuration.get_func_index_to_func_name(),
                                 f"$func{possible_callee}") in C_LIBRARY_FUNCS:
                             continue
-                        entry_name = cls.func_to_bbs[f"$func{possible_callee}"][0]
-                        dummy_end_name = cls.func_to_bbs[f"$func{possible_callee}"][-1]
-                        dummy_blocks.append(
-                            (entry_name, dummy_end_name, possible_callee))
 
-                    callee_bb_name = _remove_original_edge(bb_name)
-                    for entry_name, dummy_end_name, possible_callee in dummy_blocks:
-                        _update_edges(bb_name, callee_bb_name,
-                                      entry_name, dummy_end_name)
-                        _update_xref(dummy_end_name,
-                                     succ_bb_name, possible_callee)
+                        need_update_bb_info.append([bb_name, possible_callee])
+
+            bb_names, _ = list(zip(*need_update_bb_info))
+            # remove all bb's direct succ in bbs_graph
+            # and return a dict, whose key is the bb, and the value is the succ bb
+            bb_succ_bb_mapping = _remove_original_edge(set(bb_names))
+            # update edges and xref
+            for bb, callee_op in need_update_bb_info:
+                # extract callee
+                callee_bbs = cls.func_to_bbs[f"$func{callee_op}"]
+                callee_entry, callee_dummy_end = callee_bbs[0], callee_bbs[-1]
+                if bb == 'block_ce_2d':
+                    print("here")
+
+                succ_bb = bb_succ_bb_mapping[bb]
+                _update_edges(bb, succ_bb, callee_entry, callee_dummy_end)
+                _update_xref(callee_dummy_end, succ_bb, callee_op)
+
+        def init_rev_bbs_graph():
+            for bb, edge_callee in cls.bbs_graph.items():
+                for edge, callee in edge_callee.items():
+                    if edge not in cls.rev_bbs_graph[callee]:
+                        cls.rev_bbs_graph[callee][edge] = bb
+                    else:
+                        cls.rev_bbs_graph[callee][
+                            f"fallthrough_{_find_max_fallthrough_edge_count(cls.rev_bbs_graph, callee)}"] = bb
+
+            # for those zero indegree
+            for bb in cls.bbs_graph.keys():
+                if bb not in cls.rev_bbs_graph:
+                    cls.rev_bbs_graph[bb] = defaultdict(str)
 
         cfg = cls.wasmVM.cfg
         init_func_to_bbs(cfg)
@@ -377,6 +381,7 @@ class Graph:
         init_aes_func()
         init_dummy_blocks()
         link_dummy_blocks()
+        init_rev_bbs_graph()
 
     def traverse(self):
         """
@@ -386,7 +391,7 @@ class Graph:
         entry_func = self.entry
         self.final_states[entry_func] = self.traverse_one(entry_func)
 
-    @classmethod
+    @ classmethod
     def traverse_one(cls, func, state=None):
         """
         Symbolically executing the given function
@@ -421,7 +426,7 @@ class Graph:
 
         return final_states
 
-    @classmethod
+    @ classmethod
     def has_cycle(cls, u, g, nodes, vis):
         vis.add(u)
         for t in g[u]:
@@ -432,7 +437,7 @@ class Graph:
         vis.remove(u)
         return False
 
-    @classmethod
+    @ classmethod
     def algo_interval(cls, entry, state, blks):
         """
         Traverse the CFG according to intervals.
@@ -480,7 +485,7 @@ class Graph:
             [state], entry, heads, cls.manual_guide, "return")
         return final_states["return"]
 
-    @classmethod
+    @ classmethod
     def intervals_gen(cls, blk, blk_lis, revg, g):
         """
         Generate intervals according to paper: Frances E Allen. 1970. Control flow analysis
@@ -515,7 +520,7 @@ class Graph:
             intervals[current_block] = new_interval
         return intervals
 
-    @classmethod
+    @ classmethod
     def visit_interval(cls, states, blk, heads, guided=False, prev=None):
         """
         Performing interval traversal, see our paper for more details
