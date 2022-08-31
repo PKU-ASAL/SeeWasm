@@ -386,14 +386,16 @@ def log_in_out(func_name, directory):
 
 
 def cached_sat_or_unsat(constraints):
-    solver = SMTSolver(Configuration.get_solver())
-    solver.add(*constraints)
+    constraints_hash = [hash(c) for c in constraints]
+    constraints_hash.sort()
+    constraints_hash = tuple(constraints_hash)
 
-    cons_sexpr = solver.sexpr()
-    if cons_sexpr not in Configuration._z3_cache_dict:
+    if constraints_hash not in Configuration._z3_cache_dict:
+        solver = SMTSolver(Configuration.get_solver())
+        solver.add(*constraints)
         solver_check_result = solver.check()
-        Configuration._z3_cache_dict[cons_sexpr] = solver_check_result
+        Configuration._z3_cache_dict[constraints_hash] = solver_check_result
     else:
-        solver_check_result = Configuration._z3_cache_dict[cons_sexpr]
+        solver_check_result = Configuration._z3_cache_dict[constraints_hash]
 
     return solver_check_result
