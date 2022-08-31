@@ -127,7 +127,7 @@ def main():
             cmd_option = [args.file.name, "-o", wat_file_path]
             cmd(cmd_option)
         except Exception:
-            raise("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
+            raise ("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
     func_index_to_func_name = extract_mapping(wat_file_path)
     Configuration.set_func_index_to_func_name(func_index_to_func_name)
 

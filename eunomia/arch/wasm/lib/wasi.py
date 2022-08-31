@@ -329,7 +329,7 @@ class WASIImportFunction:
                     out_str.append(c)
                 state.file_sys[fd]["content"] += out_str
 
-                logging.info(f"\tOutput a fd_write string: {out_str}")
+                # logging.info(f"\tOutput a fd_write string: {out_str}")
                 bytes_written_cnt += data_len
 
             _storeN(state, num_bytes_written_addr, bytes_written_cnt, 4)
