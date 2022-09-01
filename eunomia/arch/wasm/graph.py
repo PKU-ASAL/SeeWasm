@@ -509,10 +509,19 @@ class Graph:
                     break
             nodes = nodes - new_interval
             new_header = set()
-            for v in nodes:
-                prevs = set([revg[v][t] for t in revg[v]])
-                if not prevs.isdisjoint(new_interval):
-                    new_header.add(v)
+
+            # modified version:
+            for node in new_interval:
+                for possible_header in g[node].values():
+                    if possible_header in nodes:
+                        new_header.add(possible_header)
+
+            # original version:
+            # for v in nodes:
+            #     prevs = revg[v].values()
+            #     if not new_interval.isdisjoint(prevs):
+            #         new_header.add(v)
+
             que.extend(list(new_header))
             intervals[current_block] = new_interval
         return intervals
