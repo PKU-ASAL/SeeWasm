@@ -9,9 +9,11 @@ from datetime import datetime
 from os import makedirs, path
 
 from eunomia.arch.wasm.configuration import Configuration, bcolors
-from eunomia.arch.wasm.exceptions import UnsupportZ3TypeError
+from eunomia.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
+                                          UnsupportZ3TypeError)
 from eunomia.arch.wasm.solver import SMTSolver
-from z3 import FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value
+from z3 import (FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value,
+                sat, unsat)
 
 
 # this is a mapping, which maps the data type to the corresponding BitVec
@@ -284,6 +286,15 @@ def str_to_little_endian_int(string):
 
 
 def write_result(state, exit=False):
+    """
+    Write result in ./log/result folder in json format
+    """
+    # if it is existed, and the stderr has no output
+    # it means that it is raised by ProcFailTermination
+    # do not write anything and just return
+    if exit and not state.file_sys[2]['content']:
+        return
+
     file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
@@ -394,6 +405,14 @@ def cached_sat_or_unsat(constraints):
         solver = SMTSolver(Configuration.get_solver())
         solver.add(*constraints)
         solver_check_result = solver.check()
+        # try to terminate invalid-memory in advance
+        if solver_check_result == sat:
+            m = solver.model()
+            for k in m:
+                if str(k) == 'invalid-memory':
+                    Configuration._z3_cache_dict[constraints_hash] = unsat
+                    raise ProcFailTermination(INVALIDMEMORY)
+
         Configuration._z3_cache_dict[constraints_hash] = solver_check_result
     else:
         solver_check_result = Configuration._z3_cache_dict[constraints_hash]

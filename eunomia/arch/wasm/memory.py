@@ -86,12 +86,10 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                     temp_symbolic_memory, lower_bound, higher_bound, dest,
                     length, 0)
 
-    # the heuristic does not work, try all the possible situations.
-    # For example:
+    # the heuristic does not work, because:
     #   1. the concrete number is not limited by any interval
     #   2. no concrete number at all
-    dup_symbolic_memory = deepcopy(symbolic_memory)
-    logging.info(f"Encounter a symbolic pointer: {dest}")
+    # try all the possible situations
 
     def _big_construct_ite(symbolic_memory, dest, length):
         """
@@ -110,6 +108,7 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                         break
 
         except KeyError:
+            # no key exists
             return BitVec("invalid-memory", length * 8)
 
         return If(And(k[0] <= dest, dest < k[1]),
@@ -119,6 +118,9 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                                  dest, length, 0),
                   _big_construct_ite(symbolic_memory, dest, length))
 
+    # recursively construct ite statements
+    dup_symbolic_memory = deepcopy(symbolic_memory)
+    logging.info(f"Encounter a symbolic pointer: {dest}")
     tmp_result = _big_construct_ite(dup_symbolic_memory, dest, length)
     return tmp_result
 
