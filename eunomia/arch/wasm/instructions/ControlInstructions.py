@@ -8,8 +8,8 @@ from eunomia.arch.wasm.exceptions import (ProcSuccessTermination,
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
-from eunomia.arch.wasm.solver import SMTSolver
-from eunomia.arch.wasm.utils import log_in_out, readable_internal_func_name
+from eunomia.arch.wasm.utils import (cached_sat_or_unsat, log_in_out,
+                                     readable_internal_func_name)
 from z3 import Not, Or, is_bool, is_bv, is_false, is_true, simplify, unsat
 
 C_LIBRARY_FUNCS = {
@@ -228,16 +228,13 @@ class ControlInstructions:
             import_funcs_num = len(analyzer.imports_func)
 
             state_func_offset_tuples = []
-            solver = SMTSolver(Configuration.get_solver())
             for i, possible_func_offset in enumerate(possible_callee):
                 # if the type is not suitable, just jump over
                 if analyzer.func_types[possible_func_offset - import_funcs_num] != call_indirect_func_type:
                     continue
 
                 i = i + offset
-                solver.reset()
-                solver.add(simplify(op == i))
-                if unsat == solver.check():
+                if unsat == cached_sat_or_unsat([op == i]):
                     continue
 
                 state_func_offset_tuples.append(
