@@ -1,7 +1,6 @@
 import copy
 import logging
 from collections import defaultdict, deque
-import json
 from queue import PriorityQueue
 
 from eunomia.arch.wasm.configuration import Configuration, bcolors
@@ -353,8 +352,6 @@ class Graph:
                 # extract callee
                 callee_bbs = cls.func_to_bbs[f"$func{callee_op}"]
                 callee_entry, callee_dummy_end = callee_bbs[0], callee_bbs[-1]
-                if bb == 'block_ce_2d':
-                    print("here")
 
                 succ_bb = bb_succ_bb_mapping[bb]
                 _update_edges(bb, succ_bb, callee_entry, callee_dummy_end)
@@ -527,10 +524,12 @@ class Graph:
 
         Note: `blk` is the head of an interval
         """
+        default_cons_prior = {'prior': 65536,
+                              'cons': True, 'checker_halt': False}
+
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
-        lvar = defaultdict(lambda: defaultdict(
-            int, {'cons': True, 'prior': 65536}))
+        lvar = {blk: default_cons_prior.copy()}
         que._put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
@@ -541,6 +540,10 @@ class Graph:
         # @wrap_non_picklable_objects
         def consumer(item):
             score, (state, current_block, cur_head, vis, lvar) = item
+            # init cur_head if it is not in lvar
+            if cur_head not in lvar:
+                lvar[cur_head] = default_cons_prior.copy()
+
             succs_list = cls.bbs_graph[current_block].items()
             halt_flag = False
             # adopt DFS to traverse two intervals
@@ -603,12 +606,14 @@ class Graph:
                 (edge_type, next_block), valid_state = br, avail_br[br]
                 new_head = heads[next_block]
                 for valid_state_item in valid_state:
-                    local_new_lvar = copy.deepcopy(lvar)
+                    # try no deepcopy
+                    local_new_lvar = lvar.copy()
                     local_new_lvar[cur_head] = cls.aes_run_local(
                         local_new_lvar[cur_head], next_block)
                     new_score = local_new_lvar[cur_head]['prior']
                     if new_head != cur_head:
-                        new_vis = copy.deepcopy(vis)
+                        # try no deepcopy
+                        new_vis = vis.copy()
                         if new_head in vis:
                             while new_vis:
                                 h = new_vis.pop()
