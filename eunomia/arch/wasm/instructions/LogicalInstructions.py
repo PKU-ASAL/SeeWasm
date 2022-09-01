@@ -3,7 +3,7 @@
 from eunomia.arch.wasm.configuration import Configuration, Enable_Lasers
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
 from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
-                fpLT, fpNEQ, is_bool, is_bv, is_bv_value, simplify)
+                fpLT, fpNEQ, is_bool, is_bv, is_bv_value)
 
 helper_map = {
     'i32': 32,
@@ -32,7 +32,7 @@ class LogicalInstructions:
                 assert arg0.size(
                 ) == helper_map[instr_type], f"in `eqz` the argument popped size is {arg0.size()} instead of {helper_map[instr_type]}"
 
-                result = simplify(arg0 == 0)
+                result = arg0 == 0
             else:
                 arg1, arg2 = state.symbolic_stack.pop(), state.symbolic_stack.pop()
 
@@ -65,7 +65,7 @@ class LogicalInstructions:
                 # record if the op is signed or unsigned when the overflow check flag is enabled
                 def speculate_sign(op, instr_name, sign_mapping):
                     # if the op is a bitvecval, we do not change anything
-                    if not(is_bv(op) and not is_bv_value(op)):
+                    if not (is_bv(op) and not is_bv_value(op)):
                         return
 
                     # unsigned is False and signed is True
@@ -82,12 +82,9 @@ class LogicalInstructions:
                     speculate_sign(arg1, self.instr_name, state.sign_mapping)
                     speculate_sign(arg2, self.instr_name, state.sign_mapping)
 
-                result = simplify(result)
-
-            assert is_bool(
-                result), "the result of logical instruction must be true"
+            assert is_bool(result), "logical instruction should return boolref"
             state.symbolic_stack.append(
-                simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
+                If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
 
             return [state]
 
@@ -101,24 +98,24 @@ class LogicalInstructions:
             ) == helper_map[instr_type][1], 'emul_logical_f_instr arg2 type mismatch'
 
             if 'eq' in self.instr_name:
-                result = simplify(fpEQ(arg1, arg2))
+                result = fpEQ(arg1, arg2)
             elif 'ne' in self.instr_name:
-                result = simplify(fpNEQ(arg1, arg2))
+                result = fpNEQ(arg1, arg2)
             elif 'lt' in self.instr_name:
-                result = simplify(fpLT(arg2, arg1))
+                result = fpLT(arg2, arg1)
             elif 'le' in self.instr_name:
-                result = simplify(fpLEQ(arg2, arg1))
+                result = fpLEQ(arg2, arg1)
             elif 'gt' in self.instr_name:
-                result = simplify(fpGT(arg2, arg1))
+                result = fpGT(arg2, arg1)
             elif 'ge' in self.instr_name:
-                result = simplify(fpGEQ(arg2, arg1))
+                result = fpGEQ(arg2, arg1)
             else:
                 raise UnsupportInstructionError
 
             assert is_bool(
                 result), "the result of logical instruction must be true"
             state.symbolic_stack.append(
-                simplify(If(result, BitVecVal(1, 32), BitVecVal(0, 32))))
+                If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
 
             return [state]
 
