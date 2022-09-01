@@ -200,16 +200,35 @@ class ControlInstructions:
                 state.edge_type = 'conditional_false_0'
                 states.append(state)
             elif not is_true(op) and not is_false(op):
-                new_state = copy.deepcopy(state)
-                # conditional_true
-                state.edge_type = 'conditional_true_0'
-                state.constraints.append(op)
-                # conditional_false
-                new_state.edge_type = 'conditional_false_0'
-                new_state.constraints.append(simplify(Not(op)))
-                # append
-                states.append(state)
-                states.append(new_state)
+                # these two flags are used to jump over unnecessary deepcopy
+                no_need_true, no_need_false = False, False
+                if unsat == cached_sat_or_unsat(state.constraints + [op]):
+                    no_need_true = True
+                if unsat == cached_sat_or_unsat(state.constraints + [Not(op)]):
+                    no_need_false = True
+
+                if no_need_true and no_need_false:
+                    pass
+                elif not no_need_true and not no_need_false:
+                    new_state = copy.deepcopy(state)
+                    # conditional_true
+                    state.edge_type = 'conditional_true_0'
+                    state.constraints.append(op)
+                    # conditional_false
+                    new_state.edge_type = 'conditional_false_0'
+                    new_state.constraints.append(Not(op))
+                    # append
+                    states.append(state)
+                    states.append(new_state)
+                else:
+                    if no_need_true:
+                        state.edge_type = 'conditional_false_0'
+                        state.constraints.append(Not(op))
+                        states.append(state)
+                    else:
+                        state.edge_type = 'conditional_true_0'
+                        state.constraints.append(op)
+                        states.append(state)
             else:
                 exit(f"br_if/if instruction error. op is {op}")
 
