@@ -157,6 +157,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         """
         # reinit
         self.cfg.basicblocks = []
+        # add external keys (node_from) refer to each edge object
+        tmp_edge_map = defaultdict(list)
+        for e in self.cfg.edges:
+            tmp_edge_map[e.node_from].append(e)
+
         for func in self.cfg.functions:
             func_basic_blocks = func.basicblocks
 
@@ -186,15 +191,23 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                         new_bb.end_instr = second_part_ins[-1]
                         new_bb.end_offset = new_bb.end_instr.offset_end
 
+                        # record the relationship between bb and new_bb
                         # if there are edges start from bb, make them start from new_bb
-                        for edge in self.cfg.edges:
-                            if edge.node_from == bb.name:
-                                edge.node_from = new_bb.name
+                        if bb.name not in tmp_edge_map:
+                            pass
+                        else:
+                            # update the tmp_edge_map
+                            while tmp_edge_map[bb.name]:
+                                e = tmp_edge_map[bb.name].pop()
+                                e.node_from = new_bb.name
+                                tmp_edge_map[new_bb.name].append(e)
 
                         # append the new basic block, add a new edge
                         func_basic_blocks.append(new_bb)
                         new_edge = Edge(bb.name, new_bb.name, EDGE_FALLTHROUGH)
                         self.cfg.edges.append(new_edge)
+                        # update the tmp_edge_map
+                        tmp_edge_map[bb.name].append(new_edge)
 
                         break
 
