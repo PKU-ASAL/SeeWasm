@@ -16,3 +16,6 @@ profile_fo
 *.swp
 result/
 ready_to_production.py
+profile.svg
+z3_cache.json
+json_parser.py
