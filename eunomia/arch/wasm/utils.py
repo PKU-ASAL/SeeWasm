@@ -13,7 +13,7 @@ from eunomia.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
                                           UnsupportZ3TypeError)
 from eunomia.arch.wasm.solver import SMTSolver
 from z3 import (FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value,
-                sat, unsat)
+                main_ctx, sat, unsat)
 
 # this is the opened files base addr
 FILE_BASE_ADDR = 100000000
@@ -400,24 +400,53 @@ def log_in_out(func_name, directory):
 
 
 def cached_sat_or_unsat(constraints):
-    constraints_hash = [hash(c) for c in constraints]
-    constraints_hash.sort()
-    constraints_hash = tuple(constraints_hash)
+    cons_hash_set = set([hash(c) for c in constraints])
+    cons_hash_list = list(cons_hash_set)
+    cons_hash_list.sort()
+    cons_hash_tuple = tuple(cons_hash_list)
 
-    if constraints_hash not in Configuration._z3_cache_dict:
-        solver = SMTSolver(Configuration.get_solver())
-        solver.add(*constraints)
-        solver_check_result = solver.check()
+    if cons_hash_tuple not in Configuration._z3_cache_dict:
+        # try to find the longest subset of cons_hash_set from cache_dict
+        longest_len = 0
+        candidate_cons_tuple, candidate_cons_set = None, None
+        for c in Configuration._z3_cache_dict:
+            cons_set = set(c)
+            if cons_set.issubset(cons_hash_set) and len(cons_set) > longest_len:
+                candidate_cons_tuple = c
+                candidate_cons_set = cons_set
+                longest_len = len(cons_set)
+
+        # if there is a candidate cons can be duplicated used
+        if candidate_cons_tuple:
+            # filter out those missed constraints
+            missed_cons = []
+            for c in constraints:
+                if hash(c) not in candidate_cons_set:
+                    missed_cons.append(c)
+
+            # duplicate the original solver and add the missed cons
+            original_solver = Configuration._z3_cache_dict[candidate_cons_tuple][2]
+            solver = original_solver.translate(main_ctx())
+            solver.add(*missed_cons)
+            solver_check_result = solver.check()
+        else:
+            solver = SMTSolver(Configuration.get_solver())
+            solver.add(*constraints)
+            solver_check_result = solver.check()
+
         # try to terminate invalid-memory in advance
         if solver_check_result == sat:
             m = solver.model()
             for k in m:
                 if str(k) == 'invalid-memory':
-                    Configuration._z3_cache_dict[constraints_hash] = unsat
+                    Configuration._z3_cache_dict[cons_hash_tuple] = [
+                        1, unsat, solver]
                     raise ProcFailTermination(INVALIDMEMORY)
 
-        Configuration._z3_cache_dict[constraints_hash] = solver_check_result
+        Configuration._z3_cache_dict[cons_hash_tuple] = [
+            1, solver_check_result, solver]
     else:
-        solver_check_result = Configuration._z3_cache_dict[constraints_hash]
+        Configuration._z3_cache_dict[cons_hash_tuple][0] += 1
+        solver_check_result = Configuration._z3_cache_dict[cons_hash_tuple][1]
 
     return solver_check_result
