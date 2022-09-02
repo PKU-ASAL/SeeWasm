@@ -1,6 +1,5 @@
 import logging
 import math
-from json import load
 
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.dwarfParser import (decode_vararg,
@@ -9,9 +8,10 @@ from eunomia.arch.wasm.dwarfParser import (decode_vararg,
 from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           UnsupportExternalFuncError)
 from eunomia.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
-from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, bin_to_float,
-                                     calc_memory_align, getConcreteBitVec,
-                                     int_to_bytes, parse_printf_formatting,
+from eunomia.arch.wasm.utils import (C_TYPE_TO_LENGTH, FILE_BASE_ADDR,
+                                     bin_to_float, calc_memory_align,
+                                     getConcreteBitVec, int_to_bytes,
+                                     parse_printf_formatting,
                                      readable_internal_func_name)
 from z3 import (BitVec, BitVecRef, BitVecVal, Extract, Float64, FPNumRef,
                 FPVal, If, fpBVToFP, fpToReal, is_bv, simplify)
@@ -381,7 +381,7 @@ class CPredefinedFunction:
             open_file_fd = self.open_file(state, filename, mode)
 
             # construct return value
-            base_addr = open_file_fd * 100 + 100000000
+            base_addr = open_file_fd * 100 + FILE_BASE_ADDR
             # each FILE * is 60 bytes long
             # the last 4 bytes are the fd
             _storeN(state, base_addr, 0, 60)

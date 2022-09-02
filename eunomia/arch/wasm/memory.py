@@ -5,7 +5,8 @@
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.utils import _extract_outermost_int, cached_sat_or_unsat
+from eunomia.arch.wasm.utils import (FILE_BASE_ADDR, _extract_outermost_int,
+                                     cached_sat_or_unsat)
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv,
                 is_bv_value, sat, simplify)
 
@@ -36,8 +37,10 @@ def lookup_symbolic_memory_data_section(
     # 1. assume the loaded value is in memory instead of data section
     # 2. the returned value is packed by `ite` from z3
     if is_bv(dest) and not is_bv_value(dest):
+        # we heuristically think the symbolic pointer will not point to the data_section
         return _lookup_symbolic_memory_with_symbol(
-            symbolic_memory, dest, length)
+            symbolic_memory, dest, length,
+            l_bound=max(data_section, key=lambda x: x[1])[1])
 
     # in data section?
     in_symbolic_memory, is_overlapped = _is_in_symbolic_memory(
@@ -53,7 +56,8 @@ def lookup_symbolic_memory_data_section(
         return _lookup_symbolic_memory(symbolic_memory, dest, length)
 
 
-def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
+def _lookup_symbolic_memory_with_symbol(
+        symbolic_memory, dest, length, l_bound=2 << 31 - 1, h_bound=0):
     """
     return an `ite` value that enumerate all possible value of size length from memory
 
@@ -101,7 +105,7 @@ def _lookup_symbolic_memory_with_symbol(symbolic_memory, dest, length):
                 k, v = symbolic_memory.popitem()
                 l, h = k[0], k[1]
                 if isinstance(l, int) and isinstance(h, int):
-                    if length <= (h - l):
+                    if length <= (h - l) and h < l_bound and l > h_bound:
                         break
                 else:
                     if sat == cached_sat_or_unsat([length <= (h - l)]):

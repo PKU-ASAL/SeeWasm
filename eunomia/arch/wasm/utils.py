@@ -15,6 +15,9 @@ from eunomia.arch.wasm.solver import SMTSolver
 from z3 import (FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value,
                 sat, unsat)
 
+# this is the opened files base addr
+FILE_BASE_ADDR = 100000000
+
 
 # this is a mapping, which maps the data type to the corresponding BitVec
 def getConcreteBitVec(type, name):
