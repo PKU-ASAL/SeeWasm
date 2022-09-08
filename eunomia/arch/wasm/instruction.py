@@ -137,17 +137,17 @@ class WasmInstruction(Instruction):
     @property
     def is_branch_conditional(self):
         """ Return True if the instruction is a conditional jump """
-        return self.name in ['br_if', 'br_table', 'if']
+        return self.name in {'br_if', 'br_table', 'if'}
 
     @property
     def is_branch_unconditional(self):
         """ Return True if the instruction is a unconditional jump """
-        return self.name in ['br']
+        return self.name in {'br'}
 
     @property
     def is_call(self):
         """ True if the instruction is a call instruction """
-        return self.name in ['call', 'call_indirect']
+        return self.name in {'call', 'call_indirect'}
 
     @property
     def is_branch(self):
@@ -156,7 +156,7 @@ class WasmInstruction(Instruction):
     @property
     def is_halt(self):
         """ Return True if the instruction is a branch terminator """
-        return self.name in ['unreachable', 'return']
+        return self.name in {'unreachable', 'return'}
 
     @property
     def is_terminator(self):
@@ -166,9 +166,9 @@ class WasmInstruction(Instruction):
     @property
     def is_block_starter(self):
         """ Return True if the instruction is a basic block starter """
-        return self.name in ['block', 'loop', 'if', 'else']
+        return self.name in {'block', 'loop', 'if', 'else'}
 
     @property
     def is_block_terminator(self):
         """ Return True if the instruction is a basic block terminator """
-        return self.name in ['else', 'end']
+        return self.name in {'else', 'end'}

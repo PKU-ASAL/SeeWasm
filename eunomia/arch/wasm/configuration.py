@@ -44,7 +44,7 @@ class Configuration:
     # the entry function
     _entry_func = ''
     # the mapping of func index to func name
-    _func_index_to_func_name = None
+    _func_index_to_func_name = {}
     # if enable the instruction-level coverage calculation
     _coverage = False
     # the stdin buffer, can be a list of char or symbols with length of 8 bits
@@ -62,7 +62,7 @@ class Configuration:
     # like (2, 4, 3) means there are 2 args, the first one is in 4 bytes, and the second is in 3 bytes
     _argc_arg_buf_size = []
 
-    @staticmethod
+    @ staticmethod
     def set_lasers(overflow, divzero, buffer):
         if overflow:
             Configuration._user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
@@ -71,55 +71,55 @@ class Configuration:
         if buffer:
             Configuration._user_asked_lasers ^= Enable_Lasers.BUFFER.value
 
-    @staticmethod
+    @ staticmethod
     def get_lasers():
         return Configuration._user_asked_lasers
 
-    @staticmethod
+    @ staticmethod
     def set_source_type(source_type):
         Configuration._source_type = source_type
 
-    @staticmethod
+    @ staticmethod
     def get_source_type():
         return Configuration._source_type
 
-    @staticmethod
+    @ staticmethod
     def set_algo(algo):
         Configuration._algo = algo
 
-    @staticmethod
+    @ staticmethod
     def get_algo():
         return Configuration._algo
 
-    @staticmethod
+    @ staticmethod
     def set_concrete_globals(concrete_globals):
         Configuration._concrete_globals = concrete_globals
 
-    @staticmethod
+    @ staticmethod
     def get_concrete_globals():
         return Configuration._concrete_globals
 
-    @staticmethod
+    @ staticmethod
     def set_verbose_flag(verbose_flag):
         Configuration._verbose_flag = verbose_flag
 
-    @staticmethod
+    @ staticmethod
     def get_verbose_flag():
         return Configuration._verbose_flag
 
-    @staticmethod
+    @ staticmethod
     def get_solver():
         return Configuration._solver
 
-    @staticmethod
+    @ staticmethod
     def set_solver(solver):
         Configuration._solver = solver
 
-    @staticmethod
+    @ staticmethod
     def get_args():
         return Configuration._args
 
-    @staticmethod
+    @ staticmethod
     def set_args(filename, args, sym_args):
         """
         Parse the given args and symbolic args into the _args
@@ -138,53 +138,53 @@ class Configuration:
                 Configuration._args.append(
                     BitVec(f"sym_arg_{i + 1}", 8 * sym_len))
 
-    @staticmethod
+    @ staticmethod
     def get_file_name():
         return Configuration._file_name
 
-    @staticmethod
+    @ staticmethod
     def get_file_path():
         return Configuration._file_path
 
-    @staticmethod
+    @ staticmethod
     def set_file(file_path):
         Configuration._file_path = file_path
         # keep the file name without path and extended type
         Configuration._file_name = file_path.split('/')[-1].split('.')[0]
 
-    @staticmethod
+    @ staticmethod
     def get_start_time():
         return Configuration._start_time
 
-    @staticmethod
+    @ staticmethod
     def set_start_time(start_time):
         Configuration._start_time = start_time
 
-    @staticmethod
+    @ staticmethod
     def get_entry():
         return Configuration._entry_func
 
-    @staticmethod
+    @ staticmethod
     def set_entry(entry_func):
         Configuration._entry_func = entry_func[0]
 
-    @staticmethod
+    @ staticmethod
     def get_func_index_to_func_name():
         return Configuration._func_index_to_func_name
 
-    @staticmethod
+    @ staticmethod
     def set_func_index_to_func_name(func_index_to_func_name):
         Configuration._func_index_to_func_name = func_index_to_func_name
 
-    @staticmethod
+    @ staticmethod
     def get_coverage():
         return Configuration._coverage
 
-    @staticmethod
+    @ staticmethod
     def set_coverage(coverage):
         Configuration._coverage = coverage
 
-    @staticmethod
+    @ staticmethod
     def set_stdin(stdin, sym_stdin):
         """
         Store stdin buffer into the `stdin_buffer`
@@ -207,14 +207,14 @@ class Configuration:
             # no stdin is given
             pass
 
-    @staticmethod
+    @ staticmethod
     def get_stdin():
         """
         return the stdin buffer
         """
         return Configuration._stdin_buffer
 
-    @staticmethod
+    @ staticmethod
     def set_sym_files(sym_files):
         """
         the sym files take two arguments:
@@ -229,14 +229,14 @@ class Configuration:
         Configuration._sym_file_limit = sym_file_num
         Configuration._sym_file_byte_limit = sym_file_byte
 
-    @staticmethod
+    @ staticmethod
     def get_sym_file_limits():
         return Configuration._sym_file_limit, Configuration._sym_file_byte_limit
 
-    @staticmethod
+    @ staticmethod
     def get_visualize():
         return Configuration._visualize_flag
 
-    @staticmethod
+    @ staticmethod
     def set_visualize(visualize_flag):
         Configuration._visualize_flag = visualize_flag

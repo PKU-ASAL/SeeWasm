@@ -118,11 +118,16 @@ def enum_blocks_edges(function_id, instructions):
     edges = list()
 
     branches = []
-    xrefs = []
+    xrefs = set()
 
     intent = 0
     blocks_tmp = []
     blocks_list = []
+
+    # it can be used to quickly find a given inst in instructions
+    instructions_id_to_index = {}
+    for i, inst in enumerate(instructions):
+        instructions_id_to_index[id(inst)] = i
 
     # we need to do that because jump label are relative to the current block index
     for index, inst in enumerate(instructions[:-1]):
@@ -172,7 +177,7 @@ def enum_blocks_edges(function_id, instructions):
                 else:
                     value = None
                 inst.xref.append(value)
-                xrefs.append(value)
+                xrefs.add(value)
 
     # assign xref for "if" branch
     # needed because 'if' don't used label
@@ -182,13 +187,13 @@ def enum_blocks_edges(function_id, instructions):
                 iter([b for b in blocks_list if b[1] == inst.offset]), None)
             jump_target = g_block[2] + 1
             inst.xref.append(jump_target)
-            xrefs.append(jump_target)
+            xrefs.add(jump_target)
         elif inst.name == 'else':
             g_block = next(
                 iter([b for b in blocks_list if b[1] == inst.offset]), None)
             jump_target = g_block[2] + 1
             inst.xref.append(jump_target)
-            xrefs.append(jump_target)
+            xrefs.add(jump_target)
 
     # enumerate blocks
     new_block = True
@@ -294,7 +299,7 @@ def enum_blocks_edges(function_id, instructions):
         # handle the case when you have if and else following
         elif inst.offset != instructions[-1].offset and \
                 block.start_instr.name != 'else' and \
-                instructions[instructions.index(inst) + 1].name == 'else':
+                instructions[instructions_id_to_index[id(inst)] + 1].name == 'else':
 
             else_ins = instructions[instructions.index(inst) + 1]
             else_b = next(
