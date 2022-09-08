@@ -256,8 +256,10 @@ class ControlInstructions:
                 if unsat == cached_sat_or_unsat([op == i]):
                     continue
 
-                state_func_offset_tuples.append(
-                    (copy.deepcopy(state), possible_func_offset))
+                # TODO and NOTE if the op is a symbol, we should add this constraints into the state
+                # currently, we just assume the op is a concrete number, thus we don't add it in the state
+                # state.constraints.append(op == i)
+                state_func_offset_tuples.append([state, possible_func_offset])
 
             if not state_func_offset_tuples:
                 exit("no valid callee in call_direct")
