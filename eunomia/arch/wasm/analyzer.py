@@ -7,11 +7,12 @@ import json
 import os
 from logging import getLogger
 
+import leb128
 from elftools.dwarf.dwarfinfo import (DebugSectionDescriptor, DwarfConfig,
                                       DWARFInfo)
 from eunomia.arch.wasm.constant import KIND_TYPE, LANG_TYPE
-from eunomia.arch.wasm.dwarfParser import dwarf_section_names
 from eunomia.arch.wasm.decode import decode_module
+from eunomia.arch.wasm.dwarfParser import dwarf_section_names
 from eunomia.arch.wasm.format import (format_kind_function, format_kind_global,
                                       format_kind_memory, format_kind_table)
 from eunomia.core.utils import bytecode_to_bytes
@@ -353,18 +354,31 @@ class WasmModuleAnalyzer(object):
         names_list = list()
 
         f = io.BytesIO(payload)
-        f.read(2)  # drop 2 bytes
-        total += 2
-        count = int.from_bytes(f.read(1), byteorder='little')
+        f.read(4)  # drop 4 bytes
+        total += 4
+        # if name_type is 1, it means it is function names
+        name_type = leb128.u.decode(f.read(1))
         total += 1
 
+        # it is used to indicate how many bytes should be read
+        # as the index can be more than a byte
+        varuint_carry = 0
+
         while total < len(payload):
-            index = int.from_bytes(f.read(1), byteorder='big')
-            total += 1
-            name_len = int.from_bytes(f.read(1), byteorder='big')
+            index = leb128.u.decode(f.read(1 + varuint_carry))
+            if index == 127:
+                # TODO it can read at most 32 bits
+                # we just consider the 2 bytes right now
+                varuint_carry = 1
+            total += 1 + varuint_carry
+            name_len = leb128.u.decode(f.read(1))
             total += 1
             name_str = f.read(name_len)
             total += name_len
+            # if encounter `_start.command_export`, terminate the parsing process
+            if b'command_export' in name_str:
+                names_list.append((index, 6, b'_start'))
+                break
             names_list.append((index, name_len, name_str))
         f.close()
         return names_list
