@@ -55,6 +55,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
     def __init__(self, bytecode):
         self.cfg = WasmCFG(bytecode)
         self.ana = WasmModuleAnalyzer(self.cfg.module_bytecode)
+        # set the func index to func name mapping
+        Configuration.set_func_index_to_func_name(self.ana.names)
 
         # build call graph
         self.cfg.build_call_graph(self.ana)
