@@ -7,11 +7,8 @@ import sys
 from datetime import datetime
 from os import makedirs, path
 
-import sh
-
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.graph import Graph
-from eunomia.arch.wasm.utils import extract_mapping
 from eunomia.arch.wasm.visualizator import visualize
 
 
@@ -111,29 +108,9 @@ def main():
 
     args = parser.parse_args()
 
-    octo_bytecode = None
-    octo_cfg = None
-    func_index_to_func_name = None
-
-    # the verbose
-    Configuration.set_verbose_flag(args.verbose)
-
-    # retrieve the corresponding wat file
-    # and extract the function index to function readable name's mapping
-    wat_file_path = args.file.name.replace('.wasm', '.wat')
-    if not path.exists(wat_file_path):
-        try:
-            cmd = sh.Command('wasm2wat')
-            cmd_option = [args.file.name, "-o", wat_file_path]
-            cmd(cmd_option)
-        except Exception:
-            raise ("There is no corresponding wat file, and the auto generation process is terminated unexpectedly.\nPlease try it manually.")
-
-    # process input file
-    Configuration.set_file(args.file.name)
     octo_bytecode = args.file.read()
 
-    # Control Flow Analysis & Call flow Analysis
+    # Visualize CFG or Call Graph
     if args.cfg or args.call:
         from eunomia.analysis.graph import CFGGraph
         from eunomia.arch.wasm.cfg import WasmCFG
@@ -155,6 +132,8 @@ def main():
     # import necessary library
     from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
+        Configuration.set_verbose_flag(args.verbose)
+        Configuration.set_file(args.file.name)
         Configuration.set_entry(args.onlyfunc)
         Configuration.set_coverage(args.coverage)
         Configuration.set_visualize(args.visualize)

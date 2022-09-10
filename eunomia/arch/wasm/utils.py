@@ -54,53 +54,6 @@ def readable_internal_func_name(func_index_to_func_name, internal_func_name):
     return readable_name
 
 
-def extract_mapping(file_path):
-    """
-    该函数用于抽取 C 通过 -g3 等级编译得到的 wat 文件中的对应的 function index 和 function 名称之间的关系
-    This script will maintain a *map* structure, consisting of the function index and the corresponding
-    function name that obtained from the compiler from C to Wasm with -g3 debuggability
-    """
-    with open(file_path) as fp:
-        text = fp.read()
-
-    # index to func name
-    mapper = {}
-    # match both import function and function declaration
-    matches = re.findall(
-        '(\(import \"(.*)\" \"(.*)\")? \(func (.*) \(type', text)
-    for i, matched_groups in enumerate(matches):
-        func_name = matched_groups[-1]
-        # if import function, using import name instead of wat generated name
-        if len(matched_groups[2]) != 0:
-            func_name = matched_groups[2]
-        mapper[i] = func_name if func_name[0] != '$' else func_name[1:]
-
-    # if the wat file is compiled from -g3, the function name
-    # will be wrapped by a pair of parenthesis and semicolon.
-    # remove them
-    for i, func_name in mapper.items():
-        if func_name.startswith('(;') and func_name.endswith(';)'):
-            mapper[i] = func_name[2:-2]
-
-    # replace name used in export, like the way done in the extraction of func_prototypes
-    export_matches = re.findall('(\(export \"(.*)\" \(func (.*)\)\))', text)
-    for matched_groups in export_matches:
-        target_func_name, original_func_name = matched_groups[1], matched_groups[2]
-        # starts with $ means a string, remove it
-        if original_func_name[0] == '$':
-            original_func_name = original_func_name[1:]
-
-        if target_func_name == original_func_name:
-            continue
-        else:
-            for k, v in mapper.items():
-                if v == original_func_name:
-                    mapper[k] = target_func_name
-                    break
-
-    return mapper
-
-
 def show_state_info(state_index, states):
     state = states[state_index]
     state_infos = state.items() if isinstance(
