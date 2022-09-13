@@ -356,16 +356,22 @@ class WasmModuleAnalyzer(object):
         f = io.BytesIO(payload)
         f.read(4)  # drop 4 bytes
         total += 4
-        # if name_type is 1, it means it is function names
-        name_type = leb128.u.decode(f.read(1))
-        total += 1
 
         # it is used to indicate how many bytes should be read
         # as the index can be more than a byte
         varuint_carry = 0
+        # sometimes, there is a \x01 after the magic 4 bytes
+        # we have to jump over it
+        first_come = True
 
         while total < len(payload):
             index = leb128.u.decode(f.read(1 + varuint_carry))
+            # jump over the \x01 after the magic 4 bytes
+            if index == 1 and first_come:
+                index = leb128.u.decode(f.read(1 + varuint_carry))
+                total += 1 + varuint_carry
+
+            first_come = False
             if index == 127:
                 # TODO it can read at most 32 bits
                 # we just consider the 2 bytes right now
