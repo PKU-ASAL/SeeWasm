@@ -206,8 +206,9 @@ class CPredefinedFunction:
                     elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
-                        original_file, line_no, col_no = get_source_location(
-                            analyzer, func_ind, func_offset)
+                        # original_file, line_no, col_no = get_source_location(
+                        #     analyzer, func_ind, func_offset)
+                        original_file, line_no, col_no = None, None, None
                         inserted_variable = BitVec(
                             f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}",
                             C_TYPE_TO_LENGTH[cur_pattern[-1]] * 8)
