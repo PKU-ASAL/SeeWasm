@@ -370,8 +370,7 @@ def cached_sat_or_unsat(constraints):
                 if cons_set.issubset(cons_hash_set):
                     if cached_item[1] == unsat:
                         # if the subset is unsat, it should be unsat too
-                        # but this situation has not been observed
-                        exit("[TODO] unsat core")
+                        return unsat
                     if len(cons_set) > longest_len:
                         candidate_cons_tuple = c
                         candidate_cons_set = cons_set
