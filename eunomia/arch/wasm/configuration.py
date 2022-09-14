@@ -54,6 +54,7 @@ class Configuration:
     # how many bytes a sym file can hold
     _sym_file_byte_limit = 0
     # keep z3 cache
+    # each value is a tuple, consisting of query times, sat or not, and solver
     _z3_cache_dict = {}
     # used by args_sizes_get in wasi.py
     _argc_addr = None
@@ -61,6 +62,8 @@ class Configuration:
     # each element is a list, consisting of argc and size of each argv
     # like (2, 4, 3) means there are 2 args, the first one is in 4 bytes, and the second is in 3 bytes
     _argc_arg_buf_size = []
+    # enable the incremental solving or not
+    _incremental_solving = False
 
     @ staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -245,3 +248,11 @@ class Configuration:
     @ staticmethod
     def set_visualize(visualize_flag):
         Configuration._visualize_flag = visualize_flag
+
+    @ staticmethod
+    def set_incremental_solving(incremental_solving_flag):
+        Configuration._incremental_solving = incremental_solving_flag
+
+    @ staticmethod
+    def get_incremental_solving():
+        return Configuration._incremental_solving

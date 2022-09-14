@@ -352,6 +352,7 @@ def log_in_out(func_name, directory):
     return decorator
 
 
+# incremental solving + cache
 def cached_sat_or_unsat(constraints):
     cons_hash_set = set([hash(c) for c in constraints])
     cons_hash_list = list(cons_hash_set)
@@ -359,29 +360,40 @@ def cached_sat_or_unsat(constraints):
     cons_hash_tuple = tuple(cons_hash_list)
 
     if cons_hash_tuple not in Configuration._z3_cache_dict:
-        # try to find the longest subset of cons_hash_set from cache_dict
-        longest_len = 0
-        candidate_cons_tuple, candidate_cons_set = None, None
-        for c in Configuration._z3_cache_dict:
-            cons_set = set(c)
-            if cons_set.issubset(cons_hash_set) and len(cons_set) > longest_len:
-                candidate_cons_tuple = c
-                candidate_cons_set = cons_set
-                longest_len = len(cons_set)
+        if Configuration.get_incremental_solving():
+            # try to implement incremental solving
+            # try to find the longest subset of cons_hash_set from cache_dict
+            longest_len = 0
+            candidate_cons_tuple, candidate_cons_set = None, None
+            for c, cached_item in Configuration._z3_cache_dict.items():
+                cons_set = set(c)
+                if cons_set.issubset(cons_hash_set):
+                    if cached_item[1] == unsat:
+                        # if the subset is unsat, it should be unsat too
+                        # but this situation has not been observed
+                        exit("[TODO] unsat core")
+                    if len(cons_set) > longest_len:
+                        candidate_cons_tuple = c
+                        candidate_cons_set = cons_set
+                        longest_len = len(cons_set)
 
-        # if there is a candidate cons can be duplicated used
-        if candidate_cons_tuple:
-            # filter out those missed constraints
-            missed_cons = []
-            for c in constraints:
-                if hash(c) not in candidate_cons_set:
-                    missed_cons.append(c)
+            # if there is a solver can be duplicated used
+            if candidate_cons_tuple:
+                # filter out those missed constraints
+                missed_cons = []
+                for c in constraints:
+                    if hash(c) not in candidate_cons_set:
+                        missed_cons.append(c)
 
-            # duplicate the original solver and add the missed cons
-            original_solver = Configuration._z3_cache_dict[candidate_cons_tuple][2]
-            solver = original_solver.translate(main_ctx())
-            solver.add(*missed_cons)
-            solver_check_result = solver.check()
+                # duplicate the original solver and add the missed cons
+                original_solver = Configuration._z3_cache_dict[candidate_cons_tuple][2]
+                solver = original_solver.translate(main_ctx())
+                solver.add(*missed_cons)
+                solver_check_result = solver.check()
+            else:
+                solver = SMTSolver(Configuration.get_solver())
+                solver.add(*constraints)
+                solver_check_result = solver.check()
         else:
             solver = SMTSolver(Configuration.get_solver())
             solver.add(*constraints)
