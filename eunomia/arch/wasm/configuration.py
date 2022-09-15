@@ -176,13 +176,19 @@ class Configuration:
         return Configuration._func_index_to_func_name
 
     @ staticmethod
-    def set_func_index_to_func_name(ana_names):
-        for item in ana_names:
-            index, _, func_name = item
-            func_name = func_name.decode()
-            if "__imported_wasi_snapshot_preview1_" in func_name:
-                func_name = func_name[34:]
-            Configuration._func_index_to_func_name[index] = func_name
+    def set_func_index_to_func_name(ana_names, func_prototypes):
+        if ana_names:
+            # if the wasm has name section
+            for item in ana_names:
+                index, _, func_name = item
+                func_name = func_name.decode()
+                if "__imported_wasi_snapshot_preview1_" in func_name:
+                    func_name = func_name[34:]
+                Configuration._func_index_to_func_name[index] = func_name
+        else:
+            for index, item in enumerate(func_prototypes):
+                func_name = item[0]
+                Configuration._func_index_to_func_name[index] = func_name
 
     @ staticmethod
     def get_coverage():

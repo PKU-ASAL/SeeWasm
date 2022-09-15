@@ -47,7 +47,7 @@ def readable_internal_func_name(func_index_to_func_name, internal_func_name):
     try:
         readable_name = func_index_to_func_name[int(
             re.search('(\d+)', internal_func_name).group())]
-    except AttributeError:
+    except (AttributeError, KeyError) as _:
         # if the internal_function_name is the readable name already
         readable_name = internal_func_name
     assert readable_name is not None, f"the internal funciton {internal_func_name} cannot find its corresponding readable name"
