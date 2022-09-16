@@ -404,11 +404,15 @@ def cached_sat_or_unsat(constraints):
             for k in m:
                 if str(k) == 'invalid-memory':
                     Configuration._z3_cache_dict[cons_hash_tuple] = [
-                        1, unsat, solver]
+                        1, unsat]
                     raise ProcFailTermination(INVALIDMEMORY)
 
-        Configuration._z3_cache_dict[cons_hash_tuple] = [
-            1, solver_check_result, solver]
+        if Configuration.get_incremental_solving():
+            Configuration._z3_cache_dict[cons_hash_tuple] = [
+                1, solver_check_result, solver]
+        else:
+            Configuration._z3_cache_dict[cons_hash_tuple] = [
+                1, solver_check_result]
     else:
         Configuration._z3_cache_dict[cons_hash_tuple][0] += 1
         solver_check_result = Configuration._z3_cache_dict[cons_hash_tuple][1]
