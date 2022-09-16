@@ -1,0 +1,11 @@
+python eunomia_entry.py -f ./Wasm-samples/btree/5o3u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/6o1u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/6o2u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/6o3u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/7o1u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/7o2u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/7o3u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/8o1u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/8o2u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/9o1u.wasm -s --onlyfunc main --concrete_globals --incremental
+python eunomia_entry.py -f ./Wasm-samples/btree/9o2u.wasm -s --onlyfunc main --concrete_globals --incremental

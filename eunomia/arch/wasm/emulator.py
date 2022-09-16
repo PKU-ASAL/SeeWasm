@@ -8,6 +8,7 @@ from datetime import datetime
 from queue import Queue
 
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
+from eunomia.arch.wasm.btree_insertion_part import *
 from eunomia.arch.wasm.cfg import WasmCFG
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import UnsupportGlobalTypeError
@@ -317,6 +318,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(
                     local, func_name + '_loc_' + str(i) + '_' + local)
+
+        # NOTE test btree here
+        current_file_name = Configuration.get_file_name()
+        MAPPING[current_file_name](state)
 
         state.current_func_name = func_name
 
