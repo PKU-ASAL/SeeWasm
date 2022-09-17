@@ -354,7 +354,9 @@ def query_cache(solver):
     Check is assertions in solver are cached.
     If they are, return directly, or update the cache and return
     """
-    cons_hash_set = set([hash(c) for c in solver.assertions()])
+    cons_hash_set = set()
+    for c in solver.assertions():
+        cons_hash_set.add(hash(c))
     cons_hash_list = list(cons_hash_set)
     cons_hash_list.sort()
     cons_hash_tuple = tuple(cons_hash_list)
@@ -377,24 +379,30 @@ def query_cache(solver):
     return solver_check_result
 
 
-def one_time_query_cache(solver, *args):
+def one_time_query_cache(solver, con):
     """
     the *args are received constraints, they will not be inserted into the solver.
     It is an one-time query
     """
     solver.push()
-    for c in args:
-        solver.add(c)
+    solver.add(con)
     solver_check_result = query_cache(solver)
     solver.pop()
 
     return solver_check_result
 
 
-def one_time_query_cache_without_solver(*args):
-    solver = SMTSolver(Configuration.get_solver())
-    for c in args:
-        solver.add(c)
-    solver_check_result = query_cache(solver)
+def one_time_query_cache_without_solver(con):
+    cons_hash_set = set([hash(c) for c in [con]])
+    cons_hash_list = list(cons_hash_set)
+    cons_hash_list.sort()
+    cons_hash_tuple = tuple(cons_hash_list)
+    if cons_hash_tuple not in Configuration._z3_cache_dict:
+        s = SMTSolver(Configuration.get_solver())
+        s.add(con)
+        solver_check_result = s.check()
+        Configuration._z3_cache_dict[cons_hash_tuple] = solver_check_result
+    else:
+        solver_check_result = Configuration._z3_cache_dict[cons_hash_tuple]
 
     return solver_check_result
