@@ -224,7 +224,7 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.divideByZeroPanic':
             # Not(If(scanf_symbol == 0, 1, 0) == 0)
             divisor = None
-            constraint = simplify(state.constraints[-1])
+            constraint = simplify(state.solver.assertions()[-1])
             # match the condition
             # Not -> == -> If --arg0--> condition
             if is_not(constraint) and \

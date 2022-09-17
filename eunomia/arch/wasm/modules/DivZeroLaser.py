@@ -21,7 +21,8 @@ class DivZeroLaser:
             return True
         return False
 
-    def fire(self, expr, original_constraints):
+    def fire(self, expr, solver):
+        # TODO revise for replace constraints as solver
         # two operands
         _, op2 = expr.arg(0), expr.arg(1)
         # copy the original_constraints

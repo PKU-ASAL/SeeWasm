@@ -64,15 +64,14 @@ Current Func:\t{info.current_func_name}
 Stack:\t\t{info.symbolic_stack}
 Local Var:\t{info.local_var}
 Global Var:\t{info.globals}
-Memory:\t\t{info.symbolic_memory}
-Constraints:\t{info.constraints[:-1]}\n''', flush=True)
+Memory:\t\t{info.symbolic_memory}\n''', flush=True)
 
 
 def show_branch_info(branch, branches, state):
     bb_name = branches[branch]
     if branch in ['conditional_true', 'conditional_false']:
         logging.warning(
-            f"[!] The constraint: {bcolors.WARNING}'{state[branch].constraints[-1]}'{bcolors.ENDC} will be appended")
+            f"[!] The constraint: {bcolors.WARNING}'{state[branch].solver.assertions()[-1]}'{bcolors.ENDC} will be appended")
     logging.warning(
         f"[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}")
     # commented, TODO, need revise, uncomment if neccessary
@@ -269,10 +268,8 @@ def write_result(state, exit=False):
 
         # solution of constraints
         state_result["Solution"] = {}
-        s = SMTSolver(Configuration.get_solver())
-        s += state.constraints
-        s.check()
-        m = s.model()
+        state.solver.check()
+        m = state.solver.model()
         # this check if there exist symbols with same name
         # which may lead to the result overwriting
         if len(set([k for k in m])) != len(m):
@@ -352,69 +349,52 @@ def log_in_out(func_name, directory):
     return decorator
 
 
-# incremental solving + cache
-def cached_sat_or_unsat(constraints):
-    cons_hash_set = set([hash(c) for c in constraints])
+def query_cache(solver):
+    """
+    Check is assertions in solver are cached.
+    If they are, return directly, or update the cache and return
+    """
+    cons_hash_set = set([hash(c) for c in solver.assertions()])
     cons_hash_list = list(cons_hash_set)
     cons_hash_list.sort()
     cons_hash_tuple = tuple(cons_hash_list)
 
     if cons_hash_tuple not in Configuration._z3_cache_dict:
-        if Configuration.get_incremental_solving():
-            # try to implement incremental solving
-            # try to find the longest subset of cons_hash_set from cache_dict
-            longest_len = 0
-            candidate_cons_tuple, candidate_cons_set = None, None
-            for c, cached_item in Configuration._z3_cache_dict.items():
-                cons_set = set(c)
-                if cons_set.issubset(cons_hash_set):
-                    if cached_item[1] == unsat:
-                        # if the subset is unsat, it should be unsat too
-                        return unsat
-                    if len(cons_set) > longest_len:
-                        candidate_cons_tuple = c
-                        candidate_cons_set = cons_set
-                        longest_len = len(cons_set)
-
-            # if there is a solver can be duplicated used
-            if candidate_cons_tuple:
-                # filter out those missed constraints
-                missed_cons = []
-                for c in constraints:
-                    if hash(c) not in candidate_cons_set:
-                        missed_cons.append(c)
-
-                # duplicate the original solver and add the missed cons
-                original_solver = Configuration._z3_cache_dict[candidate_cons_tuple][2]
-                solver = original_solver.translate(main_ctx())
-                solver.add(*missed_cons)
-                solver_check_result = solver.check()
-            else:
-                solver = SMTSolver(Configuration.get_solver())
-                solver.add(*constraints)
-                solver_check_result = solver.check()
-        else:
-            solver = SMTSolver(Configuration.get_solver())
-            solver.add(*constraints)
-            solver_check_result = solver.check()
+        solver_check_result = solver.check()
 
         # try to terminate invalid-memory in advance
         if solver_check_result == sat:
             m = solver.model()
             for k in m:
                 if str(k) == 'invalid-memory':
-                    Configuration._z3_cache_dict[cons_hash_tuple] = [
-                        1, unsat]
+                    Configuration._z3_cache_dict[cons_hash_tuple] = unsat
                     raise ProcFailTermination(INVALIDMEMORY)
 
-        if Configuration.get_incremental_solving():
-            Configuration._z3_cache_dict[cons_hash_tuple] = [
-                1, solver_check_result, solver]
-        else:
-            Configuration._z3_cache_dict[cons_hash_tuple] = [
-                1, solver_check_result]
+        Configuration._z3_cache_dict[cons_hash_tuple] = solver_check_result
     else:
-        Configuration._z3_cache_dict[cons_hash_tuple][0] += 1
-        solver_check_result = Configuration._z3_cache_dict[cons_hash_tuple][1]
+        solver_check_result = Configuration._z3_cache_dict[cons_hash_tuple]
+
+    return solver_check_result
+
+
+def one_time_query_cache(solver, *args):
+    """
+    the *args are received constraints, they will not be inserted into the solver.
+    It is an one-time query
+    """
+    solver.push()
+    for c in args:
+        solver.add(c)
+    solver_check_result = query_cache(solver)
+    solver.pop()
+
+    return solver_check_result
+
+
+def one_time_query_cache_without_solver(*args):
+    solver = SMTSolver(Configuration.get_solver())
+    for c in args:
+        solver.add(c)
+    solver_check_result = query_cache(solver)
 
     return solver_check_result

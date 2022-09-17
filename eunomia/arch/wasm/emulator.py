@@ -381,10 +381,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # logging.debug(
         #     f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
-        for c in state.constraints:
-            if not isinstance(c, BoolRef):
-                state.constraints.remove(c)
-
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':

@@ -2,6 +2,7 @@
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
+from eunomia.arch.wasm.solver import SMTSolver
 from eunomia.arch.wasm.utils import (init_file_for_file_sys,
                                      readable_internal_func_name)
 from eunomia.engine.engine import VMstate
@@ -17,7 +18,6 @@ class WasmVMstate(VMstate):
         self.symbolic_memory = {}
         self.local_var = defaultdict(local_default)
         self.globals = {}
-        self.constraints = []
         # instruction
         self.instr = "end"
         # current function name
@@ -49,6 +49,8 @@ class WasmVMstate(VMstate):
 
         # used by br_if instruction
         self.edge_type = ''
+        # the corresponding solver
+        self.solver = SMTSolver(Configuration.get_solver())
 
     def __str__(self):
         return f'''
@@ -56,8 +58,7 @@ Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}
-Memory:\t\t{self.symbolic_memory}
-Constraints:\t{self.constraints}\n'''
+Memory:\t\t{self.symbolic_memory}\n'''
 
     def details(self):
         raise NotImplementedError
