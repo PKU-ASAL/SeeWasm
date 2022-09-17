@@ -6,7 +6,7 @@ import logging
 from copy import deepcopy
 
 from eunomia.arch.wasm.utils import (FILE_BASE_ADDR, _extract_outermost_int,
-                                     cached_sat_or_unsat)
+                                     one_time_query_cache_without_solver)
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv,
                 is_bv_value, sat, simplify)
 
@@ -79,9 +79,7 @@ def _lookup_symbolic_memory_with_symbol(
             # if one of the bound_int is None, jump over it
             if lower_bound_int is None or higher_bound_int is None:
                 continue
-            if sat == cached_sat_or_unsat(
-                    [lower_bound_int <= chosen_num]) and sat == cached_sat_or_unsat(
-                    [chosen_num < higher_bound_int]):
+            if sat == one_time_query_cache_without_solver(lower_bound_int <= chosen_num) and sat == one_time_query_cache_without_solver(chosen_num < higher_bound_int):
                 # slice the dict
                 temp_symbolic_memory = {
                     (lower_bound, higher_bound): symbolic_memory[(lower_bound, higher_bound)]}
@@ -108,7 +106,8 @@ def _lookup_symbolic_memory_with_symbol(
                     if length <= (h - l) and h < l_bound and l > h_bound:
                         break
                 else:
-                    if sat == cached_sat_or_unsat([length <= (h - l)]):
+                    if sat == one_time_query_cache_without_solver(
+                            length <= (h - l)):
                         break
 
         except KeyError:
@@ -147,8 +146,8 @@ def _construct_ite(
     low = (offset) * 8
     # print(f"offset: {offset}, length: {length}, high: {high}, low: {low}")
 
-    if sat == cached_sat_or_unsat(
-            [(offset + length) == (higher_bound - lower_bound)]):
+    if sat == one_time_query_cache_without_solver(
+            (offset + length) == (higher_bound - lower_bound)):
         tmp_result = simplify(Extract(
             high, low, symbolic_memory[(lower_bound, higher_bound)]))
         # return _lookup_symbolic_memory(symbolic_memory, lower_bound, length)

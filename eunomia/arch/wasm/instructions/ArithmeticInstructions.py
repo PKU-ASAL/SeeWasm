@@ -104,14 +104,14 @@ class ArithmeticInstructions:
                 overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
                 if overflow_check_flag:
                     overflowed = overflow_laser.fire(
-                        result, state.constraints, state.sign_mapping)
+                        result, state.solver, state.sign_mapping)
                     if overflowed:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
                         logging.warning(
                             f"{bcolors.WARNING}Overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
                 if div_zero_flag:
-                    divzeroed = div_zero_laser.fire(result, state.constraints)
+                    divzeroed = div_zero_laser.fire(result, state.solver)
                     if divzeroed:
                         func_ind = get_func_index_from_state(analyzer, state)
                         func_offset = state.instr.offset
@@ -196,9 +196,9 @@ class ArithmeticInstructions:
             overflow_check_flag, div_zero_flag = flags[0], flags[1]
             overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
             if overflow_check_flag:
-                overflow_laser.fire(result, state.constraints)
+                overflow_laser.fire(result, state.solver)
             if div_zero_flag:
-                div_zero_laser.fire(result, state.constraints)
+                div_zero_laser.fire(result, state.solver)
 
             result = simplify(result)
             state.symbolic_stack.append(result)

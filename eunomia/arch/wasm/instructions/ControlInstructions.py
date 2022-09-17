@@ -8,7 +8,8 @@ from eunomia.arch.wasm.exceptions import (ProcSuccessTermination,
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
-from eunomia.arch.wasm.utils import (cached_sat_or_unsat, log_in_out,
+from eunomia.arch.wasm.utils import (log_in_out, one_time_query_cache,
+                                     one_time_query_cache_without_solver,
                                      readable_internal_func_name)
 from z3 import Not, Or, is_bool, is_bv, is_false, is_true, simplify, unsat
 
@@ -202,9 +203,9 @@ class ControlInstructions:
             elif not is_true(op) and not is_false(op):
                 # these two flags are used to jump over unnecessary deepcopy
                 no_need_true, no_need_false = False, False
-                if unsat == cached_sat_or_unsat(state.constraints + [op]):
+                if unsat == one_time_query_cache(state.solver, op):
                     no_need_true = True
-                if unsat == cached_sat_or_unsat(state.constraints + [Not(op)]):
+                if unsat == one_time_query_cache(state.solver, Not(op)):
                     no_need_false = True
 
                 if no_need_true and no_need_false:
@@ -213,21 +214,21 @@ class ControlInstructions:
                     new_state = copy.deepcopy(state)
                     # conditional_true
                     state.edge_type = 'conditional_true_0'
-                    state.constraints.append(op)
+                    state.solver.add(op)
                     # conditional_false
                     new_state.edge_type = 'conditional_false_0'
-                    new_state.constraints.append(Not(op))
+                    new_state.solver.add(Not(op))
                     # append
                     states.append(state)
                     states.append(new_state)
                 else:
                     if no_need_true:
                         state.edge_type = 'conditional_false_0'
-                        state.constraints.append(Not(op))
+                        state.solver.add(Not(op))
                         states.append(state)
                     else:
                         state.edge_type = 'conditional_true_0'
-                        state.constraints.append(op)
+                        state.solver.add(op)
                         states.append(state)
             else:
                 exit(f"br_if/if instruction error. op is {op}")
@@ -253,12 +254,12 @@ class ControlInstructions:
                     continue
 
                 i = i + offset
-                if unsat == cached_sat_or_unsat([op == i]):
+                if unsat == one_time_query_cache_without_solver(op == i):
                     continue
 
                 # TODO and NOTE if the op is a symbol, we should add this constraints into the state
                 # currently, we just assume the op is a concrete number, thus we don't add it in the state
-                # state.constraints.append(op == i)
+                # state.solver.add(op == i)
                 state_func_offset_tuples.append([state, possible_func_offset])
 
             if not state_func_offset_tuples:
@@ -298,7 +299,7 @@ class ControlInstructions:
                 else:
                     # we have to query z3
                     new_state = copy.deepcopy(state)
-                    new_state.constraints.append(cond)
+                    new_state.solver.add(cond)
                     new_state.edge_type = f"conditional_true_{target}"
                     states.append(new_state)
 
@@ -311,7 +312,7 @@ class ControlInstructions:
                 state.edge_type = "conditional_false_0"
                 states.append(state)
             else:
-                state.constraints.append(cond)
+                state.solver.add(cond)
                 state.edge_type = "conditional_false_0"
                 states.append(state)
 

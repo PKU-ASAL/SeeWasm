@@ -125,10 +125,10 @@ class WASIImportFunction:
                     # limit the arg can only be printable chars
                     for i in range(arg.size() // 8, 0, -1):
                         the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
-                        state.constraints.append(
+                        state.solver.add(
                             And(the_char >= 33, the_char <= 126))
 
-                    state.constraints.append(arg != 0)
+                    state.solver.add(arg != 0)
                     num_arg_bytes = arg.size() // 8 + 1
                     # insert the arg
                     _storeN(state, next_arg_buf_addr, arg, num_arg_bytes - 1)
@@ -172,7 +172,7 @@ class WASIImportFunction:
             fs_filetype = 2
             _storeN(state, fd_stat_addr, fs_filetype, 1)
             # TODO the fs_filetype could be 0-7, jump over temporarily
-            # state.constraints.append(
+            # state.solver.add(
             #     Or(
             #         fs_filetype == 0, fs_filetype == 1,
             #         fs_filetype == 2, fs_filetype == 3,
@@ -188,7 +188,7 @@ class WASIImportFunction:
             fs_flags = 0
             _storeN(state, fd_stat_addr + 2, fs_flags, 2)
             # TODO the fs_flags could be the following values, jump over temporarily
-            # state.constraints.append(
+            # state.solver.add(
             #     Or(
             #         fs_flags == 0, fs_flags == 1,
             #         fs_flags == 2, fs_flags == 3,
@@ -316,11 +316,9 @@ class WASIImportFunction:
                 if is_bv(data_len):
                     tmp_data_len = BitVec('tmp_data_len', data_len.size())
 
-                    s = SMTSolver(Configuration.get_solver())
-                    s += state.constraints
-                    s.add(tmp_data_len == data_len)
-                    if sat == s.check():
-                        m = s.model()
+                    state.solver.add(tmp_data_len == data_len)
+                    if sat == state.solver.check():
+                        m = state.solver.model()
                         data_len = m[tmp_data_len].as_long()
                     else:
                         raise Exception("the data_len cannot be solved")
@@ -343,7 +341,7 @@ class WASIImportFunction:
                 f"\tproc_exit: return_val: {return_val}")
 
             proc_exit = BitVec('proc_exit', 32)
-            state.constraints.append(proc_exit == return_val)
+            state.solver.add(proc_exit == return_val)
             # if return_val == 0:
             #     raise ProcSuccessTermination(return_val)
             # else:

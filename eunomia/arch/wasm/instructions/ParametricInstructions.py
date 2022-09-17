@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from eunomia.arch.wasm.utils import cached_sat_or_unsat
+from eunomia.arch.wasm.utils import one_time_query_cache
 from z3 import Not, is_bool, is_bv, is_false, is_true, simplify, unsat
 
 
@@ -34,9 +34,9 @@ class ParametricInstructions:
             elif not is_true(op) and not is_false(op):
                 # these two flags are used to jump over unnecessary deepcopy
                 no_need_true, no_need_false = False, False
-                if unsat == cached_sat_or_unsat(state.constraints + [op]):
+                if unsat == one_time_query_cache(state.solver, op):
                     no_need_true = True
-                if unsat == cached_sat_or_unsat(state.constraints + [Not(op)]):
+                if unsat == one_time_query_cache(state.solver, Not(op)):
                     no_need_false = True
 
                 if no_need_true and no_need_false:
@@ -44,19 +44,19 @@ class ParametricInstructions:
                 elif not no_need_true and not no_need_false:
                     new_state = deepcopy(state)
 
-                    state.constraints.append(op)
+                    state.solver.add(op)
                     state.symbolic_stack.append(arg1)
 
-                    new_state.constraints.append(Not(op))
+                    new_state.solver.add(Not(op))
                     new_state.symbolic_stack.append(arg2)
 
                     return [state, new_state]
                 else:
                     if no_need_true:
-                        state.constraints.append(Not(op))
+                        state.solver.add(Not(op))
                         state.symbolic_stack.append(arg2)
                     else:
-                        state.constraints.append(op)
+                        state.solver.add(op)
                         state.symbolic_stack.append(arg1)
                     return [state]
             else:

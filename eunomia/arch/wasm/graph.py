@@ -8,7 +8,7 @@ from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.utils import (ask_user_input, cached_sat_or_unsat,
+from eunomia.arch.wasm.utils import (ask_user_input, query_cache,
                                      readable_internal_func_name,
                                      state_choose_info, write_result)
 from eunomia.core.basicblock import BasicBlock
@@ -657,8 +657,9 @@ class Graph:
         return final_states
 
     @ classmethod
-    def sat_cut(cls, constraints):
-        return unsat == cached_sat_or_unsat(constraints)
+    def sat_cut(cls, solver):
+        # TODO need cached here
+        return unsat == query_cache(solver)
 
     @ classmethod
     def can_cut(cls, edge_type, next_block, state, lvar):
@@ -667,7 +668,7 @@ class Graph:
         """
         if state.edge_type:
             not_same_edge = state.edge_type != edge_type
-            return cls.sat_cut(state.constraints) or not_same_edge
+            return cls.sat_cut(state.solver) or not_same_edge
 
         if state.current_bb_name == '':
             # normal situation, check the current_func_name
@@ -681,7 +682,7 @@ class Graph:
                 Configuration.get_func_index_to_func_name(),
                 func)
 
-            return cls.sat_cut(state.constraints) or not_same_func
+            return cls.sat_cut(state.solver) or not_same_func
         else:
             # after restore_context, check the current_bb_name
             cur_bb = state.current_bb_name
@@ -695,7 +696,7 @@ class Graph:
                 break
 
             not_same_bb = succ_block != next_block
-            return cls.sat_cut(state.constraints) or not_same_bb
+            return cls.sat_cut(state.solver) or not_same_bb
 
     @ classmethod
     def aes_run_local(cls, lvar, blk):
