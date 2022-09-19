@@ -13,7 +13,7 @@ from eunomia.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
                                           UnsupportZ3TypeError)
 from eunomia.arch.wasm.solver import SMTSolver
 from z3 import (FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value,
-                main_ctx, sat, unsat)
+                sat, unsat)
 
 # this is the opened files base addr
 FILE_BASE_ADDR = 100000000
@@ -354,9 +354,7 @@ def query_cache(solver):
     Check is assertions in solver are cached.
     If they are, return directly, or update the cache and return
     """
-    cons_hash_set = set()
-    for c in solver.assertions():
-        cons_hash_set.add(hash(c))
+    cons_hash_set = {hash(c) for c in solver.assertions()}
     cons_hash_list = list(cons_hash_set)
     cons_hash_list.sort()
     cons_hash_tuple = tuple(cons_hash_list)

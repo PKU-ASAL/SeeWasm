@@ -5,7 +5,7 @@
 import logging
 from copy import deepcopy
 
-from eunomia.arch.wasm.utils import (FILE_BASE_ADDR, _extract_outermost_int,
+from eunomia.arch.wasm.utils import (_extract_outermost_int,
                                      one_time_query_cache_without_solver)
 from z3 import (And, BitVec, BitVecVal, Concat, Extract, If, is_bv,
                 is_bv_value, sat, simplify)

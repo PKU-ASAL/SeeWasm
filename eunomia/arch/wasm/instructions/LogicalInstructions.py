@@ -2,8 +2,9 @@
 
 from eunomia.arch.wasm.configuration import Configuration, Enable_Lasers
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
-                fpLT, fpNEQ, is_bool, is_bv, is_bv_value)
+from z3 import (
+    UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ, fpLT, fpNEQ,
+    is_bool, is_bv, is_bv_value, simplify, is_true, is_false)
 
 helper_map = {
     'i32': 32,
@@ -82,9 +83,15 @@ class LogicalInstructions:
                     speculate_sign(arg1, self.instr_name, state.sign_mapping)
                     speculate_sign(arg2, self.instr_name, state.sign_mapping)
 
-            assert is_bool(result), "logical instruction should return boolref"
-            state.symbolic_stack.append(
-                If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            # try to simplify result and insert 1 or 0 directly, instead of an ite statement
+            result = simplify(result)
+            if is_true(result):
+                state.symbolic_stack.append(BitVecVal(1, 32))
+            elif is_false(result):
+                state.symbolic_stack.append(BitVecVal(0, 32))
+            else:
+                state.symbolic_stack.append(
+                    If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
 
             return [state]
 
@@ -112,10 +119,15 @@ class LogicalInstructions:
             else:
                 raise UnsupportInstructionError
 
-            assert is_bool(
-                result), "the result of logical instruction must be true"
-            state.symbolic_stack.append(
-                If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
+            # try to simplify result and insert 1 or 0 directly, instead of an ite statement
+            result = simplify(result)
+            if is_true(result):
+                state.symbolic_stack.append(BitVecVal(1, 32))
+            elif is_false(result):
+                state.symbolic_stack.append(BitVecVal(0, 32))
+            else:
+                state.symbolic_stack.append(
+                    If(result, BitVecVal(1, 32), BitVecVal(0, 32)))
 
             return [state]
 

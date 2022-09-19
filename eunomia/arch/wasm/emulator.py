@@ -28,7 +28,7 @@ from eunomia.arch.wasm.vmstate import WasmVMstate
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import EDGE_FALLTHROUGH, Edge
 from eunomia.engine.emulator import EmulatorEngine
-from z3 import BitVec, BitVecVal, BoolRef
+from z3 import BitVec, BitVecVal
 
 sys.setrecursionlimit(4096)
 

@@ -668,7 +668,7 @@ class Graph:
         """
         if state.edge_type:
             not_same_edge = state.edge_type != edge_type
-            return cls.sat_cut(state.solver) or not_same_edge
+            return not_same_edge or cls.sat_cut(state.solver)
 
         if state.current_bb_name == '':
             # normal situation, check the current_func_name
@@ -682,7 +682,7 @@ class Graph:
                 Configuration.get_func_index_to_func_name(),
                 func)
 
-            return cls.sat_cut(state.solver) or not_same_func
+            return not_same_func or cls.sat_cut(state.solver)
         else:
             # after restore_context, check the current_bb_name
             cur_bb = state.current_bb_name
@@ -696,7 +696,7 @@ class Graph:
                 break
 
             not_same_bb = succ_block != next_block
-            return cls.sat_cut(state.solver) or not_same_bb
+            return not_same_bb or cls.sat_cut(state.solver)
 
     @ classmethod
     def aes_run_local(cls, lvar, blk):
