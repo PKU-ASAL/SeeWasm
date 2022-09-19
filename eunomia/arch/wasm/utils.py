@@ -354,9 +354,7 @@ def query_cache(solver):
     Check is assertions in solver are cached.
     If they are, return directly, or update the cache and return
     """
-    cons_hash_set = set()
-    for c in solver.assertions():
-        cons_hash_set.add(hash(c))
+    cons_hash_set = {hash(c) for c in solver.assertions()}
     cons_hash_list = list(cons_hash_set)
     cons_hash_list.sort()
     cons_hash_tuple = tuple(cons_hash_list)
