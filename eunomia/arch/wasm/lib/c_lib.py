@@ -49,8 +49,11 @@ class CPredefinedFunction:
                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
 
             if is_bv(middle_p):
-                exit(f"\tencounter a symbolic pointer ({middle_p}) for printf")
-                parsed_part = str(middle_p)
+                if cur_pattern[-1] in {'f', 'd', 'u', 'x'}:
+                    parsed_part = str(middle_p)
+                else:
+                    exit(
+                        f"\tencounter a symbolic pointer ({middle_p}) in printf, with pattern {cur_pattern}")
             else:
                 if cur_pattern[-1] == 's':
                     # decide to load a bv or a string
@@ -444,6 +447,7 @@ def C_extract_string_by_mem_pointer(
     """
     if default_len:
         loaded_data = _loadN(state, data_section, mem_pointer, default_len)
+        i = default_len
     else:
         i = 1
         while True:

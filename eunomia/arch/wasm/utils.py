@@ -315,7 +315,7 @@ def write_result(state, exit=False):
                         output_solve_buffer.append(
                             chr(solve_char.as_long()))
                     elif is_bv(solve_char):
-                        output_solve_buffer.append(b"`@`")
+                        output_solve_buffer.append("`@`")
                     else:
                         exit(
                             f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
