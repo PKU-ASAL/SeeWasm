@@ -10,6 +10,110 @@ def gen_2o1u(state):
     state.solver.add(h != b)
 
 
+def gen_2o2u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    h = state.local_var[2]
+    i = state.local_var[3]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(a > b)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(i != a)
+    state.solver.add(i != b)
+    state.solver.add(i != h)
+
+
+def gen_2o3u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    h = state.local_var[2]
+    i = state.local_var[3]
+    j = state.local_var[4]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(a > b)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(i != a)
+    state.solver.add(i != b)
+    state.solver.add(i != h)
+    state.solver.add(j != a)
+    state.solver.add(j != b)
+    state.solver.add(j != h)
+    state.solver.add(j != i)
+
+
+def gen_3o1u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    c = state.local_var[2]
+    h = state.local_var[3]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(c != a)
+    state.solver.add(c != b)
+    state.solver.add(a > b)
+    state.solver.add(b > c)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(h != c)
+
+
+def gen_3o2u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    c = state.local_var[2]
+    h = state.local_var[3]
+    i = state.local_var[4]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(c != a)
+    state.solver.add(c != b)
+    state.solver.add(a > b)
+    state.solver.add(b > c)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(h != c)
+    state.solver.add(i != a)
+    state.solver.add(i != b)
+    state.solver.add(i != c)
+    state.solver.add(i != h)
+
+
+def gen_3o3u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    c = state.local_var[2]
+    h = state.local_var[3]
+    i = state.local_var[4]
+    j = state.local_var[5]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(c != a)
+    state.solver.add(c != b)
+    state.solver.add(a > b)
+    state.solver.add(b > c)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(h != c)
+    state.solver.add(i != a)
+    state.solver.add(i != b)
+    state.solver.add(i != c)
+    state.solver.add(i != h)
+    state.solver.add(j != a)
+    state.solver.add(j != b)
+    state.solver.add(j != c)
+    state.solver.add(j != h)
+    state.solver.add(j != i)
+
+
 def gen_4o1u(state):
     a = state.local_var[0]
     b = state.local_var[1]
@@ -641,6 +745,84 @@ def gen_8o2u(state):
     state.solver.add(i != h)
 
 
+def gen_8o3u(state):
+    a = state.local_var[0]
+    b = state.local_var[1]
+    c = state.local_var[2]
+    d = state.local_var[3]
+    e = state.local_var[4]
+    f = state.local_var[5]
+    g = state.local_var[6]
+    x = state.local_var[7]
+    h = state.local_var[8]
+    i = state.local_var[9]
+    j = state.local_var[10]
+    # ordered variables
+    state.solver.add(a != b)
+    state.solver.add(c != a)
+    state.solver.add(c != b)
+    state.solver.add(d != a)
+    state.solver.add(d != b)
+    state.solver.add(d != c)
+    state.solver.add(e != a)
+    state.solver.add(e != b)
+    state.solver.add(e != c)
+    state.solver.add(e != d)
+    state.solver.add(f != a)
+    state.solver.add(f != b)
+    state.solver.add(f != c)
+    state.solver.add(f != d)
+    state.solver.add(f != e)
+    state.solver.add(g != a)
+    state.solver.add(g != b)
+    state.solver.add(g != c)
+    state.solver.add(g != d)
+    state.solver.add(g != e)
+    state.solver.add(g != f)
+    state.solver.add(x != a)
+    state.solver.add(x != b)
+    state.solver.add(x != c)
+    state.solver.add(x != d)
+    state.solver.add(x != e)
+    state.solver.add(x != f)
+    state.solver.add(x != g)
+    state.solver.add(a > b)
+    state.solver.add(b > c)
+    state.solver.add(c > d)
+    state.solver.add(d > e)
+    state.solver.add(e > f)
+    state.solver.add(f > g)
+    state.solver.add(g > x)
+    # unordered variables
+    state.solver.add(h != a)
+    state.solver.add(h != b)
+    state.solver.add(h != c)
+    state.solver.add(h != d)
+    state.solver.add(h != e)
+    state.solver.add(h != f)
+    state.solver.add(h != g)
+    state.solver.add(h != x)
+    state.solver.add(i != a)
+    state.solver.add(i != b)
+    state.solver.add(i != c)
+    state.solver.add(i != d)
+    state.solver.add(i != e)
+    state.solver.add(i != f)
+    state.solver.add(i != g)
+    state.solver.add(i != x)
+    state.solver.add(i != h)
+    state.solver.add(j != a)
+    state.solver.add(j != b)
+    state.solver.add(j != c)
+    state.solver.add(j != d)
+    state.solver.add(j != e)
+    state.solver.add(j != f)
+    state.solver.add(j != g)
+    state.solver.add(j != x)
+    state.solver.add(j != h)
+    state.solver.add(j != i)
+
+
 def gen_9o1u(state):
     a = state.local_var[0]
     b = state.local_var[1]
@@ -790,6 +972,11 @@ def gen_9o2u(state):
 
 MAPPING = {
     '2o1u': gen_2o1u,
+    '2o2u': gen_2o2u,
+    '2o3u': gen_2o3u,
+    '3o1u': gen_3o1u,
+    '3o2u': gen_3o2u,
+    '3o3u': gen_3o3u,
     '4o1u': gen_4o1u,
     '4o2u': gen_4o2u,
     '4o3u': gen_4o3u,
@@ -804,6 +991,7 @@ MAPPING = {
     '7o3u': gen_7o3u,
     '8o1u': gen_8o1u,
     '8o2u': gen_8o2u,
+    '8o3u': gen_8o3u,
     '9o1u': gen_9o1u,
     '9o2u': gen_9o2u,
 }

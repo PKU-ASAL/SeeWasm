@@ -1,3 +1,14 @@
+python eunomia_entry.py -f ./Wasm-samples/btree/2o1u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/2o2u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/2o3u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/3o1u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/3o2u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/3o3u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/4o1u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/4o2u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/4o3u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/5o1u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/5o2u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/5o3u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/6o1u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/6o2u.wasm -s --onlyfunc main --concrete_globals
@@ -7,5 +18,6 @@ python eunomia_entry.py -f ./Wasm-samples/btree/7o2u.wasm -s --onlyfunc main --c
 python eunomia_entry.py -f ./Wasm-samples/btree/7o3u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/8o1u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/8o2u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/8o3u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/9o1u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/9o2u.wasm -s --onlyfunc main --concrete_globals
