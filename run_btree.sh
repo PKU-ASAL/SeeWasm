@@ -21,3 +21,4 @@ python eunomia_entry.py -f ./Wasm-samples/btree/8o2u.wasm -s --onlyfunc main --c
 python eunomia_entry.py -f ./Wasm-samples/btree/8o3u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/9o1u.wasm -s --onlyfunc main --concrete_globals
 python eunomia_entry.py -f ./Wasm-samples/btree/9o2u.wasm -s --onlyfunc main --concrete_globals
+python eunomia_entry.py -f ./Wasm-samples/btree/9o3u.wasm -s --onlyfunc main --concrete_globals
