@@ -206,9 +206,9 @@ class CPredefinedFunction:
                         _storeN(state, middle_p, 6513249, 4)
                         logging.info(
                             f"\tInput a scanf string: abc (hard-encoded)")
-                    elif cur_pattern[-1] in {'d', 'u', 'x', 'c'}:
-                        func_ind = get_func_index_from_state(analyzer, state)
-                        func_offset = state.instr.offset
+                    elif cur_pattern[-1] in {'d', 'u', 'x'}:
+                        # func_ind = get_func_index_from_state(analyzer, state)
+                        # func_offset = state.instr.offset
                         # original_file, line_no, col_no = get_source_location(
                         #     analyzer, func_ind, func_offset)
                         original_file, line_no, col_no = None, None, None
@@ -218,7 +218,14 @@ class CPredefinedFunction:
                         _storeN(state, middle_p, inserted_variable,
                                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
                         logging.info(
-                            f"\tInput a scanf integer: {inserted_variable}")
+                            f"\tInput a scanf int: {inserted_variable}")
+                    elif cur_pattern[-1] == 'c':
+                        original_file, line_no, col_no = None, None, None
+                        inserted_variable = BitVec(
+                            f"scanf_{original_file}_{line_no}_{col_no}_[{i}]_{middle_p}", 8)
+                        _storeN(state, middle_p, inserted_variable, 1)
+                        logging.info(
+                            f"\tInput a scanf char: {inserted_variable}")
                     else:
                         exit("$scanf error")
 

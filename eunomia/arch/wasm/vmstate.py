@@ -53,12 +53,12 @@ class WasmVMstate(VMstate):
         self.solver = SMTSolver(Configuration.get_solver())
 
     def __str__(self):
-        return f'''
-Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
+        return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}
-Memory:\t\t{self.symbolic_memory}\n'''
+Memory:\t\t{self.symbolic_memory}
+Constraints:\t{self.solver.assertions()}\n'''
 
     def details(self):
         raise NotImplementedError

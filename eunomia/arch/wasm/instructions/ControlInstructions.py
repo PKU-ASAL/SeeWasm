@@ -3,7 +3,8 @@ import logging
 from collections import defaultdict
 
 from eunomia.arch.wasm.configuration import Configuration
-from eunomia.arch.wasm.exceptions import (ProcSuccessTermination,
+from eunomia.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
+                                          ProcSuccessTermination,
                                           UnsupportInstructionError)
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
@@ -163,7 +164,7 @@ class ControlInstructions:
                 state, param_str, return_str, data_section)
         elif readable_callee_func_name in TERMINATED_FUNCS:
             logging.info(f"Termination: {readable_callee_func_name}")
-            states = [state]
+            raise ProcFailTermination(ASSERT_FAIL)
         else:
             self.store_context(param_str, return_str, state,
                                readable_callee_func_name)

@@ -1,5 +1,6 @@
 # This file defines our own exceptions
 INVALIDMEMORY = -2
+ASSERT_FAIL = -3
 
 
 class UnsupportZ3TypeError(Exception):

@@ -132,8 +132,6 @@ def main():
             else:
                 octo_graph.view(simplify=args.simplify)
 
-    # import necessary library
-    from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
     if args.symbolic:
         Configuration.set_verbose_flag(args.verbose)
         Configuration.set_file(args.file.name)
@@ -161,6 +159,9 @@ def main():
             Configuration.get_file_name(),
             args.args, args.sym_args)
 
+        # import necessary part
+        from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
+
         wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
@@ -183,13 +184,13 @@ def main():
 if __name__ == '__main__':
     job_start_time = datetime.now()
     current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Start to analyze: {current_time_start}", flush=True)
+    # print(f"Start to analyze: {current_time_start}", flush=True)
     Configuration.set_start_time(current_time_start)
 
     main()
 
     job_end_time = datetime.now()
     current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"End of analyze: {current_time_end}", flush=True)
+    # print(f"End of analyze: {current_time_end}", flush=True)
     elapsed_time = job_end_time - job_start_time
     print(f"Time elapsed: {elapsed_time}", flush=True)
