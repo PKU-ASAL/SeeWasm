@@ -1,16 +1,14 @@
 import copy
-import logging
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
-from eunomia.arch.wasm.configuration import Configuration, bcolors
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from eunomia.arch.wasm.instruction import WasmInstruction
 from eunomia.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
-from eunomia.arch.wasm.utils import (ask_user_input, query_cache,
-                                     readable_internal_func_name,
-                                     state_choose_info, write_result)
+from eunomia.arch.wasm.utils import (query_cache, readable_internal_func_name,
+                                     write_result)
 from eunomia.core.basicblock import BasicBlock
 from eunomia.core.edge import EDGE_FALLTHROUGH
 from z3 import unsat
@@ -61,7 +59,6 @@ class Graph:
         _bbs_graph: a mapping, from basic block's name to a mapping, from edge type to its corresponding pointed to basic block's name;
         _rev_bbs_graph: same as above, but its reversed;
         _workers: reserved, for multi-processing;
-        manual_guide: indicate if the path finding is guided by user manually;
     """
     _func_to_bbs = defaultdict(list)
     _bb_to_instructions = defaultdict(list)
@@ -71,7 +68,6 @@ class Graph:
 
     _workers = 2
     _wasmVM = None
-    manual_guide = False
 
     def __init__(self):
         self.entry = Configuration.get_entry()
@@ -478,8 +474,7 @@ class Graph:
         heads = {v: head for head in intervals for v in intervals[head]}
         heads['return'] = 'return'
 
-        final_states = cls.visit_interval(
-            [state], entry, heads, cls.manual_guide, "return")
+        final_states = cls.visit_interval([state], entry, heads, "return")
         return final_states["return"]
 
     @ classmethod
@@ -527,7 +522,7 @@ class Graph:
         return intervals
 
     @ classmethod
-    def visit_interval(cls, states, blk, heads, guided=False, prev=None):
+    def visit_interval(cls, states, blk, heads, prev=None):
         """
         Performing interval traversal, see our paper for more details
 
@@ -588,28 +583,6 @@ class Graph:
                 for s in valid_state:
                     s.current_bb_name = ''
                     s.edge_type = ''
-
-            if guided:
-                # TODO: the data structure here, especially `avail_br` is different with function `visit` in dfs, thus the guided here need revise
-                logging.warning(
-                    f"\n[+] Currently, there are {len(avail_br)} possible branch(es) here: {bcolors.WARNING}{avail_br}{bcolors.ENDC}")
-                if len(avail_br) == 1:
-                    logging.warning(
-                        f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-                    br_idx = ask_user_input(
-                        emul_states, isbr=True, onlyone=True,
-                        branches=avail_br)
-                else:
-                    logging.warning(
-                        f"[+] Please choose one to continue the following emulation (T (conditional true), F (conditional false), f (fallthrough), current_block (unconditional))")
-                    logging.warning(
-                        f"[+] You can add an 'i' to illustrate information of your choice (e.g., 'T i' to show the basic block if you choose to go to the true branch)")
-                    br_idx = ask_user_input(
-                        emul_states, isbr=True, branches=avail_br)
-                emul_states = avail_br[br_idx]
-
-                emul_states = state_choose_info(emul_states)
-                avail_br = {br_idx: emul_states}
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]

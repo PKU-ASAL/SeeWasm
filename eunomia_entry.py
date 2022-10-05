@@ -66,9 +66,6 @@ def main():
         '--visualize', action='store_true',
         help='visualize the ICFG on basic blocks level')
     features.add_argument(
-        '--manual_guide', action='store_true',
-        help='allow users to manually guide the control flow')
-    features.add_argument(
         '--concrete_globals', action='store_true',
         help='concretize values for globals despite the function is exported')
     features.add_argument(
@@ -165,7 +162,6 @@ def main():
         wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
-        Graph.manual_guide = args.manual_guide
         Graph.initialize()
         # draw the ICFG on basic block level, and exit
         if Configuration.get_visualize():

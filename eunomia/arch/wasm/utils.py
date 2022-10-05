@@ -8,7 +8,7 @@ from codecs import decode
 from datetime import datetime
 from os import makedirs, path
 
-from eunomia.arch.wasm.configuration import Configuration, bcolors
+from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
                                           UnsupportZ3TypeError)
 from eunomia.arch.wasm.solver import SMTSolver
@@ -52,105 +52,6 @@ def readable_internal_func_name(func_index_to_func_name, internal_func_name):
         readable_name = internal_func_name
     assert readable_name is not None, f"the internal funciton {internal_func_name} cannot find its corresponding readable name"
     return readable_name
-
-
-def show_state_info(state_index, states):
-    state = states[state_index]
-    state_infos = state.items() if isinstance(
-        state, dict) else [('fallthrough', state)]
-    for _, info in state_infos:
-        print(f'''
-Current Func:\t{info.current_func_name}
-Stack:\t\t{info.symbolic_stack}
-Local Var:\t{info.local_var}
-Global Var:\t{info.globals}
-Memory:\t\t{info.symbolic_memory}\n''', flush=True)
-
-
-def show_branch_info(branch, branches, state):
-    bb_name = branches[branch]
-    if branch in ['conditional_true', 'conditional_false']:
-        logging.warning(
-            f"[!] The constraint: {bcolors.WARNING}'{state[branch].solver.assertions()[-1]}'{bcolors.ENDC} will be appended")
-    logging.warning(
-        f"[!] You choose to go to basic block: {bcolors.WARNING}{bb_name}{bcolors.ENDC}")
-    # commented, TODO, need revise, uncomment if neccessary
-    # print(f'[!] Its instruction begins at offset {cls.bb_to_instructions[bb_name][0].offset}')
-    # print(f'[!] The leading instructions are showed as follows:')
-    # instructions = cls.bb_to_instructions[bb_name]
-    # for i, instr in enumerate(instructions):
-    #     if i >= 10:
-    #         break
-    #     print(f'\t{instr.operand_interpretation}')
-
-
-def state_choose_info(emul_states):
-    logging.warning(
-        f"\n[+] Currently, there are {bcolors.WARNING}{len(emul_states)}{bcolors.ENDC} possible state(s) here")
-    if len(emul_states) == 1:
-        logging.warning(
-            f"[+] Enter {bcolors.WARNING}'i'{bcolors.ENDC} to show its information, or directly press {bcolors.WARNING}'enter'{bcolors.ENDC} to go ahead")
-        state_index = ask_user_input(
-            emul_states, isbr=False, onlyone=True)
-    else:
-        logging.warning(
-            f"[+] Please choose one to continue the following emulation (1 -- {len(emul_states)})")
-        logging.warning(
-            f"[+] You can add an 'i' to illustrate information of the corresponding state (e.g., '1 i' to show the first state's information)")
-        state_index = ask_user_input(
-            emul_states, isbr=False)  # 0 for state, is a flag
-    state_item = emul_states[state_index]
-    emul_states = [state_item]
-    return emul_states
-
-
-def ask_user_input(
-        emul_states, isbr, onlyone=False, branches=None, state_item=None):
-    # `concerned_variable` is state_index or branch, depends on the flag value
-    branch_mapping = {
-        'T': 'conditional_true',
-        'F': 'conditional_false',
-        'f': 'fallthrough',
-        'u': 'unconditional',
-        'conditional_true': 'T',
-        'conditional_false': 'F',
-        'fallthrough': 'f',
-        'unconditional': 'u',
-    }
-
-    while True:
-        user_input = input("[!] Please input the command: ")
-        try:
-            ask_for_info = False
-
-            # if there is only one possible state
-            if onlyone and not isbr:
-                user_input = ("1 " + user_input) if user_input == 'i' else "1"
-            elif onlyone and isbr:  # if there is only one possible branch
-                branch_symbol = branch_mapping[list(branches.keys())[0]]
-                user_input = branch_symbol + " " + \
-                    user_input if user_input == 'i' else branch_symbol
-
-            if ' ' in user_input:
-                concerned_variable, ask_for_info = user_input.split(' ')
-                assert ask_for_info == 'i'
-                ask_for_info = True
-            else:
-                concerned_variable = user_input
-
-            concerned_variable = branch_mapping[concerned_variable] if isbr else int(
-                concerned_variable) - 1
-            if not ask_for_info:
-                break
-            if isbr:
-                show_branch_info(concerned_variable, branches, state_item)
-            else:
-                show_state_info(concerned_variable, emul_states)
-        except Exception:
-            logging.warning(
-                f"{bcolors.FAIL}[!] Invalid input, please try again{bcolors.ENDC}")
-
-    return concerned_variable
 
 
 def bin_to_float(b):
