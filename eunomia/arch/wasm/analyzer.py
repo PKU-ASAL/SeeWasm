@@ -343,6 +343,15 @@ class WasmModuleAnalyzer(object):
             data_list.append(fmt)
         return data_list
 
+    def __extract_leb128(self, f):
+        valid_leb128 = b""
+        tmp_byte = f.read(1)
+        while int.from_bytes(tmp_byte, "big") > 127:
+            valid_leb128 += tmp_byte
+            tmp_byte = f.read(1)
+        valid_leb128 += tmp_byte
+        return valid_leb128
+
     def __decode_name_section(self, name_section):
         """
         .. seealso:: https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md#name-section
@@ -350,41 +359,34 @@ class WasmModuleAnalyzer(object):
         payload = name_section.payload.tobytes()
         # print(payload)
 
-        total = 0
         names_list = list()
 
         f = io.BytesIO(payload)
-        f.read(4)  # drop 4 bytes
-        total += 4
+        # read the first byte, means the
+        subsec_name = f.read(1)
+        assert int.from_bytes(
+            subsec_name, "big") == 1, "in decoding name section, we only support func name subsec currently"
 
-        # it is used to indicate how many bytes should be read
-        # as the index can be more than a byte
-        varuint_carry = 0
-        # sometimes, there is a \x01 after the magic 4 bytes
-        # we have to jump over it
-        first_come = True
+        # extract the length of this subsection
+        subsec_len = self.__extract_leb128(f)
+        subsec_len = leb128.u.decode(subsec_len)
 
-        while total < len(payload):
-            index = leb128.u.decode(f.read(1 + varuint_carry))
-            # jump over the \x01 after the magic 4 bytes
-            if index == 1 and first_come:
-                index = leb128.u.decode(f.read(1 + varuint_carry))
-                total += 1 + varuint_carry
+        # extract the number of name items
+        name_vec_len = self.__extract_leb128(f)
+        name_vec_len = leb128.u.decode(name_vec_len)
 
-            first_come = False
-            if index == 127:
-                # TODO it can read at most 32 bits
-                # we just consider the 2 bytes right now
-                varuint_carry = 1
-            total += 1 + varuint_carry
+        # extract each name vector
+        for _ in range(name_vec_len):
+            # func index
+            index = self.__extract_leb128(f)
+            index = leb128.u.decode(index)
+
+            # func length
             name_len = leb128.u.decode(f.read(1))
-            total += 1
+
+            # func name
             name_str = f.read(name_len)
-            total += name_len
-            # if encounter `_start.command_export`, terminate the parsing process
-            if b'command_export' in name_str:
-                names_list.append((index, 6, b'_start'))
-                break
+
             names_list.append((index, name_len, name_str))
         f.close()
         return names_list
