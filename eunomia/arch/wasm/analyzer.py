@@ -382,7 +382,8 @@ class WasmModuleAnalyzer(object):
             index = leb128.u.decode(index)
 
             # func length
-            name_len = leb128.u.decode(f.read(1))
+            name_len = self.__extract_leb128(f)
+            name_len = leb128.u.decode(name_len)
 
             # func name
             name_str = f.read(name_len)
