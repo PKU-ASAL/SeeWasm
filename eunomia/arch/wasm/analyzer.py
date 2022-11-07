@@ -422,7 +422,8 @@ class WasmModuleAnalyzer(object):
 
             for x in self.exports:
                 if x.get('index') == real_index and x.get('kind') == 0:
-                    name = x.get('field_str')
+                    # DO NOT OVERWRITE EXPORT FUNCTION NAME
+                    # name = x.get('field_str')
                     f_type = 'export'
 
             # TODO: need to test

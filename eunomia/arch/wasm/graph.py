@@ -183,7 +183,7 @@ class Graph:
 
         def init_dummy_blocks():
             """
-            Insert dummy entry and end before and aftr each function's cfg.
+            Insert dummy exit after each function.
             Refer to: https://github.com/HNYuuu/Wasm-SE/issues/70
 
             Also update basicblocks in cfg, and class variables, e.g., bbs_graph and bb_to_instructions
@@ -528,8 +528,10 @@ class Graph:
 
         Note: `blk` is the head of an interval
         """
-        default_cons_prior = {'prior': 65536,
-                              'cons': True, 'checker_halt': False}
+        default_cons_prior = defaultdict(int)
+        default_cons_prior['prior'] = 65536
+        default_cons_prior['cons'] = True
+        default_cons_prior['checker_halt'] = False
 
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
@@ -677,13 +679,27 @@ class Graph:
         new_lvar['cons'] = True
         for name in cls.aes_func[blk]:
             _name, id = name.split('$')
-            if id == '1':
+            if id == -1:
+                pass
+            elif id == -2:
+                pass
+            elif id == 0:
                 new_lvar['checker_halt'] = True
-                new_lvar['prior'] = -1
-            if id == '2':
-                new_lvar['prior'] = abs(49 - new_lvar['cnt'])
-            if id == '0':
-                new_lvar['cnt'] += 1
+            elif id == 1:
+                new_lvar["cnt_i"] += 1
+            elif id == 2:
+                new_lvar["cnt_j"] += 1
+            elif id == 3:
+                new_lvar['prior'] = abs(20 - new_lvar['cnt_i'])
+            elif id == 4:
+                new_lvar['prior'] = abs(3 - new_lvar['cnt_j'])
+            # if id == '1':
+            #     new_lvar['checker_halt'] = True
+            #     new_lvar['prior'] = -1
+            # if id == '2':
+            #     new_lvar['prior'] = abs(49 - new_lvar['cnt'])
+            # if id == '0':
+            #     new_lvar['cnt'] += 1
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar

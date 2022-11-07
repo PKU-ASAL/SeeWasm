@@ -137,8 +137,10 @@ class ControlInstructions:
             Configuration.get_func_index_to_func_name(),
             callee_func_name)
 
-        # if the callee is a C library function
-        if Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
+        if readable_callee_func_name.startswith("checker"):
+            # if it is a instrumented function
+            states = [state]
+        elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_callee_func_name):
             func = CPredefinedFunction(
                 readable_callee_func_name, state.current_func_name)

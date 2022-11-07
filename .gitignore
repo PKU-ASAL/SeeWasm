@@ -9,7 +9,6 @@ go_samples.nosync/div_zero/main.h
 go_samples.nosync/div_zero/tinygo_main.c
 go_samples.nosync/div_zero/tinygo_main.h
 *.ll
-*.wasm
 *.wat
 profile
 profile_fo
