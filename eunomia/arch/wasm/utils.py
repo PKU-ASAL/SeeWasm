@@ -151,6 +151,10 @@ def write_result(state, exit=False):
     if exit and not state.file_sys[2]['content']:
         return
 
+    # if the checker is unsat
+    if unsat == state.solver.check():
+        return
+
     file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
@@ -169,7 +173,6 @@ def write_result(state, exit=False):
 
         # solution of constraints
         state_result["Solution"] = {}
-        state.solver.check()
         m = state.solver.model()
         # this check if there exist symbols with same name
         # which may lead to the result overwriting
