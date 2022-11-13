@@ -176,6 +176,14 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 for ins_i, instruction in enumerate(bb.instructions):
                     # we should split the basic block after these two instructions, if they are not the last instruction
                     if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
+                        instr_operand = instruction.operand_interpretation.split(" ")[1]
+                        target_func = self.ana.func_prototypes[int(instr_operand)]
+                        callee_name = target_func[0]
+                        func_name = readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(),
+                            callee_name)
+                        if func_name.startswith('checker'):
+                            continue
                         first_part_ins, second_part_ins = bb.instructions[
                             : ins_i + 1], bb.instructions[ins_i + 1:]
                         next_ins = bb.instructions[ins_i + 1]
@@ -331,7 +339,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state
 
-    def emulate_basic_block(self, states, instructions):
+    def emulate_basic_block(self, states, instructions, lvar):
         """
         Symbolically execute the instructions from each of state in states
 
@@ -344,11 +352,11 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
                 next_states.extend(self.emulate_one_instruction(
-                    instruction, state))
+                    instruction, state, lvar))
             states = next_states
         return states
 
-    def emulate_one_instruction(self, instr, state):
+    def emulate_one_instruction(self, instr, state, lvar):
         instruction_map = {
             'Arithmetic_i32': ArithmeticInstructions,
             'Arithmetic_i64': ArithmeticInstructions,
@@ -396,7 +404,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if func_name in C_LIBRARY_FUNCS:
                     self.calculate_coverage(instr, func_name)
 
-            ret_states = instr_obj.emulate(state, self.data_section, self.ana)
+            ret_states = instr_obj.emulate(state, self.data_section, self.ana, lvar)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
             ret_states = instr_obj.emulate(state, self.ana)
         else:

@@ -105,6 +105,7 @@ class Graph:
     def aes_func(cls):
         return cls._aes_func
 
+
     @classmethod
     def initialize(cls):
         """
@@ -536,12 +537,12 @@ class Graph:
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
         lvar = {blk: default_cons_prior.copy()}
-        que._put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
+        que.put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
         def producer():
             while not que.empty():
-                yield que._get()
+                yield que.get()
 
         # @wrap_non_picklable_objects
         def consumer(item):
@@ -549,14 +550,19 @@ class Graph:
             # init cur_head if it is not in lvar
             if cur_head not in lvar:
                 lvar[cur_head] = default_cons_prior.copy()
-
             succs_list = cls.bbs_graph[current_block].items()
             halt_flag = False
+            """
+            lis = []
+            while not que.empty():
+                lis.append(que.get())
+            print([x[0] for x in lis]) 
+            for x in lis:
+                que.put(x)
+            """
             # adopt DFS to traverse two intervals
             try:
-                # print(current_block)
-                emul_states = cls.wasmVM.emulate_basic_block(
-                    state, cls.bb_to_instructions[current_block])
+                emul_states = cls.wasmVM.emulate_basic_block(state, cls.bb_to_instructions[current_block], lvar[cur_head])
             except ProcSuccessTermination:
                 # end of path
                 return False, state
@@ -592,8 +598,7 @@ class Graph:
                 for valid_state_item in valid_state:
                     # try no deepcopy
                     local_new_lvar = lvar.copy()
-                    local_new_lvar[cur_head] = cls.aes_run_local(
-                        local_new_lvar[cur_head], next_block)
+                    local_new_lvar[cur_head] = cls.aes_run_local(local_new_lvar[cur_head], next_block)
                     new_score = local_new_lvar[cur_head]['prior']
                     if new_head != cur_head:
                         # try no deepcopy
@@ -606,13 +611,9 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score,
-                                 ([valid_state_item],
-                                  next_block, new_head, new_vis,
-                                  local_new_lvar)))
+                        que.put((new_score, ([valid_state_item], next_block, new_head, new_vis, local_new_lvar)))
                     else:
-                        que.put(
-                            (new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+                        que.put((new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
             return halt_flag, []
 
         for item in producer():
@@ -679,20 +680,14 @@ class Graph:
         new_lvar['cons'] = True
         for name in cls.aes_func[blk]:
             _name, id = name.split('$')
-            if id == -1:
-                pass
-            elif id == -2:
-                pass
-            elif id == 0:
+            id = int(id)
+            if id == 0:
                 new_lvar['checker_halt'] = True
+                new_lvar['prior'] = -1
             elif id == 1:
                 new_lvar["cnt_i"] += 1
             elif id == 2:
-                new_lvar["cnt_j"] += 1
-            elif id == 3:
-                new_lvar['prior'] = abs(20 - new_lvar['cnt_i'])
-            elif id == 4:
-                new_lvar['prior'] = abs(3 - new_lvar['cnt_j'])
+                new_lvar['prior'] = abs(986 - new_lvar['cnt_i'])
             # if id == '1':
             #     new_lvar['checker_halt'] = True
             #     new_lvar['prior'] = -1

@@ -2,6 +2,7 @@ import copy
 import logging
 from collections import defaultdict
 
+
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
                                           ProcSuccessTermination,
@@ -9,6 +10,7 @@ from eunomia.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
+from eunomia.arch.wasm.lib.utils import _extract_params
 from eunomia.arch.wasm.utils import (log_in_out, one_time_query_cache,
                                      one_time_query_cache_without_solver,
                                      readable_internal_func_name)
@@ -128,7 +130,7 @@ class ControlInstructions:
         if require_return:
             state.symbolic_stack.append(return_val)
 
-    def deal_with_call(self, state, f_offset, data_section, analyzer):
+    def deal_with_call(self, state, f_offset, data_section, analyzer, lvar):
         # get the callee's function signature
         target_func = analyzer.func_prototypes[f_offset]
         callee_func_name, param_str, return_str, _ = target_func
@@ -136,9 +138,21 @@ class ControlInstructions:
         readable_callee_func_name = readable_internal_func_name(
             Configuration.get_func_index_to_func_name(),
             callee_func_name)
-
         if readable_callee_func_name.startswith("checker"):
             # if it is a instrumented function
+            idx = int(readable_callee_func_name.split('$')[1])
+            """
+            if idx == -1:
+                arg = _extract_params(param_str, state)[0]
+                state.solver.add(arg > 0);
+            elif idx == -2:
+                arg = _extract_params(param_str, state)[0]
+                state.solver.add(arg > 0);
+            elif idx == 3:
+                lvar['prior'] = abs(20 - lvar['rounds_i']) - 20
+            elif idx == 4:
+                lvar['prior'] = abs(3 - lvar['rounds_j'])
+            """
             states = [state]
         elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
                 readable_callee_func_name):
@@ -173,7 +187,7 @@ class ControlInstructions:
             states = [state]
         return states
 
-    def emulate(self, state, data_section, analyzer):
+    def emulate(self, state, data_section, analyzer, lvar):
         if self.instr_name in self.skip_command:
             return [state]
         if self.instr_name in self.term_command:
@@ -272,7 +286,7 @@ class ControlInstructions:
             else:
                 state, func_offset = state_func_offset_tuples[0]
                 return self.deal_with_call(
-                    state, func_offset, data_section, analyzer)
+                    state, func_offset, data_section, analyzer, lvar)
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             # TODO examine br_table
@@ -329,6 +343,6 @@ class ControlInstructions:
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
-            return self.deal_with_call(state, f_offset, data_section, analyzer)
+            return self.deal_with_call(state, f_offset, data_section, analyzer, lvar)
         else:
             raise UnsupportInstructionError

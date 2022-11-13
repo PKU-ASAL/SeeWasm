@@ -95,3 +95,7 @@ class ProcFailTermination(Exception):
     # __str__ is to print() the value
     def __str__(self):
         return (repr(self.value))
+
+class HaltTermination(Exception):
+    def __init__(self):
+        pass
