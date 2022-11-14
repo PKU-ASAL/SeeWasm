@@ -64,6 +64,8 @@ class Configuration:
     _argc_arg_buf_size = []
     # enable the incremental solving or not
     _incremental_solving = False
+    # indicating the analyzed file is instrumented by a dsl file
+    _dsl_flag = False
 
     @ staticmethod
     def set_lasers(overflow, divzero, buffer):
@@ -262,3 +264,11 @@ class Configuration:
     @ staticmethod
     def get_incremental_solving():
         return Configuration._incremental_solving
+
+    @ staticmethod
+    def set_dsl_flag(dsl_flag):
+        Configuration._dsl_flag = dsl_flag
+
+    @ staticmethod
+    def get_dsl_flag():
+        return Configuration._dsl_flag

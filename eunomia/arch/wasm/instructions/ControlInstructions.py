@@ -138,7 +138,7 @@ class ControlInstructions:
         readable_callee_func_name = readable_internal_func_name(
             Configuration.get_func_index_to_func_name(),
             callee_func_name)
-        if readable_callee_func_name.startswith("checker"):
+        if Configuration.get_dsl_flag() and readable_callee_func_name.startswith("checker"):
             # if it is a instrumented function
             idx = int(readable_callee_func_name.split('$')[1])
             """
@@ -343,6 +343,7 @@ class ControlInstructions:
             except ValueError:
                 # it's possible that the `call` operand is a hex
                 f_offset = int(self.instr_operand, 16)
-            return self.deal_with_call(state, f_offset, data_section, analyzer, lvar)
+            return self.deal_with_call(
+                state, f_offset, data_section, analyzer, lvar)
         else:
             raise UnsupportInstructionError
