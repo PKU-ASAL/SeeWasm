@@ -29,7 +29,7 @@ class Configuration:
     _user_asked_lasers = 0
     _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
     _algo = 'interval'       # the traverse algorithm, default is interval
-    _concrete_globals = False   # init the global with the declaration in global sections
+    _symbol_globals = False   # init the global with the declaration in global sections
     _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
     # the backend SMT solver, may integrate our lab's own backend in the future
     _solver = 'z3'
@@ -95,12 +95,12 @@ class Configuration:
         return Configuration._algo
 
     @ staticmethod
-    def set_concrete_globals(concrete_globals):
-        Configuration._concrete_globals = concrete_globals
+    def set_symbol_globals(symbol_globals):
+        Configuration._symbol_globals = symbol_globals
 
     @ staticmethod
-    def get_concrete_globals():
-        return Configuration._concrete_globals
+    def get_symbol_globals():
+        return Configuration._symbol_globals
 
     @ staticmethod
     def set_verbose_flag(verbose_flag):

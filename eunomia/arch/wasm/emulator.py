@@ -176,14 +176,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 for ins_i, instruction in enumerate(bb.instructions):
                     # we should split the basic block after these two instructions, if they are not the last instruction
                     if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
-                        instr_operand = instruction.operand_interpretation.split(" ")[1]
-                        target_func = self.ana.func_prototypes[int(instr_operand)]
-                        callee_name = target_func[0]
-                        func_name = readable_internal_func_name(
-                            Configuration.get_func_index_to_func_name(),
-                            callee_name)
-                        if func_name.startswith('checker'):
-                            continue
+                        # if the callee is imported, don't need to split the bb
+                        if instruction.name == 'call':
+                            callee_index = int(
+                                instruction.operand_interpretation.split(" ")[1])
+                            if self.ana.func_prototypes[callee_index][3] == 'import':
+                                continue
+
                         first_part_ins, second_part_ins = bb.instructions[
                             : ins_i + 1], bb.instructions[ins_i + 1:]
                         next_ins = bb.instructions[ins_i + 1]
@@ -331,9 +330,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         # deal with the globals
         # if the entry function is not exported, make them as symbols
         is_exported = func_name in self.exported_func_names
-        # if the --concrete_globals is set, we ignore if the current function is exported
-        # i.e., we can regard the current function is exported
-        if Configuration.get_concrete_globals():
+        # if the --symbol_globals is not set, we treat the globals as concrete values
+        # i.e., the targeted function is exported
+        if not Configuration.get_symbol_globals():
             is_exported = True
         self.init_globals(state, is_exported)
 
@@ -404,7 +403,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 if func_name in C_LIBRARY_FUNCS:
                     self.calculate_coverage(instr, func_name)
 
-            ret_states = instr_obj.emulate(state, self.data_section, self.ana, lvar)
+            ret_states = instr_obj.emulate(
+                state, self.data_section, self.ana, lvar)
         elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
             ret_states = instr_obj.emulate(state, self.ana)
         else:
