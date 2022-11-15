@@ -167,8 +167,12 @@ def _lookup_data_section(data_section, dest, length):
     Retrieve data from data section according to dest and length
     """
     # retrieve the (existed_start, existed_end) from data section
-    existed_start, existed_end = _lookup_overlapped_interval(
+    existed_overlapped_interval = _lookup_overlapped_interval(
         dict(), data_section, dest, length)
+    assert len(
+        existed_overlapped_interval) == 1, f"find more than 1 overlapped interval in _lookup_data_section"
+
+    existed_start, existed_end = existed_overlapped_interval[0]
     overlapped_start, overlapped_end = _calc_overlap(
         existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
@@ -194,8 +198,12 @@ def _lookup_symbolic_memory(symbolic_memory, dest, length):
     """
     Retrieve data from symbolic memory according to dest and length
     """
-    existed_start, existed_end = _lookup_overlapped_interval(
+    existed_overlapped_interval = _lookup_overlapped_interval(
         symbolic_memory, dict(), dest, length)
+    assert len(
+        existed_overlapped_interval) == 1, f"find more than 1 overlapped interval in _lookup_symbolic_memory"
+
+    existed_start, existed_end = existed_overlapped_interval[0]
     overlapped_start, overlapped_end = _calc_overlap(
         existed_start, existed_end, dest, length)
     high, low = overlapped_end - existed_start, overlapped_start - existed_start
@@ -218,10 +226,34 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
             dict(),
             dest,
             length)
-        existed_start, existed_end = _lookup_overlapped_interval(
+        existed_overlapped_interval = _lookup_overlapped_interval(
             symbolic_memory,
             dict(),
             dest, length)
+
+        assert len(
+            existed_overlapped_interval) <= 2, f"find more than 2 overlapped interval in insert_symbolic_memory"
+        if len(existed_overlapped_interval) == 2:
+            # two overlapped intervals exist, [[existed_start_1, existed_end_1], [existed_start_2, existed_end_2]]
+            # sort by interval's start address
+            existed_overlapped_interval.sort(key=lambda x: x[0])
+            existed_start_1, existed_end_1 = existed_overlapped_interval[0]
+            existed_start_2, existed_end_2 = existed_overlapped_interval[1]
+            # padding 0 between existed_end_1 and existed_start_2
+            first_interval = symbolic_memory.pop(
+                (existed_start_1, existed_end_1))
+            second_interval = symbolic_memory.pop(
+                (existed_start_2, existed_end_2))
+            padded_interval = simplify(Concat(
+                first_interval,
+                BitVecVal(0, (existed_start_2 - existed_end_1) * 8),
+                second_interval))
+            symbolic_memory[(existed_start_1, existed_end_2)] = padded_interval
+            # fetch new existed_start and existed_end
+            existed_start, existed_end = existed_start_1, existed_end_2
+        else:
+            existed_start, existed_end = existed_overlapped_interval[
+                0][0], existed_overlapped_interval[0][1]
 
         # step 1:
         # mark the updated part
@@ -378,25 +410,26 @@ def _iterate_find_overlap(target_dict, dest, length):
 
 def _lookup_overlapped_interval(symbolic_memory, data_section, dest, length):
     '''
-    Given the (dest, dest+length), find the overlapped interval (either in symbolic memory, or
-    in the data section). Return it as [existed_start, existed_end].
+    Given the (dest, dest+length), find the overlapped intervals (either in symbolic memory, or
+    in the data section).
+    Return it as [[existed_start_1, existed_end_1], ...].
     '''
     # if the (dest, dest+length) in the symbolic memory
     tmp_result = _iterate_find_overlap(symbolic_memory, dest, length)
     assert len(
-        tmp_result) <= 1, f"the symbolic memory can only have 0 or 1 overlapped interval"
+        tmp_result) <= 2, f"the symbolic memory can only have 0 to 2 overlapped interval, but we found {len(tmp_result)} ({tmp_result})"
     if tmp_result:  # found at least one overlapped interval
-        return [tmp_result[0][0], tmp_result[0][1]]
+        return tmp_result
 
     # if (dest, dest+length) is not in symbolic memory, find it in data section
     tmp_result = _iterate_find_overlap(data_section, dest, length)
     assert len(
-        tmp_result) <= 1, f"the data section can only have 0 or 1 overlapped interval"
+        tmp_result) <= 2, f"the data section can only have 0 to 2 overlapped interval, but we found {len(tmp_result)} ({tmp_result})"
     if tmp_result:
-        return [tmp_result[0][0], tmp_result[0][1]]
+        return tmp_result
 
     # the (dest, dest + length) is neither in symbolic memory nor in data section
-    return [None, None]
+    return [[None, None]]
 
 
 def _is_overlapped(existed_start, existed_end, dest, length):
