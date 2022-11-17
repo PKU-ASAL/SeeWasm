@@ -244,10 +244,11 @@ def insert_symbolic_memory(symbolic_memory, dest, length, data):
                 (existed_start_1, existed_end_1))
             second_interval = symbolic_memory.pop(
                 (existed_start_2, existed_end_2))
+            # NOTE here the order of intervals cannot be exchanged
             padded_interval = simplify(Concat(
-                first_interval,
+                second_interval,
                 BitVecVal(0, (existed_start_2 - existed_end_1) * 8),
-                second_interval))
+                first_interval))
             symbolic_memory[(existed_start_1, existed_end_2)] = padded_interval
             # fetch new existed_start and existed_end
             existed_start, existed_end = existed_start_1, existed_end_2
