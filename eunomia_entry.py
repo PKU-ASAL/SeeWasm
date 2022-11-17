@@ -62,9 +62,6 @@ def main():
         '--incremental', action='store_true',
         help='enable incremental solving')
     features.add_argument(
-        '--dsl', action='store_true',
-        help='Indicating the file has been instrumented by dsl')
-    features.add_argument(
         '-v', '--verbose', default='warning', const='warning', nargs='?',
         choices=['warning', 'info', 'debug'],
         help='set the logging level')
@@ -90,7 +87,6 @@ def main():
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
-        Configuration.set_dsl_flag(args.dsl)
 
         command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)

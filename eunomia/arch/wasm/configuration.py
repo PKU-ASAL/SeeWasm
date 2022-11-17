@@ -243,7 +243,7 @@ class Configuration:
 
     @ staticmethod
     def set_dsl_flag(dsl_flag):
-        Configuration._dsl_flag = dsl_flag
+        pass
 
     @ staticmethod
     def get_dsl_flag():
