@@ -2,7 +2,6 @@ import copy
 import logging
 from collections import defaultdict
 
-
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
                                           ProcSuccessTermination,
@@ -10,7 +9,6 @@ from eunomia.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
 from eunomia.arch.wasm.lib.c_lib import CPredefinedFunction
 from eunomia.arch.wasm.lib.go_lib import GoPredefinedFunction
 from eunomia.arch.wasm.lib.wasi import WASIImportFunction
-from eunomia.arch.wasm.lib.utils import _extract_params
 from eunomia.arch.wasm.utils import (log_in_out, one_time_query_cache,
                                      one_time_query_cache_without_solver,
                                      readable_internal_func_name)

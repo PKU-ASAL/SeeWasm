@@ -1,13 +1,4 @@
-from enum import Enum
-
 from z3 import BitVec, Extract
-
-
-class Enable_Lasers(Enum):
-    OVERFLOW = 1
-    DIVZERO = 2
-    BUFFER = 4
-    ANOTHER = 8
 
 
 class bcolors:
@@ -26,7 +17,6 @@ class Configuration:
     """
     The static class that maintain the user's input option
     """
-    _user_asked_lasers = 0
     _source_type = 'c'              # the original source file's type
     _algo = 'interval'              # the traverse algorithm, default is interval
     _symbol_globals = False         # init the global with the declaration in global sections
@@ -65,19 +55,6 @@ class Configuration:
     _incremental_solving = False
     # indicating the analyzed file is instrumented by a dsl file
     _dsl_flag = False
-
-    @ staticmethod
-    def set_lasers(overflow, divzero, buffer):
-        if overflow:
-            Configuration._user_asked_lasers ^= Enable_Lasers.OVERFLOW.value
-        if divzero:
-            Configuration._user_asked_lasers ^= Enable_Lasers.DIVZERO.value
-        if buffer:
-            Configuration._user_asked_lasers ^= Enable_Lasers.BUFFER.value
-
-    @ staticmethod
-    def get_lasers():
-        return Configuration._user_asked_lasers
 
     @ staticmethod
     def set_source_type(source_type):

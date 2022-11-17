@@ -1,10 +1,8 @@
 # emulate the logical related instructions
 
-from eunomia.arch.wasm.configuration import Configuration, Enable_Lasers
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from z3 import (
-    UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ, fpLT, fpNEQ,
-    is_bool, is_bv, is_bv_value, simplify, is_true, is_false)
+from z3 import (UGE, UGT, ULE, ULT, BitVecVal, If, fpEQ, fpGEQ, fpGT, fpLEQ,
+                fpLT, fpNEQ, is_bv, is_false, is_true, simplify)
 
 helper_map = {
     'i32': 32,
@@ -21,11 +19,7 @@ class LogicalInstructions:
 
     # TODO overflow check in this function?
     def emulate(self, state):
-        overflow_check_flag = False
-        if Configuration.get_lasers() & Enable_Lasers.OVERFLOW.value:
-            overflow_check_flag = True
-
-        def do_emulate_logical_int_instruction(state, overflow_check_flag):
+        def do_emulate_logical_int_instruction(state):
             instr_type = self.instr_name[:3]
             if 'eqz' in self.instr_name:
                 arg0 = state.symbolic_stack.pop()
@@ -62,26 +56,6 @@ class LogicalInstructions:
                     result = UGE(arg2, arg1)
                 else:
                     raise UnsupportInstructionError
-
-                # record if the op is signed or unsigned when the overflow check flag is enabled
-                def speculate_sign(op, instr_name, sign_mapping):
-                    # if the op is a bitvecval, we do not change anything
-                    if not (is_bv(op) and not is_bv_value(op)):
-                        return
-
-                    # unsigned is False and signed is True
-                    # the signed will overlap the unsigned
-                    if '_u' in instr_name:
-                        sign_mapping[op.hash()] = sign_mapping.get(
-                            op.hash(), 0) | 0
-                    else:
-                        sign_mapping[op.hash()] = sign_mapping.get(
-                            op.hash(), 0) | 1
-
-                if overflow_check_flag and (
-                        '_u' in self.instr_name or '_s' in self.instr_name):
-                    speculate_sign(arg1, self.instr_name, state.sign_mapping)
-                    speculate_sign(arg2, self.instr_name, state.sign_mapping)
 
             # try to simplify result and insert 1 or 0 directly, instead of an ite statement
             result = simplify(result)
@@ -133,7 +107,6 @@ class LogicalInstructions:
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            return do_emulate_logical_int_instruction(
-                state, overflow_check_flag)
+            return do_emulate_logical_int_instruction(state)
         else:
             return do_emulate_logical_float_instruction(state)

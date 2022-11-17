@@ -405,8 +405,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
             ret_states = instr_obj.emulate(
                 state, self.data_section, self.ana, lvar)
-        elif instr.group == 'Arithmetic_i32' or instr.group == 'Arithmetic_i64' or instr.group == 'Arithmetic_f32' or instr.group == 'Arithmetic_f64':
-            ret_states = instr_obj.emulate(state, self.ana)
         else:
             ret_states = instr_obj.emulate(state)
         return ret_states

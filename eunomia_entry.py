@@ -66,18 +66,6 @@ def main():
         '--dsl', action='store_true',
         help='Indicating the file is instrumented by dsl')
 
-    # vulnerability detector
-    lasers = parser.add_argument_group('Lasers')
-    lasers.add_argument(
-        '--overflow', action='store_true',
-        help="fire the integer overflow vulnerability detector")
-    lasers.add_argument(
-        '--divzero', action='store_true',
-        help="fire the div-zero vulnerability detector")
-    lasers.add_argument(
-        '--buffer', action='store_true',
-        help="fire the buffer overflow vulnerability detector")
-
     analyze = parser.add_argument_group('Analyze')
     analyze = analyze.add_mutually_exclusive_group()
     analyze.add_argument(
@@ -110,7 +98,6 @@ def main():
         Configuration.set_entry(args.onlyfunc)
         Configuration.set_coverage(args.coverage)
         Configuration.set_visualize(args.visualize)
-        Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
         Configuration.set_symbol_globals(args.symbol_globals)
         Configuration.set_stdin(args.stdin, args.sym_stdin)

@@ -2,13 +2,7 @@
 
 import logging
 
-from eunomia.arch.wasm.configuration import (Configuration, Enable_Lasers,
-                                             bcolors)
-from eunomia.arch.wasm.dwarfParser import (get_func_index_from_state,
-                                           get_source_location_string)
 from eunomia.arch.wasm.exceptions import UnsupportInstructionError
-from eunomia.arch.wasm.modules.DivZeroLaser import DivZeroLaser
-from eunomia.arch.wasm.modules.OverflowLaser import OverflowLaser
 from z3 import (RNE, RTN, RTP, RTZ, BitVec, BitVecVal, Float32, Float64, SRem,
                 UDiv, URem, fpAbs, fpAdd, fpDiv, fpMax, fpMin, fpMul, fpNeg,
                 fpRoundToIntegral, fpSqrt, fpSub, is_bool, simplify)
@@ -31,24 +25,8 @@ class ArithmeticInstructions:
         self.instr_name = instr_name
         self.instr_operand = instr_operand
 
-    def emulate(self, state, analyzer):
-        overflow_check_flag = False
-        overflow_laser = None
-        if Configuration.get_lasers() & Enable_Lasers.OVERFLOW.value:
-            overflow_check_flag = True
-            overflow_laser = OverflowLaser()
-
-        div_zero_flag = False
-        div_zero_laser = None
-        if Configuration.get_lasers() & Enable_Lasers.DIVZERO.value:
-            div_zero_flag = True
-            div_zero_laser = DivZeroLaser()
-
-        flags = [overflow_check_flag, div_zero_flag]
-        laser_objs = [overflow_laser, div_zero_laser]
-
-        def do_emulate_arithmetic_int_instruction(
-                state, flags, laser_objs, analyzer):
+    def emulate(self, state):
+        def do_emulate_arithmetic_int_instruction(state):
             instr_type = self.instr_name[:3]
 
             if '.clz' in self.instr_name or '.ctz' in self.instr_name:
@@ -100,29 +78,12 @@ class ArithmeticInstructions:
                 else:
                     raise UnsupportInstructionError
 
-                overflow_check_flag, div_zero_flag = flags[0], flags[1]
-                overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
-                if overflow_check_flag:
-                    overflowed = overflow_laser.fire(
-                        result, state.solver, state.sign_mapping)
-                    if overflowed:
-                        func_ind = get_func_index_from_state(analyzer, state)
-                        func_offset = state.instr.offset
-                        logging.warning(
-                            f"{bcolors.WARNING}Overflowed! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
-                if div_zero_flag:
-                    divzeroed = div_zero_laser.fire(result, state.solver)
-                    if divzeroed:
-                        func_ind = get_func_index_from_state(analyzer, state)
-                        func_offset = state.instr.offset
-                        logging.warning(
-                            f"{bcolors.WARNING}Div-zero! {get_source_location_string(analyzer, func_ind, func_offset)}{bcolors.ENDC}")
                 result = simplify(result)
                 state.symbolic_stack.append(result)
 
             return [state]
 
-        def do_emulate_arithmetic_float_instruction(state, flags, laser_objs):
+        def do_emulate_arithmetic_float_instruction(state):
             # TODO need to be clarified
             # wasm default rounding rules
             rm = RNE()
@@ -193,13 +154,6 @@ class ArithmeticInstructions:
             else:
                 raise UnsupportInstructionError
 
-            overflow_check_flag, div_zero_flag = flags[0], flags[1]
-            overflow_laser, div_zero_laser = laser_objs[0], laser_objs[1]
-            if overflow_check_flag:
-                overflow_laser.fire(result, state.solver)
-            if div_zero_flag:
-                div_zero_laser.fire(result, state.solver)
-
             result = simplify(result)
             state.symbolic_stack.append(result)
 
@@ -207,8 +161,6 @@ class ArithmeticInstructions:
 
         op_type = self.instr_name[:1]
         if op_type == 'i':
-            return do_emulate_arithmetic_int_instruction(
-                state, flags, laser_objs, analyzer)
+            return do_emulate_arithmetic_int_instruction(state)
         else:
-            return do_emulate_arithmetic_float_instruction(
-                state, flags, laser_objs)
+            return do_emulate_arithmetic_float_instruction(state)
