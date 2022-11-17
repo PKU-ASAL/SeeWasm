@@ -5,7 +5,6 @@ from collections import defaultdict
 from logging import getLogger
 
 from eunomia.analysis.cfg import CFG
-from eunomia.analysis.graph import CFGGraph
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
 from eunomia.arch.wasm.configuration import Configuration
 from eunomia.arch.wasm.disassembler import WasmDisassembler
@@ -17,7 +16,6 @@ from eunomia.core.edge import (EDGE_CALL, EDGE_CONDITIONAL_FALSE,
                                EDGE_UNCONDITIONAL, Edge)
 from eunomia.core.function import Function
 from eunomia.core.utils import bytecode_to_bytes
-from graphviz import Digraph
 
 logging = getLogger(__name__)
 
@@ -397,19 +395,6 @@ class WasmCFG(CFG):
         line += ("length edges = %d\n" % len(self.edges))
         return line
 
-    def visualize(self, function=True, simplify=False, ssa=False):
-        """Visualize the cfg
-        used CFGGraph
-        equivalent to:
-            graph = CFGGraph(cfg)
-            graph.view_functions()
-        """
-        graph = CFGGraph(self)
-        if function:
-            graph.view_functions(simplify=simplify, ssa=ssa)
-        else:
-            graph.view(simplify=simplify, ssa=ssa)
-
     def build_call_graph(self, analyzer):
         _, edges = self.get_functions_call_edges(analyzer)
 
@@ -424,91 +409,3 @@ class WasmCFG(CFG):
             self.call_graph[e_from].add(e_to)
 
         self.call_graph = {k: list(v) for k, v in self.call_graph.items()}
-
-    def visualize_call_flow(
-            self, filename="wasm_call_graph_octopus.gv", format_fname=False):
-        """Visualize the cfg call flow graph
-        """
-        # init analyzer
-        analyzer = WasmModuleAnalyzer(self.module_bytecode)
-
-        nodes, edges = self.get_functions_call_edges(analyzer)
-        if format_fname:
-            nodes_longname, edges = self.get_functions_call_edges(
-                analyzer, format_fname=True)
-
-        g = Digraph(filename, filename=filename)
-        g.attr(rankdir='LR')
-
-        with g.subgraph(name='global') as c:
-
-            export_list = [
-                p[0] for p in analyzer.func_prototypes
-                if p[3] == 'export']
-            import_list = [
-                p[0] for p in analyzer.func_prototypes
-                if p[3] == 'import']
-            call_indirect_list = enum_func_name_call_indirect(self.functions)
-
-            try:
-                indirect_target = [
-                    analyzer.func_prototypes[index][0]
-                    for index in analyzer.elements[0].get('elems')]
-            except IndexError:
-                indirect_target = []
-            # create all the graph nodes (function name)
-            for idx, node in enumerate(nodes):
-                # name graph bubble
-                node_name = readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(), node)
-                if format_fname:
-                    node_name = nodes_longname[idx]
-
-                # default style value
-                fillcolor = "white"
-                shape = "ellipse"
-                style = "filled"
-
-                if node in import_list:
-                    # logging.debug('import ' + node)
-                    fillcolor = DESIGN_IMPORT.get('fillcolor')
-                    shape = DESIGN_IMPORT.get('shape')
-                    style = DESIGN_IMPORT.get('style')
-                    c.node(node_name, fillcolor=fillcolor,
-                           shape=shape, style=style)
-                elif node in export_list:
-                    # logging.debug('export ' + node)
-                    fillcolor = DESIGN_EXPORT.get('fillcolor')
-                    shape = DESIGN_EXPORT.get('shape')
-                    style = DESIGN_EXPORT.get('style')
-                    c.node(node_name, fillcolor=fillcolor,
-                           shape=shape, style=style)
-
-                if node in indirect_target:
-                    # logging.debug('indirect_target ' + node)
-                    shape = "hexagon"
-
-                if node in call_indirect_list:
-                    # logging.debug('contain call_indirect ' + node)
-                    style = "dashed"
-                c.node(node_name, fillcolor=fillcolor,
-                       shape=shape, style=style)
-
-            # check if multiple same edges
-            # in that case, put the number into label
-            edges_counter = dict((x, edges.count(x)) for x in set(edges))
-            # insert edges on the graph
-            for edge, count in edges_counter.items():
-                label = None
-                if count > 1:
-                    label = str(count)
-                c.edge(
-                    readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(),
-                        edge.node_from),
-                    readable_internal_func_name(
-                        Configuration.get_func_index_to_func_name(),
-                        edge.node_to),
-                    label=label)
-
-        g.render(filename, view=True)
