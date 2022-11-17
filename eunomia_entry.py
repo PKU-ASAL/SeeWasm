@@ -21,29 +21,29 @@ def main():
                         type=argparse.FileType('rb'),
                         help='binary file (.wasm)',
                         metavar='WASMMODULE', required=True)
-    inputs.add_argument(
-        '--source_type', default='c', const='c', nargs='?',
-        choices=['c', 'go', 'rust'],
-        help='type of source file, used by library function emulator')
     inputs.add_argument('--stdin',
                         action='store',
                         type=str,
-                        help='The stream of stdin')
+                        help='stream of stdin')
     inputs.add_argument('--sym_stdin',
                         action='store',
                         type=int,
                         nargs=1,
-                        help='Bytes of stdin')
+                        help='stream of stdin in N bytes symbols')
     inputs.add_argument('--args',
                         action='store',
                         type=str,
-                        help='The args that run the to be analyzed program')
+                        help='command line')
     inputs.add_argument(
         '--sym_args', type=int, nargs='+',
-        help="Replace the argument by a symbolic argument with length N")
+        help="command line in symbols, each of them is N bytes at most")
     inputs.add_argument(
         '--sym_files', type=int, nargs=2,
-        help="Create multiple symbolic files")
+        help="Create N symbolic files, each of them has M symbolic bytes")
+    inputs.add_argument(
+        '--source_type', default='c', const='c', nargs='?',
+        choices=['c', 'go', 'rust'],
+        help='type of source file')
 
     features = parser.add_argument_group('Features')
     features.add_argument(
@@ -63,11 +63,11 @@ def main():
         help='enable incremental solving')
     features.add_argument(
         '--dsl', action='store_true',
-        help='Indicating the file is instrumented by dsl')
+        help='Indicating the file has been instrumented by dsl')
     features.add_argument(
         '-v', '--verbose', default='warning', const='warning', nargs='?',
         choices=['warning', 'info', 'debug'],
-        help='set the logging level. debug is instruction level, info is function level')
+        help='set the logging level')
 
     # vulnerability detector
     lasers = parser.add_argument_group('Lasers')
