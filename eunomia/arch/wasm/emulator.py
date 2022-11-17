@@ -4,7 +4,6 @@ import logging
 import re
 import sys
 from collections import defaultdict
-from datetime import datetime
 from queue import Queue
 
 from eunomia.arch.wasm.analyzer import WasmModuleAnalyzer
@@ -83,17 +82,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             # the original implementation, but it will stuck when the data section is huge, so I comment this implementation
             # self.data_section[(offset, offset + size)] = BitVecVal(int.from_bytes(data, byteorder='big'), size * 8)
             self.data_section[(offset, offset + size)] = data
-
-        # the coverage bitmap and ratio
-        self.instruction_coverage_bitmap = defaultdict(list)
-        self.instruction_coverage = defaultdict(list)
-        self.total_instructions = 0
-        self.coverage_output_last_timestamp = datetime(1996, 12, 24)
-        self.concerned_funcs = dict()
-
-        # whether enable the coverage calculation
-        if Configuration.get_coverage():
-            self.count_instrs()
 
     def remove_unrelated_funcs(self):
         """
@@ -377,14 +365,6 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
-        # calculate instruction coverage
-        if Configuration.get_coverage():
-            self.calculate_coverage(
-                instr,
-                readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(),
-                    state.current_func_name))
-
         # logging.debug(
         #     f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
@@ -393,88 +373,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.group == 'Memory':
             ret_states = instr_obj.emulate(state, self.data_section)
         elif instr.group == 'Control':
-            # if the instr is 'call c_lib_func', which is modeled
-            # we calculate its coverage in advance
-            if instr.name == 'call' and Configuration.get_coverage():
-                instr_operand = instr.operand_interpretation.split(" ")[1]
-                func_name = readable_internal_func_name(
-                    Configuration.get_func_index_to_func_name(),
-                    "$func" + instr_operand)
-                if func_name in C_LIBRARY_FUNCS:
-                    self.calculate_coverage(instr, func_name)
-
             ret_states = instr_obj.emulate(
                 state, self.data_section, self.ana, lvar)
         else:
             ret_states = instr_obj.emulate(state)
         return ret_states
-
-    def init_coverage_bitmap(self, func_name):
-        """
-        Init the necessary data structure
-        """
-        if func_name not in self.instruction_coverage_bitmap:
-            self.instruction_coverage_bitmap[func_name] = [
-                False] * self.concerned_funcs[func_name]
-            self.instruction_coverage[func_name] = [
-                0, self.concerned_funcs[func_name]]
-
-    def calculate_coverage(self, instr, func_name):
-        """
-        Calculate the instruction coverage
-        """
-        assert func_name in self.concerned_funcs, f"{func_name} is not covered by coverage calculation"
-        self.init_coverage_bitmap(func_name)
-
-        if func_name in C_LIBRARY_FUNCS:
-            # extract all its callees
-            queue = Queue()
-            queue.put(func_name)
-            visited = set()
-            while not queue.empty():
-                ele = queue.get()
-                visited.add(ele)
-                callees = self.cfg.call_graph.get(func_name, [])
-                for callee in callees:
-                    if callee not in visited:
-                        queue.put(callee)
-
-            # set all instrs of these callees as True
-            for callee in visited:
-                assert callee in self.concerned_funcs, f"{callee} is not covered by coverage calculation"
-                self.init_coverage_bitmap(callee)
-
-                self.instruction_coverage_bitmap[callee] = [
-                    True for _ in self.instruction_coverage_bitmap[callee]]
-                self.instruction_coverage[callee][0] = self.instruction_coverage_bitmap[callee].count(
-                    True)
-        else:
-            self.instruction_coverage_bitmap[func_name][
-                instr.nature_offset] = True
-            # the visted number of instruction
-            self.instruction_coverage[func_name][0] = self.instruction_coverage_bitmap[func_name].count(
-                True)
-
-        # how many instructions are been visited
-        current_visited_instrs = sum([v[0]
-                                      for v in
-                                      self.instruction_coverage.values()])
-
-        # output the coverage info
-        current_timestamp = datetime.now()
-        if (current_timestamp - self.coverage_output_last_timestamp).total_seconds() > 1:
-            # output here
-            output_string = ["------------------------------------------\n"]
-            for k, v in self.instruction_coverage.items():
-                output_string.append(f"|{k:<30}\t\t{v[0]/v[1]:<.3f}|\n")
-            output_string.append(
-                "------------------------------------------\n")
-
-            with open(f'./log/coverage-function/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'w') as fp:
-                fp.writelines(output_string)
-
-            with open(f'./log/coverage-instruction/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', 'a') as fp:
-                fp.write(
-                    f'{current_timestamp}\t\t{current_visited_instrs:<6}/{self.total_instructions:<6} ({current_visited_instrs/self.total_instructions*100:.3f}%)\n')
-
-            self.coverage_output_last_timestamp = current_timestamp

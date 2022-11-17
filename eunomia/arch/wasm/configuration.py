@@ -174,7 +174,7 @@ class Configuration:
 
     @ staticmethod
     def set_coverage(coverage):
-        Configuration._coverage = coverage
+        pass
 
     @ staticmethod
     def set_stdin(stdin, sym_stdin):

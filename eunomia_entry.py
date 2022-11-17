@@ -56,9 +56,6 @@ def main():
         '--symbol_globals', action='store_true',
         help='use symbolic globals as the entry functions cannot determine their concrete values')
     features.add_argument(
-        '--coverage', action='store_true',
-        help='calculate the instruction coverage')
-    features.add_argument(
         '--incremental', action='store_true',
         help='enable incremental solving')
     features.add_argument(
@@ -80,7 +77,6 @@ def main():
         Configuration.set_verbose_flag(args.verbose)
         Configuration.set_file(args.file.name)
         Configuration.set_entry(args.entry)
-        Configuration.set_coverage(args.coverage)
         Configuration.set_visualize(args.visualize)
         Configuration.set_source_type(args.source_type)
         Configuration.set_symbol_globals(args.symbol_globals)
