@@ -1,4 +1,3 @@
-# This file is written by Octopus
 # It is for formatting
 
 import re

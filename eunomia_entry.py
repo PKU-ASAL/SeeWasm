@@ -67,7 +67,7 @@ def main():
 
     args = parser.parse_args()
 
-    octo_bytecode = args.file.read()
+    module_bytecode = args.file.read()
 
     # conduct symbolic execution
     if args.symbolic:
@@ -95,7 +95,7 @@ def main():
         # import necessary part
         from eunomia.arch.wasm.emulator import WasmSSAEmulatorEngine
 
-        wasmVM = WasmSSAEmulatorEngine(octo_bytecode)
+        wasmVM = WasmSSAEmulatorEngine(module_bytecode)
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.initialize()

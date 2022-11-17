@@ -1,4 +1,3 @@
-# This file is written by Octopus
 # It defines some constants
 
 # https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md#language-types

@@ -1,4 +1,3 @@
-# This file is written by Octopus
 # It will parse each instructions in Wasm
 
 from eunomia.arch.wasm.wasm import _groups

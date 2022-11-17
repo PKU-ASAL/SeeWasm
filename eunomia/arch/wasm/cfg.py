@@ -1,4 +1,3 @@
-# This file is written by Octopus
 # Its purpose is to generate the CFG and visualize it
 
 from collections import defaultdict
