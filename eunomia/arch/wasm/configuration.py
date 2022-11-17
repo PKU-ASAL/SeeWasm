@@ -74,7 +74,7 @@ class Configuration:
 
     @ staticmethod
     def set_symbol_globals(symbol_globals):
-        Configuration._symbol_globals = symbol_globals
+        pass
 
     @ staticmethod
     def get_symbol_globals():

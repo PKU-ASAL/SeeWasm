@@ -53,9 +53,6 @@ def main():
         '--visualize', action='store_true',
         help='visualize the ICFG on basic blocks level')
     features.add_argument(
-        '--symbol_globals', action='store_true',
-        help='use symbolic globals as the entry functions cannot determine their concrete values')
-    features.add_argument(
         '--incremental', action='store_true',
         help='enable incremental solving')
     features.add_argument(
@@ -79,7 +76,6 @@ def main():
         Configuration.set_entry(args.entry)
         Configuration.set_visualize(args.visualize)
         Configuration.set_source_type(args.source_type)
-        Configuration.set_symbol_globals(args.symbol_globals)
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
