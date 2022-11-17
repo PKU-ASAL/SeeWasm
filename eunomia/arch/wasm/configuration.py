@@ -27,12 +27,11 @@ class Configuration:
     The static class that maintain the user's input option
     """
     _user_asked_lasers = 0
-    _source_type = 'c'  # the original source file's type, currently 'c' or 'go'
-    _algo = 'interval'       # the traverse algorithm, default is interval
-    _symbol_globals = False   # init the global with the declaration in global sections
-    _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
-    # the backend SMT solver
-    _solver = 'z3'
+    _source_type = 'c'              # the original source file's type
+    _algo = 'interval'              # the traverse algorithm, default is interval
+    _symbol_globals = False         # init the global with the declaration in global sections
+    _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed
+    _solver = 'z3'                  # the backend SMT solver
     # the command to run the to be analyzed program, like ['base64', a]
     # where 'a' is a symbol
     _args = []
@@ -90,7 +89,7 @@ class Configuration:
 
     @ staticmethod
     def set_algo(algo):
-        Configuration._algo = algo
+        pass
 
     @ staticmethod
     def get_algo():
@@ -113,12 +112,12 @@ class Configuration:
         return Configuration._verbose_flag
 
     @ staticmethod
-    def get_solver():
-        return Configuration._solver
-
-    @ staticmethod
     def set_solver(solver):
         pass
+
+    @ staticmethod
+    def get_solver():
+        return Configuration._solver
 
     @ staticmethod
     def get_args():

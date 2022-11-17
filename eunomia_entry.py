@@ -57,10 +57,6 @@ def main():
         '--symbol_globals', action='store_true',
         help='use symbolic globals as the entry functions cannot determine their concrete values')
     features.add_argument(
-        '--algo', default='interval', const='interval', nargs='?',
-        choices=['interval'],
-        help='choose an algorithm to traverse, default is interval')
-    features.add_argument(
         '--coverage', action='store_true',
         help='calculate the instruction coverage')
     features.add_argument(
@@ -116,7 +112,6 @@ def main():
         Configuration.set_visualize(args.visualize)
         Configuration.set_lasers(args.overflow, args.divzero, args.buffer)
         Configuration.set_source_type(args.source_type)
-        Configuration.set_algo(args.algo)
         Configuration.set_symbol_globals(args.symbol_globals)
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)

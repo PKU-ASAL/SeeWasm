@@ -105,7 +105,6 @@ class Graph:
     def aes_func(cls):
         return cls._aes_func
 
-
     @classmethod
     def initialize(cls):
         """
@@ -416,7 +415,8 @@ class Graph:
         if Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, blks)
         else:
-            raise Exception("There is no traversing algorithm you required.")
+            raise Exception(
+                "There is no path searching algorithm you required.")
 
         return final_states
 
@@ -562,7 +562,8 @@ class Graph:
             """
             # adopt DFS to traverse two intervals
             try:
-                emul_states = cls.wasmVM.emulate_basic_block(state, cls.bb_to_instructions[current_block], lvar[cur_head])
+                emul_states = cls.wasmVM.emulate_basic_block(
+                    state, cls.bb_to_instructions[current_block], lvar[cur_head])
             except ProcSuccessTermination:
                 # end of path
                 return False, state
@@ -598,7 +599,8 @@ class Graph:
                 for valid_state_item in valid_state:
                     # try no deepcopy
                     local_new_lvar = lvar.copy()
-                    local_new_lvar[cur_head] = cls.aes_run_local(local_new_lvar[cur_head], next_block)
+                    local_new_lvar[cur_head] = cls.aes_run_local(
+                        local_new_lvar[cur_head], next_block)
                     new_score = local_new_lvar[cur_head]['prior']
                     if new_head != cur_head:
                         # try no deepcopy
@@ -611,9 +613,13 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score, ([valid_state_item], next_block, new_head, new_vis, local_new_lvar)))
+                        que.put((new_score,
+                                 ([valid_state_item],
+                                  next_block, new_head, new_vis,
+                                  local_new_lvar)))
                     else:
-                        que.put((new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+                        que.put(
+                            (new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
             return halt_flag, []
 
         for item in producer():
