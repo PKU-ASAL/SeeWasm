@@ -31,7 +31,7 @@ class Configuration:
     _algo = 'interval'       # the traverse algorithm, default is interval
     _symbol_globals = False   # init the global with the declaration in global sections
     _verbose_flag = 'warning'    # if user set -v flag, the debugging info would be printed
-    # the backend SMT solver, may integrate our lab's own backend in the future
+    # the backend SMT solver
     _solver = 'z3'
     # the command to run the to be analyzed program, like ['base64', a]
     # where 'a' is a symbol
@@ -118,7 +118,7 @@ class Configuration:
 
     @ staticmethod
     def set_solver(solver):
-        Configuration._solver = solver
+        pass
 
     @ staticmethod
     def get_args():

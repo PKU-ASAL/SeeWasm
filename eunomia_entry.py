@@ -25,12 +25,6 @@ def main():
         '--source_type', default='c', const='c', nargs='?',
         choices=['c', 'go', 'rust'],
         help='type of source file, used by library function emulator')
-    inputs.add_argument('--solver',
-                        default='z3',
-                        const='z3',
-                        nargs='?',
-                        choices=['z3', 'lab'],
-                        help='the adopted backend SMT-solver, z3 is default')
     inputs.add_argument('--stdin',
                         action='store',
                         type=str,
@@ -124,7 +118,6 @@ def main():
         Configuration.set_source_type(args.source_type)
         Configuration.set_algo(args.algo)
         Configuration.set_symbol_globals(args.symbol_globals)
-        Configuration.set_solver(args.solver)
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
