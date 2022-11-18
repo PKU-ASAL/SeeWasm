@@ -49,8 +49,8 @@ class CPredefinedFunction:
                 C_TYPE_TO_LENGTH[cur_pattern[-1]])
 
             if is_bv(middle_p):
-                if cur_pattern[-1] in {'f', 'd', 'u', 'x'}:
-                    parsed_part = str(middle_p)
+                if cur_pattern[-1] in {'f', 'd', 'u', 'x', 'c'}:
+                    parsed_part = str(simplify(middle_p))
                 else:
                     exit(
                         f"\tencounter a symbolic pointer ({middle_p}) in printf, with pattern {cur_pattern}")

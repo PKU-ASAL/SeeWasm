@@ -497,7 +497,7 @@ class Graph:
                 succs = succs - new_interval
                 ext = set()
                 for v in succs:
-                    prevs = set([revg[v][t] for t in revg[v]])
+                    prevs = set(revg[v].values())
                     if prevs <= new_interval:
                         ext.add(v)
                 new_interval |= ext
