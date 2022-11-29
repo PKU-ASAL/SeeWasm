@@ -536,6 +536,11 @@ class Graph:
 
         Note: `blk` is the head of an interval
         """
+        counter=0
+        def unique_idx():
+            nonlocal counter
+            counter += 1
+            return counter-1; 
         default_cons_prior = defaultdict(int)
         default_cons_prior['prior'] = 65536
         default_cons_prior['cons'] = True
@@ -544,7 +549,7 @@ class Graph:
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
         lvar = {blk: default_cons_prior.copy()}
-        que.put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
+        que._put((lvar[blk]['prior'], unique_idx(), (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
         def producer():
@@ -553,7 +558,7 @@ class Graph:
 
         # @wrap_non_picklable_objects
         def consumer(item):
-            score, (state, current_block, cur_head, vis, lvar) = item
+            score, state_id, (state, current_block, cur_head, vis, lvar) = item
             # init cur_head if it is not in lvar
             if cur_head not in lvar:
                 lvar[cur_head] = default_cons_prior.copy()
@@ -620,13 +625,16 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score,
+                        item = (new_score,
+                                unique_idx(),
                                  ([valid_state_item],
                                   next_block, new_head, new_vis,
-                                  local_new_lvar)))
+                                  local_new_lvar))
+                        
+                        que._put(item)
                     else:
-                        que.put(
-                            (new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+                        que._put(
+                            (new_score, unique_idx(), ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
             return halt_flag, []
 
         for item in producer():
