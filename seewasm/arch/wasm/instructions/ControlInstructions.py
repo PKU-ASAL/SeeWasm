@@ -10,9 +10,9 @@ from seewasm.arch.wasm.lib.c_lib import CPredefinedFunction
 from seewasm.arch.wasm.lib.go_lib import GoPredefinedFunction
 from seewasm.arch.wasm.lib.wasi import WASIImportFunction
 from seewasm.arch.wasm.utils import (log_in_out, one_time_query_cache,
-                                     one_time_query_cache_without_solver,
                                      readable_internal_func_name)
-from z3 import Not, Or, is_bool, is_bv, is_false, is_true, simplify, unsat
+from z3 import (Not, Or, is_bool, is_bv, is_bv_value, is_false, is_true,
+                simplify, unsat)
 
 C_LIBRARY_FUNCS = {
     '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar', 'iprintf',
@@ -252,39 +252,31 @@ class ControlInstructions:
         elif self.instr_name == 'call_indirect':
             # refer to: https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#webassembly_tables
             # this instruction will pop an element out of the stack, and use this as an index in the table, i.e., elem section in Wasm module, to dynamically determine which fucntion will be invoked
+            elem_index_to_func = Configuration.get_elem_index_to_func()
 
             # target function index
             op = state.symbolic_stack.pop()
+            assert is_bv_value(
+                op), f"in call_indirect, op is a symbol ({op}), not support yet"
+            op = op.as_long()
 
-            # traverse the elem section
-            possible_callee = analyzer.elements[0]['elems']
             offset = analyzer.elements[0]['offset']
-            call_indirect_func_type = int(self.instr_string.split(' ')[1][:-1])
-            import_funcs_num = len(analyzer.imports_func)
 
-            state_func_offset_tuples = []
-            for i, possible_func_offset in enumerate(possible_callee):
-                # if the type is not suitable, just jump over
-                if analyzer.func_types[possible_func_offset - import_funcs_num] != call_indirect_func_type:
-                    continue
+            callee_func_name = elem_index_to_func[op - offset]
+            callee_func_offset = -1
+            for func_offset, item in enumerate(analyzer.func_prototypes):
+                if callee_func_name == readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        item[0]):
+                    state.call_indirect_callee = callee_func_name
+                    callee_func_offset = func_offset
+                    break
 
-                i = i + offset
-                if unsat == one_time_query_cache_without_solver(op == i):
-                    continue
-
-                # TODO and NOTE if the op is a symbol, we should add this constraints into the state
-                # currently, we just assume the op is a concrete number, thus we don't add it in the state
-                # state.solver.add(op == i)
-                state_func_offset_tuples.append([state, possible_func_offset])
-
-            if not state_func_offset_tuples:
-                exit("no valid callee in call_direct")
-            elif len(state_func_offset_tuples) > 1:
-                exit("multiple possible callees in call_indirect")
+            if callee_func_offset == -1:
+                exit("no valid callee in call_indirect")
             else:
-                state, func_offset = state_func_offset_tuples[0]
                 return self.deal_with_call(
-                    state, func_offset, data_section, analyzer, lvar)
+                    state, callee_func_offset, data_section, analyzer, lvar)
         elif self.instr_name == 'br_table':
             # state.instr.xref indicates the destination instruction's offset
             # TODO examine br_table
