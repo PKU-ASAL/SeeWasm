@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 from collections import defaultdict
 from os import walk
@@ -11,7 +10,8 @@ testcase_dir = './test/'
 candidates = []
 for _, _, files in walk(testcase_dir):
     for file in files:
-        candidates.append(file)
+        if file.endswith(".wasm"):
+            candidates.append(file)
 
 cmd_lists = []
 for case in candidates:
@@ -19,7 +19,7 @@ for case in candidates:
     cmd_lists.append(['launcher.py', '-f', file_path, '-s'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('/usr/bin/python')
+python_cmd = sh.Command('/usr/bin/python3.8')
 for i, cmd in enumerate(cmd_lists):
     try:
         print(f'Running: {candidates[i]}')
