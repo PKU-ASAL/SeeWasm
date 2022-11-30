@@ -6,6 +6,8 @@ import sys
 from collections import defaultdict
 from queue import Queue
 
+from z3 import BitVec, BitVecVal
+
 from seewasm.arch.wasm.analyzer import WasmModuleAnalyzer
 from seewasm.arch.wasm.cfg import WasmCFG
 from seewasm.arch.wasm.configuration import Configuration
@@ -19,14 +21,13 @@ from seewasm.arch.wasm.instructions import (ArithmeticInstructions,
                                             MemoryInstructions,
                                             ParametricInstructions,
                                             VariableInstructions)
-from seewasm.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
+from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.utils import (getConcreteBitVec, init_file_for_file_sys,
                                      readable_internal_func_name)
 from seewasm.arch.wasm.vmstate import WasmVMstate
 from seewasm.core.basicblock import BasicBlock
 from seewasm.core.edge import EDGE_FALLTHROUGH, Edge
 from seewasm.engine.emulator import EmulatorEngine
-from z3 import BitVec, BitVecVal
 
 sys.setrecursionlimit(4096)
 
@@ -118,8 +119,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             item_func_callees = self.cfg.call_graph.get(item_func, [])
             for item_func_callee in item_func_callees:
                 if item_func_callee not in visited:
-                    # if the func is emulated in c_lib.py or wasi.py, jump over
-                    if item_func_callee in C_LIBRARY_FUNCS or item_func_callee in [i[1] for i in self.ana.imports_func]:
+                    # if the func is emulated, jump over
+                    if is_modeled(item_func_callee):
                         continue
                     elif item_func_callee not in entry_callees:
                         entry_callees.add(item_func_callee)

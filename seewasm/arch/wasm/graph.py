@@ -2,16 +2,17 @@ import copy
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
+from z3 import unsat
+
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from seewasm.arch.wasm.instruction import WasmInstruction
-from seewasm.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
+from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.utils import (query_cache, readable_internal_func_name,
                                      write_result)
 from seewasm.core.basicblock import BasicBlock
 from seewasm.core.edge import EDGE_FALLTHROUGH
-from z3 import unsat
 
 
 class ClassPropertyDescriptor:
@@ -243,7 +244,7 @@ class Graph:
                     cls.bbs_graph[exit][f"{EDGE_FALLTHROUGH}_0"] = dummy_end.name
                 cls.bbs_graph[dummy_end.name] = defaultdict(str)
 
-        def _remove_original_edge(bb_names):
+        def _remove_original_edge(bb_names, keep_original_edge_bbs):
             """
             Extract the successive block of bb_name, and return it.
             Also, remove the edge in bbs_graph
@@ -259,6 +260,8 @@ class Graph:
                     bb_to_succ_bb_mapping[bb] = next(
                         iter(edge_callee_mapping.values()))
 
+                    if bb in keep_original_edge_bbs:
+                        continue
                     edge_callee_mapping["fallthrough_0"] = ""
 
             return bb_to_succ_bb_mapping
@@ -301,6 +304,8 @@ class Graph:
             # this list stores which block should be updated and the callee is its value
             # each ele consists of the current bb and its callee's op
             need_update_bb_info = list()
+            # the edge that is directed from a bb in this set should be kept
+            keep_original_edge_bbs = set()
 
             for bb_name, instructions in cls.bb_to_instructions.items():
                 last_ins = instructions[-1]
@@ -312,13 +317,9 @@ class Graph:
                         callee_op = int(callee_op)
                     except ValueError:
                         callee_op = int(callee_op, 16)
-                    # if the callee is the import function
-                    if f"$func{callee_op}" not in cls.func_to_bbs.keys():
-                        continue
-                    # if the callee is emulated as C library funcs
-                    if readable_internal_func_name(
-                            Configuration.get_func_index_to_func_name(),
-                            f"$func{callee_op}") in C_LIBRARY_FUNCS:
+                    callee_func_name = readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(), f"$func{callee_op}")
+                    if is_modeled(callee_func_name):
                         continue
 
                     need_update_bb_info.append([bb_name, callee_op])
@@ -326,23 +327,30 @@ class Graph:
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
+                    # filter callee according to type
+                    target_callee_type = int(
+                        last_ins.operand_interpretation.split(' ')[1][:-1])
                     possible_callees = cls.wasmVM.ana.elements[0]['elems']
-                    for possible_callee in possible_callees:
-                        # if the callee is the import function
-                        if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
+                    for possible_callee_op in possible_callees:
+                        # extract the possible callee's type
+                        possible_callee_type = cls.wasmVM.ana.func_types[possible_callee_op - len(
+                            cls.wasmVM.ana.imports_func)]
+                        if possible_callee_type != target_callee_type:
                             continue
-                        # if the callee is emulated as C library funcs
-                        if readable_internal_func_name(
-                                Configuration.get_func_index_to_func_name(),
-                                f"$func{possible_callee}") in C_LIBRARY_FUNCS:
+                        possible_callee_func_name = readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(), f"$func{possible_callee_op}")
+                        if is_modeled(possible_callee_func_name):
+                            keep_original_edge_bbs.add(bb_name)
                             continue
 
-                        need_update_bb_info.append([bb_name, possible_callee])
+                        need_update_bb_info.append(
+                            [bb_name, possible_callee_op])
 
             bb_names, _ = list(zip(*need_update_bb_info))
             # remove all bb's direct succ in bbs_graph
             # and return a dict, whose key is the bb, and the value is the succ bb
-            bb_succ_bb_mapping = _remove_original_edge(set(bb_names))
+            bb_succ_bb_mapping = _remove_original_edge(
+                set(bb_names), keep_original_edge_bbs)
             # update edges and xref
             for bb, callee_op in need_update_bb_info:
                 # extract callee
@@ -529,6 +537,12 @@ class Graph:
 
         Note: `blk` is the head of an interval
         """
+        counter = 0
+
+        def unique_idx():
+            nonlocal counter
+            counter += 1
+            return counter-1
         default_cons_prior = defaultdict(int)
         default_cons_prior['prior'] = 65536
         default_cons_prior['cons'] = True
@@ -537,7 +551,10 @@ class Graph:
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
         lvar = {blk: default_cons_prior.copy()}
-        que.put((lvar[blk]['prior'], (states, blk, blk, vis, lvar)))
+        que._put(
+            (lvar[blk]['prior'],
+             unique_idx(),
+             (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
         def producer():
@@ -546,7 +563,7 @@ class Graph:
 
         # @wrap_non_picklable_objects
         def consumer(item):
-            score, (state, current_block, cur_head, vis, lvar) = item
+            score, state_id, (state, current_block, cur_head, vis, lvar) = item
             # init cur_head if it is not in lvar
             if cur_head not in lvar:
                 lvar[cur_head] = default_cons_prior.copy()
@@ -585,13 +602,13 @@ class Graph:
                         emul_states))
                 if len(valid_state) > 0:
                     avail_br[(edge_type, next_block)] = valid_state
-            # rest:
-            # current_bb_name, it is only set in store_context and restore_context
-            # edge_type, it is only set in br_if, if and br_table
+            # reset the following three indicator, as they are used
+            # in can_cut and should be re-init
             for valid_state in avail_br.values():
                 for s in valid_state:
                     s.current_bb_name = ''
                     s.edge_type = ''
+                    s.call_indirect_callee = ''
 
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
@@ -613,13 +630,18 @@ class Graph:
                                 local_new_lvar.pop(h)
                         else:
                             new_vis.append(cur_head)
-                        que.put((new_score,
-                                 ([valid_state_item],
-                                  next_block, new_head, new_vis,
-                                  local_new_lvar)))
+                        item = (new_score,
+                                unique_idx(),
+                                ([valid_state_item],
+                                 next_block, new_head, new_vis,
+                                 local_new_lvar))
+
+                        que._put(item)
                     else:
-                        que.put(
-                            (new_score, ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+                        que._put(
+                            (new_score, unique_idx(),
+                             ([valid_state_item],
+                              next_block, cur_head, vis, local_new_lvar)))
             return halt_flag, []
 
         for item in producer():
@@ -651,6 +673,23 @@ class Graph:
         if state.edge_type:
             not_same_edge = state.edge_type != edge_type
             return not_same_edge or cls.sat_cut(state.solver)
+
+        if state.call_indirect_callee:
+            if not is_modeled(state.call_indirect_callee):
+                pass
+            else:
+                # if the callee is not modeled
+                # check if the next block is the direct succ of current block
+                current_instr_offset_end = state.instr.offset_end
+                next_block_offset = int(next_block.split('_')[2], 16)
+                not_direct_succ = (
+                    current_instr_offset_end + 1 != next_block_offset)
+
+                current_func = state.instr.cur_bb.split('_')[1]
+                next_block_func = next_block.split('_')[1]
+                not_same_func = current_func != next_block_func
+                return not_direct_succ or not_same_func or cls.sat_cut(
+                    state.solver)
 
         if state.current_bb_name == '':
             # normal situation, check the current_func_name

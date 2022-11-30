@@ -7,6 +7,8 @@ import sys
 from datetime import datetime
 from os import makedirs, path
 
+import sh
+
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.graph import Graph
 from seewasm.arch.wasm.visualizator import visualize
@@ -68,6 +70,13 @@ def main():
     args = parser.parse_args()
 
     module_bytecode = args.file.read()
+    # create the corresponding wat file
+    wat_file_path = args.file.name.replace('.wasm', '.wat')
+    if not path.exists(wat_file_path):
+        sh.Command('wasm2wat')([args.file.name, "-o", wat_file_path])
+        print(
+            f"The corresponding wat file is written in: {wat_file_path}",
+            flush=True)
 
     # conduct symbolic execution
     if args.symbolic:
@@ -79,6 +88,7 @@ def main():
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
+        Configuration.set_elem_index_to_func(wat_file_path)
 
         command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)

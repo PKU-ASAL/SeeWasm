@@ -51,6 +51,8 @@ class WasmVMstate(VMstate):
         self.edge_type = ''
         # the corresponding solver
         self.solver = SMTSolver(Configuration.get_solver())
+        # the name of function that is called in call_indirect
+        self.call_indirect_callee = ''
 
     def __str__(self):
         return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}

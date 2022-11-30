@@ -1,3 +1,5 @@
+import re
+
 from z3 import BitVec, Extract
 
 
@@ -55,6 +57,8 @@ class Configuration:
     _incremental_solving = False
     # indicating the analyzed file is instrumented by a dsl file
     _dsl_flag = False
+    # the index to function in element section
+    _elem_index_to_func = {}
 
     @ staticmethod
     def set_source_type(source_type):
@@ -248,3 +252,20 @@ class Configuration:
     @ staticmethod
     def get_dsl_flag():
         return Configuration._dsl_flag
+
+    @staticmethod
+    def set_elem_index_to_func(wat_file_path):
+        with open(wat_file_path) as fp:
+            wat_content = fp.read()
+        # extract the element section
+        result = re.search(r"\(elem.*func ([\w\._\$ ]*)\)", wat_content)
+        elem_sec_funcs = result.group(1).split(' ')
+        for i, func in enumerate(elem_sec_funcs):
+            if "__imported_wasi_snapshot_preview1_" in func:
+                func = func[34:]  # remove the prefix
+            # remove the leading $
+            Configuration._elem_index_to_func[i] = func[1:]
+
+    @staticmethod
+    def get_elem_index_to_func():
+        return Configuration._elem_index_to_func
