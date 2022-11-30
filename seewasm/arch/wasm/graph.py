@@ -2,16 +2,17 @@ import copy
 from collections import defaultdict, deque
 from queue import PriorityQueue
 
+from z3 import unsat
+
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
 from seewasm.arch.wasm.instruction import WasmInstruction
-from seewasm.arch.wasm.instructions.ControlInstructions import C_LIBRARY_FUNCS
+from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.utils import (query_cache, readable_internal_func_name,
                                      write_result)
 from seewasm.core.basicblock import BasicBlock
 from seewasm.core.edge import EDGE_FALLTHROUGH
-from z3 import unsat
 
 
 class ClassPropertyDescriptor:
@@ -316,13 +317,9 @@ class Graph:
                         callee_op = int(callee_op)
                     except ValueError:
                         callee_op = int(callee_op, 16)
-                    # if the callee is the import function
-                    if f"$func{callee_op}" not in cls.func_to_bbs.keys():
-                        continue
-                    # if the callee is emulated as C library funcs
-                    if readable_internal_func_name(
-                            Configuration.get_func_index_to_func_name(),
-                            f"$func{callee_op}") in C_LIBRARY_FUNCS:
+                    callee_func_name = readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(), f"$func{callee_op}")
+                    if is_modeled(callee_func_name):
                         continue
 
                     need_update_bb_info.append([bb_name, callee_op])
@@ -330,20 +327,17 @@ class Graph:
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
+                    # TODO filter callee according to type
                     possible_callees = cls.wasmVM.ana.elements[0]['elems']
-                    for possible_callee in possible_callees:
-                        # if the callee is the import function
-                        if f"$func{possible_callee}" not in cls.func_to_bbs.keys():
-                            keep_original_edge_bbs.add(bb_name)
-                            continue
-                        # if the callee is emulated as C library funcs
-                        if readable_internal_func_name(
-                                Configuration.get_func_index_to_func_name(),
-                                f"$func{possible_callee}") in C_LIBRARY_FUNCS:
+                    for possible_callee_op in possible_callees:
+                        possible_callee_func_name = readable_internal_func_name(
+                            Configuration.get_func_index_to_func_name(), f"$func{possible_callee_op}")
+                        if is_modeled(possible_callee_func_name):
                             keep_original_edge_bbs.add(bb_name)
                             continue
 
-                        need_update_bb_info.append([bb_name, possible_callee])
+                        need_update_bb_info.append(
+                            [bb_name, possible_callee_op])
 
             bb_names, _ = list(zip(*need_update_bb_info))
             # remove all bb's direct succ in bbs_graph
@@ -536,11 +530,12 @@ class Graph:
 
         Note: `blk` is the head of an interval
         """
-        counter=0
+        counter = 0
+
         def unique_idx():
             nonlocal counter
             counter += 1
-            return counter-1; 
+            return counter-1
         default_cons_prior = defaultdict(int)
         default_cons_prior['prior'] = 65536
         default_cons_prior['cons'] = True
@@ -549,7 +544,10 @@ class Graph:
         vis = deque([prev])
         que = PriorityQueue()  # takes minimum value at first
         lvar = {blk: default_cons_prior.copy()}
-        que._put((lvar[blk]['prior'], unique_idx(), (states, blk, blk, vis, lvar)))
+        que._put(
+            (lvar[blk]['prior'],
+             unique_idx(),
+             (states, blk, blk, vis, lvar)))
         final_states = defaultdict(list)
 
         def producer():
@@ -627,14 +625,16 @@ class Graph:
                             new_vis.append(cur_head)
                         item = (new_score,
                                 unique_idx(),
-                                 ([valid_state_item],
-                                  next_block, new_head, new_vis,
-                                  local_new_lvar))
-                        
+                                ([valid_state_item],
+                                 next_block, new_head, new_vis,
+                                 local_new_lvar))
+
                         que._put(item)
                     else:
                         que._put(
-                            (new_score, unique_idx(), ([valid_state_item], next_block, cur_head, vis, local_new_lvar)))
+                            (new_score, unique_idx(),
+                             ([valid_state_item],
+                              next_block, cur_head, vis, local_new_lvar)))
             return halt_flag, []
 
         for item in producer():
@@ -668,11 +668,10 @@ class Graph:
             return not_same_edge or cls.sat_cut(state.solver)
 
         if state.call_indirect_callee:
-            if state.call_indirect_callee not in list(
-                    zip(*cls.wasmVM.ana.imports_func))[1]:
+            if not is_modeled(state.call_indirect_callee):
                 pass
             else:
-                # if the callee is an import function
+                # if the callee is not modeled
                 # check if the next block is the direct succ of current block
                 current_instr_offset_end = state.instr.offset_end
                 next_block_offset = int(next_block.split('_')[2], 16)

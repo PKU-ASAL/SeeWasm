@@ -23,6 +23,17 @@ _values = {
     5: BitVec("global", 32),
     6: BitVec("global.Go", 32)}  # module the memory map in wasm_exec.js
 
+# used for vulnerability detection
+PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
+                   'runtime.lookupPanic': 'index out of range',
+                   'runtime.slicePanic': 'slice out of range',
+                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
+                   'runtime.divideByZeroPanic': 'divide by zero',
+                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
+                   'runtime.chanMakePanic': 'new channel is too big',
+                   'runtime.negativeShiftPanic': 'negative shift',
+                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
+
 
 def calculateHeapAddresses(state, data_section):
     val_81328 = simplify(

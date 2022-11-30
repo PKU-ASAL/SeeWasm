@@ -2,54 +2,21 @@ import copy
 import logging
 from collections import defaultdict
 
+from z3 import (Not, Or, is_bool, is_bv, is_bv_value, is_false, is_true,
+                simplify, unsat)
+
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
                                           ProcSuccessTermination,
                                           UnsupportInstructionError)
 from seewasm.arch.wasm.lib.c_lib import CPredefinedFunction
 from seewasm.arch.wasm.lib.go_lib import GoPredefinedFunction
+from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.lib.wasi import WASIImportFunction
 from seewasm.arch.wasm.utils import (log_in_out, one_time_query_cache,
                                      readable_internal_func_name)
-from z3 import (Not, Or, is_bool, is_bv, is_bv_value, is_false, is_true,
-                simplify, unsat)
 
-C_LIBRARY_FUNCS = {
-    '__small_printf', 'abs', 'atof', 'atoi', 'exp', 'getchar', 'iprintf',
-    'printf', 'putchar', 'puts', 'scanf', 'swap', 'system',
-    'emscripten_resize_heap', 'fopen', 'vfprintf', 'open', 'exit', 'setlocale',
-    'hard_locale'}
-# 'runtime.alloc' temporary disabled for some bug
-GO_LIBRARY_FUNCS = {'fmt.Scanf', 'fmt.Printf'}
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
-# below functions are not regarded as library function, need step in
-NEED_STEP_IN_GO = {
-    'fmt.Println', '_*fmt.pp_.printArg', '_*fmt.buffer_.writeByte',
-    '_*fmt.pp_.fmtInteger', '_*os.File_.Write', '_*fmt.fmt_.fmtInteger',
-    'memmove', '_*fmt.pp_.fmtString', '_*fmt.fmt_.truncateString',
-    '_*fmt.fmt_.padString', '_*fmt.buffer_.writeString',
-    '_syscall/js.Value_.Get', '_syscall/js.Value_.Type',
-    '_syscall/js.Value_.isNumber', 'syscall/js.makeValue', '_*sync.Pool_.Get',
-    'runtime.sliceAppend', '_os.stdioFileHandle_.Write'}
-PANIC_FUNCTIONS = {'runtime.nilPanic': 'nil pointer dereference',
-                   'runtime.lookupPanic': 'index out of range',
-                   'runtime.slicePanic': 'slice out of range',
-                   'runtime.sliceToArrayPointerPanic': 'slice smaller than array',
-                   'runtime.divideByZeroPanic': 'divide by zero',
-                   'runtime.unsafeSlicePanic': 'unsafe.Slice: len out of range',
-                   'runtime.chanMakePanic': 'new channel is too big',
-                   'runtime.negativeShiftPanic': 'negative shift',
-                   'runtime.blockingPanic': 'trying to do blocking operation in exported function'}
-
-# we heuristically define that if a func is start with the pre-defined substring, it is a library function
-
-
-def IS_GO_LIBRARY_FUNCS(x):
-    return x.startswith(tuple(GO_LIBRARY_FUNCS)) or x in PANIC_FUNCTIONS
-
-
-def IS_C_LIBRARY_FUNCS(x):
-    return x in C_LIBRARY_FUNCS
 
 
 class ControlInstructions:
@@ -152,24 +119,26 @@ class ControlInstructions:
                 lvar['prior'] = abs(3 - lvar['rounds_j'])
             """
             states = [state]
-        elif Configuration.get_source_type() == 'c' and IS_C_LIBRARY_FUNCS(
-                readable_callee_func_name):
+        elif Configuration.get_source_type() == 'c' and is_modeled(readable_callee_func_name, specify_lang='c'):
             func = CPredefinedFunction(
                 readable_callee_func_name, state.current_func_name)
             states = log_in_out(
                 readable_callee_func_name, "C Library")(
                 func.emul)(
                 state, param_str, return_str, data_section, analyzer)
-        elif Configuration.get_source_type() == 'go' and IS_GO_LIBRARY_FUNCS(
-                readable_callee_func_name) and readable_callee_func_name not in NEED_STEP_IN_GO:
+        elif Configuration.get_source_type() == 'go' and is_modeled(readable_callee_func_name, specify_lang='go'):
+            # TODO Go library func modeling is not tested
             func = GoPredefinedFunction(
                 readable_callee_func_name, state.current_func_name)
             states = log_in_out(
                 readable_callee_func_name, "Go Library")(
                 func.emul)(
                 state, param_str, return_str, data_section, analyzer)
+        elif Configuration.get_source_type() == 'rust' and is_modeled(readable_callee_func_name, specify_lang='rust'):
+            # TODO may model some rust library funcs
+            pass
         # if the callee is imported (WASI)
-        elif readable_callee_func_name in [i[1] for i in analyzer.imports_func]:
+        elif is_modeled(readable_callee_func_name, specify_lang='wasi'):
             func = WASIImportFunction(
                 readable_callee_func_name, state.current_func_name)
             states = log_in_out(
