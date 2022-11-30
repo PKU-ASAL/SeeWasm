@@ -327,9 +327,16 @@ class Graph:
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
-                    # TODO filter callee according to type
+                    # filter callee according to type
+                    target_callee_type = int(
+                        last_ins.operand_interpretation.split(' ')[1][:-1])
                     possible_callees = cls.wasmVM.ana.elements[0]['elems']
                     for possible_callee_op in possible_callees:
+                        # extract the possible callee's type
+                        possible_callee_type = cls.wasmVM.ana.func_types[possible_callee_op - len(
+                            cls.wasmVM.ana.imports_func)]
+                        if possible_callee_type != target_callee_type:
+                            continue
                         possible_callee_func_name = readable_internal_func_name(
                             Configuration.get_func_index_to_func_name(), f"$func{possible_callee_op}")
                         if is_modeled(possible_callee_func_name):
