@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from collections import defaultdict
 from os import walk
@@ -19,7 +20,7 @@ for case in candidates:
     cmd_lists.append(['launcher.py', '-f', file_path, '-s'])
 
 result = defaultdict(list)
-python_cmd = sh.Command('/usr/bin/python3.8')
+python_cmd = sh.Command(sys.executable)
 for i, cmd in enumerate(cmd_lists):
     try:
         print(f'Running: {candidates[i]}')
