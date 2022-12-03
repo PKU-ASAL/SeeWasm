@@ -8,7 +8,7 @@ In this project, we have implemented a **symbolic execution engine** for Wasm bi
 ##  Prerequisites 
 First, you have to make sure Python3.7+ is installed.
 
-Then, some libraries shoule be installed as follows:
+Then, some libraries should be installed as follows:
 
 ```shell
 python -m pip install -r requirements.txt
@@ -26,6 +26,7 @@ If all of them can be symbolically executed without any exceptions, the success 
 Some representative samples exist in the folder, e.g., hello world programs written in C and Rust.
 These two Wasm binaries can be compiled from C and Rust, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi).
 We will not repeat how to compile programs into Wasm binaries in this readme.
+However, for Rust programs, you can also use `./build-rs.sh -f|-d PATH` to compile and demangle in one shot if necessary. Execute `./build-rs.sh -h` for more info.
 
 ## Analyze
 
