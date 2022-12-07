@@ -497,7 +497,7 @@ class WasmModuleAnalyzer(object):
                         self.__decode_unknown_section(cur_sec_data))
 
         # create dwarf_info and func_offsets
-        # self.analyze_debug_info(sections)
+        self.analyze_debug_info(sections)
         # create ordered list of functions
         self.func_prototypes = self.get_func_prototypes_ordered()
         return True

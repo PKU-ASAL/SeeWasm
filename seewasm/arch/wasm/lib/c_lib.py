@@ -3,6 +3,7 @@ import math
 
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.dwarfParser import (decode_vararg,
+                                           decode_var_type,
                                            get_func_index_from_state,
                                            get_source_location)
 from seewasm.arch.wasm.exceptions import (ProcFailTermination,
@@ -182,8 +183,9 @@ class CPredefinedFunction:
             # get addr of vararg 0.
             addr = decode_vararg(state, param_p, 0)
 
-            # TODO disable dwarf temporarily
-            # var_type, var_size = decode_var_type(analyzer, state, addr)
+            # parse dwarf information
+            var_type, var_size = decode_var_type(analyzer, state, addr)
+            # print(f"-----DEBUG_INFO-----\nvar_type:{var_type}\nvar_size:{var_size}\n--------------------\n")
 
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state)
