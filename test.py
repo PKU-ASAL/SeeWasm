@@ -17,7 +17,11 @@ for _, _, files in walk(testcase_dir):
 cmd_lists = []
 for case in candidates:
     file_path = os.path.join(testcase_dir, case)
-    cmd_lists.append(['launcher.py', '-f', file_path, '-s'])
+    if 'hello_world_go.wasm' == case:
+        cmd_lists.append(['launcher.py', '-f', file_path,
+                         '-s', '--entry', '_start', '-v', 'info'])
+    else:
+        cmd_lists.append(['launcher.py', '-f', file_path, '-s', '-v', 'info'])
 
 result = defaultdict(list)
 python_cmd = sh.Command(sys.executable)

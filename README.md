@@ -23,8 +23,8 @@ python test.py
 This command will traverse the `./test` folder and extract all Wasm binaries.
 If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several seconds**.
 
-Some representative samples exist in the folder, e.g., hello world programs written in C and Rust.
-These two Wasm binaries can be compiled from C and Rust, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi).
+Some samples exist in the folder, including hello world written in C, Go, and Rust.
+These Wasm binaries can be compiled from C, Go and Rust, respectively, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi)(C and Rust), and [here](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html)(Go).
 We will not repeat how to compile programs into Wasm binaries in this readme.
 
 ## Analyze
