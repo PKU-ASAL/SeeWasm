@@ -1,6 +1,7 @@
 import copy
 from collections import defaultdict, deque
 from queue import PriorityQueue
+from queue import Queue
 
 from z3 import unsat
 
@@ -743,3 +744,33 @@ class Graph:
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar
+    
+    @ classmethod
+    def algo_dfs(cls, entry, state):
+        que = Queue()
+        que._put((entry, state))
+
+        vis = {}
+
+        while not que.empty():
+            (current_bb, current_state) = que._get()
+            succs_list = cls.bbs_graph[current_bb].items()
+            try:
+                emul_states = cls.wasmVM.emulate_basic_block(
+                    state, cls.bb_to_instructions[current_bb], lvar[cur_head])
+            except ProcSuccessTermination:
+                # end of path
+                return False, state
+            except ProcFailTermination:
+                # trigger exit()
+                write_result(state[0], exit=True)
+                return False, state
+            if len(succs_list) == 0:
+                halt_flag = lvar[cur_head]['checker_halt']
+                return halt_flag, emul_states
+            
+            for edge_type, next_block in succs_list:
+
+
+
+
