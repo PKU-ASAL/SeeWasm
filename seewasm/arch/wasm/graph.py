@@ -310,10 +310,12 @@ class Graph:
             need_update_bb_info = list()
             # the edge that is directed from a bb in this set should be kept
             keep_original_edge_bbs = set()
+            call_instr_cnt, call_indirect_instr_cnt = 0, 0
 
             for bb_name, instructions in cls.bb_to_instructions.items():
                 last_ins = instructions[-1]
                 if last_ins.name == 'call':
+                    call_instr_cnt += 1
                     # find the dummy blocks' name
                     # if the callee is imported in, do nothing and continue
                     callee_op = last_ins.operand_interpretation.split(' ')[1]
@@ -328,6 +330,7 @@ class Graph:
 
                     need_update_bb_info.append([bb_name, callee_op])
                 elif last_ins.name == 'call_indirect':
+                    call_indirect_instr_cnt += 1
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
@@ -350,6 +353,10 @@ class Graph:
                         need_update_bb_info.append(
                             [bb_name, possible_callee_op])
 
+            # if there is no call at all, return directly
+            if call_instr_cnt == 0 and call_indirect_instr_cnt == 0 and len(
+                    need_update_bb_info) == 0:
+                return
             bb_names, _ = list(zip(*need_update_bb_info))
             # remove all bb's direct succ in bbs_graph
             # and return a dict, whose key is the bb, and the value is the succ bb
