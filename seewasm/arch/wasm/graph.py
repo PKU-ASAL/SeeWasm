@@ -179,7 +179,11 @@ class Graph:
                         readable_name = readable_internal_func_name(
                             Configuration.get_func_index_to_func_name(), func_name)
                         # aes function's name is generated in "name$index" format.
-                        if len(readable_name.split('$')) == 2:
+                        # some intrinsic functions starts with $, we should distinguish this situation
+                        if readable_name[0] == '$':
+                            if len(readable_name.split('$')) == 3:
+                                cls.aes_func[bb_name].add(readable_name)
+                        elif len(readable_name.split('$')) == 2:
                             cls.aes_func[bb_name].add(readable_name)
 
         def init_dummy_blocks():
