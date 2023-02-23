@@ -335,7 +335,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state
 
-    def emulate_basic_block(self, states, instructions, lvar):
+    def emulate_basic_block(self, states, instructions, lvar=None):
         """
         Symbolically execute the instructions from each of state in states
 
@@ -352,7 +352,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return states
 
-    def emulate_one_instruction(self, instr, state, lvar):
+    def emulate_one_instruction(self, instr, state, lvar=None):
         instruction_map = {
             'Arithmetic_i32': ArithmeticInstructions,
             'Arithmetic_i64': ArithmeticInstructions,
