@@ -375,7 +375,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         # logging.debug(
-        #     f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
+        #     f"\nState:\t{id(state)}\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
