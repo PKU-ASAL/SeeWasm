@@ -123,10 +123,10 @@ class WASIImportFunction:
                             arg_supposed_len * 8)
                         state.args[arg_index] = arg
                     # limit the arg can only be printable chars
-                    for i in range(arg.size() // 8, 0, -1):
-                        the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
-                        state.solver.add(
-                            And(the_char >= 33, the_char <= 126))
+                    # for i in range(arg.size() // 8, 0, -1):
+                    #     the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
+                    #     state.solver.add(
+                    #         And(the_char >= 33, the_char <= 126))
 
                     state.solver.add(arg != 0)
                     num_arg_bytes = arg.size() // 8 + 1
