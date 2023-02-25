@@ -7,6 +7,7 @@ import struct
 from codecs import decode
 from datetime import datetime
 from os import makedirs, path
+from random import random
 
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
@@ -155,7 +156,7 @@ def write_result(state, exit=False):
     if unsat == state.solver.check():
         return
 
-    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}.json"
+    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}_{random():.5f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
     with open(file_name, 'w') as fp:
