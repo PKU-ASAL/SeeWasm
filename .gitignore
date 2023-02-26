@@ -6,3 +6,4 @@ ready_to_production.py
 *.wat
 log/log/*
 log/result/*
+bfs_test/*

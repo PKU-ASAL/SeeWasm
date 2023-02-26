@@ -1,18 +1,11 @@
 #include <stdio.h>
 
 int foo(char a){
-    if(a > 10){
-        printf("a");
-        return 0;
+    int b = 0;
+    for(int i = 0; i < b; ++i){
+        b += i;
     }
-    else if(a > 0){
-        printf("b");
-        return 1;
-    }
-    else {
-        printf("c");
-        return 2;
-    }
+    return 1;
 }
 
 int main(int argc, char* argv[]){

@@ -774,45 +774,36 @@ class Graph:
                 return False
             idx += 1
         return True
-
+    
+    @classmethod
+    def cycle_in_cycles(cls, cycle, cycles):
+        for cur_cycle in cycles:
+            if cls.cycle_is_same(cycle, cur_cycle):
+                return True
+        return False
+    
     @classmethod 
-    def get_cycles(cls, entry):
-        icfg_cycles = {}
-        vis_bb = []
-        def cycle_dfs(basicblock):
-            if basicblock in vis_bb:
-                idx = vis_bb.index(basicblock)
-                same_flag = False
-                cur_loop = []
-                for _, bb in enumerate(vis_bb[idx:]):
-                    cur_loop.append(bb)
-                vis_bb = vis_bb[:idx]
-                
-                for cycle in icfg_cycles:
-                    if cls.cycle_is_same(cycle, cur_loop):
-                        same_flag = True 
-
-                if not same_flag:
-                    icfg_cycles.add(cur_loop)
-                return 
-            
-            vis_bb.append(basicblock)
-            succs_list = cls.bbs_graph[basicblock].items()
-            for current_bb in succs_list:
-                cycle_dfs(current_bb)
-
-        cycle_dfs(entry)
-        return icfg_cycles
-
-
+    def find_cycles(cls, start, cur, path, visited, cycles):
+        visited.add(cur)
+        path.append(cur)
+        succs_list = cls.bbs_graph[cur].items()
+        for next_bb in succs_list:
+            if next_bb == start and (not cls.cycle_in_cycles(path, cycles)):
+                cycles.add(path[:])
+            elif next_bb not in visited:
+                cls.find_cycles(start, next_bb, path, visited, cycles)
+        visited.remove(cur)
+        path.pop()
+        
     @ classmethod
     def algo_dfs(cls, entry, state):
         CYCLE_THRETHHOLD = 10
         que = Queue()
         que._put((entry, [state]))
         final_states = defaultdict(list)
-        icfg_cycles = cls.get_cycles(entry)
-        print('1')
+        icfg_cycles = set()
+        cls.find_cycles(entry, entry, [], set(), icfg_cycles)
+        print(entry)
 
         def producer():
             while not que.empty():

@@ -20,8 +20,8 @@ class Configuration:
     The static class that maintain the user's input option
     """
     _source_type = 'c'              # the original source file's type
-    _algo = 'interval'              # the traverse algorithm, default is interval
-    # _algo = 'bfs'
+    # _algo = 'interval'              # the traverse algorithm, default is interval
+    _algo = 'bfs'
     _symbol_globals = False         # init the global with the declaration in global sections
     _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed
     _solver = 'z3'                  # the backend SMT solver
