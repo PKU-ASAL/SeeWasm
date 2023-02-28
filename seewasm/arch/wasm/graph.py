@@ -2,6 +2,7 @@ import copy
 from collections import defaultdict, deque
 from queue import PriorityQueue
 from queue import Queue
+import random
 
 from z3 import unsat
 
@@ -403,6 +404,23 @@ class Graph:
         """
         entry_func = self.entry
         self.final_states[entry_func] = self.traverse_one(entry_func)
+    
+    @classmethod 
+    def dfs_producer(cls, queue):
+        while len(queue) != 0:
+            yield queue.pop()   
+    
+    @classmethod
+    def bfs_producer(cls, queue):
+        while len(queue) != 0:
+            yield queue.pop(0)
+
+    @classmethod
+    def random_producer(cls, queue):
+        while len(queue) != 0:
+            idx = random.randrange(0, len(queue))
+            yield queue.pop(idx)
+            
 
     @ classmethod
     def traverse_one(cls, func, state=None):
@@ -435,7 +453,11 @@ class Graph:
         if Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, blks)
         elif Configuration.get_algo() == 'bfs':
-            final_states = cls.algo_dfs(entry_bb, state)
+            final_states = cls.algo_traverse(entry_bb, state, cls.bfs_producer)
+        elif Configuration.get_algo() == 'dfs':
+            final_states = cls.algo_traverse(entry_bb, state, cls.dfs_producer)
+        elif Configuration.get_algo() == 'random':
+            final_states = cls.algo_traverse(entry_bb, state, cls.random_producer)
         else:
             raise Exception(
                 "There is no path searching algorithm you required.")
@@ -757,13 +779,13 @@ class Graph:
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar
-    
+
     @classmethod
     def cycle_is_same(cycle1, cycle2):
         if len(cycle1) != len(cycle2):
             return False
             
-        if not cycle2.count(cycle1[0]):
+        if  cycle2.count(cycle1[0]) == 0:
             return False
             
         cycle2_idx_offset = cycle2.index(cycle1[0])
@@ -782,33 +804,108 @@ class Graph:
                 return True
         return False
     
-    @classmethod 
-    def find_cycles(cls, start, cur, path, visited, cycles):
-        visited.add(cur)
-        path.append(cur)
-        succs_list = cls.bbs_graph[cur].items()
-        for next_bb in succs_list:
-            if next_bb == start and (not cls.cycle_in_cycles(path, cycles)):
-                cycles.add(path[:])
-            elif next_bb not in visited:
-                cls.find_cycles(start, next_bb, path, visited, cycles)
-        visited.remove(cur)
-        path.pop()
-        
-    @ classmethod
-    def algo_dfs(cls, entry, state):
-        CYCLE_THRETHHOLD = 10
-        que = Queue()
-        que._put((entry, [state]))
-        final_states = defaultdict(list)
-        icfg_cycles = set()
-        cls.find_cycles(entry, entry, [], set(), icfg_cycles)
-        print(entry)
+    @classmethod
+    def find_cycles(cls, bb, cycles):
 
-        def producer():
-            while not que.empty():
-                yield que._get()
+        def find_cycles_dfs(start, cur, path, visited, cycles):
+            visited.add(cur)
+            path.append(cur)
+            succs_list = cls.bbs_graph[cur].items()
+            for _, next_bb in succs_list:
+                if next_bb == start and (not cls.cycle_in_cycles(path, cycles)):
+                    cycles.add(path)
+                elif next_bb not in visited:
+                    print(path)
+                    find_cycles_dfs(start, next_bb, path, visited, cycles)
+            visited.remove(cur)
+            path.pop()
+
+        find_cycles_dfs(bb, bb, [], set(), cycles)
+
+    # @ classmethod
+    # def algo_bfs(cls, entry, state):
+    #     que = Queue()
+    #     que._put((entry, [state]))
+    #     final_states = defaultdict(list)
+    #     # icfg_cycles = set()
+    #     # vis_start_bb = set()
+
+    #     # cls.find_cycles(entry, icfg_cycles)
+    #     # vis_start_bb.add(entry)
+    #     # print(icfg_cycles)
+
+    #     def producer():
+    #         while not que.empty():
+    #             yield que._get()
         
+    #     def consumer(item):
+    #         (current_bb, current_states) = item
+    #         succs_list = cls.bbs_graph[current_bb].items()
+    #         halt_flag = False
+    #         try:
+    #             emul_states = cls.wasmVM.emulate_basic_block(
+    #                 current_states, cls.bb_to_instructions[current_bb])
+    #         except ProcSuccessTermination:
+    #             return False, current_states
+    #         except ProcFailTermination:
+    #             write_result(state[0], exit=True)
+    #             return False, current_states
+    #         # Because of the existence of dummy block, the len(succs_list) of the exit is 0
+    #         if len(succs_list) == 0:
+    #             return False, emul_states
+            
+    #         avail_br = {}
+    #         for edge_type, next_block in succs_list:
+    #             # if next_block not in vis_start_bb:
+    #             #     vis_start_bb.add(next_block)
+    #             #     cls.find_cycles(next_block, icfg_cycles)
+    #             valid_states = list(
+    #                 filter(
+    #                     lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
+    #             if len(valid_states) > 0:
+    #                 avail_br[(edge_type, next_block)] = valid_states
+            
+    #         for valid_states in avail_br.values():
+    #             for s in valid_states:
+    #                 s.current_bb_name = ''
+    #                 s.edge_type = ''
+    #                 s.call_indirect_callee = ''
+            
+    #         for br in avail_br:
+    #             (_, next_block), valid_states = br, avail_br[br]
+    #             que._put((next_block, valid_states))
+            
+    #         return halt_flag, []
+
+    #     for item in producer():
+    #         halt_flag, emul_states = consumer(item)
+
+    #         for item in emul_states:
+    #             # only the block that locates at the end of the entry function
+    #             # can be regarded as end of path
+    #             if readable_internal_func_name(
+    #                     Configuration.get_func_index_to_func_name(),
+    #                     item.current_func_name) == Configuration.get_entry():
+    #                 write_result(item)
+
+    #         final_states['return'].extend(emul_states)
+    #         if halt_flag:
+    #             break
+    #     return final_states
+            
+
+    @ classmethod
+    def algo_traverse(cls, entry, state, producer):
+        que = []
+        que.append((entry, [state]))
+        final_states = defaultdict(list)
+        # icfg_cycles = set()
+        # vis_start_bb = set()
+
+        # cls.find_cycles(entry, icfg_cycles)
+        # vis_start_bb.add(entry)
+        # print(icfg_cycles)
+
         def consumer(item):
             (current_bb, current_states) = item
             succs_list = cls.bbs_graph[current_bb].items()
@@ -827,6 +924,9 @@ class Graph:
             
             avail_br = {}
             for edge_type, next_block in succs_list:
+                # if next_block not in vis_start_bb:
+                #     vis_start_bb.add(next_block)
+                #     cls.find_cycles(next_block, icfg_cycles)
                 valid_states = list(
                     filter(
                         lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
@@ -841,11 +941,11 @@ class Graph:
             
             for br in avail_br:
                 (_, next_block), valid_states = br, avail_br[br]
-                que._put((next_block, valid_states))
+                que.append((next_block, valid_states))
             
             return halt_flag, []
 
-        for item in producer():
+        for item in producer(que):
             halt_flag, emul_states = consumer(item)
 
             for item in emul_states:
@@ -860,4 +960,3 @@ class Graph:
             if halt_flag:
                 break
         return final_states
-            
