@@ -171,12 +171,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
                         # if the callee is imported, don't need to split the bb
                         if instruction.name == 'call':
-                            try:
-                                callee_index = int(
-                                    instruction.operand_interpretation.split(" ")[1])
-                            except ValueError:
-                                callee_index = int(
-                                    instruction.operand_interpretation.split(" ")[1], 16)
+                            callee_index = int(
+                                instruction.operand_interpretation.split(" ")[1], 0)
                             if self.ana.func_prototypes[callee_index][3] == 'import':
                                 continue
 
