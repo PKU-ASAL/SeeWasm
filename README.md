@@ -23,10 +23,9 @@ python test.py
 This command will traverse the `./test` folder and extract all Wasm binaries.
 If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several seconds**.
 
-## Compile Source Code into Wasm Binaries
-In the `./test` folder, there are two Wasm binaries, i.e., hello world programs that were originally written in C and Rust.
-These two Wasm binaries can be compiled from source code, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi).
-Please refer to the above process to compile your projects into Wasm.
+Some samples exist in the folder, including hello world written in C, Go, and Rust.
+These Wasm binaries can be compiled from C, Go and Rust, respectively, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi)(C and Rust), and [here](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html)(Go).
+We will not repeat how to compile programs into Wasm binaries in this readme.
 
 However, for Rust programs, you can also use our one-shot solution: `./build-rs.sh -f|-d PATH`, to compile and demangle rust files or projects.
 Run `./build-rs.sh -h` for more information.

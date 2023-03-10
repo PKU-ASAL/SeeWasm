@@ -20,7 +20,10 @@ class Configuration:
     The static class that maintain the user's input option
     """
     _source_type = 'c'              # the original source file's type
-    _algo = 'interval'              # the traverse algorithm, default is interval
+    # _algo = 'interval'              # the traverse algorithm, default is interval
+    # _algo = 'bfs'
+    _algo = 'dfs'
+    # _algo = 'random'
     _symbol_globals = False         # init the global with the declaration in global sections
     _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed
     _solver = 'z3'                  # the backend SMT solver
@@ -259,12 +262,14 @@ class Configuration:
             wat_content = fp.read()
         # extract the element section
         result = re.search(r"\(elem.*func ([\w\._\$ ]*)\)", wat_content)
-        elem_sec_funcs = result.group(1).split(' ')
-        for i, func in enumerate(elem_sec_funcs):
-            if "__imported_wasi_snapshot_preview1_" in func:
-                func = func[34:]  # remove the prefix
-            # remove the leading $
-            Configuration._elem_index_to_func[i] = func[1:]
+        # if there is element section in the given wat
+        if result:
+            elem_sec_funcs = result.group(1).split(' ')
+            for i, func in enumerate(elem_sec_funcs):
+                if "__imported_wasi_snapshot_preview1_" in func:
+                    func = func[34:]  # remove the prefix
+                # remove the leading $
+                Configuration._elem_index_to_func[i] = func[1:]
 
     @staticmethod
     def get_elem_index_to_func():

@@ -46,38 +46,54 @@ class WASIImportFunction:
                     # these args are in string
                     no_sym_args_len.append(len(i))
 
-            # keep all possible states
-            possible_states = []
-            # init, if all symbols are \x00
-            argc = len(no_sym_args_len)
-            argv_len = sum(no_sym_args_len) + argc
-            # store argc and argvs' len
-            Configuration._argc_arg_buf_size.append([argc] + no_sym_args_len)
+            argc = len(sym_args_len) + len(no_sym_args_len)
+            argv_len = sum(sym_args_len) + sum(no_sym_args_len) + argc
+            Configuration._argc_arg_buf_size.append(
+                [argc] + no_sym_args_len + sym_args_len)
 
-            new_state = deepcopy(state)
-            _storeN(new_state, argc_addr, argc, 4)
-            _storeN(new_state, arg_buf_size_addr, argv_len, 4)
-            new_state.symbolic_stack.append(BitVecVal(0, 32))
-            possible_states.append(new_state)
+            _storeN(state, argc_addr, argc, 4)
+            _storeN(state, arg_buf_size_addr, argv_len, 4)
+            state.symbolic_stack.append(BitVecVal(0, 32))
 
-            # traverse those possible combination for symbol args
-            for index, i in enumerate(sym_args_len):
-                argc += 1
-                argv_len += 1       # the trailing zero
-                for j in range(1, i + 1):
-                    argv_len += 1
-                    # store argc and argvs' len
-                    Configuration._argc_arg_buf_size.append(
-                        [argc] + no_sym_args_len + sym_args_len[:index] + [j])
+            return [state]
 
-                    # copy and store
-                    new_state = deepcopy(state)
-                    _storeN(new_state, argc_addr, argc, 4)
-                    _storeN(new_state, arg_buf_size_addr, argv_len, 4)
-                    new_state.symbolic_stack.append(BitVecVal(0, 32))
-                    possible_states.append(new_state)
+            # ORIGINAL IMPLEMENTATION
+            # consider all possible length for symbolic argv
+            # for example, if argv == 3, we will consider its value as 0, 1, 2, and 3, respectively
+            # -----------------------------------------------------------------------
+            # # keep all possible states
+            # possible_states = []
+            # # init, if all symbols are \x00
+            # argc = len(no_sym_args_len)
+            # argv_len = sum(no_sym_args_len) + argc
+            # # store argc and argvs' len
+            # Configuration._argc_arg_buf_size.append([argc] + no_sym_args_len)
 
-            return possible_states
+            # new_state = deepcopy(state)
+            # _storeN(new_state, argc_addr, argc, 4)
+            # _storeN(new_state, arg_buf_size_addr, argv_len, 4)
+            # new_state.symbolic_stack.append(BitVecVal(0, 32))
+            # possible_states.append(new_state)
+
+            # # traverse those possible combination for symbol args
+            # for index, i in enumerate(sym_args_len):
+            #     argc += 1
+            #     argv_len += 1       # the trailing zero
+            #     for j in range(1, i + 1):
+            #         argv_len += 1
+            #         # store argc and argvs' len
+            #         Configuration._argc_arg_buf_size.append(
+            #             [argc] + no_sym_args_len + sym_args_len[:index] + [j])
+
+            #         # copy and store
+            #         new_state = deepcopy(state)
+            #         _storeN(new_state, argc_addr, argc, 4)
+            #         _storeN(new_state, arg_buf_size_addr, argv_len, 4)
+            #         new_state.symbolic_stack.append(BitVecVal(0, 32))
+            #         possible_states.append(new_state)
+
+            # return possible_states
+            # -----------------------------------------------------------------------
         elif self.name == 'args_get':
             # this is not the complete version
             # ref: https://github.com/WebAssembly/wasm-jit-prototype/blob/65ca25f8e6578ffc3bcf09c10c80af4f1ba443b2/Lib/WASI/WASIArgsEnvs.cpp
@@ -123,10 +139,10 @@ class WASIImportFunction:
                             arg_supposed_len * 8)
                         state.args[arg_index] = arg
                     # limit the arg can only be printable chars
-                    for i in range(arg.size() // 8, 0, -1):
-                        the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
-                        state.solver.add(
-                            And(the_char >= 33, the_char <= 126))
+                    # for i in range(arg.size() // 8, 0, -1):
+                    #     the_char = Extract(i * 8 - 1, (i - 1) * 8, arg)
+                    #     state.solver.add(
+                    #         And(the_char >= 33, the_char <= 126))
 
                     state.solver.add(arg != 0)
                     num_arg_bytes = arg.size() // 8 + 1

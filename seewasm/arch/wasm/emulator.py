@@ -59,6 +59,10 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         Configuration.set_func_index_to_func_name(
             self.ana.names, self.ana.func_prototypes)
 
+        if Configuration.get_entry() not in Configuration.get_func_index_to_func_name().values():
+            exit(
+                f"Your designated entry: {Configuration.get_entry()} does not exist.\nPlease assign another by '--entry'")
+
         # build call graph
         self.cfg.build_call_graph(self.ana)
 
@@ -167,8 +171,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                     if (instruction.name == 'call' or instruction.name == 'call_indirect') and ins_i != len(bb.instructions) - 1:
                         # if the callee is imported, don't need to split the bb
                         if instruction.name == 'call':
-                            callee_index = int(
-                                instruction.operand_interpretation.split(" ")[1])
+                            try:
+                                callee_index = int(
+                                    instruction.operand_interpretation.split(" ")[1])
+                            except ValueError:
+                                callee_index = int(
+                                    instruction.operand_interpretation.split(" ")[1], 16)
                             if self.ana.func_prototypes[callee_index][3] == 'import':
                                 continue
 
@@ -327,7 +335,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         return state
 
-    def emulate_basic_block(self, states, instructions, lvar):
+    def emulate_basic_block(self, states, instructions, lvar=None):
         """
         Symbolically execute the instructions from each of state in states
 
@@ -344,7 +352,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states = next_states
         return states
 
-    def emulate_one_instruction(self, instr, state, lvar):
+    def emulate_one_instruction(self, instr, state, lvar=None):
         instruction_map = {
             'Arithmetic_i32': ArithmeticInstructions,
             'Arithmetic_i64': ArithmeticInstructions,
@@ -367,7 +375,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instr.operand_interpretation = instr.name
 
         # logging.debug(
-        #     f"\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
+        #     f"\nState:\t{id(state)}\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)

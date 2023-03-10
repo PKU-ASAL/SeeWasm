@@ -1,6 +1,8 @@
 import copy
 from collections import defaultdict, deque
 from queue import PriorityQueue
+from queue import Queue
+import random
 
 from z3 import unsat
 
@@ -179,7 +181,11 @@ class Graph:
                         readable_name = readable_internal_func_name(
                             Configuration.get_func_index_to_func_name(), func_name)
                         # aes function's name is generated in "name$index" format.
-                        if len(readable_name.split('$')) == 2:
+                        # some intrinsic functions starts with $, we should distinguish this situation
+                        if readable_name[0] == '$':
+                            if len(readable_name.split('$')) == 3:
+                                cls.aes_func[bb_name].add(readable_name)
+                        elif len(readable_name.split('$')) == 2:
                             cls.aes_func[bb_name].add(readable_name)
 
         def init_dummy_blocks():
@@ -306,10 +312,12 @@ class Graph:
             need_update_bb_info = list()
             # the edge that is directed from a bb in this set should be kept
             keep_original_edge_bbs = set()
+            call_instr_cnt, call_indirect_instr_cnt = 0, 0
 
             for bb_name, instructions in cls.bb_to_instructions.items():
                 last_ins = instructions[-1]
                 if last_ins.name == 'call':
+                    call_instr_cnt += 1
                     # find the dummy blocks' name
                     # if the callee is imported in, do nothing and continue
                     callee_op = last_ins.operand_interpretation.split(' ')[1]
@@ -324,6 +332,7 @@ class Graph:
 
                     need_update_bb_info.append([bb_name, callee_op])
                 elif last_ins.name == 'call_indirect':
+                    call_indirect_instr_cnt += 1
                     # find all possible callees
                     # refer to call_indirect in `ControlInstructions.py`
                     # store all dummy blocks in pair
@@ -346,6 +355,10 @@ class Graph:
                         need_update_bb_info.append(
                             [bb_name, possible_callee_op])
 
+            # if there is no call at all, return directly
+            if call_instr_cnt == 0 and call_indirect_instr_cnt == 0 and len(
+                    need_update_bb_info) == 0:
+                return
             bb_names, _ = list(zip(*need_update_bb_info))
             # remove all bb's direct succ in bbs_graph
             # and return a dict, whose key is the bb, and the value is the succ bb
@@ -391,6 +404,23 @@ class Graph:
         """
         entry_func = self.entry
         self.final_states[entry_func] = self.traverse_one(entry_func)
+    
+    @classmethod 
+    def dfs_producer(cls, queue):
+        while len(queue) != 0:
+            yield queue.pop()   
+    
+    @classmethod
+    def bfs_producer(cls, queue):
+        while len(queue) != 0:
+            yield queue.pop(0)
+
+    @classmethod
+    def random_producer(cls, queue):
+        while len(queue) != 0:
+            idx = random.randrange(0, len(queue))
+            yield queue.pop(idx)
+            
 
     @ classmethod
     def traverse_one(cls, func, state=None):
@@ -422,6 +452,12 @@ class Graph:
 
         if Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, blks)
+        elif Configuration.get_algo() == 'bfs':
+            final_states = cls.algo_traverse(entry_bb, state, cls.bfs_producer)
+        elif Configuration.get_algo() == 'dfs':
+            final_states = cls.algo_traverse(entry_bb, state, cls.dfs_producer)
+        elif Configuration.get_algo() == 'random':
+            final_states = cls.algo_traverse(entry_bb, state, cls.random_producer)
         else:
             raise Exception(
                 "There is no path searching algorithm you required.")
@@ -451,7 +487,7 @@ class Graph:
         #     if len(intervals) == ninterval:
         #         break
         #     ninterval = len(intervals)
-        #     no_cycle_nodes = {}
+        #     no_cycle_nodes = {}            
         #     c = 0
         #     for h in intervals:
         #         if not cls.has_cycle(h, g, intervals[h], set()):
@@ -666,7 +702,7 @@ class Graph:
         return unsat == query_cache(solver)
 
     @ classmethod
-    def can_cut(cls, edge_type, next_block, state, lvar):
+    def can_cut(cls, edge_type, next_block, state, lvar=None):
         """
         The place in which users can determine if cut the branch or not (Default: according to SMT-solver).
         """
@@ -743,3 +779,184 @@ class Graph:
                 # new_lvar['prior'] = 100 if not new_lvar['checker_halt'] else -1# has_one is shared
                 # lvar['has_one'] = True
         return new_lvar
+
+    @classmethod
+    def cycle_is_same(cycle1, cycle2):
+        if len(cycle1) != len(cycle2):
+            return False
+            
+        if  cycle2.count(cycle1[0]) == 0:
+            return False
+            
+        cycle2_idx_offset = cycle2.index(cycle1[0])
+        idx = 0
+        len_cycle = len(cycle2)
+        while idx < len_cycle:
+            if(cycle1[idx] != cycle2[cycle2_idx_offset + idx]):
+                return False
+            idx += 1
+        return True
+    
+    @classmethod
+    def cycle_in_cycles(cls, cycle, cycles):
+        for cur_cycle in cycles:
+            if cls.cycle_is_same(cycle, cur_cycle):
+                return True
+        return False
+    
+    @classmethod
+    def find_cycles(cls, bb, cycles):
+
+        def find_cycles_dfs(start, cur, path, visited, cycles):
+            visited.add(cur)
+            path.append(cur)
+            succs_list = cls.bbs_graph[cur].items()
+            for _, next_bb in succs_list:
+                if next_bb == start and (not cls.cycle_in_cycles(path, cycles)):
+                    cycles.add(path)
+                elif next_bb not in visited:
+                    print(path)
+                    find_cycles_dfs(start, next_bb, path, visited, cycles)
+            visited.remove(cur)
+            path.pop()
+
+        find_cycles_dfs(bb, bb, [], set(), cycles)
+
+    # @ classmethod
+    # def algo_bfs(cls, entry, state):
+    #     que = Queue()
+    #     que._put((entry, [state]))
+    #     final_states = defaultdict(list)
+    #     # icfg_cycles = set()
+    #     # vis_start_bb = set()
+
+    #     # cls.find_cycles(entry, icfg_cycles)
+    #     # vis_start_bb.add(entry)
+    #     # print(icfg_cycles)
+
+    #     def producer():
+    #         while not que.empty():
+    #             yield que._get()
+        
+    #     def consumer(item):
+    #         (current_bb, current_states) = item
+    #         succs_list = cls.bbs_graph[current_bb].items()
+    #         halt_flag = False
+    #         try:
+    #             emul_states = cls.wasmVM.emulate_basic_block(
+    #                 current_states, cls.bb_to_instructions[current_bb])
+    #         except ProcSuccessTermination:
+    #             return False, current_states
+    #         except ProcFailTermination:
+    #             write_result(state[0], exit=True)
+    #             return False, current_states
+    #         # Because of the existence of dummy block, the len(succs_list) of the exit is 0
+    #         if len(succs_list) == 0:
+    #             return False, emul_states
+            
+    #         avail_br = {}
+    #         for edge_type, next_block in succs_list:
+    #             # if next_block not in vis_start_bb:
+    #             #     vis_start_bb.add(next_block)
+    #             #     cls.find_cycles(next_block, icfg_cycles)
+    #             valid_states = list(
+    #                 filter(
+    #                     lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
+    #             if len(valid_states) > 0:
+    #                 avail_br[(edge_type, next_block)] = valid_states
+            
+    #         for valid_states in avail_br.values():
+    #             for s in valid_states:
+    #                 s.current_bb_name = ''
+    #                 s.edge_type = ''
+    #                 s.call_indirect_callee = ''
+            
+    #         for br in avail_br:
+    #             (_, next_block), valid_states = br, avail_br[br]
+    #             que._put((next_block, valid_states))
+            
+    #         return halt_flag, []
+
+    #     for item in producer():
+    #         halt_flag, emul_states = consumer(item)
+
+    #         for item in emul_states:
+    #             # only the block that locates at the end of the entry function
+    #             # can be regarded as end of path
+    #             if readable_internal_func_name(
+    #                     Configuration.get_func_index_to_func_name(),
+    #                     item.current_func_name) == Configuration.get_entry():
+    #                 write_result(item)
+
+    #         final_states['return'].extend(emul_states)
+    #         if halt_flag:
+    #             break
+    #     return final_states
+            
+
+    @ classmethod
+    def algo_traverse(cls, entry, state, producer):
+        que = []
+        que.append((entry, [state]))
+        final_states = defaultdict(list)
+        # icfg_cycles = set()
+        # vis_start_bb = set()
+
+        # cls.find_cycles(entry, icfg_cycles)
+        # vis_start_bb.add(entry)
+        # print(icfg_cycles)
+
+        def consumer(item):
+            (current_bb, current_states) = item
+            succs_list = cls.bbs_graph[current_bb].items()
+            halt_flag = False
+            try:
+                emul_states = cls.wasmVM.emulate_basic_block(
+                    current_states, cls.bb_to_instructions[current_bb])
+            except ProcSuccessTermination:
+                return False, current_states
+            except ProcFailTermination:
+                write_result(state[0], exit=True)
+                return False, current_states
+            # Because of the existence of dummy block, the len(succs_list) of the exit is 0
+            if len(succs_list) == 0:
+                return False, emul_states
+            
+            avail_br = {}
+            for edge_type, next_block in succs_list:
+                # if next_block not in vis_start_bb:
+                #     vis_start_bb.add(next_block)
+                #     cls.find_cycles(next_block, icfg_cycles)
+                valid_states = list(
+                    filter(
+                        lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
+                if len(valid_states) > 0:
+                    avail_br[(edge_type, next_block)] = valid_states
+            
+            for valid_states in avail_br.values():
+                for s in valid_states:
+                    s.current_bb_name = ''
+                    s.edge_type = ''
+                    s.call_indirect_callee = ''
+            
+            for br in avail_br:
+                (_, next_block), valid_states = br, avail_br[br]
+                que.append((next_block, valid_states))
+            
+            return halt_flag, []
+
+        for item in producer(que):
+            halt_flag, emul_states = consumer(item)
+
+            for item in emul_states:
+                # only the block that locates at the end of the entry function
+                # can be regarded as end of path
+                if readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        item.current_func_name) == Configuration.get_entry():
+                    write_result(item)
+
+            final_states['return'].extend(emul_states)
+            if halt_flag:
+                break
+        return final_states
