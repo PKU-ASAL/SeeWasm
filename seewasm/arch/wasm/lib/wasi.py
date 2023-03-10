@@ -6,6 +6,8 @@ from copy import deepcopy
 from datetime import datetime
 
 from seewasm.arch.wasm.configuration import Configuration
+from seewasm.arch.wasm.exceptions import (ProcFailTermination,
+                                          ProcSuccessTermination)
 from seewasm.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
 from seewasm.arch.wasm.solver import SMTSolver
 from seewasm.arch.wasm.utils import (init_file_for_file_sys,
@@ -358,10 +360,10 @@ class WASIImportFunction:
 
             proc_exit = BitVec('proc_exit', 32)
             state.solver.add(proc_exit == return_val)
-            # if return_val == 0:
-            #     raise ProcSuccessTermination(return_val)
-            # else:
-            #     raise ProcFailTermination(return_val)
+            if return_val == 0:
+                raise ProcSuccessTermination(return_val)
+            else:
+                raise ProcFailTermination(return_val)
         elif self.name == 'fd_prestat_get':
             prestat_addr, fd = _extract_params(param_str, state)
             logging.info(

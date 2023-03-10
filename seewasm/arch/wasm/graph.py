@@ -916,7 +916,7 @@ class Graph:
             except ProcSuccessTermination:
                 return False, current_states
             except ProcFailTermination:
-                write_result(state[0], exit=True)
+                write_result(current_states[0], exit=True)
                 return False, current_states
             # Because of the existence of dummy block, the len(succs_list) of the exit is 0
             if len(succs_list) == 0:
