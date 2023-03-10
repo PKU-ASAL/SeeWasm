@@ -169,6 +169,9 @@ class Configuration:
                 func_name = func_name.decode()
                 if "__imported_wasi_snapshot_preview1_" in func_name:
                     func_name = func_name[34:]
+                # ',' changed to '_' in demangled Rust
+                if "," in func_name:
+                    func_name = func_name.replace(",", "_")
                 Configuration._func_index_to_func_name[index] = func_name
         else:
             for index, item in enumerate(func_prototypes):

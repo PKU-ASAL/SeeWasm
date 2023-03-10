@@ -12,7 +12,7 @@ from seewasm.arch.wasm.exceptions import (ProcFailTermination,
 from seewasm.arch.wasm.instruction import WasmInstruction
 from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.utils import (query_cache, readable_internal_func_name,
-                                     write_result)
+                                     rust_func_hash_name, write_result)
 from seewasm.core.basicblock import BasicBlock
 from seewasm.core.edge import EDGE_FALLTHROUGH
 
@@ -738,6 +738,15 @@ class Graph:
                 cur_func) != readable_internal_func_name(
                 Configuration.get_func_index_to_func_name(),
                 func)
+            if not_same_func and Configuration.get_source_type() == 'rust':
+                r1 = readable_internal_func_name(
+                     Configuration.get_func_index_to_func_name(),
+                     cur_func)
+                r2 = readable_internal_func_name(
+                     Configuration.get_func_index_to_func_name(),
+                     func)
+                not_same_func = rust_func_hash_name(r1) != \
+                    rust_func_hash_name(r2)
 
             return not_same_func or cls.sat_cut(state.solver)
         else:

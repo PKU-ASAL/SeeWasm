@@ -54,6 +54,16 @@ def readable_internal_func_name(func_index_to_func_name, internal_func_name):
     assert readable_name is not None, f"the internal funciton {internal_func_name} cannot find its corresponding readable name"
     return readable_name
 
+def rust_func_hash_name(name):
+    """
+    Get hash value of Rust funcs to further compare
+    Return original name if hash value is not available
+    """
+    hash_value = name
+    search_result = re.search('.*::(h[\w]*)', name)
+    if (search_result):
+        hash_value = search_result.group(1)
+    return hash_value
 
 def bin_to_float(b):
     """ Convert binary string to a float. """

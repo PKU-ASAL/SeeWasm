@@ -14,7 +14,8 @@ from seewasm.arch.wasm.lib.go_lib import GoPredefinedFunction
 from seewasm.arch.wasm.lib.utils import is_modeled
 from seewasm.arch.wasm.lib.wasi import WASIImportFunction
 from seewasm.arch.wasm.utils import (log_in_out, one_time_query_cache,
-                                     readable_internal_func_name)
+                                     readable_internal_func_name,
+                                     rust_func_hash_name)
 
 TERMINATED_FUNCS = {'__assert_fail', 'runtime.divideByZeroPanic'}
 
@@ -236,7 +237,10 @@ class ControlInstructions:
             for func_offset, item in enumerate(analyzer.func_prototypes):
                 if callee_func_name == readable_internal_func_name(
                         Configuration.get_func_index_to_func_name(),
-                        item[0]):
+                        item[0]) or \
+                   rust_func_hash_name(callee_func_name) == rust_func_hash_name(
+                        readable_internal_func_name(Configuration.get_func_index_to_func_name(),
+                        item[0])):
                     state.call_indirect_callee = callee_func_name
                     callee_func_offset = func_offset
                     break
