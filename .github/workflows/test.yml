@@ -1,0 +1,44 @@
+name: Test
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - ".github/workflows/*.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**.py'
+      - ".github/workflows/*.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: '3.7'
+          cache: pip
+          # Set this option if you want the action to check for the latest available version that satisfies the version spec.
+          # check-latest: # optional
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Cache wabt
+        id: cache-wabt
+        uses: actions/cache@v3
+        with:
+          path: wabt-1.0.32
+          key: wabt
+      - name: Install wabt
+        if: steps.cache-wabt.outputs.cache-hit != 'true'
+        run: |
+          curl -JLO "https://github.com/WebAssembly/wabt/releases/download/1.0.32/wabt-1.0.32-ubuntu.tar.gz"
+          tar xzf wabt-1.0.32-ubuntu.tar.gz
+      - name: Run pytest
+        run: |
+          export PATH=$(pwd)/wabt-1.0.32/bin:$PATH
+          pytest test.py --tb=short --durations=0
