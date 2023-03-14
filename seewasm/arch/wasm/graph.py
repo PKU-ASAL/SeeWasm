@@ -914,6 +914,7 @@ class Graph:
                 emul_states = cls.wasmVM.emulate_basic_block(
                     current_states, cls.bb_to_instructions[current_bb])
             except ProcSuccessTermination:
+                write_result(current_states[0], exit=True)
                 return False, current_states
             except ProcFailTermination:
                 write_result(current_states[0], exit=True)
