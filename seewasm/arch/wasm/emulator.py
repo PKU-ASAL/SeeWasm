@@ -11,7 +11,8 @@ from z3 import BitVec, BitVecVal
 from seewasm.arch.wasm.analyzer import WasmModuleAnalyzer
 from seewasm.arch.wasm.cfg import WasmCFG
 from seewasm.arch.wasm.configuration import Configuration
-from seewasm.arch.wasm.exceptions import UnsupportGlobalTypeError
+from seewasm.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
+                                          UnsupportInstructionError)
 from seewasm.arch.wasm.instructions import (ArithmeticInstructions,
                                             BitwiseInstructions,
                                             ConstantInstructions,
@@ -340,6 +341,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             instructions (list(Instruction)): A list of instruction objects
         """
         for instruction in instructions:
+            if instruction.name == "return":
+                logging.debug("got 'return' instruction, now return")
+                break
+            if instruction.name == "unreachable":
+                logging.debug("got 'unreachable' instruction, now terminate")
+                raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
             for state in states:  # TODO: embarassing parallel
                 state.instr = instruction
