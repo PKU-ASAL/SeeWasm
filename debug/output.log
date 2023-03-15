@@ -1,0 +1,1791 @@
+Start to analyze: 2023-03-15 11:02:40
+Running...
+2023-03-15 11:02:40,208 | DEBUG | init wasmVM
+2023-03-15 11:02:40,380 | DEBUG | build call graph
+2023-03-15 11:02:40,383 | DEBUG | remove unrelated funcs
+2023-03-15 11:02:40,383 | WARNING | Totally remove 55 unrelated functions, around 75.342% of all functions
+2023-03-15 11:02:40,383 | DEBUG | split bbs
+2023-03-15 11:02:40,389 | DEBUG | init Graph
+2023-03-15 11:02:40,401 | DEBUG | traverse graph
+2023-03-15 11:02:40,401 | DEBUG | states len: 1
+2023-03-15 11:02:40,406 | DEBUG | 
+State:	139970045265872
+Instruction:	get_global 0
+Offset:		0
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,406 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,406 | DEBUG | states len: 1
+2023-03-15 11:02:40,406 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 0
+Offset:		1
+Current Func:	__original_main
+Stack:		[72464]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,406 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,406 | DEBUG | states len: 1
+2023-03-15 11:02:40,406 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 16
+Offset:		2
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,407 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,407 | DEBUG | states len: 1
+2023-03-15 11:02:40,407 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 1
+Offset:		3
+Current Func:	__original_main
+Stack:		[16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,407 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,407 | DEBUG | states len: 1
+2023-03-15 11:02:40,407 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 0
+Offset:		4
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,407 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,407 | DEBUG | states len: 1
+2023-03-15 11:02:40,407 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 1
+Offset:		5
+Current Func:	__original_main
+Stack:		[72464]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,407 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,407 | DEBUG | states len: 1
+2023-03-15 11:02:40,407 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.sub
+Offset:		6
+Current Func:	__original_main
+Stack:		[72464, 16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,407 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,408 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 2
+Offset:		7
+Current Func:	__original_main
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,408 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,408 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		8
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,408 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,408 | DEBUG | 
+State:	139970045265872
+Instruction:	set_global 0
+Offset:		9
+Current Func:	__original_main
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448})
+Global Var:	{0: 72464}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,408 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,408 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 0
+Offset:		10
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448})
+Global Var:	{0: 72448}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,408 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,408 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 3
+Offset:		11
+Current Func:	__original_main
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448})
+Global Var:	{0: 72448}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,408 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,408 | DEBUG | states len: 1
+2023-03-15 11:02:40,409 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		12
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,409 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,409 | DEBUG | states len: 1
+2023-03-15 11:02:40,409 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 3
+Offset:		13
+Current Func:	__original_main
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,409 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,409 | DEBUG | states len: 1
+2023-03-15 11:02:40,409 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.store 2, 12
+Offset:		14
+Current Func:	__original_main
+Stack:		[72448, 0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,409 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,409 | DEBUG | states len: 1
+2023-03-15 11:02:40,409 | DEBUG | 
+State:	139970045265872
+Instruction:	call 7
+Offset:		15
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+
+2023-03-15 11:02:40,409 | INFO | Call: __original_main -> signed_int_add
+2023-03-15 11:02:40,409 | DEBUG | next_states len: 1
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_1_0'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,413 | DEBUG | states len: 1
+2023-03-15 11:02:40,413 | DEBUG | 
+State:	139970045265872
+Instruction:	get_global 0
+Offset:		0
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,413 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,413 | DEBUG | states len: 1
+2023-03-15 11:02:40,413 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 0
+Offset:		1
+Current Func:	signed_int_add
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,413 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,413 | DEBUG | states len: 1
+2023-03-15 11:02:40,413 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 32
+Offset:		2
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,413 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,413 | DEBUG | states len: 1
+2023-03-15 11:02:40,413 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 1
+Offset:		3
+Current Func:	signed_int_add
+Stack:		[32]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,413 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,413 | DEBUG | states len: 1
+2023-03-15 11:02:40,414 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 0
+Offset:		4
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,414 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,414 | DEBUG | states len: 1
+2023-03-15 11:02:40,414 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 1
+Offset:		5
+Current Func:	signed_int_add
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,414 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,414 | DEBUG | states len: 1
+2023-03-15 11:02:40,414 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.sub
+Offset:		6
+Current Func:	signed_int_add
+Stack:		[72448, 32]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,414 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,414 | DEBUG | states len: 1
+2023-03-15 11:02:40,414 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 2
+Offset:		7
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,414 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,414 | DEBUG | states len: 1
+2023-03-15 11:02:40,414 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		8
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,414 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,414 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	set_global 0
+Offset:		9
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,415 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,415 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 2147483640
+Offset:		10
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,415 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,415 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 3
+Offset:		11
+Current Func:	signed_int_add
+Stack:		[2147483640]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,415 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,415 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		12
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,415 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,415 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 3
+Offset:		13
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,415 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,415 | DEBUG | states len: 1
+2023-03-15 11:02:40,415 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.store 2, 28
+Offset:		14
+Current Func:	signed_int_add
+Stack:		[72416, 2147483640]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,416 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,416 | DEBUG | states len: 1
+2023-03-15 11:02:40,416 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 24
+Offset:		15
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,416 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,416 | DEBUG | states len: 1
+2023-03-15 11:02:40,416 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 4
+Offset:		16
+Current Func:	signed_int_add
+Stack:		[24]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,416 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,416 | DEBUG | states len: 1
+2023-03-15 11:02:40,416 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		17
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,416 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,416 | DEBUG | states len: 1
+2023-03-15 11:02:40,417 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 4
+Offset:		18
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,417 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,417 | DEBUG | states len: 1
+2023-03-15 11:02:40,417 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.add
+Offset:		19
+Current Func:	signed_int_add
+Stack:		[72416, 24]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,417 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,417 | DEBUG | states len: 1
+2023-03-15 11:02:40,417 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 5
+Offset:		20
+Current Func:	signed_int_add
+Stack:		[72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,417 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,417 | DEBUG | states len: 1
+2023-03-15 11:02:40,417 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		21
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,417 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,417 | DEBUG | states len: 1
+2023-03-15 11:02:40,417 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 5
+Offset:		22
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,418 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,418 | DEBUG | states len: 1
+2023-03-15 11:02:40,418 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.store 2, 0
+Offset:		23
+Current Func:	signed_int_add
+Stack:		[72416, 72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,418 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,418 | DEBUG | states len: 1
+2023-03-15 11:02:40,418 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 1061
+Offset:		24
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640, (72416, 72420): 72440}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,418 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,418 | DEBUG | states len: 1
+2023-03-15 11:02:40,418 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 6
+Offset:		25
+Current Func:	signed_int_add
+Stack:		[1061]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640, (72416, 72420): 72440}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,418 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,418 | DEBUG | states len: 1
+2023-03-15 11:02:40,419 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 6
+Offset:		26
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640, (72416, 72420): 72440}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,419 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,419 | DEBUG | states len: 1
+2023-03-15 11:02:40,419 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		27
+Current Func:	signed_int_add
+Stack:		[1061]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640, (72416, 72420): 72440}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,419 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,419 | DEBUG | states len: 1
+2023-03-15 11:02:40,419 | DEBUG | 
+State:	139970045265872
+Instruction:	call 19
+Offset:		28
+Current Func:	signed_int_add
+Stack:		[1061, 72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72444, 72448): 2147483640, (72416, 72420): 72440}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+
+2023-03-15 11:02:40,419 | INFO | Call: scanf (C Library)
+2023-03-15 11:02:40,419 | INFO | 	scanf, pattern_p: 1061, param_p: 72416
+2023-03-15 11:02:40,423 | INFO | 	Input a scanf int: scanf_None_None_None_[0]_72440
+2023-03-15 11:02:40,423 | INFO | Return: scanf (C Library)
+2023-03-15 11:02:40,423 | DEBUG | next_states len: 1
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_1_4e'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,423 | DEBUG | states len: 1
+2023-03-15 11:02:40,423 | DEBUG | 
+State:	139970045265872
+Instruction:	drop
+Offset:		29
+Current Func:	signed_int_add
+Stack:		[1]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,423 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,423 | DEBUG | states len: 1
+2023-03-15 11:02:40,424 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		30
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,424 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,424 | DEBUG | states len: 1
+2023-03-15 11:02:40,424 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.load 2, 28
+Offset:		31
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,424 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,424 | DEBUG | states len: 1
+2023-03-15 11:02:40,425 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 7
+Offset:		32
+Current Func:	signed_int_add
+Stack:		[2147483640]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,425 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,425 | DEBUG | states len: 1
+2023-03-15 11:02:40,425 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		33
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,425 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,425 | DEBUG | states len: 1
+2023-03-15 11:02:40,425 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.load 2, 24
+Offset:		34
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,425 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,425 | DEBUG | states len: 1
+2023-03-15 11:02:40,426 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 8
+Offset:		35
+Current Func:	signed_int_add
+Stack:		[scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,426 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,426 | DEBUG | states len: 1
+2023-03-15 11:02:40,426 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 7
+Offset:		36
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,426 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,426 | DEBUG | states len: 1
+2023-03-15 11:02:40,427 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 8
+Offset:		37
+Current Func:	signed_int_add
+Stack:		[2147483640]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,427 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,427 | DEBUG | states len: 1
+2023-03-15 11:02:40,427 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.add
+Offset:		38
+Current Func:	signed_int_add
+Stack:		[2147483640, scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,427 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,427 | DEBUG | states len: 1
+2023-03-15 11:02:40,428 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 9
+Offset:		39
+Current Func:	signed_int_add
+Stack:		[2147483640 + scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,428 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,428 | DEBUG | states len: 1
+2023-03-15 11:02:40,428 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		40
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,428 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,428 | DEBUG | states len: 1
+2023-03-15 11:02:40,429 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 9
+Offset:		41
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,429 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,429 | DEBUG | states len: 1
+2023-03-15 11:02:40,430 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.store 2, 20
+Offset:		42
+Current Func:	signed_int_add
+Stack:		[72416, 2147483640 + scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72440, 72448): Concat(2147483640, scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,430 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,430 | DEBUG | states len: 1
+2023-03-15 11:02:40,431 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		43
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,431 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,431 | DEBUG | states len: 1
+2023-03-15 11:02:40,431 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.load 2, 20
+Offset:		44
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,432 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,432 | DEBUG | states len: 1
+2023-03-15 11:02:40,433 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 10
+Offset:		45
+Current Func:	signed_int_add
+Stack:		[2147483640 + scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,433 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,433 | DEBUG | states len: 1
+2023-03-15 11:02:40,434 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		46
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,434 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,434 | DEBUG | states len: 1
+2023-03-15 11:02:40,435 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 10
+Offset:		47
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,435 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,435 | DEBUG | states len: 1
+2023-03-15 11:02:40,436 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.store 2, 16
+Offset:		48
+Current Func:	signed_int_add
+Stack:		[72416, 2147483640 + scanf_None_None_None_[0]_72440]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72436, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,436 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,436 | DEBUG | states len: 1
+2023-03-15 11:02:40,437 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 1061
+Offset:		49
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,437 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,437 | DEBUG | states len: 1
+2023-03-15 11:02:40,438 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 11
+Offset:		50
+Current Func:	signed_int_add
+Stack:		[1061]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,438 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,438 | DEBUG | states len: 1
+2023-03-15 11:02:40,439 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 16
+Offset:		51
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,439 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,439 | DEBUG | states len: 1
+2023-03-15 11:02:40,440 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 12
+Offset:		52
+Current Func:	signed_int_add
+Stack:		[16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,440 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,440 | DEBUG | states len: 1
+2023-03-15 11:02:40,442 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		53
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,442 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,442 | DEBUG | states len: 1
+2023-03-15 11:02:40,443 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 12
+Offset:		54
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,443 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,443 | DEBUG | states len: 1
+2023-03-15 11:02:40,444 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.add
+Offset:		55
+Current Func:	signed_int_add
+Stack:		[72416, 16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,444 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,444 | DEBUG | states len: 1
+2023-03-15 11:02:40,445 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 13
+Offset:		56
+Current Func:	signed_int_add
+Stack:		[72432]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,445 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,445 | DEBUG | states len: 1
+2023-03-15 11:02:40,446 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 11
+Offset:		57
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,447 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,447 | DEBUG | states len: 1
+2023-03-15 11:02:40,448 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 13
+Offset:		58
+Current Func:	signed_int_add
+Stack:		[1061]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,448 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,448 | DEBUG | states len: 1
+2023-03-15 11:02:40,449 | DEBUG | 
+State:	139970045265872
+Instruction:	call 20
+Offset:		59
+Current Func:	signed_int_add
+Stack:		[1061, 72432]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+
+2023-03-15 11:02:40,449 | INFO | Call: printf (C Library)
+2023-03-15 11:02:40,449 | INFO | 	printf, pattern_p: 1061, param_p: 72432
+2023-03-15 11:02:40,450 | INFO | 	Output a string: [50, 49, 52, 55, 52, 56, 51, 54, 52, 48, 32, 43, 32, 115, 99, 97, 110, 102, 95, 78, 111, 110, 101, 95, 78, 111, 110, 101, 95, 78, 111, 110, 101, 95, 91, 48, 93, 95, 55, 50, 52, 52, 48]
+2023-03-15 11:02:40,450 | INFO | Return: printf (C Library)
+2023-03-15 11:02:40,450 | DEBUG | next_states len: 1
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_1_96'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,450 | DEBUG | states len: 1
+2023-03-15 11:02:40,451 | DEBUG | 
+State:	139970045265872
+Instruction:	drop
+Offset:		60
+Current Func:	signed_int_add
+Stack:		[43]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,451 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,451 | DEBUG | states len: 1
+2023-03-15 11:02:40,452 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 0
+Offset:		61
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,453 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,453 | DEBUG | states len: 1
+2023-03-15 11:02:40,454 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 14
+Offset:		62
+Current Func:	signed_int_add
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,454 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,454 | DEBUG | states len: 1
+2023-03-15 11:02:40,455 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 32
+Offset:		63
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,455 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,455 | DEBUG | states len: 1
+2023-03-15 11:02:40,456 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 15
+Offset:		64
+Current Func:	signed_int_add
+Stack:		[32]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,456 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,456 | DEBUG | states len: 1
+2023-03-15 11:02:40,458 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		65
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,458 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,458 | DEBUG | states len: 1
+2023-03-15 11:02:40,459 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 15
+Offset:		66
+Current Func:	signed_int_add
+Stack:		[72416]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,459 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,459 | DEBUG | states len: 1
+2023-03-15 11:02:40,460 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.add
+Offset:		67
+Current Func:	signed_int_add
+Stack:		[72416, 32]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,460 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,460 | DEBUG | states len: 1
+2023-03-15 11:02:40,461 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 16
+Offset:		68
+Current Func:	signed_int_add
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,461 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,461 | DEBUG | states len: 1
+2023-03-15 11:02:40,462 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 16
+Offset:		69
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32, 16: 72448})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,463 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,463 | DEBUG | states len: 1
+2023-03-15 11:02:40,464 | DEBUG | 
+State:	139970045265872
+Instruction:	set_global 0
+Offset:		70
+Current Func:	signed_int_add
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32, 16: 72448})
+Global Var:	{0: 72416}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,464 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,464 | DEBUG | states len: 1
+2023-03-15 11:02:40,465 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 14
+Offset:		71
+Current Func:	signed_int_add
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32, 16: 72448})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+
+2023-03-15 11:02:40,465 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,465 | DEBUG | got 'return' instruction, now return
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_1_b2'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,465 | DEBUG | states len: 1
+2023-03-15 11:02:40,466 | DEBUG | 
+State:	139970045265872
+Instruction:	nop
+Offset:		74
+Current Func:	signed_int_add
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72448, 1: 32, 2: 72416, 3: 2147483640, 4: 24, 5: 72440, 6: 1061, 7: 2147483640, 8: scanf_None_None_None_[0]_72440, 9: 2147483640 + scanf_None_None_None_[0]_72440, 10: 2147483640 + scanf_None_None_None_[0]_72440, 11: 1061, 12: 16, 13: 72432, 14: 0, 15: 32, 16: 72448})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+
+2023-03-15 11:02:40,466 | INFO | Return: __original_main <- signed_int_add
+2023-03-15 11:02:40,466 | DEBUG | next_states len: 1
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_2_2c'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,466 | DEBUG | states len: 1
+2023-03-15 11:02:40,467 | DEBUG | 
+State:	139970045265872
+Instruction:	drop
+Offset:		16
+Current Func:	__original_main
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,467 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,467 | DEBUG | states len: 1
+2023-03-15 11:02:40,468 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 0
+Offset:		17
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,468 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,468 | DEBUG | states len: 1
+2023-03-15 11:02:40,469 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 4
+Offset:		18
+Current Func:	__original_main
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,469 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,469 | DEBUG | states len: 1
+2023-03-15 11:02:40,469 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.const 16
+Offset:		19
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,469 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,469 | DEBUG | states len: 1
+2023-03-15 11:02:40,470 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 5
+Offset:		20
+Current Func:	__original_main
+Stack:		[16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,470 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,470 | DEBUG | states len: 1
+2023-03-15 11:02:40,471 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 2
+Offset:		21
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,471 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,471 | DEBUG | states len: 1
+2023-03-15 11:02:40,472 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 5
+Offset:		22
+Current Func:	__original_main
+Stack:		[72448]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,472 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,472 | DEBUG | states len: 1
+2023-03-15 11:02:40,473 | DEBUG | 
+State:	139970045265872
+Instruction:	i32.add
+Offset:		23
+Current Func:	__original_main
+Stack:		[72448, 16]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,473 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,473 | DEBUG | states len: 1
+2023-03-15 11:02:40,473 | DEBUG | 
+State:	139970045265872
+Instruction:	set_local 6
+Offset:		24
+Current Func:	__original_main
+Stack:		[72464]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,473 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,473 | DEBUG | states len: 1
+2023-03-15 11:02:40,474 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 6
+Offset:		25
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16, 6: 72464})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,474 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,474 | DEBUG | states len: 1
+2023-03-15 11:02:40,475 | DEBUG | 
+State:	139970045265872
+Instruction:	set_global 0
+Offset:		26
+Current Func:	__original_main
+Stack:		[72464]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16, 6: 72464})
+Global Var:	{0: 72448}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,475 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,475 | DEBUG | states len: 1
+2023-03-15 11:02:40,476 | DEBUG | 
+State:	139970045265872
+Instruction:	get_local 4
+Offset:		27
+Current Func:	__original_main
+Stack:		[]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16, 6: 72464})
+Global Var:	{0: 72464}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+
+2023-03-15 11:02:40,476 | DEBUG | next_states len: 1
+2023-03-15 11:02:40,476 | DEBUG | got 'return' instruction, now return
+basic block emulated, succs_list len: 1
+avail_br len: 1
+{('fallthrough_0', 'block_2_48'): [<seewasm.arch.wasm.vmstate.WasmVMstate object at 0x7f4d50d3c7d0>]}
+2023-03-15 11:02:40,476 | DEBUG | states len: 1
+2023-03-15 11:02:40,476 | DEBUG | 
+State:	139970045265872
+Instruction:	nop
+Offset:		30
+Current Func:	__original_main
+Stack:		[0]
+Local Var:	defaultdict(<function WasmVMstate.__init__.<locals>.local_default at 0x7f4d50d3d0e0>, {0: 72464, 1: 16, 2: 72448, 3: 0, 4: 0, 5: 16, 6: 72464})
+Global Var:	{0: 72464}
+Memory:		{(72460, 72464): 0, (72416, 72420): 72440, (72432, 72448): Concat(2147483640,
+       scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440,
+       2147483640 + scanf_None_None_None_[0]_72440)}
+Constraints:	[]
+Trace:	$func8: 0 get_global 0 -> 15 call 7
+	signed_int_add: 0 get_global 0 -> 28 call 19
+	signed_int_add: 29 None -> 59 call 20
+	signed_int_add: 60 None -> 73 None
+	signed_int_add: 74 None -> 74 None
+	$func8: 16 None -> 29 None
+	$func8: 30 None -> 30 None
+
+2023-03-15 11:02:40,477 | DEBUG | next_states len: 1
+basic block emulated, succs_list len: 0
+Finished.
+End of analyze: 2023-03-15 11:02:40
+Time elapsed: 0:00:00.297612

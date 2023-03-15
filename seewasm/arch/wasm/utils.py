@@ -231,6 +231,7 @@ def write_result(state, exit=False):
             tmp_dict["output"] = "".join(output_solve_buffer)
             state_result["Output"].append(tmp_dict)
 
+        state_result["Trace"] = state.trace
         json.dump(state_result, fp, indent=4)
 
 

@@ -34,8 +34,6 @@ sys.setrecursionlimit(4096)
 
 # config the logger
 logging_config = {
-    'filename': f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
-    'filemode': 'w+',
     'format': '%(asctime)s | %(levelname)s | %(message)s',
 }
 if 'debug' == Configuration.get_verbose_flag():
@@ -44,6 +42,10 @@ elif 'info' == Configuration.get_verbose_flag():
     logging_config['level'] = logging.INFO
 else:
     logging_config['level'] = logging.WARNING
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+logging_config['handlers'] = [handler, logging.FileHandler(
+    f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log', mode='w+')]
 logging.basicConfig(**logging_config)
 
 
@@ -340,6 +342,9 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
             states (list(VMstate)): From which the symbolic execution begin;
             instructions (list(Instruction)): A list of instruction objects
         """
+        for state in states:
+            state.trace.append(f"{state.current_func_name}: {instructions[0].nature_offset} {instructions[0].operand_interpretation} -> {instructions[-1].nature_offset} {instructions[-1].operand_interpretation}")
+
         for instruction in instructions:
             if instruction.name == "return":
                 logging.debug("got 'return' instruction, now return")
@@ -348,10 +353,13 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 logging.debug("got 'unreachable' instruction, now terminate")
                 raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
+            logging.debug(f"states len: {len(states)}")
             for state in states:  # TODO: embarassing parallel
+                # print(state)
                 state.instr = instruction
                 next_states.extend(self.emulate_one_instruction(
                     instruction, state, lvar))
+            logging.debug(f"next_states len: {len(next_states)}")
             states = next_states
         return states
 
@@ -377,8 +385,8 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
 
-        # logging.debug(
-        #     f"\nState:\t{id(state)}\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
+        logging.debug(
+            f"\nState:\t{id(state)}\nInstruction:\t{instr.operand_interpretation}\nOffset:\t\t{instr.nature_offset}\n{state.__str__()}")
 
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)

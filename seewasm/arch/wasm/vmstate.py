@@ -27,9 +27,12 @@ class WasmVMstate(VMstate):
         # keep the operator and its speculated sign
         self.sign_mapping = defaultdict(bool)
         # context stack
-        # whose element is 4-tuple: (func_name, stack, local, require_return)
+        # whose element is 5-tuple: (func_name, cur_block, stack, local, require_return)
         # TODO files buffer may need to maintained in context
         self.context_stack = []
+
+        # trace route used to debug
+        self.trace = []
 
         self.args = ""
 
@@ -55,12 +58,14 @@ class WasmVMstate(VMstate):
         self.call_indirect_callee = ''
 
     def __str__(self):
+        trace = "\n\t\t".join(self.trace)
         return f'''Current Func:\t{readable_internal_func_name(Configuration.get_func_index_to_func_name(), self.current_func_name)}
 Stack:\t\t{self.symbolic_stack}
 Local Var:\t{self.local_var}
 Global Var:\t{self.globals}
 Memory:\t\t{self.symbolic_memory}
-Constraints:\t{self.solver.assertions()}\n'''
+Constraints:\t{self.solver.assertions()}
+Trace:\t{trace}\n'''
 
     def details(self):
         raise NotImplementedError

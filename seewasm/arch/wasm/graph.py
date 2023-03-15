@@ -624,6 +624,7 @@ class Graph:
                 # trigger exit()
                 write_result(state[0], exit=True)
                 return False, state
+            print(f"basic block emulated, succs_list len: {len(succs_list)}")
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
                 return halt_flag, emul_states
@@ -646,6 +647,7 @@ class Graph:
                     s.edge_type = ''
                     s.call_indirect_callee = ''
 
+            print(f"avail_br len: {len(avail_br)}")
             for br in avail_br:
                 (edge_type, next_block), valid_state = br, avail_br[br]
                 new_head = heads[next_block]
@@ -920,6 +922,7 @@ class Graph:
                 write_result(current_states[0], exit=True)
                 return False, current_states
             # Because of the existence of dummy block, the len(succs_list) of the exit is 0
+            print(f"basic block emulated, succs_list len: {len(succs_list)}")
             if len(succs_list) == 0:
                 return False, emul_states
             
@@ -934,6 +937,8 @@ class Graph:
                 if len(valid_states) > 0:
                     avail_br[(edge_type, next_block)] = valid_states
             
+            print(f"avail_br len: {len(avail_br)}")
+            print(avail_br)
             for valid_states in avail_br.values():
                 for s in valid_states:
                     s.current_bb_name = ''
