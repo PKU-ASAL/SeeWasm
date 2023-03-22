@@ -264,7 +264,7 @@ class Configuration:
         with open(wat_file_path) as fp:
             wat_content = fp.read()
         # extract the element section
-        result = re.search(r"\(elem.*func ([\w\._\$ ]*)\)", wat_content)
+        result = re.search(r"\(elem.*func ([\w\._\$ :<>&+!]*)\)", wat_content)
         # if there is element section in the given wat
         if result:
             elem_sec_funcs = result.group(1).split(' ')
@@ -273,6 +273,8 @@ class Configuration:
                     func = func[34:]  # remove the prefix
                 # remove the leading $
                 Configuration._elem_index_to_func[i] = func[1:]
+        else:
+            print("\nWarning: no element section in wat file!\n")
 
     @staticmethod
     def get_elem_index_to_func():

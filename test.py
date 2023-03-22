@@ -10,6 +10,7 @@ testcase_dir = './test/'
     ('hello_world.wasm', ''),
     ('hello_world_go.wasm', '_start'),
     ('hello_world_rust.wasm', ''),
+    ('hello_world_rust_demangled.wasm', ''),
     ('test.wasm', ''),
 ])
 
