@@ -408,7 +408,7 @@ class Graph:
     @classmethod 
     def dfs_producer(cls, queue):
         while len(queue) != 0:
-            yield queue.pop()   
+            yield queue.pop()
     
     @classmethod
     def bfs_producer(cls, queue):
@@ -487,7 +487,7 @@ class Graph:
         #     if len(intervals) == ninterval:
         #         break
         #     ninterval = len(intervals)
-        #     no_cycle_nodes = {}            
+        #     no_cycle_nodes = {}
         #     c = 0
         #     for h in intervals:
         #         if not cls.has_cycle(h, g, intervals[h], set()):

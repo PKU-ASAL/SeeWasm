@@ -21,8 +21,8 @@ class Configuration:
     """
     _source_type = 'c'              # the original source file's type
     # _algo = 'interval'              # the traverse algorithm, default is interval
-    # _algo = 'bfs'
-    _algo = 'dfs'
+    _algo = 'bfs'
+    # _algo = 'dfs'
     # _algo = 'random'
     _symbol_globals = False         # init the global with the declaration in global sections
     _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed

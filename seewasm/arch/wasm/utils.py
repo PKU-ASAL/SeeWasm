@@ -150,8 +150,8 @@ def write_result(state, exit=False):
     # it means that it is raised by ProcFailTermination
     # do not write anything and just return
     # TODO: write `unreachable` path with output
-    # if exit and not state.file_sys[2]['content']:
-    #     return
+    if exit and not state.file_sys[2]['content']:
+        return
 
     # if the checker is unsat
     if unsat == state.solver.check():

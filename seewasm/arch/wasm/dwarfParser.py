@@ -136,7 +136,6 @@ def get_func_DIE_by_addr(dwarf_info, addr):
                     lowpc = DIE.attributes['DW_AT_low_pc'].value
 
                     # DWARF v4 in section 2.17 describes how to interpret the
-                    # print(function_len_dict)
                     # DW_AT_high_pc attribute based on the class of its form.
                     # For class 'address' it's taken as an absolute address
                     # (similarly to DW_AT_low_pc); for class 'constant', it's
@@ -245,8 +244,6 @@ def decode_var_type(ana, state, addr_stack, use_global_sp=False):
     func_offset = state.instr.offset
     func_DIE = get_func_DIE(ana, func_ind, func_offset)
     if func_DIE is None:
-        print(
-            f"{bcolors.WARNING}unable to get function DIE! index: {func_ind}, instruction offset in function: {func_offset}{bcolors.ENDC}")
         logging.warning(
             f"{bcolors.WARNING}unable to get function DIE! index: {func_ind}, instruction offset in function: {func_offset}{bcolors.ENDC}")
         return None, None
@@ -286,6 +283,8 @@ def get_func_index_from_state(ana, state):
     assert(len(ana.names) == len(ana.func_prototypes))
     for i, item in enumerate(ana.names):
         if str(item[2], 'UTF-8') == state.current_func_name:
+    # for i, item in enumerate(ana.func_prototypes):
+    #     if item[0] == state.current_func_name:
             func_ind = i
             break
     assert func_ind != - \

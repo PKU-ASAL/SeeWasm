@@ -183,9 +183,8 @@ class CPredefinedFunction:
             # get addr of vararg 0.
             addr = decode_vararg(state, param_p, 0)
 
-            # parse dwarf information
-            var_type, var_size = decode_var_type(analyzer, state, addr)
-            # print(f"-----DEBUG_INFO-----\nvar_type:{var_type}\nvar_size:{var_size}\n--------------------\n")
+            # TODO disable dwarf temporarily
+            # var_type, var_size = decode_var_type(analyzer, state, addr)
 
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state)
