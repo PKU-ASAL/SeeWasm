@@ -342,10 +342,12 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         """
         for instruction in instructions:
             if instruction.name == "return":
-                logging.debug("got 'return' instruction, now return")
+                stderr_msg = "got 'return' instruction, now return\n"
+                states[0].file_sys[2]['content'] += [ord(i) for i in stderr_msg]
                 break
             if instruction.name == "unreachable":
-                logging.debug("got 'unreachable' instruction, now terminate")
+                stderr_msg = "got 'unreachable' instruction, now terminate\n"
+                states[0].file_sys[2]['content'] += [ord(i) for i in stderr_msg]
                 raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
             for state in states:  # TODO: embarassing parallel
