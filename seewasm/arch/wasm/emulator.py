@@ -62,7 +62,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         if Configuration.get_entry() not in Configuration.get_func_index_to_func_name().values():
             exit(
-                f"Your designated entry: {Configuration.get_entry()} does not exist.\nPlease assign another by '--entry'")
+                f"Your designated entry: {Configuration.get_entry()} does not exist.\nThere are functions: {list(Configuration.get_func_index_to_func_name().values())}\nPlease assign one of them by '--entry'")
 
         # build call graph
         self.cfg.build_call_graph(self.ana)
