@@ -29,21 +29,23 @@ END_USAGE
 
 build() {
   if [ ! -f "$1" ]; then
-    error "File "$1" not exists."
+    error "File $1 not exists."
     exit 1
   fi
   local dir_name=$(dirname "$1")
   local file_name=$(basename "$1")
-  rustc "$1" -g --target wasm32-wasi --out-dir "$dir_name"
-  if [ "$?" -ne 0 ]; then
-    error "Failed to compile "$file_name" to wasm."
+  
+  if ! rustc "$1" -g --target wasm32-wasi --out-dir "$dir_name"
+  then
+    error "Failed to compile $file_name to wasm."
     exit 1
   fi
 
   local wasm_name="${file_name%.*}.wasm"
   local wat_name="${file_name%.*}.wat"
-  wasm-tools demangle "$dir_name/$wasm_name" -o "$dir_name/$wasm_name"
-  if [ "$?" -ne 0 ]; then
+  
+  if ! wasm-tools demangle "$dir_name/$wasm_name" -o "$dir_name/$wasm_name"
+  then
     error "Failed to demangle "$dir_name/$wasm_name"."
     exit 1
   fi
@@ -56,7 +58,7 @@ build() {
 
 traverse() {
   if [ ! -d "$1" ]; then
-    error "Directory "$1" not exists."
+    error "Directory $1 not exists."
     exit 1
   fi
   local d="$1/*"

@@ -785,7 +785,7 @@ class Graph:
         if len(cycle1) != len(cycle2):
             return False
             
-        if  cycle2.count(cycle1[0]) == 0:
+        if cycle2.count(cycle1[0]) == 0:
             return False
             
         cycle2_idx_offset = cycle2.index(cycle1[0])
