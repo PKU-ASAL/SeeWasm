@@ -1,45 +1,49 @@
-# SeeWasm
+# SeeWasm [![Test](https://github.com/HNYuuu/SeeWasm/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/HNYuuu/SeeWasm)
 ![SeeWasm-logo](./images/logo.png)
 
-WebAssembly (Wasm), as a low-level language, has several advantages. Moreover, Wasm can be translated from high-level mainstream programming languages, e.g., C, C++, Go, Rust and so on.
 
-In this project, we have implemented a **symbolic execution engine** for Wasm binaries, SeeWasm. Our goal is to build a set of toolchain, which can take source code file (written in other programming languages) as input, symbolically execute it, and output feasible paths with their solutions for further analysis (e.g., vulnerability detection).
+WebAssembly (Wasm), a low-level language, offers several advantages and can be translated from high-level mainstream programming languages such as C, C++, Go, and Rust.
+
+In this project, we have implemented a **symbolic execution engine** for Wasm binaries, SeeWasm. Our goal is to build a toolchain that takes source code files (written in other programming languages) as input, performs symbolic execution, and outputs feasible paths with their solutions for further analysis (e.g., vulnerability detection).
 
 ##  Prerequisites 
-First, you have to make sure Python3.7+ is installed.
-
-Then, some libraries should be installed as follows:
+To run SeeWasm, ensure you have Python 3.7 or a later version installed. Then, install the required Python libraries by executing the following command:
 
 ```shell
-python -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
-You can test if all of them are installed successfully by:
+If you encounter issues building the wheel for leb128, update pip and wheel, then reinstall leb128:
 
 ```shell
-python test.py
+pip install --upgrade pip wheel
+pip install --force-reinstall leb128==1.0.4
 ```
 
-This command will traverse the `./test` folder and extract all Wasm binaries.
-If all of them can be symbolically executed without any exceptions, the success info would shown in your terminal **after several seconds**.
+If you need to visualize the graph (`--visualize`), make sure you have installed `graphviz` on your system. You can use `sudo apt install graphviz` to install.
 
-Some samples exist in the folder, including hello world written in C, Go, and Rust.
-These Wasm binaries can be compiled from C, Go and Rust, respectively, and the compiling processes are illustrated in [here](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi)(C and Rust), and [here](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html)(Go).
-We will not repeat how to compile programs into Wasm binaries in this readme.
+To verify everything is set up correctly, run the following command:
 
-However, for Rust programs, you can also use our one-shot solution: `./build-rs.sh -f|-d PATH`, to compile and demangle rust files or projects.
-Run `./build-rs.sh -h` for more information.
+```shell
+pytest test.py
+```
+
+This command traverses the `./test` folder and performs symbolic execution on all Wasm binaries.
+If successful, a success message will be displayed, typically **after several seconds**.
+
+Sample Wasm binaries, including "Hello World" in C, Go, and Rust, are provided in the folder. 
+These can be compiled from their respective source languages; the compilation processes are detailed in [WASI tutorial](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi) (C and Rust), and [WASI "Hello World" example](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html) (Go).
 
 ## Analyze
-
-In this section, we would show how to use SeeWasm to analyze the generated Wasm file.
+This section demonstrates how to use SeeWasm to analyze a generated WebAssembly file.
 
 ### Options
 All valid options are shown in below:
-```shell
-SeeWasm, a symbolic execution engine for Wasm module
 
-optional arguments:
+```shell
+SeeWasm, a symbolic execution engine for Wasm binaries
+
+Optional arguments:
   -h, --help            show this help message and exit
 
 Input arguments:
@@ -106,16 +110,49 @@ Accoding to different values, different levels of logging can be generated, whic
 The `-s` is a mandatory option.
 It will enable the symbolic execution analysis on the given Wasm binary.
 
+## Output
+The output of SeeWasm, including logs and results, is stored in the `log` folder, with each file named according to the pattern `NAME_TIMESTAMP`.
+
+The log file follows a specific format, which illustrates the call trace of the anaylzed program:
+
+```log
+2024-07-01 07:50:36,191 | WARNING | Totally remove 27 unrelated functions, around 50.000% of all functions
+2024-07-01 07:50:36,205 | INFO | Call: __original_main -> __main_void
+2024-07-01 07:50:36,218 | INFO | Call: __main_void -> __wasi_args_sizes_get
+2024-07-01 07:50:36,219 | INFO | Call: args_sizes_get (import)
+2024-07-01 07:50:36,219 | INFO | 	args_sizes_get, argc_addr: 70792, arg_buf_size_addr: 70796
+2024-07-01 07:50:36,219 | INFO | Return: args_sizes_get (import)
+2024-07-01 07:50:36,219 | INFO | Return: __wasi_args_sizes_get
+...
+```
+
+The result is a JSON file containing feasible paths with their solutions, formatted as follows:
+
+```json
+{
+    "Status": xxx,
+    "Solution": {xxx},
+    "Output": [
+        {
+            "name": "stdout",
+            "output": "xxx"
+        },
+        {
+            "name": "stderr",
+            "output": "xxx"
+        }
+    ]
+}
+```
+
 ## Example
 If we want to execute a program which does not requrie any extra arguments and input, the command should be:
 
 ```shell
-python launcher.py -f PATH_TO_WASM_BINARY -s
+python3 launcher.py -f PATH_TO_WASM_BINARY -s
 ```
 
-The corresponding logging and results of feasible paths will be generated in `./log` folder.
-
-If compilicated arguments are required. For example, a `base64` program whose `main` is like:
+If compilicated arguments are required, for example, a `base64` program whose `main` is like:
 
 ```c
 // main of base64
@@ -137,5 +174,37 @@ We can see that the `base64` not only requires a two bytes arguments, but also n
 Thus, the command to analyze the `base64` is like:
 
 ```shell
-python launcher.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10 -v info
+python3 launcher.py -f PATH_TO_BASE64 -s --sym_args 2 --sym_stdin 5 --sym_files 1 10 -v info
 ```
+
+## Citations
+
+If you use our tool or dataset in your research for publication, please kindly cite the following paper:
+
+```
+@inproceedings{he2023eunomia,
+  author = {He, Ningyu and Zhao, Zhehao and Wang, Jikai and Hu, Yubin and Guo, Shengjian and Wang, Haoyu and Liang, Guangtai and Li, Ding and Chen, Xiangqun and Guo, Yao},
+  title = {Eunomia: Enabling User-Specified Fine-Grained Search in Symbolically Executing WebAssembly Binaries},
+  year = {2023},
+  isbn = {9798400702211},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3597926.3598064},
+  doi = {10.1145/3597926.3598064},
+  booktitle = {Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis},
+  pages = {385–397},
+  numpages = {13},
+  keywords = {WebAssembly, Symbolic Execution, Domain Specific Language, Path Explosion},
+  location = {Seattle, WA, USA},
+  series = {ISSTA 2023}
+}
+
+```
+
+## Feedback
+
+If you have any questions or need further clarification, please post on the [Issues](https://github.com/HNYuuu/SeeWasm/issues) page.
+
+## Acknowledgements
+
+We would like to thank the anonymous reviewers for their valuable feedback and suggestions.
