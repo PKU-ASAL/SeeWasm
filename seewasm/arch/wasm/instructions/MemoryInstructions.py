@@ -27,11 +27,30 @@ class MemoryInstructions:
             prev_size = memory_count
             memory_count += memory_step
             state.symbolic_stack.append(BitVecVal(prev_size, 32))
+        elif self.instr_name == "memory.copy":
+            # memory.copy
+            # The instruction has the signature [i32 i32 i32] -> []. The parameters are, in order:
+            # top-2: destination address
+            # top-1: source address
+            # top-0: size of memory region in bytes
+            len_v = state.symbolic_stack.pop().as_long()
+            src_addr = state.symbolic_stack.pop().as_long()
+            dest_addr = state.symbolic_stack.pop().as_long()
+            # copy memory from src to dst
+            vlis = [
+                lookup_symbolic_memory_data_section(
+                    state.symbolic_memory, data_section, src_addr + i, 1)
+                for i in range(len_v)]
+            for i, v in enumerate(vlis):
+                state.symbolic_memory = insert_symbolic_memory(
+                    state.symbolic_memory, dest_addr + i, 1, v)
+            state.symbolic_stack.append(BitVecVal(len_v, 32))
         elif 'load' in self.instr_name:
             load_instr(self.instr_str, state, data_section)
         elif 'store' in self.instr_name:
             store_instr(self.instr_str, state)
         else:
+            print('\nErr:\nUnsupported instruction: %s\n' % self.instr_name)
             raise UnsupportInstructionError
 
         return [state]
