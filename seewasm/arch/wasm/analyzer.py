@@ -363,8 +363,14 @@ class WasmModuleAnalyzer(object):
         f = io.BytesIO(payload)
         # read the first byte, means the
         subsec_name = f.read(1)
-        assert int.from_bytes(
-            subsec_name, "big") == 1, "in decoding name section, we only support func name subsec currently"
+        subsec_name_id = int.from_bytes(subsec_name, "big")
+        # ignore until found "\x01"
+        while subsec_name_id != 1:
+            subsec_name = f.read(1)
+            if not subsec_name:
+                break
+            subsec_name_id = int.from_bytes(subsec_name, "big")
+        assert subsec_name_id == 1, "in decoding name section, we only support func name subsec currently"
 
         # extract the length of this subsection
         subsec_len = self.__extract_leb128(f)
