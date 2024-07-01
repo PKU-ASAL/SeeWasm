@@ -6,7 +6,7 @@
 from wasm.immtypes import (BlockImm, BranchImm, BranchTableImm, CallImm,
                            CallIndirectImm, CurGrowMemImm, F32ConstImm,
                            F64ConstImm, GlobalVarXsImm, I32ConstImm,
-                           I64ConstImm, LocalVarXsImm, MemoryImm)
+                           I64ConstImm, LocalVarXsImm, MemoryImm, ExtMemoryImm)
 
 _groups = {0x00: 'Control',
            0x1A: 'Parametric',
@@ -23,7 +23,8 @@ _groups = {0x00: 'Control',
            0x83: 'Bitwise_i64',
            0x8b: 'Arithmetic_f32',
            0x99: 'Arithmetic_f64',
-           0xa7: 'Conversion'}
+           0xa7: 'Conversion',
+         0xfc08: 'Memory'}
 
 _table = {
     # opcode:(mnemonic/name, imm_struct, pops, pushes, description)
@@ -234,6 +235,11 @@ _table = {
     0xbd: ('i64.reinterpret/f64', None, 1, 1, 'reinterpret the bits of a 64-bit float as a 64-bit integer'),
     0xbe: ('f32.reinterpret/i32', None, 1, 1, 'reinterpret the bits of a 32-bit integer as a 32-bit float'),
     0xbf: ('f64.reinterpret/i64', None, 1, 1, 'reinterpret the bits of a 64-bit integer as a 64-bit float'),
+    0xc0: ('i32.extend_s/i8', None, 1, 1, 'extend a signed 8-bit integer to a 32-bit integer'),
+
+  0xfc0a: ('memory.copy', ExtMemoryImm(), 3, 1, 'copy data from a source memory region to destination region'),
+  # Unimplemented
+  0xfc0b: ('memory.fill', ExtMemoryImm(), 3, 1, 'set all bytes in a memory region to a given byte'),
 }
 
 

@@ -179,7 +179,12 @@ class ConversionInstructions:
             result = simplify(fpBVToFP(arg0, Float64()))
             assert result.ebits() == 11, 'f64.reinterpret/i64 conversion fail'
             assert result.sbits() == 53, 'f64.reinterpret/i64 conversion fail'
+        elif self.instr_name == 'i32.extend_s/i8':
+            assert arg0.size() == 8, 'i32.extend_s/i8 has wrong arg type'
+
+            result = simplify(SignExt(24, arg0))
         else:
+            print('\nErr:\nUnsupported instruction: %s\n' % self.instr_name)
             raise UnsupportInstructionError
 
         state.symbolic_stack.append(result)
