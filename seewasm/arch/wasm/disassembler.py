@@ -28,8 +28,13 @@ class WasmDisassembler(Disassembler):
         '''
 
         bytecode_wnd = memoryview(bytecode)
-        opcode_id = byte2int(bytecode_wnd[0])
+        bytecode_idx = 0
+        opcode_id = byte2int(bytecode_wnd[bytecode_idx])
 
+        bytecode_idx += 1
+        if opcode_id == 0xfc:
+            opcode_id = (opcode_id << 8) | byte2int(bytecode_wnd[bytecode_idx])
+            bytecode_idx += 1
         # default value
         # opcode:(mnemonic/name, imm_struct, pops, pushes, description)
         invalid = ('INVALID', 0, 0, 0, 'Unknown opcode')
@@ -41,12 +46,13 @@ class WasmDisassembler(Disassembler):
         operand_interpretation = None
 
         if imm_struct is not None:
+            assert not isinstance(imm_struct, int), f"imm_struct is int, most likely encountered unsupported inst.\nname: {name}\nimm_struct: {imm_struct}\npops: {pops} pushes: {pushes}\ndesc: {description}\nopcode_id: {hex(opcode_id)}"
             operand_size, operand, _ = imm_struct.from_raw(
-                None, bytecode_wnd[1:])
+                None, bytecode_wnd[bytecode_idx:])
             insn = inst_namedtuple(
-                OPCODE_MAP[opcode_id], operand, 1 + operand_size)
+                OPCODE_MAP[opcode_id], operand, bytecode_idx + operand_size)
             operand_interpretation = format_instruction(insn)
-        insn_byte = bytecode_wnd[:1 + operand_size].tobytes()
+        insn_byte = bytecode_wnd[:bytecode_idx + operand_size].tobytes()
         instruction = WasmInstruction(
             opcode_id, name, imm_struct, operand_size, insn_byte, pops, pushes,
             description, operand_interpretation=operand_interpretation,
