@@ -25,7 +25,7 @@ If you need to visualize the graph (`--visualize`), make sure you have installed
 To verify everything is set up correctly, run the following command:
 
 ```shell
-pytest test.py
+pytest test.py -m basic
 ```
 
 This command traverses the `./test` folder and performs symbolic execution on all Wasm binaries.

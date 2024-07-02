@@ -19,6 +19,7 @@ testcase_dir = './test/'
     ('password.wasm', '')
 ])
 
+@pytest.mark.basic
 def test_wasm_can_be_analyzed(wasm_path, entry):
     wasm_path = os.path.join(testcase_dir, wasm_path)
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info']
@@ -26,6 +27,7 @@ def test_wasm_can_be_analyzed(wasm_path, entry):
         cmd.extend(['--entry', entry])
     subprocess.run(cmd, timeout=900, check=True)
 
+@pytest.mark.basic
 def test_return_simulation():
     wasm_path = './test/test_return.wasm'
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
@@ -41,6 +43,7 @@ def test_return_simulation():
         state = json.load(f)
     assert state['Solution']['proc_exit'] == "\u0000", f'exit code should be 0, got {state["Solution"]["proc_exit"]}'
 
+@pytest.mark.basic
 def test_unreachable_simulation():
     wasm_path = './test/test_unreachable.wasm'
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
