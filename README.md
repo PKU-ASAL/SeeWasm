@@ -95,7 +95,7 @@ The `-v` option controls the logging level, allowing users to adjust the verbosi
 The `-s` is a mandatory option. It enables symbolic execution analysis on the given Wasm binary.
 
 ## Output
-The output of SeeWasm, including logs and results, is stored in the `log` folder, with each file named according to the pattern `NAME_TIMESTAMP`.
+The output of SeeWasm, including logs and results, is stored in the `output` folder, with each file named according to the pattern `NAME_TIMESTAMP`.
 
 The log file follows a specific format, which illustrates the call trace of the anaylzed program:
 

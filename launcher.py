@@ -90,7 +90,7 @@ def main():
         Configuration.set_incremental_solving(args.incremental)
         Configuration.set_elem_index_to_func(wat_file_path)
 
-        command_file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
+        command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)
         with open(command_file_name, 'w') as fp:
             json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)

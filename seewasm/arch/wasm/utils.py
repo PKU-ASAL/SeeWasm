@@ -144,7 +144,7 @@ def str_to_little_endian_int(string):
 
 def write_result(state, exit=False):
     """
-    Write result in ./log/result folder in json format
+    Write result in ./output/result folder in json format
     """
     # if it is existed, and the stderr has no output
     # it means that it is raised by ProcFailTermination
@@ -157,7 +157,7 @@ def write_result(state, exit=False):
     if unsat == state.solver.check():
         return
 
-    file_name = f"./log/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}_{random():.5f}.json"
+    file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}_{random():.5f}.json"
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
     with open(file_name, 'w') as fp:

@@ -33,7 +33,7 @@ def test_return_simulation():
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
     subprocess.run(cmd, timeout=60, check=True)
 
-    result_dir = glob.glob('./log/result/test_return_*')
+    result_dir = glob.glob('./output/result/test_return_*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
@@ -49,7 +49,7 @@ def test_unreachable_simulation():
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
     subprocess.run(cmd, timeout=60, check=True)
 
-    result_dir = glob.glob('./log/result/test_unreachable_*')
+    result_dir = glob.glob('./output/result/test_unreachable_*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_unreachable*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
@@ -68,7 +68,7 @@ def test_hello_c_to_wasm():
     os.remove("hello_c.wasm")
     os.remove("hello_c.wat")
 
-    result_dir = glob.glob('./log/result/hello_c*')
+    result_dir = glob.glob('./output/result/hello_c*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `hello_c*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
@@ -88,7 +88,7 @@ def test_sym_c_to_wasm():
     cmd = [sys.executable, 'launcher.py', '-f', "sym_c.wasm", '-s', '--sym_args', '1', '-v', 'info', '--source_type', 'c', '--entry', '__main_void']
     subprocess.run(cmd, timeout=60, check=True)
 
-    result_dir = glob.glob('./log/result/sym_c*')
+    result_dir = glob.glob('./output/result/sym_c*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `sym_c*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
@@ -125,7 +125,7 @@ def test_hello_rust_to_wasm():
     cmd = ["rm", "-rf", "./test/rust/hello/target"]
     subprocess.run(cmd, timeout=60, check=True)
 
-    result_dir = glob.glob('./log/result/hello_rust*')
+    result_dir = glob.glob('./output/result/hello_rust*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `hello_rust*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')

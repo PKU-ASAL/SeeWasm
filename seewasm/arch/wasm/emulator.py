@@ -34,7 +34,7 @@ sys.setrecursionlimit(4096)
 
 # config the logger
 logging_config = {
-    'filename': f'./log/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
+    'filename': f'./output/log/{Configuration.get_file_name()}_{Configuration.get_start_time()}.log',
     'filemode': 'w+',
     'format': '%(asctime)s | %(levelname)s | %(message)s',
 }
