@@ -25,13 +25,13 @@ def test_wasm_can_be_analyzed(wasm_path, entry):
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info']
     if entry != "":
         cmd.extend(['--entry', entry])
-    subprocess.run(cmd, timeout=900, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
 
 @pytest.mark.basic
 def test_return_simulation():
     wasm_path = './test/test_return.wasm'
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
-    subprocess.run(cmd, timeout=900, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./log/result/test_return_*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
@@ -47,7 +47,7 @@ def test_return_simulation():
 def test_unreachable_simulation():
     wasm_path = './test/test_unreachable.wasm'
     cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
-    subprocess.run(cmd, timeout=900, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./log/result/test_unreachable_*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_unreachable*` cases?'
@@ -61,10 +61,10 @@ def test_unreachable_simulation():
 def test_hello_c_to_wasm():
     source_path = "./test/c/src/hello.c"
     cmd = ["clang", "-g", source_path, "-o", "hello_c.wasm"]
-    subprocess.run(cmd, timeout=10, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
     assert os.path.exists("hello_c.wasm"), "hello_c.wasm not found. Compilation failed."
     cmd = [sys.executable, 'launcher.py', '-f', "hello_c.wasm", '-s', '-v', 'info', '--source_type', 'c', '--entry', '__main_void']
-    subprocess.run(cmd, timeout=10, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
     os.remove("hello_c.wasm")
     os.remove("hello_c.wat")
 
@@ -84,12 +84,12 @@ def test_hello_rust_to_wasm():
     source_dir = "./test/rust/hello"
     expected_wasm_path = "./test/rust/hello/target/wasm32-wasi/debug/hello_rust.wasm"
     cmd = ["cargo", "build", "--target", "wasm32-wasi"]
-    subprocess.run(cmd, cwd=source_dir, timeout=10, check=True)
+    subprocess.run(cmd, cwd=source_dir, timeout=60, check=True)
     assert os.path.exists(expected_wasm_path), "hello_rust.wasm not found. Compilation failed."
     cmd = [sys.executable, 'launcher.py', '-f', expected_wasm_path, '-s', '-v', 'info', '--source_type', 'rust', '--entry', '__main_void']
-    subprocess.run(cmd, timeout=10, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
     cmd = ["rm", "-rf", "./test/rust/hello/target"]
-    subprocess.run(cmd, timeout=10, check=True)
+    subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./log/result/hello_rust*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `hello_rust*` cases?'
