@@ -32,6 +32,8 @@ If successful, a success message will be displayed, typically **after several se
 Sample Wasm binaries, including "Hello World" in C, Go, and Rust, are provided in the folder. 
 These can be compiled from their respective source languages; the compilation processes are detailed in [WASI tutorial](https://github.com/bytecodealliance/wasmtime/blob/main/docs/WASI-tutorial.md#compiling-to-wasi) (C and Rust), and [WASI "Hello World" example](https://wasmbyexample.dev/examples/wasi-hello-world/wasi-hello-world.go.en-us.html) (Go).
 
+For Rust and C++ project, you can use `wasm-tools` to demangle symbol names in the `name` section. Install with `cargo install wasm-tools`. Confirm by `wasm-tools --version`. Details can be found at [Wasm Tools](https://github.com/bytecodealliance/wasm-tools).
+
 ## Analyze
 This section demonstrates how to use SeeWasm to analyze a generated WebAssembly file.
 
