@@ -80,6 +80,40 @@ def test_hello_c_to_wasm():
         "output": "Hello, world!\n"
     }, f'output mismatched, got {state["Output"]}'
 
+def test_sym_c_to_wasm():
+    source_path = "./test/c/src/sym.c"
+    cmd = ["clang", "-g", source_path, "-o", "sym_c.wasm"]
+    subprocess.run(cmd, timeout=60, check=True)
+    assert os.path.exists("sym_c.wasm"), "sym_c.wasm not found. Compilation failed."
+    cmd = [sys.executable, 'launcher.py', '-f', "sym_c.wasm", '-s', '--sym_args', '1', '-v', 'info', '--source_type', 'c', '--entry', '__main_void']
+    subprocess.run(cmd, timeout=60, check=True)
+
+    result_dir = glob.glob('./log/result/sym_c*')
+    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `sym_c*` cases?'
+    result_dir = result_dir[0]
+    state_path = glob.glob(f'{result_dir}/state*.json')
+    assert len(state_path) == 3, 'should have three states output'
+    for state in state_path:
+        with open(state, 'r') as f:
+            state = json.load(f)
+        assert 'Solution' in state and 'sym_arg_1' in state['Solution'], f'no sym_arg_1 solution found in {state}'
+        assert 'Return' in state, f'no Return found in {state}'
+        assert 'Output' in state and len(state['Output']) == 2, f'no Output found in {state}'
+        inp = state['Solution']["sym_arg_1"]
+        analyzed_return = int(state['Return'])
+        analyzed_stdout = state['Output'][0]['output']
+        if state['Return'] != 1: # only test the printable input, should be a char in a~z
+            continue
+        # call wasmtime with inp
+        cmd = ["wasmtime", "sym_c.wasm", inp]
+        p = subprocess.run(cmd, timeout=60, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # compare results
+        assert p.returncode == analyzed_return, f'analyzed return code {analyzed_return}, wasmtime returned {p.returncode}, input {inp}, wasmtime stderr {p.stderr.decode("utf-8")}'
+        assert p.stdout.decode('utf-8') == analyzed_stdout, f'output mismatched, analyzed {analyzed_stdout}, wasmtime returned {p.stdout.decode("utf-8")}'
+
+    os.remove("sym_c.wasm")
+    os.remove("sym_c.wat")
+
 def test_hello_rust_to_wasm():
     source_dir = "./test/rust/hello"
     expected_wasm_path = "./test/rust/hello/target/wasm32-wasi/debug/hello_rust.wasm"

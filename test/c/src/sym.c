@@ -1,11 +1,11 @@
 #include <stdio.h>
 
 int foo(char a){
-    if(a > 10){
+    if (a < 'a') {
         printf("a");
         return 0;
     }
-    else if(a > 0){
+    else if (a < 'z') {
         printf("b");
         return 1;
     }

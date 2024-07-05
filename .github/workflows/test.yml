@@ -59,6 +59,16 @@ jobs:
         run: |
           curl -JLO "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-22/wasi-sdk-22.0-linux.tar.gz"
           tar xzf wasi-sdk-22.0-linux.tar.gz
+      - name: Cache wasmtime
+        id: cache-wasmtime
+        uses: actions/cache@v4
+        with:
+          path: ~/.wasmtime
+          key: wasmtime
+      - name: Install wasmtime
+        if: steps.cache-wasmtime.outputs.cache-hit != 'true'
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
       - name: Install rust
         if: steps.cache-rust.outputs.cache-hit != 'true'
         run: |
@@ -69,4 +79,5 @@ jobs:
           export PATH=$(pwd)/wabt-1.0.32/bin:$PATH
           export PATH=$(pwd)/wasi-sdk-22.0/bin:$PATH
           export PATH=$(pwd)/.cargo/bin:$PATH
+          export PATH=$(pwd)/.wasmtime/bin:$PATH
           pytest test.py --tb=short --durations=0
