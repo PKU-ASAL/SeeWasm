@@ -625,6 +625,8 @@ class Graph:
             except ProcFailTermination as exit_code:
                 # trigger exit()
                 write_result(state[0], exit_code=exit_code)
+                # remove terminated state (written out)
+                state = state[1:]
                 return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']

@@ -20,9 +20,9 @@ class Configuration:
     The static class that maintain the user's input option
     """
     _source_type = 'c'              # the original source file's type
-    # _algo = 'interval'              # the traverse algorithm, default is interval
-    _algo = 'bfs'
-    # _algo = 'dfs'
+    _algo = 'dfs'                   # the traverse algorithm, default is dfs
+    # _algo = 'bfs'
+    # _algo = 'interval'
     # _algo = 'random'
     _symbol_globals = False         # init the global with the declaration in global sections
     _verbose_flag = 'warning'       # if user set -v flag, the debugging info would be printed
@@ -74,7 +74,7 @@ class Configuration:
 
     @ staticmethod
     def set_algo(algo):
-        pass
+        Configuration._algo = algo
 
     @ staticmethod
     def get_algo():
