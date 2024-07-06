@@ -26,6 +26,7 @@ class Instruction(object):
         """
 
         self.opcode = opcode
+        self.opcode_size = 1
         self.offset = offset
         self.name = name
         self.description = description
@@ -95,7 +96,7 @@ class Instruction(object):
     @property
     def size(self):
         """ Size of the encoded instruction """
-        return self.operand_size + 1
+        return self.opcode_size + self.operand_size
 
     @property
     def has_operand(self):

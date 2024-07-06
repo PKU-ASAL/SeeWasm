@@ -199,8 +199,8 @@ OPCODES = [
     
     Opcode(0xc0, 'i32.extend_s/i8',       None,                     0),
 
-    Opcode(0xfc0a, 'memory.copy',         ExtMemoryImm(),           0),
-    Opcode(0xfc0b, 'memory.fill',         ExtMemoryImm(),           0),
+    Opcode(0xfc0a, 'memory.copy',         None,                     0),
+    Opcode(0xfc0b, 'memory.fill',         None,                     0),
 ]
 
 OPCODE_MAP = {x.id: x for x in OPCODES}

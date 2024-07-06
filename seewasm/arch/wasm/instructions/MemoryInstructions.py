@@ -30,9 +30,15 @@ class MemoryInstructions:
         elif self.instr_name == "memory.copy":
             # memory.copy
             # The instruction has the signature [i32 i32 i32] -> []. The parameters are, in order:
-            # top-2: destination address
-            # top-1: source address
-            # top-0: size of memory region in bytes
+            # top-0: Number of bytes to copy
+            # top-1: Source address to copy from
+            # top-2: Destination address to copy to
+            # example:
+            #   ;; Copy data in default memory from [100, 125] to [50, 75]
+            #   i32.const 50 ;; Destination address to copy to (top-2)
+            #   i32.const 100 ;; Source address to copy from (top-1)
+            #   i32.const 25 ;; Number of bytes to copy (top-0)
+            #   memory.copy  ;; Copy memory
             len_v = state.symbolic_stack.pop().as_long()
             src_addr = state.symbolic_stack.pop().as_long()
             dest_addr = state.symbolic_stack.pop().as_long()
@@ -44,7 +50,32 @@ class MemoryInstructions:
             for i, v in enumerate(vlis):
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, dest_addr + i, 1, v)
-            state.symbolic_stack.append(BitVecVal(len_v, 32))
+            print(f"memory.copy: src_addr={src_addr}, dest_addr={dest_addr}, len={len_v}")
+            # state.symbolic_stack.append(BitVecVal(dest_addr, 32))
+            # assert False
+        elif self.instr_name == "memory.fill":
+            # memory.fill
+            # The instruction has the signature [i32 i32 i32] -> []. The parameters are, in order:
+            # top-0: The number of bytes to update
+            # top-1: The value to set each byte to (must be < 256)
+            # top-2: The pointer to the region to update
+            # example:
+            #   ;; Fill region at offset/range in default memory with 255
+            #   i32.const 200 ;; The pointer to the region to update (top-2)
+            #   i32.const 255 ;; The value to set each byte to (must be < 256) (top-1)
+            #   i32.const 100 ;; The number of bytes to update (top-0)
+            #   memory.fill ;; Fill default memory
+            len_v = state.symbolic_stack.pop().as_long()
+            val = state.symbolic_stack.pop().as_long()
+            addr = state.symbolic_stack.pop().as_long()
+            print(f"memory.fill: addr={addr}, val={val}, len={len_v}")
+            # print(f"{state} memory.fill: addr={addr}, val={val}, len={len_v}")
+            # for i in range(len_v):
+            #     state.symbolic_memory = insert_symbolic_memory(
+            #         state.symbolic_memory, addr + i, 1, BitVecVal(val, 8))
+            # state.symbolic_stack.append(BitVecVal(addr, 32))
+            # state.symbolic_stack.append(BitVecVal(addr, 32))
+            # assert False
         elif 'load' in self.instr_name:
             load_instr(self.instr_str, state, data_section)
         elif 'store' in self.instr_name:

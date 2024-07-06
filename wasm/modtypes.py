@@ -175,6 +175,8 @@ class DataSection(Structure):
     count = VarUInt32Field()
     entries = RepeatField(DataSegment(), lambda x: x.count)
 
+class DataCountSection(Structure):
+    count = VarUInt32Field()
 
 class Naming(Structure):
     index = VarUInt32Field()
@@ -235,6 +237,7 @@ class Section(Structure):
         SEC_ELEMENT: ElementSection(),
         SEC_CODE: CodeSection(),
         SEC_DATA: DataSection(),
+        SEC_DATACOUNT: DataCountSection(),
     }, lambda x: x.id)
 
     overhang = BytesField(lambda x: max(0, (

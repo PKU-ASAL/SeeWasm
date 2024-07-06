@@ -6,7 +6,7 @@
 from wasm.immtypes import (BlockImm, BranchImm, BranchTableImm, CallImm,
                            CallIndirectImm, CurGrowMemImm, F32ConstImm,
                            F64ConstImm, GlobalVarXsImm, I32ConstImm,
-                           I64ConstImm, LocalVarXsImm, MemoryImm, ExtMemoryImm)
+                           I64ConstImm, LocalVarXsImm, MemoryImm)
 
 _groups = {0x00: 'Control',
            0x1A: 'Parametric',
@@ -237,9 +237,8 @@ _table = {
     0xbf: ('f64.reinterpret/i64', None, 1, 1, 'reinterpret the bits of a 64-bit integer as a 64-bit float'),
     0xc0: ('i32.extend_s/i8', None, 1, 1, 'extend a signed 8-bit integer to a 32-bit integer'),
 
-  0xfc0a: ('memory.copy', ExtMemoryImm(), 3, 1, 'copy data from a source memory region to destination region'),
-  # Unimplemented
-  0xfc0b: ('memory.fill', ExtMemoryImm(), 3, 1, 'set all bytes in a memory region to a given byte'),
+  0xfc0a: ('memory.copy', None, 0, 0, 'copy data from a source memory region to destination region'),
+  0xfc0b: ('memory.fill', None, 0, 0, 'set all bytes in a memory region to a given byte'),
 }
 
 

@@ -40,10 +40,6 @@ class MemoryImm(Structure):
     flags = VarUInt32Field()
     offset = VarUInt32Field()
 
-class ExtMemoryImm(Structure):
-    src = VarUInt32Field()
-    dst = VarUInt32Field()
-    size = VarUInt32Field()
 
 class CurGrowMemImm(Structure):
     reserved = VarUInt1Field()

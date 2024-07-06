@@ -144,7 +144,7 @@ class GoPredefinedFunction:
                     # i8* @runtime.alloc(i32 %size, i8* %layout, i8* %context, i8* %parentHandle)
                     alloc_size = len(write_bytes)
                     inst_call = WasmInstruction(
-                        0x10, 'call', None, None, b'\x10', 0, 0,
+                        0x10, 1, 'call', None, None, b'\x10', 0, 0,
                         'call a function', 'call ' + str(runtime_alloc_ind),
                         -1)
                     arguments = [BitVecVal(0, 32) for i in range(3)]

@@ -30,11 +30,15 @@ class WasmDisassembler(Disassembler):
         bytecode_wnd = memoryview(bytecode)
         bytecode_idx = 0
         opcode_id = byte2int(bytecode_wnd[bytecode_idx])
+        opcode_size = 1
 
         bytecode_idx += 1
         if opcode_id == 0xfc:
             opcode_id = (opcode_id << 8) | byte2int(bytecode_wnd[bytecode_idx])
-            bytecode_idx += 1
+            if opcode_id == 0xfc0a: # memory.copy
+                opcode_size = 4
+            elif opcode_id == 0xfc0b: # memory.fill
+                opcode_size = 3
         # default value
         # opcode:(mnemonic/name, imm_struct, pops, pushes, description)
         invalid = ('INVALID', 0, 0, 0, 'Unknown opcode')
@@ -54,7 +58,7 @@ class WasmDisassembler(Disassembler):
             operand_interpretation = format_instruction(insn)
         insn_byte = bytecode_wnd[:bytecode_idx + operand_size].tobytes()
         instruction = WasmInstruction(
-            opcode_id, name, imm_struct, operand_size, insn_byte, pops, pushes,
+            opcode_id, opcode_size, name, imm_struct, operand_size, insn_byte, pops, pushes,
             description, operand_interpretation=operand_interpretation,
             offset=offset, nature_offset=nature_offset)
         # print('%d %s' % (offset, str(instruction)))

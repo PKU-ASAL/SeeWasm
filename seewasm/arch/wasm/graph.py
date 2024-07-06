@@ -229,7 +229,7 @@ class Graph:
                 dummy_end.name = f"block_{func_index}_{dummy_end_block_offset_hex}"
 
                 end_ins = WasmInstruction(
-                    1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
+                    1, 1, 'nop', None, 0, b'\x0b', 0, 0, 'dummy end',
                     offset=dummy_end_block_offset,
                     nature_offset=dummy_end_block_nature_offset)
                 end_ins.cur_bb = dummy_end.name

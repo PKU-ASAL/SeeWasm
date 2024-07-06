@@ -18,10 +18,10 @@ from seewasm.core.utils import bytecode_to_bytes
 
 from wasm import (SEC_CODE, SEC_UNK, decode_module, format_instruction,
                   format_lang_type, format_mutability)
-from wasm.modtypes import (CodeSection, DataSection, ElementSection,
-                           ExportSection, FunctionSection, GlobalSection,
-                           ImportSection, MemorySection, StartSection,
-                           TableSection, TypeSection)
+from wasm.modtypes import (CodeSection, DataSection, DataCountSection,
+                           ElementSection, ExportSection, FunctionSection,
+                           GlobalSection, ImportSection, MemorySection,
+                           StartSection, TableSection, TypeSection)
 
 logging = getLogger(__name__)
 
@@ -46,6 +46,7 @@ class WasmModuleAnalyzer(object):
         self.elements = list()
         self.codes = list()
         self.datas = list()
+        self.data_count = None
         self.names = list()
         self.customs = list()
         self.func_prototypes = list()
@@ -341,6 +342,9 @@ class WasmModuleAnalyzer(object):
                    'data': data}
             data_list.append(fmt)
         return data_list
+    
+    def __decode_data_count_section(self, data_count_section):
+        return data_count_section.payload.count
 
     def __extract_leb128(self, f):
         valid_leb128 = b""
@@ -440,6 +444,7 @@ class WasmModuleAnalyzer(object):
     def analyze(self):
         """analyse the complete module & extract informations """
         # src: https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md
+        # src: https://webassembly.github.io/spec/core/binary/modules.html#modules
         # custom     0   name, .debug_str, ...
         # Type       1   Function signature declarations
         # Import     2   Import declarations
@@ -452,6 +457,7 @@ class WasmModuleAnalyzer(object):
         # Element    9   Elements section
         # Code       10  Function bodies (code)
         # Data       11  Data segments
+        # Count      12  Data segment count
 
         # reset attributes
         self.attributes_reset()
@@ -493,6 +499,8 @@ class WasmModuleAnalyzer(object):
                 self.codes = self.__decode_code_section(cur_sec_data)
             elif isinstance(sec, DataSection):
                 self.datas = self.__decode_data_section(cur_sec_data)
+            elif isinstance(sec, DataCountSection):
+                self.data_count = self.__decode_data_count_section(cur_sec_data)
             else:
                 # name section
                 if cur_sec_data.id == SEC_UNK and cur_sec_data.name.tobytes() == b'name':
@@ -501,7 +509,8 @@ class WasmModuleAnalyzer(object):
                     # TODO - handle properly .debug_str section
                     self.customs.append(
                         self.__decode_unknown_section(cur_sec_data))
-
+        assert self.data_count is None or len(self.datas) == self.data_count, \
+            f"data count section does not match data section\nlen: {len(self.datas)} != count: {self.data_count}"
         # create dwarf_info and func_offsets
         self.analyze_debug_info(sections)
         # create ordered list of functions
