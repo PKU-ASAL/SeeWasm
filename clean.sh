@@ -9,13 +9,14 @@ error() {
 
 usage() {
     cat >&2 <<END_USAGE
-clean: remove output files and directories
+clean.sh: remove and recreate empty "log" and "result" directories
 
 USAGE:
-    clean [FLAGS]
+    clean.sh -[fi]
 
 FLAGS:
     -h, --help                  Prints help information
+    -i, --interactive           Interactive mode
     -f, --force                 Force remove output files and directories
 
 END_USAGE
@@ -38,6 +39,19 @@ do
       touch $OUTPUT_DIR/log/.placeholder $OUTPUT_DIR/result/.placeholder
       exit 0
       ;;
+    -i|--interactive)
+      shift # shift off the argument
+      read -p "Are you sure you want to remove all output files and directories (rm -rf $OUTPUT_DIR)? [y/N] " -n 1 -r
+      echo
+      if [[ $REPLY =~ ^[Yy]$ ]]
+      then
+        rm -rf $OUTPUT_DIR
+        mkdir -p $OUTPUT_DIR/log $OUTPUT_DIR/result
+        touch $OUTPUT_DIR/log/.placeholder $OUTPUT_DIR/result/.placeholder
+        exit 0
+      fi
+      exit 1
+      ;;
     *)
       error "Unknown option: '$arg'"
       usage
@@ -46,5 +60,5 @@ do
     esac
 done
 
-# normal delete
-rm -ri $OUTPUT_DIR
+usage
+exit 1

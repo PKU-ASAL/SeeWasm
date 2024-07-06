@@ -131,6 +131,8 @@ The result is a JSON file containing feasible paths with their solutions, format
 }
 ```
 
+You can use `./clean.sh -f` to remove all files in the `output` folder.
+
 ## Example
 To execute a program that takes no extra arguments or input, use the following command:
 
