@@ -35,5 +35,5 @@ def visualize(Graph, filename="wasm_ICFG.gv"):
             c.node(node_to)
             c.edge(node_from, node_to)
 
-    print("Rendering...")
-    g.render(filename, view=True)
+    print("Rendering disabled on the server.")
+    g.render(filename, view=False)

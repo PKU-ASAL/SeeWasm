@@ -117,8 +117,8 @@ def main():
         # draw the ICFG on basic block level, and exit
         if Configuration.get_visualize():
             # draw here
-            visualize(Graph)
-
+            graph_path = path.join("output", "visualized_graph", f"{Configuration.get_file_name()}_{Configuration.get_start_time()}.gv")
+            visualize(Graph, graph_path)
             print(f"The visualization of ICFG is done.")
             return
 

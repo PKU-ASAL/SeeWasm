@@ -108,3 +108,10 @@ def test_hello_go_to_wasm():
         "name": "stdout",
         "output": "Hello, world!\n"
     }, f'output mismatched, got {state["Output"]}'
+
+def test_visualize_graph():
+    wasm_path = './test/hello_world.wasm'
+    cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--visualize']
+    subprocess.run(cmd, timeout=30, check=True)
+    result_dir = glob.glob('./output/visualized_graph/hello_world*.pdf')
+    assert len(result_dir) == 1, 'more than one matching results, do you have multiple `hello_world*` cases?'
