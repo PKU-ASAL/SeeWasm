@@ -96,7 +96,7 @@ def main():
         Configuration.set_algo(args.search)
 
         command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
-        makedirs(path.dirname(command_file_name), exist_ok=True)
+        makedirs(path.dirname(command_file_name), exist_ok=False)
         with open(command_file_name, 'w') as fp:
             json.dump({"Command": " ".join(sys.argv)}, fp, indent=4)
 
@@ -130,7 +130,7 @@ def main():
 
 if __name__ == '__main__':
     job_start_time = datetime.now()
-    current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S")
+    current_time_start = job_start_time.strftime("%Y-%m-%d %H:%M:%S_%f")
     print(f"Start to analyze: {current_time_start}", flush=True)
     Configuration.set_start_time(current_time_start)
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     print(f"Finished.", flush=True)
 
     job_end_time = datetime.now()
-    current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S")
+    current_time_end = job_end_time.strftime("%Y-%m-%d %H:%M:%S_%f")
     print(f"End of analyze: {current_time_end}", flush=True)
     elapsed_time = job_end_time - job_start_time
     print(f"Time elapsed: {elapsed_time}", flush=True)
