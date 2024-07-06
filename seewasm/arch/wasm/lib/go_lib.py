@@ -229,6 +229,7 @@ class GoPredefinedFunction:
             out_bytes += format_str[parsed_ind:].encode()
             logging.info(f"fmt.printf: {repr(format_str)}")
             logging.info(f"{out_bytes}")
+            state.file_sys[1]["content"] += list(out_bytes)
             store32(pret, len(out_bytes))
             store32(pret + 4, 0)
             manually_constructed = True
@@ -357,6 +358,7 @@ class GoPredefinedFunction:
         elif self.name == 'runtime.putchar':
             ch = param_list[0]
             print(chr(ch.as_long()), end='')
+            state.file_sys[1]["content"] += [ch.as_long()]
         else:
             print(param_list)
 

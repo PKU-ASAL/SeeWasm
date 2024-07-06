@@ -177,3 +177,27 @@ def test_hello_rust_to_wasm():
         "name": "stdout",
         "output": "Hello, world!\n"
     }, f'output mismatched, got {state["Output"]}'
+
+def test_hello_go_to_wasm():
+    source_path = "./test/go/src/hello.go"
+    cmd = ["tinygo", "build", "-target=wasi", "-o", "hello_go.wasm", source_path]
+    subprocess.run(cmd, timeout=60, check=True)
+    assert os.path.exists("hello_go.wasm"), "hello_go.wasm not found. Compilation failed."
+    cmd = [sys.executable, 'launcher.py', '-f', "hello_go.wasm", '-s', '-v', 'info', '--source_type', 'go', '--entry', 'runtime.run$1']
+    subprocess.run(cmd, timeout=60, check=True)
+    os.remove("hello_go.wasm")
+    os.remove("hello_go.wat")
+
+    result_dir = glob.glob('./output/result/hello_go*')
+    result_dir.sort()
+    result_dir = result_dir[-1]
+    state_path = glob.glob(f'{result_dir}/state*.json')
+    assert len(state_path) == 1, 'should have only one state output'
+    with open(state_path[0], 'r') as f:
+        state = json.load(f)
+    assert 'Return' in state, f'no Return found in {state}'
+    assert state['Return'] == "0", f'should return 0, got {state["Return"]}'
+    assert state['Output'][0] == {
+        "name": "stdout",
+        "output": "Hello, world!\n"
+    }, f'output mismatched, got {state["Output"]}'

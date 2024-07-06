@@ -12,7 +12,10 @@ MODELED_FUNCS = {
      'iprintf', 'printf', 'putchar', 'puts', 'scanf', 'swap',
      'system', 'emscripten_resize_heap', 'fopen', 'vfprintf',
      'open', 'exit', 'setlocale', 'hard_locale'},
-    'go': {'fmt.Scanf', 'fmt.Printf'},
+    'go': {'fmt.Scanf', 'fmt.Printf', 'runtime.divideByZeroPanic', 'runtime.lookupPanic', 'runtime.nilPanic'
+      'runtime.slicePanic', 'runtime.sliceToArrayPointerPanic', 'runtime.unsafeSlicePanic', 'runtime.chanMakePanic',
+      'runtime.negativeShiftPanic', 'runtime.blockingPanic', 'runtime.calculateHeapAddresses', 'memset', 'runtime.alloc', 'memcpy',
+      'syscall/js.valueGet', 'runtime.putchar'},
     'rust': {},
     'wasi':
     {'args_sizes_get', 'args_get', 'environ_sizes_get',
