@@ -6,7 +6,7 @@ WebAssembly (Wasm), a low-level language, offers several advantages and can be t
 
 In this project, we have implemented a **symbolic execution engine** for Wasm binaries, SeeWasm. Our goal is to build a toolchain that takes source code files (written in other programming languages) as input, performs symbolic execution, and outputs feasible paths with their solutions for further analysis (e.g., vulnerability detection).
 
-##  Prerequisites 
+## Prerequisites 
 To run SeeWasm, ensure you have Python 3.7 or a later version installed. Then, install the required Python libraries by executing the following command:
 
 ```shell

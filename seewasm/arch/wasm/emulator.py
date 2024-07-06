@@ -12,7 +12,7 @@ from seewasm.arch.wasm.analyzer import WasmModuleAnalyzer
 from seewasm.arch.wasm.cfg import WasmCFG
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ASSERT_FAIL, ProcFailTermination,
-                                          UnsupportInstructionError)
+                                          UnsupportGlobalTypeError)
 from seewasm.arch.wasm.instructions import (ArithmeticInstructions,
                                             BitwiseInstructions,
                                             ConstantInstructions,
