@@ -23,7 +23,7 @@ pip install --force-reinstall leb128==1.0.4
 To verify everything is set up correctly, run the following command:
 
 ```shell
-pytest test.py -m basic
+python3 -m pytest test.py -vv
 ```
 
 This command traverses the `./test` folder and performs symbolic execution on all Wasm binaries.

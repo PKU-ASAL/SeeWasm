@@ -167,7 +167,7 @@ def write_result(state, exit_code=NO_EXIT):
                 state_result["Return"] = str(state.symbolic_stack[-1])
             else:
                 # default return value
-                state_result["Return"] = 0
+                state_result["Return"] = "0"
 
         # solution of constraints
         state_result["Solution"] = {}

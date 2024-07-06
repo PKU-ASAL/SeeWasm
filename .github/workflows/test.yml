@@ -81,3 +81,4 @@ jobs:
           export PATH=$(pwd)/.cargo/bin:$PATH
           export PATH=$(pwd)/.wasmtime/bin:$PATH
           pytest test.py --tb=short --durations=0
+          pytest test/test_linux.py --tb=short --durations=0
