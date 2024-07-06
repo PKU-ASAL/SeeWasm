@@ -51,8 +51,6 @@ class MemoryInstructions:
                 state.symbolic_memory = insert_symbolic_memory(
                     state.symbolic_memory, dest_addr + i, 1, v)
             print(f"memory.copy: src_addr={src_addr}, dest_addr={dest_addr}, len={len_v}")
-            # state.symbolic_stack.append(BitVecVal(dest_addr, 32))
-            # assert False
         elif self.instr_name == "memory.fill":
             # memory.fill
             # The instruction has the signature [i32 i32 i32] -> []. The parameters are, in order:
@@ -69,13 +67,6 @@ class MemoryInstructions:
             val = state.symbolic_stack.pop().as_long()
             addr = state.symbolic_stack.pop().as_long()
             print(f"memory.fill: addr={addr}, val={val}, len={len_v}")
-            # print(f"{state} memory.fill: addr={addr}, val={val}, len={len_v}")
-            # for i in range(len_v):
-            #     state.symbolic_memory = insert_symbolic_memory(
-            #         state.symbolic_memory, addr + i, 1, BitVecVal(val, 8))
-            # state.symbolic_stack.append(BitVecVal(addr, 32))
-            # state.symbolic_stack.append(BitVecVal(addr, 32))
-            # assert False
         elif 'load' in self.instr_name:
             load_instr(self.instr_str, state, data_section)
         elif 'store' in self.instr_name:
