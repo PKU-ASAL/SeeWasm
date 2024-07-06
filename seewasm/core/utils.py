@@ -14,10 +14,7 @@ def bytecode_to_bytes(bytecode):
             bytecode = bytecode.decode("hex")
         except TypeError:
             # last chance
-            try:
-                bytecode = unhexlify(bytecode)
-            except Exception:
-                pass
+            bytecode = unhexlify(bytecode)
     # already bytes or bytearray
     except TypeError:
         pass
