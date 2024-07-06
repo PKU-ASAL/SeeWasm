@@ -10,7 +10,7 @@ from os import makedirs, path
 from random import random
 
 from seewasm.arch.wasm.configuration import Configuration
-from seewasm.arch.wasm.exceptions import (INVALIDMEMORY, ProcFailTermination,
+from seewasm.arch.wasm.exceptions import (NO_EXIT, INVALIDMEMORY, ProcFailTermination,
                                           UnsupportZ3TypeError)
 from seewasm.arch.wasm.solver import SMTSolver
 from z3 import (FP, BitVec, BitVecRef, Float32, Float64, is_bv, is_bv_value,
@@ -142,17 +142,10 @@ def str_to_little_endian_int(string):
     return int.from_bytes(str.encode(string), "little")
 
 
-def write_result(state, exit=False):
+def write_result(state, exit_code=NO_EXIT):
     """
     Write result in ./output/result folder in json format
     """
-    # if it is existed, and the stderr has no output
-    # it means that it is raised by ProcFailTermination
-    # do not write anything and just return
-    # TODO: write `unreachable` path with output
-    if exit and not state.file_sys[2]['content']:
-        return
-
     # if the checker is unsat
     if unsat == state.solver.check():
         return
@@ -161,17 +154,20 @@ def write_result(state, exit=False):
     makedirs(path.dirname(file_name), exist_ok=True)
     state_result = {}
     with open(file_name, 'w') as fp:
-        if exit:
-            if state.symbolic_stack:
-                state_result["Status"] = f"Exit with status code {state.symbolic_stack[-1]}"
+        if exit_code != NO_EXIT:
+            if int(exit_code.value) >= 0:
+                state_result["Status"] = f"Exit with status code {exit_code}"
             else:
+                # constructed exit_code
                 state_result["Status"] = f"Exit"
         else:
             # return value
-            if state.symbolic_stack:
+            # get_entry_signature() returns a tuple (name, params, return, type)
+            if Configuration.get_entry_signature()[2]:
                 state_result["Return"] = str(state.symbolic_stack[-1])
             else:
-                state_result["Return"] = None
+                # default return value
+                state_result["Return"] = 0
 
         # solution of constraints
         state_result["Solution"] = {}

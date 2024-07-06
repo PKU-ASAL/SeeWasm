@@ -2,12 +2,8 @@ import json
 import glob
 import os
 import pytest
-import resource
 import subprocess
 import sys
-
-# Set a memory limit of 4GB
-resource.setrlimit(resource.RLIMIT_AS, (4 * 1024 * 1024 * 1024, -1))
 
 testcase_dir = './test/'
 
@@ -30,23 +26,23 @@ def test_wasm_can_be_analyzed(wasm_path, entry):
 @pytest.mark.basic
 def test_return_simulation():
     wasm_path = './test/test_return.wasm'
-    cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
+    cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info']
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_return_*')
     assert len(result_dir) == 1, 'more than one matching results, do you have multiple `test_return*` cases?'
     result_dir = result_dir[0]
     state_path = glob.glob(f'{result_dir}/state*.json')
-    assert len(state_path) == 1, 'should have only one state output `Exit 0`'
+    assert len(state_path) == 1, 'should have only one state returning `1`'
 
     with open(state_path[0], 'r') as f:
         state = json.load(f)
-    assert state['Solution']['proc_exit'] == "\u0000", f'exit code should be 0, got {state["Solution"]["proc_exit"]}'
+    assert state['Return'] == "1", f'should return 1, got {state["Return"]}'
 
 @pytest.mark.basic
 def test_unreachable_simulation():
     wasm_path = './test/test_unreachable.wasm'
-    cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info', '--source_type', 'rust']
+    cmd = [sys.executable, 'launcher.py', '-f', wasm_path, '-s', '-v', 'info']
     subprocess.run(cmd, timeout=60, check=True)
 
     result_dir = glob.glob('./output/result/test_unreachable_*')

@@ -435,12 +435,14 @@ class Graph:
             list(VMstate): A list of states
         """
         # func_index_name is like $func16
-        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func)
+        entry_signature = cls.wasmVM.get_signature(func)
+        func_index_name, param_str, _, _ = entry_signature
         if func not in cls.func_to_bbs:
             func = func_index_name
 
         if state is None:
             state = cls.wasmVM.init_state(func, param_str)
+            Configuration.set_entry_signature(entry_signature)
 
         # retrieve all the relevant basic blocks
         entry_func_bbs = cls.func_to_bbs[func]
@@ -620,9 +622,9 @@ class Graph:
             except ProcSuccessTermination:
                 # end of path
                 return False, state
-            except ProcFailTermination:
+            except ProcFailTermination as exit_code:
                 # trigger exit()
-                write_result(state[0], exit=True)
+                write_result(state[0], exit_code=exit_code)
                 return False, state
             if len(succs_list) == 0:
                 halt_flag = lvar[cur_head]['checker_halt']
@@ -916,8 +918,10 @@ class Graph:
             except ProcSuccessTermination:
                 write_result(current_states[0], exit=True)
                 return False, current_states
-            except ProcFailTermination:
-                write_result(current_states[0], exit=True)
+            except ProcFailTermination as exit_code:
+                write_result(current_states[0], exit_code=exit_code)
+                # remove terminated state (written out)
+                current_states = current_states[1:]
                 return False, current_states
             # Because of the existence of dummy block, the len(succs_list) of the exit is 0
             if len(succs_list) == 0:

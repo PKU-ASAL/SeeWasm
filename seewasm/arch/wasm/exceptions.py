@@ -1,4 +1,5 @@
 # This file defines our own exceptions
+NO_EXIT = -99
 INVALIDMEMORY = -2
 ASSERT_FAIL = -3
 
