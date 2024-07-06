@@ -16,7 +16,7 @@ from seewasm.arch.wasm.visualizator import visualize
 
 def main():
     parser = argparse.ArgumentParser(
-        description='SeeWasm, a symbolic execution engine for Wasm module')
+        description='SeeWasm, a symbolic execution engine for Wasm binaries')
 
     inputs = parser.add_argument_group('Input arguments')
     inputs.add_argument('-f', '--file',

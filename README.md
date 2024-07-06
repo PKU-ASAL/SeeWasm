@@ -69,6 +69,8 @@ Features:
 
 Analyze:
   -s, --symbolic        perform the symbolic execution
+  --search [{dfs,bfs,random,interval}]
+                        set the search algorithm (default: dfs)
 ```
 
 We will detail these options according to their functionalities.
@@ -95,6 +97,8 @@ The `-v` option controls the logging level, allowing users to adjust the verbosi
 
 ### Analyze
 The `-s` is a mandatory option. It enables symbolic execution analysis on the given Wasm binary.
+
+The `--search` option specifies the search algorithm used during symbolic execution. The default algorithm is Depth-First Search (DFS), but users can choose from the following options: `bfs`, `random`, and `interval`.
 
 ## Output
 The output of SeeWasm, including logs and results, is stored in the `output` folder, with each file named according to the pattern `NAME_TIMESTAMP`.

@@ -2,10 +2,6 @@ import logging
 import math
 
 from seewasm.arch.wasm.configuration import Configuration
-from seewasm.arch.wasm.dwarfParser import (decode_vararg,
-                                           decode_var_type,
-                                           get_func_index_from_state,
-                                           get_source_location)
 from seewasm.arch.wasm.exceptions import (ProcFailTermination,
                                           UnsupportExternalFuncError)
 from seewasm.arch.wasm.lib.utils import _extract_params, _loadN, _storeN
@@ -179,13 +175,6 @@ class CPredefinedFunction:
             logging.info(
                 f"\tscanf, pattern_p: {pattern_p}, param_p: {param_p}")
 
-            # parse the scanf's argument's type
-            # get addr of vararg 0.
-            addr = decode_vararg(state, param_p, 0)
-
-            # TODO disable dwarf temporarily
-            # var_type, var_size = decode_var_type(analyzer, state, addr)
-
             pattern = C_extract_string_by_mem_pointer(
                 pattern_p, data_section, state)
 
@@ -307,6 +296,7 @@ class CPredefinedFunction:
             the_string = C_extract_string_by_mem_pointer(
                 mem_pointer, data_section, state).encode()
             # the '\n' is added according to semantic of puts
+            the_string += b'\n'
             logging.info(
                 f"\tOutput a puts string: {the_string}")
             state.file_sys[1]["content"] += list(the_string)
