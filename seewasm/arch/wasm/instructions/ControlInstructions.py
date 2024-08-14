@@ -42,7 +42,7 @@ class ControlInstructions:
         num_arg = 0
         if param_str:
             num_arg = len(param_str.split(' '))
-            arg = [state.symbolic_stack.pop() for _ in range(num_arg)]
+            arg = [state.symbolic_stack.pop()                                                                                 for _ in range(num_arg)]
 
         # step 2
         state.context_stack.append((state.current_func_name,

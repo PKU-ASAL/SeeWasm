@@ -56,7 +56,7 @@ def main():
         help='visualize the ICFG on basic blocks level')
     features.add_argument(
         '--incremental', action='store_true',
-        help='enable incremental solving')
+        help='enable incremental solving')#store_true 表示如果命令行中存在这个参数，则将其对应的值存储为 True
     features.add_argument(
         '-v', '--verbose', default='warning', const='warning', nargs='?',
         choices=['warning', 'info', 'debug'],

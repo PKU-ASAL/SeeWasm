@@ -57,7 +57,7 @@ class Graph:
 
     Properties:
         _func_to_bbs: a mapping, from function's name to its included basic blocks (wrapped in a list);
-        _bb_to_instructions: a mappming, from basic block's name to its included instruction objects (wrapped in a list);
+        _bb_to_instructions: a mapping, from basic block's name to its included instruction objects (wrapped in a list);
         _aes_func: a mapping, not clear;
         _bbs_graph: a mapping, from basic block's name to a mapping, from edge type to its corresponding pointed to basic block's name;
         _rev_bbs_graph: same as above, but its reversed;
@@ -65,7 +65,7 @@ class Graph:
     """
     _func_to_bbs = defaultdict(list)
     _bb_to_instructions = defaultdict(list)
-    _aes_func = defaultdict(set)
+    _aes_func = defaultdict(set) #
     _bbs_graph = defaultdict(lambda: defaultdict(str))  # nested dict
     _rev_bbs_graph = defaultdict(lambda: defaultdict(str))
 
@@ -143,6 +143,7 @@ class Graph:
                 else:
                     # br_table case
                     numbered_edge_type = edge_type
+
                 cls.bbs_graph[node_from][numbered_edge_type] = node_to
                 type_ids[node_from][edge_type] += 1
 
@@ -435,7 +436,7 @@ class Graph:
             list(VMstate): A list of states
         """
         # func_index_name is like $func16
-        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func)
+        func_index_name, param_str, _, _ = cls.wasmVM.get_signature(func) 
         if func not in cls.func_to_bbs:
             func = func_index_name
 
@@ -907,12 +908,12 @@ class Graph:
         # print(icfg_cycles)
 
         def consumer(item):
-            (current_bb, current_states) = item
-            succs_list = cls.bbs_graph[current_bb].items()
+            (current_bb, current_states) = item#当前块与当前的状态
+            succs_list = cls.bbs_graph[current_bb].items()# 当前块的后继块
             halt_flag = False
-            try:
+            try: 
                 emul_states = cls.wasmVM.emulate_basic_block(
-                    current_states, cls.bb_to_instructions[current_bb])
+                    current_states, cls.bb_to_instructions[current_bb])#在当前state 模拟该bb，可能产出多个state
             except ProcSuccessTermination:
                 write_result(current_states[0], exit=True)
                 return False, current_states
@@ -921,7 +922,7 @@ class Graph:
                 return False, current_states
             # Because of the existence of dummy block, the len(succs_list) of the exit is 0
             if len(succs_list) == 0:
-                return False, emul_states
+                return False, emul_states   #进入dummy block
             
             avail_br = {}
             for edge_type, next_block in succs_list:
@@ -930,15 +931,15 @@ class Graph:
                 #     cls.find_cycles(next_block, icfg_cycles)
                 valid_states = list(
                     filter(
-                        lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))
+                        lambda s: not cls.can_cut(edge_type, next_block, s), emul_states))#过滤掉无用的状态
                 if len(valid_states) > 0:
-                    avail_br[(edge_type, next_block)] = valid_states
+                    avail_br[(edge_type, next_block)] = valid_states #将剩余的状态对应至分支
             
             for valid_states in avail_br.values():
                 for s in valid_states:
                     s.current_bb_name = ''
                     s.edge_type = ''
-                    s.call_indirect_callee = ''
+                    s.call_indirect_callee = ''  #？？
             
             for br in avail_br:
                 (_, next_block), valid_states = br, avail_br[br]

@@ -1,0 +1,8 @@
+digraph "wasm_ICFG.gv" {
+	rankdir=TB
+	subgraph global {
+		block_1_0
+		block_1_58
+		block_1_0 -> block_1_58
+	}
+}

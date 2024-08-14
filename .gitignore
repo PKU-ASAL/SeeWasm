@@ -12,3 +12,4 @@ output/result/*
 bfs_test/*
 **/debug
 **/rust/**/target
+log/

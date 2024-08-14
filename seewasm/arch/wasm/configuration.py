@@ -188,7 +188,7 @@ class Configuration:
         """
         Store stdin buffer into the `stdin_buffer`
         """
-        if stdin and sym_stdin:
+        if stdin and sym_stdin:  
             exit("Cannot set `stdin` and `sym_stdin` simultaneously")
 
         if stdin:

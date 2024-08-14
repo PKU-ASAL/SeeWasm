@@ -350,7 +350,7 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
                 states[0].file_sys[2]['content'] += [ord(i) for i in stderr_msg]
                 raise ProcFailTermination(ASSERT_FAIL)
             next_states = []
-            for state in states:  # TODO: embarassing parallel
+            for state in states:  # TODO: embarassing parallel why multi states?
                 state.instr = instruction
                 next_states.extend(self.emulate_one_instruction(
                     instruction, state, lvar))

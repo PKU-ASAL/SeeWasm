@@ -58,8 +58,9 @@ def test_unreachable_simulation():
         state = json.load(f)
     assert state['Solution'] == {}, f'should have no solution, got {state["Solution"]}'
 
+@pytest.mark.basic
 def test_hello_c_to_wasm():
-    source_path = "./test/c/src/hello.c"
+    source_path = "/"
     cmd = ["clang", "-g", source_path, "-o", "hello_c.wasm"]
     subprocess.run(cmd, timeout=60, check=True)
     assert os.path.exists("hello_c.wasm"), "hello_c.wasm not found. Compilation failed."
@@ -79,7 +80,7 @@ def test_hello_c_to_wasm():
         "name": "stdout",
         "output": "Hello, world!\n"
     }, f'output mismatched, got {state["Output"]}'
-
+@pytest.mark.basic
 def test_sym_c_to_wasm():
     source_path = "./test/c/src/sym.c"
     cmd = ["clang", "-g", source_path, "-o", "sym_c.wasm"]
@@ -113,7 +114,7 @@ def test_sym_c_to_wasm():
 
     os.remove("sym_c.wasm")
     os.remove("sym_c.wat")
-
+@pytest.mark.basic
 def test_hello_rust_to_wasm():
     source_dir = "./test/rust/hello"
     expected_wasm_path = "./test/rust/hello/target/wasm32-wasi/debug/hello_rust.wasm"
