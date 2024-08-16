@@ -66,6 +66,9 @@ def main():
     analyze.add_argument(
         '-s', '--symbolic', action='store_true',
         help='perform the symbolic execution')
+    analyze.add_argument(
+        '-c', '--concolic', action='store_true',
+        help='perform the concolic execution')
 
     args = parser.parse_args()
 
@@ -77,9 +80,14 @@ def main():
         print(
             f"The corresponding wat file is written in: {wat_file_path}",
             flush=True)
-
-    # conduct symbolic execution
-    if args.symbolic:
+    if args.concolic and not (args.stdin or args.args):
+        exit("Please specify the concrete input for concolic execution")
+    # conduct symbolic execution or concolic execution
+    if args.symbolic or args.concolic:
+        if args.concolic:
+            Configuration.set_execution_mode('concolic')
+        else:
+            Configuration.set_execution_mode('symbolic')
         Configuration.set_verbose_flag(args.verbose)
         Configuration.set_file(args.file.name)
         Configuration.set_entry(args.entry)
@@ -101,7 +109,7 @@ def main():
         Configuration.set_args(
             Configuration.get_file_name(),
             args.args, args.sym_args)
-
+                 
         # import necessary part
         from seewasm.arch.wasm.emulator import WasmSSAEmulatorEngine
 

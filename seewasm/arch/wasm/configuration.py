@@ -45,6 +45,8 @@ class Configuration:
     _stdin_buffer = []
     # how many files can be opened in total
     _sym_file_limit = 0
+    # symbolic or concolic execution mode
+    _execution_mode = ''
     # how many bytes a sym file can hold
     _sym_file_byte_limit = 0
     # keep z3 cache
@@ -62,6 +64,7 @@ class Configuration:
     _dsl_flag = False
     # the index to function in element section
     _elem_index_to_func = {}
+    
 
     @ staticmethod
     def set_source_type(source_type):
@@ -70,6 +73,15 @@ class Configuration:
     @ staticmethod
     def get_source_type():
         return Configuration._source_type
+
+    @ staticmethod
+    def set_execution_mode(mode):
+        Configuration.symbolic  = mode
+
+    @ staticmethod
+    def get_execution_mode():
+        return Configuration._execution_mode
+
 
     @ staticmethod
     def set_algo(algo):
@@ -188,7 +200,7 @@ class Configuration:
         """
         Store stdin buffer into the `stdin_buffer`
         """
-        if stdin and sym_stdin:  
+        if stdin and sym_stdin:
             exit("Cannot set `stdin` and `sym_stdin` simultaneously")
 
         if stdin:
