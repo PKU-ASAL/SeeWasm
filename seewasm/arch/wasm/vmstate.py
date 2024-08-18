@@ -31,8 +31,8 @@ class WasmVMstate(VMstate):
         # TODO files buffer may need to maintained in context
         self.context_stack = []
 
-        self.args = ""
-
+        self.args = "" 
+        self.args_conco = ""# when concolic mode,this parameter stores the corresponding symbolic value 
         # all items should be initialized by init_file_for_file_sys in utils
         self.file_sys = {}
         for fd in range(0, 3):

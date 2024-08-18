@@ -162,7 +162,7 @@ class ControlInstructions:
 
         if self.instr_name == 'nop':
             if state.instr.xref:
-                self.restore_context(state)
+                self.restore_context(state)#jump to callee function
             return [state]
         elif self.instr_name == 'br_if' or self.instr_name == 'if':
             op = state.symbolic_stack.pop()

@@ -313,12 +313,20 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
         args = Configuration.get_args()
         state.args = args
+        # copy the args to concolic args
+        if Configuration.get_execution_mode=='concolic':
+            for i, arg in enumerate(args):
+                if i==0:
+                    pass
+                state.args_conco.append(
+                    BitVec(f"sym_arg_{i + 1}", 8 * len(arg)))
+                
 
         if param_str != '':
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(
                     local, func_name + '_loc_' + str(i) + '_' + local)
-
+        #TODO: deal with local variables
         state.current_func_name = func_name
 
         # deal with the globals

@@ -129,7 +129,7 @@ class Configuration:
         """
         # the filename is argv[0]
         Configuration._args += [filename]
-
+    
         if args:
             Configuration._args += args.split(" ")
 
@@ -137,6 +137,7 @@ class Configuration:
             for i, sym_len in enumerate(sym_args):
                 Configuration._args.append(
                     BitVec(f"sym_arg_{i + 1}", 8 * sym_len))
+        
 
     @ staticmethod
     def get_file_name():
