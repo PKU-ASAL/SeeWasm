@@ -1,0 +1,28 @@
+<!doctype html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>Simple logging example</title>
+  </head>
+
+  <body>
+    <script>
+      const importObject = {
+        console: {
+          log: arg => {
+            console.log("hello world");
+          }
+        }
+      };
+
+      WebAssembly.instantiateStreaming(fetch("test_call_indirect.wasm"), importObject)
+      .then(obj => {
+        obj.instance.exports.main();
+      });
+    </script>
+    <h1>cdcfv</h1>
+  </body>
+
+</html>

@@ -152,9 +152,10 @@ def write_result(state, exit=False):
     # TODO: write `unreachable` path with output
     if exit and not state.file_sys[2]['content']:
         return
+    
 
     # if the checker is unsat
-    if unsat == state.solver.check():
+    if state.type == 'symbolic' and unsat == state.solver.check():
         return
 
     file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/state_{datetime.timestamp(datetime.now()):.3f}_{random():.5f}.json"
@@ -174,63 +175,104 @@ def write_result(state, exit=False):
                 state_result["Return"] = None
 
         # solution of constraints
-        state_result["Solution"] = {}
-        m = state.solver.model()
-        # this check if there exist symbols with same name
-        # which may lead to the result overwriting
-        if len(set([k for k in m])) != len(m):
-            logging.warning(
-                f"the solving process found there exist symbols with identical name, please double check. ({[k for k in m]})")
-        for k in m:
+        
+        if state.type == 'symbolic':
+            state_result["Solution"] = {}
+            m = state.solver.model()
+            # this check if there exist symbols with same name
+            # which may lead to the result overwriting
+            if len(set([k for k in m])) != len(m):
+                logging.warning(
+                    f"the solving process found there exist symbols with identical name, please double check. ({[k for k in m]})")
+            for k in m:
+                # the decode is weird, we just want to convert unprintable characters
+                # into printable chars
+                # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
+                solution_hex_str = hex(m[k].as_long())[2:]
+                if len(solution_hex_str) % 2 == 1:
+                    solution_hex_str = "0" + solution_hex_str
+                solution = []
+                for i in range(0, len(solution_hex_str), 2):
+                    solution.append(chr(int(solution_hex_str[i: i + 2], 16)))
+                state_result["Solution"][str(k)] = "".join(solution[::-1])
+
+            candidate_fds = []
+            # filter out all output buffer
+            for fd, file_info in state.file_sys.items():
+                if "w" in file_info["flag"]:
+                    if isinstance(fd, int) or fd[0] == "-":
+                        candidate_fds.append(fd)
+
+            state_result["Output"] = []
+            # stdout and stderr buffer
+            for fd in candidate_fds:
+                assert all(isinstance(x, (int, BitVecRef))
+                        for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
+                tmp_dict = {"name": None, "output": None}
+                # output_buffer = []
+                output_solve_buffer = []
+                for el in state.file_sys[fd]["content"]:
+                    if isinstance(el, int):
+                        # output_buffer.append(chr(el).encode())
+                        output_solve_buffer.append(chr(el))
+                    elif isinstance(el, BitVecRef):
+                        assert el.size() == 8, f"{el} size is not 8"
+                        # output_buffer.append(str(el).encode())
+                        # if can solve a concrete number
+                        solve_char = m.evaluate(el)
+                        if is_bv_value(solve_char):
+                            output_solve_buffer.append(
+                                chr(solve_char.as_long()))
+                        elif is_bv(solve_char):      
+                            output_solve_buffer.append("`@`")
+                        else:
+                            exit(
+                                f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
+
+                tmp_dict["name"] = state.file_sys[fd]["name"]
+                # tmp_dict["output"] = f'{b"".join(output_buffer)}'
+                tmp_dict["output"] = "".join(output_solve_buffer)
+                state_result["Output"].append(tmp_dict)
+        elif state.type == 'concolic':
+            state_result["Solution"] = {}
+            #state_result["Solution"]["sym_arg1"]= state.args[1]
+            for arg in state.args_conco:
             # the decode is weird, we just want to convert unprintable characters
             # into printable chars
             # ref: https://stackoverflow.com/questions/13837848/converting-byte-string-in-unicode-string
-            solution_hex_str = hex(m[k].as_long())[2:]
-            if len(solution_hex_str) % 2 == 1:
-                solution_hex_str = "0" + solution_hex_str
-            solution = []
-            for i in range(0, len(solution_hex_str), 2):
-                solution.append(chr(int(solution_hex_str[i: i + 2], 16)))
-            state_result["Solution"][str(k)] = "".join(solution[::-1])
+                concrete_arg = state.args_map[arg]
+                number = int(concrete_arg) if isinstance(concrete_arg, str) else concrete_arg.as_long()
+                solution_hex_str = hex(number)[2:]
+                if len(solution_hex_str) % 2 == 1:
+                    solution_hex_str = "0" + solution_hex_str
+                solution = []
+                for i in range(0, len(solution_hex_str), 2):
+                    solution.append(chr(int(solution_hex_str[i: i + 2], 16)))
+                state_result["Solution"][str(arg)] = "".join(solution[::-1])
 
-        candidate_fds = []
-        # filter out all output buffer
-        for fd, file_info in state.file_sys.items():
-            if "w" in file_info["flag"]:
-                if isinstance(fd, int) or fd[0] == "-":
-                    candidate_fds.append(fd)
+            candidate_fds = []
+            # filter out all output buffer
+            for fd, file_info in state.file_sys.items():
+                if "w" in file_info["flag"]:
+                    if isinstance(fd, int) or fd[0] == "-":
+                        candidate_fds.append(fd)
 
-        state_result["Output"] = []
-        # stdout and stderr buffer
-        for fd in candidate_fds:
-            assert all(isinstance(x, (int, BitVecRef))
-                       for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
-            tmp_dict = {"name": None, "output": None}
-            # output_buffer = []
-            output_solve_buffer = []
-            for el in state.file_sys[fd]["content"]:
-                if isinstance(el, int):
-                    # output_buffer.append(chr(el).encode())
-                    output_solve_buffer.append(chr(el))
-                elif isinstance(el, BitVecRef):
-                    assert el.size() == 8, f"{el} size is not 8"
-                    # output_buffer.append(str(el).encode())
-                    # if can solve a concrete number
-                    solve_char = m.evaluate(el)
-                    if is_bv_value(solve_char):
-                        output_solve_buffer.append(
-                            chr(solve_char.as_long()))
-                    elif is_bv(solve_char):
-                        output_solve_buffer.append("`@`")
-                    else:
-                        exit(
-                            f"result of solving {el} is {solve_char} and type is {type(solve_char)}")
-
-            tmp_dict["name"] = state.file_sys[fd]["name"]
-            # tmp_dict["output"] = f'{b"".join(output_buffer)}'
-            tmp_dict["output"] = "".join(output_solve_buffer)
-            state_result["Output"].append(tmp_dict)
-
+            state_result["Output"] = []
+            # stdout and stderr buffer
+            for fd in candidate_fds:
+                assert all(isinstance(x, (int, BitVecRef))
+                        for x in state.file_sys[fd]["content"]), f"buffer is: {state.file_sys[fd]['content']}, not all int and bitvec"
+                tmp_dict = {"name": None, "output": None}
+                # output_buffer = []
+                output_solve_buffer = []
+                for el in state.file_sys[fd]["content"]:
+                    if isinstance(el, int):
+                        # output_buffer.append(chr(el).encode())
+                        output_solve_buffer.append(chr(el))
+                tmp_dict["name"] = state.file_sys[fd]["name"]
+                # tmp_dict["output"] = f'{b"".join(output_buffer)}'
+                tmp_dict["output"] = "".join(output_solve_buffer)
+                state_result["Output"].append(tmp_dict)
         json.dump(state_result, fp, indent=4)
 
 

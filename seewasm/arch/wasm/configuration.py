@@ -47,7 +47,7 @@ class Configuration:
     _sym_file_limit = 0
     # symbolic or concolic execution mode
     _execution_mode = ''
-    # how many bytes a sym file can hold
+    # how many bytes a sym file can hold    
     _sym_file_byte_limit = 0
     # keep z3 cache
     # each value is a tuple, consisting of query times, sat or not, and solver
@@ -76,7 +76,7 @@ class Configuration:
 
     @ staticmethod
     def set_execution_mode(mode):
-        Configuration.symbolic  = mode
+        Configuration._execution_mode  = mode
 
     @ staticmethod
     def get_execution_mode():
@@ -132,6 +132,7 @@ class Configuration:
     
         if args:
             Configuration._args += args.split(" ")
+
 
         if sym_args:
             for i, sym_len in enumerate(sym_args):
@@ -270,19 +271,23 @@ class Configuration:
         return Configuration._dsl_flag
 
     @staticmethod
-    def set_elem_index_to_func(wat_file_path):
-        with open(wat_file_path) as fp:
-            wat_content = fp.read()
-        # extract the element section
-        result = re.search(r"\(elem.*func ([\w\._\$ ]*)\)", wat_content)
-        # if there is element section in the given wat
-        if result:
-            elem_sec_funcs = result.group(1).split(' ')
-            for i, func in enumerate(elem_sec_funcs):
-                if "__imported_wasi_snapshot_preview1_" in func:
-                    func = func[34:]  # remove the prefix
-                # remove the leading $
-                Configuration._elem_index_to_func[i] = func[1:]
+    def set_elem_index_to_func(elements,table_size):
+        # with open(wat_file_path) as fp:
+        #     wat_content = fp.read()
+        # # extract the element section
+        # result = re.search(r"\(elem.*func ([\w\._\$ ]*)\)", wat_content)
+        # # if there is element section in the given wat
+        # if result:
+        #     elem_sec_funcs = result.group(1).split(' ')
+        #     for i, func in enumerate(elem_sec_funcs):
+        #         if "__imported_wasi_snapshot_preview1_" in func:
+        #             func = func[34:]  # remove the prefix
+        #         # remove the leading $
+        #         Configuration._elem_index_to_func[i] = func[1:]
+        Configuration._elem_index_to_func=list([-1]*table_size)
+        for fmt in elements:
+            for index,func in enumerate(fmt['elems']):
+                Configuration._elem_index_to_func[index+fmt['offset']] = func
 
     @staticmethod
     def get_elem_index_to_func():

@@ -57,5 +57,6 @@ class ConstantInstructions:
                 raise UnsupportInstructionError
         else:
             raise UnsupportInstructionError
-
+        if state.type == 'concolic':
+            state.concolic_stack.append(state.symbolic_stack[-1])
         return [state]

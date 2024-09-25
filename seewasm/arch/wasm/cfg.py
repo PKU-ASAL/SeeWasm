@@ -67,7 +67,7 @@ def enum_func_name_call_indirect(functions):
         for inst in func.instructions:
             if inst.name == "call_indirect":
                 func_name.append(func.name)
-    func_name = list(set(func_name))
+    func_name = list(set(func_name))  
     return func_name
 
 

@@ -50,6 +50,7 @@ class WASIImportFunction:
 
             argc = len(sym_args_len) + len(no_sym_args_len)
             argv_len = sum(sym_args_len) + sum(no_sym_args_len) + argc
+            
             Configuration._argc_arg_buf_size.append(
                 [argc] + no_sym_args_len + sym_args_len)
 

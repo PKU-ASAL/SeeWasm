@@ -13,7 +13,7 @@ memory_count = 2
 memory_step = 2
 
 
-class MemoryInstructions:
+class  MemoryInstructions:
     def __init__(self, instr_name, instr_operand, instr_string):
         self.instr_name = instr_name
         self.instr_operand = instr_operand

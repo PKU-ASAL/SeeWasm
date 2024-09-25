@@ -14,6 +14,16 @@ class WasmVMstate(VMstate):
         # data structure:
         def local_default():
             return BitVecVal(0, 32)
+        self.type='symbolic'
+        if Configuration.get_execution_mode() == "concolic":
+            self.type = 'concolic'
+            self.concolic_stack = []
+            self.concolic_memory = {}
+            self.local_var_concolic = defaultdict(local_default)
+            self.concolic_globals = {}
+            self.concolic_context_stack = []
+            self.args_conco = [] # when concolic mode,this parameter stores the corresponding symbolic value 
+            self.args_map={}
         self.symbolic_stack = []
         self.symbolic_memory = {}
         self.local_var = defaultdict(local_default)
@@ -29,10 +39,9 @@ class WasmVMstate(VMstate):
         # context stack
         # whose element is 4-tuple: (func_name, stack, local, require_return)
         # TODO files buffer may need to maintained in context
+        
         self.context_stack = []
-
         self.args = "" 
-        self.args_conco = ""# when concolic mode,this parameter stores the corresponding symbolic value 
         # all items should be initialized by init_file_for_file_sys in utils
         self.file_sys = {}
         for fd in range(0, 3):

@@ -6,7 +6,7 @@ import sys
 from collections import defaultdict
 from queue import Queue
 
-from z3 import BitVec, BitVecVal
+from z3 import *
 
 from seewasm.arch.wasm.analyzer import WasmModuleAnalyzer
 from seewasm.arch.wasm.cfg import WasmCFG
@@ -314,19 +314,22 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         args = Configuration.get_args()
         state.args = args
         # copy the args to concolic args
-        if Configuration.get_execution_mode=='concolic':
+        if Configuration.get_execution_mode()=='concolic':
             for i, arg in enumerate(args):
                 if i==0:
-                    pass
-                state.args_conco.append(
-                    BitVec(f"sym_arg_{i + 1}", 8 * len(arg)))
-                
+                    continue
+                if(len(arg)<=8):
+                    state.args_conco.append(BitVec(f"sym_arg_{i}",32))
+                else:
+                    state.args_conco.append(BitVec(f"sym_arg_{i}",64))
+                state.args_map[state.args_conco[i-1]] = state.args[i]
 
         if param_str != '':
+             #TODO alert: deal with local variables 
             for i, local in enumerate(param_str.split(' ')):
                 state.local_var[i] = getConcreteBitVec(
                     local, func_name + '_loc_' + str(i) + '_' + local)
-        #TODO: deal with local variables
+       
         state.current_func_name = func_name
 
         # deal with the globals
@@ -367,22 +370,22 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
 
     def emulate_one_instruction(self, instr, state, lvar=None):
         instruction_map = {
-            'Arithmetic_i32': ArithmeticInstructions,
-            'Arithmetic_i64': ArithmeticInstructions,
-            'Arithmetic_f32': ArithmeticInstructions,
-            'Arithmetic_f64': ArithmeticInstructions,
-            'Bitwise_i32': BitwiseInstructions,
-            'Bitwise_i64': BitwiseInstructions,
-            'Constant': ConstantInstructions,
+            'Arithmetic_i32': ArithmeticInstructions,#
+            'Arithmetic_i64': ArithmeticInstructions,#
+            'Arithmetic_f32': ArithmeticInstructions,# TODO :check
+            'Arithmetic_f64': ArithmeticInstructions,#
+            'Bitwise_i32': BitwiseInstructions,#
+            'Bitwise_i64': BitwiseInstructions,#
+            'Constant': ConstantInstructions,#
             'Control': ControlInstructions,
-            'Conversion': ConversionInstructions,
-            'Logical_i32': LogicalInstructions,
-            'Logical_i64': LogicalInstructions,
-            'Logical_f32': LogicalInstructions,
-            'Logical_f64': LogicalInstructions,
+            'Conversion': ConversionInstructions,#
+            'Logical_i32': LogicalInstructions,#
+            'Logical_i64': LogicalInstructions,#
+            'Logical_f32': LogicalInstructions,#
+            'Logical_f64': LogicalInstructions,#
             'Memory': MemoryInstructions,
-            'Parametric': ParametricInstructions,
-            'Variable': VariableInstructions,
+            'Parametric': ParametricInstructions,#
+            'Variable': VariableInstructions,#
         }
         if instr.operand_interpretation is None:
             instr.operand_interpretation = instr.name
@@ -393,7 +396,19 @@ class WasmSSAEmulatorEngine(EmulatorEngine):
         instr_obj = instruction_map[instr.group](
             instr.name, instr.operand, instr.operand_interpretation)
         if instr.group == 'Memory':
-            ret_states = instr_obj.emulate(state, self.data_section)
+            
+            state = instr_obj.emulate(state, self.data_section)
+            temmemory=state.symbolic_memory
+            temstack=state.symbolic_stack
+            state.symbolic_memory =state.concolic_memory
+            state.symbolic_stack = state.concolic_stack
+            state = instr_obj.emulate(state, self.data_section)
+            state.concolic_memory =state.symbolic_memory
+            state.concolic_stack = state.symbolic_stack
+            state.symbolic_memory = temmemory
+            state.symbolic_stack = temstack
+            
+            
         elif instr.group == 'Control':
             ret_states = instr_obj.emulate(
                 state, self.data_section, self.ana, lvar)

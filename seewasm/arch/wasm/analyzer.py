@@ -300,7 +300,7 @@ class WasmModuleAnalyzer(object):
         element_list = []
 
         for idx, entry in enumerate(entries):
-            for cur_insn in entry.offset:
+            for cur_insn in entry.offset: 
                 offset = int(format_instruction(cur_insn).split(' ')[1])
                 break
 

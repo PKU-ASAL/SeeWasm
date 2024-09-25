@@ -4,8 +4,9 @@ from queue import PriorityQueue
 from queue import Queue
 import random
 
-from z3 import unsat
-
+from z3 import unsat,sat
+from z3 import BitVec, BitVecVal, is_bv, is_bv_value
+from z3 import *
 from seewasm.arch.wasm.configuration import Configuration
 from seewasm.arch.wasm.exceptions import (ProcFailTermination,
                                           ProcSuccessTermination)
@@ -450,8 +451,10 @@ class Graph:
         blks = []
         for _, bbs in cls.func_to_bbs.items():
             blks += bbs
+        if Configuration.get_execution_mode() == 'concolic':
+            final_states = cls.algo_concolic(entry_bb, state)
 
-        if Configuration.get_algo() == 'interval':
+        elif Configuration.get_algo() == 'interval':
             final_states = cls.algo_interval(entry_bb, state, blks)
         elif Configuration.get_algo() == 'bfs':
             final_states = cls.algo_traverse(entry_bb, state, cls.bfs_producer)
@@ -893,6 +896,123 @@ class Graph:
     #         if halt_flag:
     #             break
     #     return final_states
+
+    @ classmethod
+    def algo_concolic(cls, entry, state, ):
+        def replace_constants(expr, constant_map):
+            if is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED:
+                # 如果是一个常量并且存在于对照表中，替换它
+                const_name = expr.decl().name()
+                if const_name in constant_map:
+                    return constant_map[const_name]
+            return substitute(expr, *[(k, v) for k, v in constant_map.items()])
+
+        def update_state(state):
+            m = state.solver.model()
+            
+            for k in m: #k sym_arg1 m[k] int 
+                # argsize = m[k].size() // 8 + 1
+                newarg = BitVecVal(m[k].as_long(), 32)
+                for index,arg in enumerate(state.args_conco):
+                    if str(arg) == str(k):
+                        state.args[index+1] = newarg
+                        state.args_map[arg] = newarg
+            # todo :剪枝
+            for index,expr in enumerate(state.concolic_stack):
+                if (is_bv(expr) and not is_bv_value(expr)):
+                    new_expr = replace_constants(expr,state.arg_map)
+                    s = Solver()
+                    if s.check() == sat:
+                        model = s.model()
+                        result = model.eval(new_expr)
+                        print(f"结果为: {result}")
+                    else:
+                        print("无法求解该表达式。")
+                    state.stack[index] = result
+            for key,expr in state.local_var_concolic.items():
+                if (is_bv(expr) and (not is_bv_value(expr))):
+                    new_expr = replace_constants(expr,state.args_map)
+                    s = Solver()
+                    if s.check() == sat:
+                        model = s.model()
+                        result = model.eval(new_expr)
+                        print(f"new input: {result}")
+                    else:
+                        print("无法求解该表达式。")
+                    state.local_var[key] = result
+            
+            return state
+       
+        def concolicepoch(current_state):
+            # 
+            if current_state.current_bb_name == '':
+                current_bb = entry
+            else:
+                current_bb = current_state.current_bb_name
+            current_states = [current_state]
+            new_states=[]
+            while True:
+                succs_list = cls.bbs_graph[current_bb].items()# 当前块的后继块
+                halt_flag = False
+                try: 
+                    current_states = cls.wasmVM.emulate_basic_block(
+                            current_states, cls.bb_to_instructions[current_bb])#可能产生了新的候选状态
+                except ProcSuccessTermination:
+                        write_result(current_states[0], exit=True)
+                        break
+                except ProcFailTermination:
+                        write_result(current_states[0], exit=True)
+                        break
+                if len(list(succs_list)) == 1:
+                    current_bb = list(succs_list)[0][1]
+                elif len(list(succs_list)) == 0:
+                    if readable_internal_func_name(
+                        Configuration.get_func_index_to_func_name(),
+                        state.current_func_name) == Configuration.get_entry():
+                        write_result(current_states[0])
+                    break
+                else: 
+                    for edge_type, next_block in succs_list:
+                        if edge_type == current_states[0].edge_type:
+                            current_bb = next_block
+                        for new_state in current_states[1:]:
+                            if(new_state.edge_type == edge_type):
+                                new_state.current_bb_name = next_block
+                                new_state.edge_type = ''
+                                new_state.call_indirect_callee = ''
+                current_states[0].current_bb_name = ''
+                current_states[0].edge_type = ''
+                current_states[0].call_indirect_callee = ''
+                new_states.extend(current_states[1:])
+                current_states=[current_states[0]]
+                
+            final_states['return'].append(current_states[0])
+            return new_states
+        
+
+        final_states = defaultdict(list)   
+        if state.current_func_name=='$func1':
+            concre_var=state.args[1] if isinstance(state.args[1],int) else int(state.args[1])
+            concre_var=BitVecVal(concre_var, 32)
+            sym_var=state.args_conco[0]
+            if (sym_var.size()!=32):
+                sym_var =  SignExt(16, sym_var)
+            state.local_var[0]=concre_var
+            state.local_var_concolic[0]=sym_var
+
+        cancidate_states=[]
+        while True:
+            new_states = concolicepoch(state)
+            cancidate_states.extend(new_states)
+
+            if(len(cancidate_states)==0):
+                break
+            for idx, state in enumerate(cancidate_states):
+                if sat == state.solver.check():
+                    break
+            state=cancidate_states[idx]
+            cancidate_states=cancidate_states[idx+1:]
+            state = update_state(state)
             
 
     @ classmethod
@@ -906,9 +1026,15 @@ class Graph:
         # cls.find_cycles(entry, icfg_cycles)
         # vis_start_bb.add(entry)
         # print(icfg_cycles)
-
+        if state.current_func_name=='$func1':
+            if is_bv(state.args[1]) or is_bv_value(state.args[1]):
+                state.local_var[0]=state.args[1]
+            else:
+                concre_var=state.args[1] if isinstance(state.args[1],int) else int(state.args[1])
+                concre_var=BitVecVal(concre_var, 32 )
+                state.local_var[0]=concre_var
         def consumer(item):
-            (current_bb, current_states) = item#当前块与当前的状态
+            (current_bb, current_states) = item  #当前块与当前的状态
             succs_list = cls.bbs_graph[current_bb].items()# 当前块的后继块
             halt_flag = False
             try: 

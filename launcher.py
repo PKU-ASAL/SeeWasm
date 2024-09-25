@@ -96,7 +96,7 @@ def main():
         Configuration.set_stdin(args.stdin, args.sym_stdin)
         Configuration.set_sym_files(args.sym_files)
         Configuration.set_incremental_solving(args.incremental)
-        Configuration.set_elem_index_to_func(wat_file_path)
+        
 
         command_file_name = f"./output/result/{Configuration.get_file_name()}_{Configuration.get_start_time()}/command.json"
         makedirs(path.dirname(command_file_name), exist_ok=True)
@@ -117,6 +117,7 @@ def main():
         # run the emulator for SSA
         Graph.wasmVM = wasmVM
         Graph.initialize()
+        Configuration.set_elem_index_to_func(wasmVM.ana.elements,wasmVM.ana.tables[0]['limits_initial'])
         # draw the ICFG on basic block level, and exit
         if Configuration.get_visualize():
             # draw here
