@@ -236,6 +236,10 @@ _table = {
     0xbe: ('f32.reinterpret/i32', None, 1, 1, 'reinterpret the bits of a 32-bit integer as a 32-bit float'),
     0xbf: ('f64.reinterpret/i64', None, 1, 1, 'reinterpret the bits of a 64-bit integer as a 64-bit float'),
     0xc0: ('i32.extend_s/i8', None, 1, 1, 'extend a signed 8-bit integer to a 32-bit integer'),
+    0xc1: ('i32.extend_s/i16', None, 1, 1, 'extend a signed 16-bit integer to a 32-bit integer'),
+    0xc2: ('i64.extend_s/i8', None, 1, 1, 'extend a signed 8-bit integer to a 64-bit integer'),
+    0xc3: ('i64.extend_s/i16', None, 1, 1, 'extend a signed 16-bit integer to a 64-bit integer'),
+    0xc4: ('i64.extend_s/i32', None, 1, 1, 'extend a signed 32-bit integer to a 64-bit integer'),
 
   0xfc0a: ('memory.copy', None, 0, 0, 'copy data from a source memory region to destination region'),
   0xfc0b: ('memory.fill', None, 0, 0, 'set all bytes in a memory region to a given byte'),

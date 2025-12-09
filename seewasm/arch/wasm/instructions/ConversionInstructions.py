@@ -183,6 +183,22 @@ class ConversionInstructions:
             assert arg0.size() == 8, 'i32.extend_s/i8 has wrong arg type'
 
             result = simplify(SignExt(24, arg0))
+        elif self.instr_name == 'i32.extend_s/i16':
+            assert arg0.size() == 16, 'i32.extend_s/i16 has wrong arg type'
+
+            result = simplify(SignExt(16, arg0))
+        elif self.instr_name == 'i64.extend_s/i8':
+            assert arg0.size() == 8, 'i64.extend_s/i8 has wrong arg type'
+
+            result = simplify(SignExt(56, arg0))
+        elif self.instr_name == 'i64.extend_s/i16':
+            assert arg0.size() == 16, 'i64.extend_s/i16 has wrong arg type'
+
+            result = simplify(SignExt(48, arg0))
+        elif self.instr_name == 'i64.extend_s/i32':
+            assert arg0.size() == 32, 'i64.extend_s/i32 has wrong arg type'
+
+            result = simplify(SignExt(32, arg0))
         else:
             print('\nErr:\nUnsupported instruction: %s\n' % self.instr_name)
             raise UnsupportInstructionError
