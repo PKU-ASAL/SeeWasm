@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+import leb128
+
 from seewasm.arch.wasm.decode import decode_module
 from seewasm.arch.wasm.instruction import WasmInstruction
 from seewasm.arch.wasm.wasm import Wasm
@@ -30,15 +32,22 @@ class WasmDisassembler(Disassembler):
         bytecode_wnd = memoryview(bytecode)
         bytecode_idx = 0
         opcode_id = byte2int(bytecode_wnd[bytecode_idx])
-        opcode_size = 1
-
         bytecode_idx += 1
         if opcode_id == 0xfc:
-            opcode_id = (opcode_id << 8) | byte2int(bytecode_wnd[bytecode_idx])
-            if opcode_id == 0xfc0a: # memory.copy
-                opcode_size = 4
-            elif opcode_id == 0xfc0b: # memory.fill
-                opcode_size = 3
+            valid_leb128 = b""
+            while True:
+                cur_byte = byte2int(bytecode_wnd[bytecode_idx])
+                valid_leb128 += bytes([cur_byte])
+                bytecode_idx += 1
+                if cur_byte < 0x80:
+                    break
+
+            opcode_id = (opcode_id << 8) | leb128.u.decode(valid_leb128)
+            if opcode_id == 0xfc0a:  # memory.copy
+                bytecode_idx += 2
+            elif opcode_id == 0xfc0b:  # memory.fill
+                bytecode_idx += 1
+        opcode_size = bytecode_idx
         # default value
         # opcode:(mnemonic/name, imm_struct, pops, pushes, description)
         invalid = ('INVALID', 0, 0, 0, 'Unknown opcode')
@@ -54,9 +63,9 @@ class WasmDisassembler(Disassembler):
             operand_size, operand, _ = imm_struct.from_raw(
                 None, bytecode_wnd[bytecode_idx:])
             insn = inst_namedtuple(
-                OPCODE_MAP[opcode_id], operand, bytecode_idx + operand_size)
+                OPCODE_MAP[opcode_id], operand, opcode_size + operand_size)
             operand_interpretation = format_instruction(insn)
-        insn_byte = bytecode_wnd[:bytecode_idx + operand_size].tobytes()
+        insn_byte = bytecode_wnd[:opcode_size + operand_size].tobytes()
         instruction = WasmInstruction(
             opcode_id, opcode_size, name, imm_struct, operand_size, insn_byte, pops, pushes,
             description, operand_interpretation=operand_interpretation,

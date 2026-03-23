@@ -241,8 +241,16 @@ _table = {
     0xc3: ('i64.extend_s/i16', None, 1, 1, 'extend a signed 16-bit integer to a 64-bit integer'),
     0xc4: ('i64.extend_s/i32', None, 1, 1, 'extend a signed 32-bit integer to a 64-bit integer'),
 
-  0xfc0a: ('memory.copy', None, 0, 0, 'copy data from a source memory region to destination region'),
-  0xfc0b: ('memory.fill', None, 0, 0, 'set all bytes in a memory region to a given byte'),
+    0xfc00: ('i32.trunc_sat_f32_s', None, 1, 1, 'truncate a 32-bit float to a signed 32-bit integer with saturation'),
+    0xfc01: ('i32.trunc_sat_f32_u', None, 1, 1, 'truncate a 32-bit float to an unsigned 32-bit integer with saturation'),
+    0xfc02: ('i32.trunc_sat_f64_s', None, 1, 1, 'truncate a 64-bit float to a signed 32-bit integer with saturation'),
+    0xfc03: ('i32.trunc_sat_f64_u', None, 1, 1, 'truncate a 64-bit float to an unsigned 32-bit integer with saturation'),
+    0xfc04: ('i64.trunc_sat_f32_s', None, 1, 1, 'truncate a 32-bit float to a signed 64-bit integer with saturation'),
+    0xfc05: ('i64.trunc_sat_f32_u', None, 1, 1, 'truncate a 32-bit float to an unsigned 64-bit integer with saturation'),
+    0xfc06: ('i64.trunc_sat_f64_s', None, 1, 1, 'truncate a 64-bit float to a signed 64-bit integer with saturation'),
+    0xfc07: ('i64.trunc_sat_f64_u', None, 1, 1, 'truncate a 64-bit float to an unsigned 64-bit integer with saturation'),
+    0xfc0a: ('memory.copy', None, 0, 0, 'copy data from a source memory region to destination region'),
+    0xfc0b: ('memory.fill', None, 0, 0, 'set all bytes in a memory region to a given byte'),
 }
 
 

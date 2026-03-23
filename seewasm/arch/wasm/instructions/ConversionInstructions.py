@@ -1,9 +1,10 @@
 # emulate the conversion related instructions
 
 from seewasm.arch.wasm.exceptions import UnsupportInstructionError
-from z3 import (RNE, RTZ, BitVecSort, BitVecVal, Extract, Float32, Float64,
-                SignExt, ZeroExt, fpBVToFP, fpFPToFP, fpSignedToFP, fpToIEEEBV,
-                fpToSBV, fpToUBV, fpUnsignedToFP, simplify)
+from z3 import (If, RNE, RTZ, BitVecSort, BitVecVal, Extract, Float32,
+                Float64, SignExt, ZeroExt, fpBVToFP, fpFPToFP, fpGEQ, fpGT,
+                fpIsNaN, fpLEQ, fpLT, fpSignedToFP, fpToIEEEBV, fpToSBV,
+                fpToUBV, fpUnsignedToFP, simplify)
 
 
 class ConversionInstructions:
@@ -13,6 +14,35 @@ class ConversionInstructions:
 
     def emulate(self, state):
         arg0 = state.symbolic_stack.pop()
+
+        def saturating_trunc(arg, signed, bits):
+            if arg.ebits() == 8:
+                float_sort = Float32()
+            else:
+                float_sort = Float64()
+
+            zero = BitVecVal(0, bits)
+            if signed:
+                min_val = -(2 ** (bits - 1))
+                max_val = 2 ** (bits - 1) - 1
+                min_bv = BitVecVal((1 << bits) + min_val, bits)
+                max_bv = BitVecVal(max_val, bits)
+                min_fp = fpSignedToFP(RNE(), min_bv, float_sort)
+                max_fp = fpSignedToFP(RNE(), max_bv, float_sort)
+                trunc_val = fpToSBV(RTZ(), arg, BitVecSort(bits))
+                return simplify(
+                    If(fpIsNaN(arg), zero,
+                       If(fpLT(arg, min_fp), min_bv,
+                          If(fpGT(arg, max_fp), max_bv, trunc_val))))
+
+            max_val = 2 ** bits - 1
+            max_bv = BitVecVal(max_val, bits)
+            max_fp = fpUnsignedToFP(RNE(), max_bv, float_sort)
+            trunc_val = fpToUBV(RTZ(), arg, BitVecSort(bits))
+            return simplify(
+                If(fpIsNaN(arg), zero,
+                   If(fpLEQ(arg, fpUnsignedToFP(RNE(), zero, float_sort)), zero,
+                      If(fpGEQ(arg, max_fp), max_bv, trunc_val))))
 
         if self.instr_name == 'i32.wrap/i64':
             assert arg0.size() == 64, 'i32.wrap/i64 has wrong arg type'
@@ -83,6 +113,46 @@ class ConversionInstructions:
             rm = RTZ()
             result = simplify(fpToUBV(rm, arg0, BitVecSort(64)))
             assert result.size() == 64, 'i64.trunc_u/f64 convert fail'
+        elif self.instr_name == 'i32.trunc_sat_f32_s':
+            assert arg0.ebits() == 8, 'i32.trunc_sat_f32_s has wrong arg type'
+            assert arg0.sbits() == 24, 'i32.trunc_sat_f32_s has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=True, bits=32)
+        elif self.instr_name == 'i32.trunc_sat_f32_u':
+            assert arg0.ebits() == 8, 'i32.trunc_sat_f32_u has wrong arg type'
+            assert arg0.sbits() == 24, 'i32.trunc_sat_f32_u has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=False, bits=32)
+        elif self.instr_name == 'i32.trunc_sat_f64_s':
+            assert arg0.ebits() == 11, 'i32.trunc_sat_f64_s has wrong arg type'
+            assert arg0.sbits() == 53, 'i32.trunc_sat_f64_s has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=True, bits=32)
+        elif self.instr_name == 'i32.trunc_sat_f64_u':
+            assert arg0.ebits() == 11, 'i32.trunc_sat_f64_u has wrong arg type'
+            assert arg0.sbits() == 53, 'i32.trunc_sat_f64_u has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=False, bits=32)
+        elif self.instr_name == 'i64.trunc_sat_f32_s':
+            assert arg0.ebits() == 8, 'i64.trunc_sat_f32_s has wrong arg type'
+            assert arg0.sbits() == 24, 'i64.trunc_sat_f32_s has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=True, bits=64)
+        elif self.instr_name == 'i64.trunc_sat_f32_u':
+            assert arg0.ebits() == 8, 'i64.trunc_sat_f32_u has wrong arg type'
+            assert arg0.sbits() == 24, 'i64.trunc_sat_f32_u has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=False, bits=64)
+        elif self.instr_name == 'i64.trunc_sat_f64_s':
+            assert arg0.ebits() == 11, 'i64.trunc_sat_f64_s has wrong arg type'
+            assert arg0.sbits() == 53, 'i64.trunc_sat_f64_s has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=True, bits=64)
+        elif self.instr_name == 'i64.trunc_sat_f64_u':
+            assert arg0.ebits() == 11, 'i64.trunc_sat_f64_u has wrong arg type'
+            assert arg0.sbits() == 53, 'i64.trunc_sat_f64_u has wrong arg type'
+
+            result = saturating_trunc(arg0, signed=False, bits=64)
         elif self.instr_name == 'f32.demote/f64':
             assert arg0.ebits() == 11, 'f32.demote/f64 has wrong arg type'
             assert arg0.sbits() == 53, 'f32.demote/f64 has wrong arg type'

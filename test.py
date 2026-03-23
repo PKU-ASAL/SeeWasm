@@ -10,6 +10,7 @@ testcase_dir = './test/'
 @pytest.mark.parametrize('wasm_path, entry', [
     ('hello_world.wasm', ''),
     ('hello_world_go.wasm', '_start'),
+    ('hello_world_wasip1.wasm', '_start'),
     ('hello_world_rust.wasm', ''),
     ('test.wasm', ''),
     ('password.wasm', '')

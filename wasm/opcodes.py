@@ -203,6 +203,14 @@ OPCODES = [
     Opcode(0xc3, 'i64.extend_s/i16',      None,                     0),
     Opcode(0xc4, 'i64.extend_s/i32',      None,                     0),
 
+    Opcode(0xfc00, 'i32.trunc_sat_f32_s', None,                     0),
+    Opcode(0xfc01, 'i32.trunc_sat_f32_u', None,                     0),
+    Opcode(0xfc02, 'i32.trunc_sat_f64_s', None,                     0),
+    Opcode(0xfc03, 'i32.trunc_sat_f64_u', None,                     0),
+    Opcode(0xfc04, 'i64.trunc_sat_f32_s', None,                     0),
+    Opcode(0xfc05, 'i64.trunc_sat_f32_u', None,                     0),
+    Opcode(0xfc06, 'i64.trunc_sat_f64_s', None,                     0),
+    Opcode(0xfc07, 'i64.trunc_sat_f64_u', None,                     0),
     Opcode(0xfc0a, 'memory.copy',         None,                     0),
     Opcode(0xfc0b, 'memory.fill',         None,                     0),
 ]
