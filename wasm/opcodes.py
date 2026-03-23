@@ -198,6 +198,10 @@ OPCODES = [
     Opcode(0xbf, 'f64.reinterpret/i64',   None,                     0),
     
     Opcode(0xc0, 'i32.extend_s/i8',       None,                     0),
+    Opcode(0xc1, 'i32.extend_s/i16',      None,                     0),
+    Opcode(0xc2, 'i64.extend_s/i8',       None,                     0),
+    Opcode(0xc3, 'i64.extend_s/i16',      None,                     0),
+    Opcode(0xc4, 'i64.extend_s/i32',      None,                     0),
 
     Opcode(0xfc0a, 'memory.copy',         None,                     0),
     Opcode(0xfc0b, 'memory.fill',         None,                     0),
